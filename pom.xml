@@ -43,7 +43,7 @@
         <maven-gpg.version>1.4</maven-gpg.version>
         <github-site-upload.version>0.6</github-site-upload.version>
 
-        <jsoup.version>1.7.1</jsoup.version>
+        <jsoup.version>1.9.2</jsoup.version>
         <commons-io.version>2.4</commons-io.version>
     </properties>
 
