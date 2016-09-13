@@ -1,7 +1,6 @@
 package gun0912.tedbottompicker;
 
 import android.Manifest;
-import android.app.Activity;
 import android.app.Dialog;
 import android.content.ClipData;
 import android.content.Context;
@@ -240,36 +239,33 @@ public class TedBottomPicker extends BottomSheetDialogFragment {
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (resultCode == Activity.RESULT_OK) {
-            ArrayList<Uri> selectedImageUri = new ArrayList<>();
-            if (requestCode == REQ_CODE_GALLERY && data != null) {
-                if (data.getData() != null && data.getClipData() == null) {
-                    // Get the Image from data (single image)
-                    selectedImageUri.add(data.getData());
-                } else {
-                    //Multiple images
-                    if (data.getClipData() != null) {
-                        ClipData mClipData = data.getClipData();
-                        for (int i = 0; i < mClipData.getItemCount(); i++) {
-                            ClipData.Item item = mClipData.getItemAt(i);
-                            Uri uri = item.getUri();
-                            selectedImageUri.add(uri);
-                        }
+        ArrayList<Uri> selectedImageUri = new ArrayList<>();
+        if (requestCode == REQ_CODE_GALLERY && data != null) {
+            if (data.getData() != null && data.getClipData() == null) {
+                // Get the Image from data (single image)
+                selectedImageUri.add(data.getData());
+            } else {
+                //Multiple images
+                if (data.getClipData() != null) {
+                    ClipData mClipData = data.getClipData();
+                    for (int i = 0; i < mClipData.getItemCount(); i++) {
+                        ClipData.Item item = mClipData.getItemAt(i);
+                        Uri uri = item.getUri();
+                        selectedImageUri.add(uri);
                     }
                 }
-            } else if (requestCode == REQ_CODE_CAMERA) {
-                // Do something with imagePath
-                selectedImageUri.add(cameraImageUri);
-                MediaScannerConnection.scanFile(getContext(), new String[]{cameraImageUri.getPath()}, new String[]{"image/jpeg"}, null);
             }
-
-            if (!selectedImageUri.isEmpty()) {
-                complete(selectedImageUri);
-            } else {
-                errorMessage();
-            }
+        } else if (requestCode == REQ_CODE_CAMERA) {
+            // Do something with imagePath
+            selectedImageUri.add(cameraImageUri);
+            MediaScannerConnection.scanFile(getContext(), new String[]{cameraImageUri.getPath()}, new String[]{"image/jpeg"}, null);
         }
 
+        if (!selectedImageUri.isEmpty()) {
+            complete(selectedImageUri);
+        } else {
+            errorMessage();
+        }
     }
 
     private void errorMessage() {
