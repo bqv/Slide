@@ -148,7 +148,7 @@ public class TedBottomPicker extends BottomSheetDialogFragment {
                         break;
                     case ImageGalleryAdapter.PickerTile.IMAGE:
                         complete(new ArrayList<Uri>() {{
-                            pickerTile.getImageUri();
+                            add(pickerTile.getImageUri());
                         }});
 
                         break;
