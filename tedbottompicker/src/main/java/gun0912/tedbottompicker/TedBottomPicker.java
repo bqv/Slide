@@ -47,8 +47,8 @@ import gun0912.tedbottompicker.adapter.ImageGalleryAdapter;
 public class TedBottomPicker extends BottomSheetDialogFragment {
 
     public static final String TAG = "ted";
-    static final int REQ_CODE_CAMERA = 1;
-    static final int REQ_CODE_GALLERY = 2;
+    static final int REQ_CODE_CAMERA = 2033;
+    static final int REQ_CODE_GALLERY = 2034;
     ImageGalleryAdapter imageGalleryAdapter;
     Builder builder;
     TextView tv_title;
