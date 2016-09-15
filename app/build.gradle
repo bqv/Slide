@@ -6,7 +6,7 @@ android {
 
     defaultConfig {
         applicationId "gun0912.tedbottompickerdemo"
-        minSdkVersion 16
+        minSdkVersion 15
         targetSdkVersion 24
         versionCode 1
         versionName "1.0"

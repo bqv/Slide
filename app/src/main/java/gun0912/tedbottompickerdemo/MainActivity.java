@@ -15,6 +15,7 @@ import com.gun0912.tedpermission.PermissionListener;
 import com.gun0912.tedpermission.TedPermission;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import gun0912.tedbottompicker.TedBottomPicker;
 
@@ -44,9 +45,9 @@ public class MainActivity extends AppCompatActivity {
                         TedBottomPicker bottomSheetDialogFragment = new TedBottomPicker.Builder(MainActivity.this)
                                 .setOnImageSelectedListener(new TedBottomPicker.OnImageSelectedListener() {
                                     @Override
-                                    public void onImageSelected(Uri uri) {
+                                    public void onImageSelected(List<Uri> uri) {
                                         Log.d("ted","uri: "+uri);
-                                        Log.d("ted","uri.getPath(): "+uri.getPath());
+                                        Log.d("ted","uri.getPath(): "+uri.get(0).getPath());
 
                                         Glide.with(MainActivity.this)
                                                 //.load(uri.toString())
