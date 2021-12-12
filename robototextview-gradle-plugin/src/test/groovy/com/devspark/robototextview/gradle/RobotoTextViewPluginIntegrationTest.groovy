@@ -47,13 +47,13 @@ import org.junit.rules.TemporaryFolder
 class RobotoTextViewPluginIntegrationTest {
 
     @Rule
-    public final TemporaryFolder testProjectDir = new TemporaryFolder();
+    public final TemporaryFolder testProjectDir = new TemporaryFolder()
 
-    private File buildFile;
+    private File buildFile
 
     @Before
-    public void setup() throws IOException {
-        buildFile = testProjectDir.newFile('build.gradle');
+    void setup() throws IOException {
+        buildFile = testProjectDir.newFile('build.gradle')
         buildFile << """
             buildscript {
                 repositories {
@@ -367,7 +367,7 @@ class RobotoTextViewPluginIntegrationTest {
         assertFontNotRemoved(result, "Roboto-Thin.ttf")
         assertFontNotRemoved(result, "Roboto-ThinItalic.ttf")
 
-        Assert.assertTrue(result.output.contains(RobotoTextViewPlugin.WARNING_TOGETHER));
+        Assert.assertTrue(result.output.contains(RobotoTextViewPlugin.WARNING_TOGETHER))
 
         Assert.assertEquals(result.task(":assemble").outcome, TaskOutcome.SUCCESS)
     }
@@ -478,11 +478,11 @@ class RobotoTextViewPluginIntegrationTest {
 
     static void assertFontRemoved(BuildResult result, String fontName) {
         Assert.assertTrue("assertFontRemoved: $fontName with output:\n$result.output",
-                result.output.contains("Note: Font $fontName was deleted"));
+                result.output.contains("Note: Font $fontName was deleted"))
     }
 
     static void assertFontNotRemoved(BuildResult result, String fontName) {
         Assert.assertFalse("assertFontNotRemoved: $fontName with output:\n$result.output",
-                result.output.contains("Note: Font $fontName was deleted"));
+                result.output.contains("Note: Font $fontName was deleted"))
     }
 }

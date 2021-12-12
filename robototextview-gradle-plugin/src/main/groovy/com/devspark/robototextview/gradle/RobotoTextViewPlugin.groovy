@@ -15,8 +15,8 @@ class RobotoTextViewPlugin implements Plugin<Project> {
         project.extensions.create("robototextview", RobotoTextViewPluginExtension)
 
         project.afterEvaluate {
-            def applicationPluginApplied = project.pluginManager.findPlugin('com.android.application') != null;
-            def libraryPluginApplied = project.pluginManager.findPlugin('com.android.library') != null;
+            def applicationPluginApplied = project.pluginManager.findPlugin('com.android.application') != null
+            def libraryPluginApplied = project.pluginManager.findPlugin('com.android.library') != null
 
             def variants
             if (applicationPluginApplied) {
@@ -86,12 +86,12 @@ class RobotoTextViewPlugin implements Plugin<Project> {
     private static def isTargetFont(file, fontName) {
         fontName = fontName == 'Roboto' ? 'Roboto-' : fontName
         // General font name check.
-        if(!file.name.startsWith(fontName)) {
+        if (!file.name.startsWith(fontName)) {
             return false
         }
 
         // Stop checking if it Roboto family.
-        if(fontName == 'Roboto-') {
+        if (fontName == 'Roboto-') {
             return true
         }
         // Extra check for Italic fonts (because RobotoMono-Bold != RobotoMono-BoldItalic)
@@ -110,11 +110,10 @@ class RobotoTextViewPlugin implements Plugin<Project> {
 
     static class RobotoTextViewPluginExtension {
 
-        String[] exclude;
+        String[] exclude
 
-        String[] include;
+        String[] include
 
-        boolean log;
+        boolean log
     }
 }
-

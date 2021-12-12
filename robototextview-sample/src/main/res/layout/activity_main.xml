@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!--
+<?xml version="1.0" encoding="utf-8"?><!--
 /* Copyright 2013, Evgeny Shishkin
 **
 ** Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,8 +14,7 @@
 ** limitations under the License.
 */
 -->
-<ScrollView
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -34,7 +32,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
-            android:text="Go to Activity with inflater"/>
+            android:text="Go to Activity with inflater" />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -46,14 +44,14 @@
                 android:layout_height="wrap_content"
                 android:text="Roboto Thin &amp; "
                 android:textSize="22sp"
-                app:robotoTypeface="roboto_thin"/>
+                app:robotoTypeface="roboto_thin" />
 
             <com.devspark.robototextview.widget.RobotoTextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Thin Italic"
                 android:textSize="22sp"
-                app:robotoTypeface="roboto_thin_italic"/>
+                app:robotoTypeface="roboto_thin_italic" />
 
         </LinearLayout>
 
@@ -67,14 +65,14 @@
                 android:layout_height="wrap_content"
                 android:text="Roboto Light &amp; "
                 android:textSize="22sp"
-                app:robotoTypeface="roboto_light"/>
+                app:robotoTypeface="roboto_light" />
 
             <com.devspark.robototextview.widget.RobotoTextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Light Italic"
                 android:textSize="22sp"
-                app:robotoTypeface="roboto_light_italic"/>
+                app:robotoTypeface="roboto_light_italic" />
 
         </LinearLayout>
 
@@ -88,14 +86,14 @@
                 android:layout_height="wrap_content"
                 android:text="Roboto Regular &amp; "
                 android:textSize="22sp"
-                app:robotoTypeface="roboto_regular"/>
+                app:robotoTypeface="roboto_regular" />
 
             <com.devspark.robototextview.widget.RobotoTextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Italic"
                 android:textSize="22sp"
-                app:robotoTypeface="roboto_italic"/>
+                app:robotoTypeface="roboto_italic" />
 
         </LinearLayout>
 
@@ -109,14 +107,14 @@
                 android:layout_height="wrap_content"
                 android:text="Roboto Medium &amp; "
                 android:textSize="22sp"
-                app:robotoTypeface="roboto_medium"/>
+                app:robotoTypeface="roboto_medium" />
 
             <com.devspark.robototextview.widget.RobotoTextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Medium Italic"
                 android:textSize="22sp"
-                app:robotoTypeface="roboto_medium_italic"/>
+                app:robotoTypeface="roboto_medium_italic" />
 
         </LinearLayout>
 
@@ -130,14 +128,14 @@
                 android:layout_height="wrap_content"
                 android:text="Roboto Bold &amp; "
                 android:textSize="22sp"
-                app:robotoTypeface="roboto_bold"/>
+                app:robotoTypeface="roboto_bold" />
 
             <com.devspark.robototextview.widget.RobotoTextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Bold Italic"
                 android:textSize="22sp"
-                app:robotoTypeface="roboto_bold_italic"/>
+                app:robotoTypeface="roboto_bold_italic" />
 
         </LinearLayout>
 
@@ -151,14 +149,14 @@
                 android:layout_height="wrap_content"
                 android:text="Roboto Black &amp; "
                 android:textSize="22sp"
-                app:robotoTypeface="roboto_black"/>
+                app:robotoTypeface="roboto_black" />
 
             <com.devspark.robototextview.widget.RobotoTextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Black Italic"
                 android:textSize="22sp"
-                app:robotoTypeface="roboto_black_italic"/>
+                app:robotoTypeface="roboto_black_italic" />
 
         </LinearLayout>
 
@@ -172,14 +170,14 @@
                 android:layout_height="wrap_content"
                 android:text="Roboto Condensed Light &amp; "
                 android:textSize="22sp"
-                app:robotoTypeface="roboto_condensed_light"/>
+                app:robotoTypeface="roboto_condensed_light" />
 
             <com.devspark.robototextview.widget.RobotoTextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Light Italic"
                 android:textSize="22sp"
-                app:robotoTypeface="roboto_condensed_light_italic"/>
+                app:robotoTypeface="roboto_condensed_light_italic" />
 
         </LinearLayout>
 
@@ -193,14 +191,14 @@
                 android:layout_height="wrap_content"
                 android:text="Roboto Condensed Regular &amp; "
                 android:textSize="22sp"
-                app:robotoTypeface="roboto_condensed_regular"/>
+                app:robotoTypeface="roboto_condensed_regular" />
 
             <com.devspark.robototextview.widget.RobotoTextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Italic"
                 android:textSize="22sp"
-                app:robotoTypeface="roboto_condensed_italic"/>
+                app:robotoTypeface="roboto_condensed_italic" />
 
         </LinearLayout>
 
@@ -214,14 +212,14 @@
                 android:layout_height="wrap_content"
                 android:text="Roboto Condensed Bold &amp; "
                 android:textSize="22sp"
-                app:robotoTypeface="roboto_condensed_bold"/>
+                app:robotoTypeface="roboto_condensed_bold" />
 
             <com.devspark.robototextview.widget.RobotoTextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Bold Italic"
                 android:textSize="22sp"
-                app:robotoTypeface="roboto_condensed_bold_italic"/>
+                app:robotoTypeface="roboto_condensed_bold_italic" />
         </LinearLayout>
 
         <LinearLayout
@@ -234,7 +232,7 @@
                 android:layout_height="wrap_content"
                 android:text="Roboto Slab Thin"
                 android:textSize="22sp"
-                app:robotoTypeface="roboto_slab_thin"/>
+                app:robotoTypeface="roboto_slab_thin" />
 
         </LinearLayout>
 
@@ -248,7 +246,7 @@
                 android:layout_height="wrap_content"
                 android:text="Roboto Slab Light"
                 android:textSize="22sp"
-                app:robotoTypeface="roboto_slab_light"/>
+                app:robotoTypeface="roboto_slab_light" />
 
         </LinearLayout>
 
@@ -262,7 +260,7 @@
                 android:layout_height="wrap_content"
                 android:text="Roboto Slab Regular"
                 android:textSize="22sp"
-                app:robotoTypeface="roboto_slab_regular"/>
+                app:robotoTypeface="roboto_slab_regular" />
         </LinearLayout>
 
         <LinearLayout
@@ -275,7 +273,7 @@
                 android:layout_height="wrap_content"
                 android:text="Roboto Slab Bold"
                 android:textSize="22sp"
-                app:robotoTypeface="roboto_slab_bold"/>
+                app:robotoTypeface="roboto_slab_bold" />
 
         </LinearLayout>
 
@@ -289,14 +287,14 @@
                 android:layout_height="wrap_content"
                 android:text="Roboto Mono Thin &amp; "
                 android:textSize="22sp"
-                app:robotoTypeface="roboto_mono_thin"/>
+                app:robotoTypeface="roboto_mono_thin" />
 
             <com.devspark.robototextview.widget.RobotoTextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Thin Italic"
                 android:textSize="22sp"
-                app:robotoTypeface="roboto_mono_thin_italic"/>
+                app:robotoTypeface="roboto_mono_thin_italic" />
 
         </LinearLayout>
 
@@ -310,14 +308,14 @@
                 android:layout_height="wrap_content"
                 android:text="Roboto Mono Light &amp; "
                 android:textSize="22sp"
-                app:robotoTypeface="roboto_mono_light"/>
+                app:robotoTypeface="roboto_mono_light" />
 
             <com.devspark.robototextview.widget.RobotoTextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Light Italic"
                 android:textSize="22sp"
-                app:robotoTypeface="roboto_mono_light_italic"/>
+                app:robotoTypeface="roboto_mono_light_italic" />
 
         </LinearLayout>
 
@@ -331,14 +329,14 @@
                 android:layout_height="wrap_content"
                 android:text="Roboto Mono Regular &amp; "
                 android:textSize="22sp"
-                app:robotoTypeface="roboto_mono_regular"/>
+                app:robotoTypeface="roboto_mono_regular" />
 
             <com.devspark.robototextview.widget.RobotoTextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Italic"
                 android:textSize="22sp"
-                app:robotoTypeface="roboto_mono_italic"/>
+                app:robotoTypeface="roboto_mono_italic" />
 
         </LinearLayout>
 
@@ -352,14 +350,14 @@
                 android:layout_height="wrap_content"
                 android:text="Roboto Mono Medium &amp; "
                 android:textSize="22sp"
-                app:robotoTypeface="roboto_mono_medium"/>
+                app:robotoTypeface="roboto_mono_medium" />
 
             <com.devspark.robototextview.widget.RobotoTextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Medium Italic"
                 android:textSize="22sp"
-                app:robotoTypeface="roboto_mono_medium_italic"/>
+                app:robotoTypeface="roboto_mono_medium_italic" />
 
         </LinearLayout>
 
@@ -373,14 +371,14 @@
                 android:layout_height="wrap_content"
                 android:text="Roboto Mono Bold &amp; "
                 android:textSize="22sp"
-                app:robotoTypeface="roboto_mono_bold"/>
+                app:robotoTypeface="roboto_mono_bold" />
 
             <com.devspark.robototextview.widget.RobotoTextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Bold Italic"
                 android:textSize="22sp"
-                app:robotoTypeface="roboto_mono_bold_italic"/>
+                app:robotoTypeface="roboto_mono_bold_italic" />
 
         </LinearLayout>
 

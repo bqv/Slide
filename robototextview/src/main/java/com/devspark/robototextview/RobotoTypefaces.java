@@ -28,8 +28,7 @@ import android.util.SparseArray;
 import android.widget.TextView;
 
 import java.lang.annotation.Retention;
-
-import static java.lang.annotation.RetentionPolicy.SOURCE;
+import java.lang.annotation.RetentionPolicy;
 
 /**
  * Utilities for working with roboto typefaces.
@@ -37,43 +36,6 @@ import static java.lang.annotation.RetentionPolicy.SOURCE;
  * @author Evgeny Shishkin
  */
 public final class RobotoTypefaces {
-
-    @Retention(SOURCE)
-    @IntDef({
-            TYPEFACE_ROBOTO_THIN,
-            TYPEFACE_ROBOTO_THIN_ITALIC,
-            TYPEFACE_ROBOTO_LIGHT,
-            TYPEFACE_ROBOTO_LIGHT_ITALIC,
-            TYPEFACE_ROBOTO_REGULAR,
-            TYPEFACE_ROBOTO_ITALIC,
-            TYPEFACE_ROBOTO_MEDIUM,
-            TYPEFACE_ROBOTO_MEDIUM_ITALIC,
-            TYPEFACE_ROBOTO_BOLD,
-            TYPEFACE_ROBOTO_BOLD_ITALIC,
-            TYPEFACE_ROBOTO_BLACK,
-            TYPEFACE_ROBOTO_BLACK_ITALIC,
-            TYPEFACE_ROBOTO_CONDENSED_LIGHT,
-            TYPEFACE_ROBOTO_CONDENSED_LIGHT_ITALIC,
-            TYPEFACE_ROBOTO_CONDENSED_REGULAR,
-            TYPEFACE_ROBOTO_CONDENSED_ITALIC,
-            TYPEFACE_ROBOTO_CONDENSED_BOLD,
-            TYPEFACE_ROBOTO_CONDENSED_BOLD_ITALIC,
-            TYPEFACE_ROBOTO_SLAB_THIN,
-            TYPEFACE_ROBOTO_SLAB_LIGHT,
-            TYPEFACE_ROBOTO_SLAB_REGULAR,
-            TYPEFACE_ROBOTO_SLAB_BOLD,
-            TYPEFACE_ROBOTO_MONO_THIN,
-            TYPEFACE_ROBOTO_MONO_THIN_ITALIC,
-            TYPEFACE_ROBOTO_MONO_LIGHT,
-            TYPEFACE_ROBOTO_MONO_LIGHT_ITALIC,
-            TYPEFACE_ROBOTO_MONO_REGULAR,
-            TYPEFACE_ROBOTO_MONO_ITALIC,
-            TYPEFACE_ROBOTO_MONO_MEDIUM,
-            TYPEFACE_ROBOTO_MONO_MEDIUM_ITALIC,
-            TYPEFACE_ROBOTO_MONO_BOLD,
-            TYPEFACE_ROBOTO_MONO_BOLD_ITALIC,
-    })
-    public @interface RobotoTypeface {}
 
     public static final int TYPEFACE_ROBOTO_THIN = 0;
     public static final int TYPEFACE_ROBOTO_THIN_ITALIC = 1;
@@ -107,56 +69,26 @@ public final class RobotoTypefaces {
     public static final int TYPEFACE_ROBOTO_MONO_MEDIUM_ITALIC = 29;
     public static final int TYPEFACE_ROBOTO_MONO_BOLD = 30;
     public static final int TYPEFACE_ROBOTO_MONO_BOLD_ITALIC = 31;
-
-    @Retention(SOURCE)
-    @IntDef({
-            FONT_FAMILY_ROBOTO,
-            FONT_FAMILY_ROBOTO_CONDENSED,
-            FONT_FAMILY_ROBOTO_SLAB,
-            FONT_FAMILY_ROBOTO_MONO
-    })
-    public @interface RobotoFontFamily {}
-
     public static final int FONT_FAMILY_ROBOTO = 0;
     public static final int FONT_FAMILY_ROBOTO_CONDENSED = 1;
     public static final int FONT_FAMILY_ROBOTO_SLAB = 2;
     public static final int FONT_FAMILY_ROBOTO_MONO = 3;
-
-    @Retention(SOURCE)
-    @IntDef({
-            TEXT_WEIGHT_NORMAL,
-            TEXT_WEIGHT_THIN,
-            TEXT_WEIGHT_LIGHT,
-            TEXT_WEIGHT_MEDIUM,
-            TEXT_WEIGHT_BOLD,
-            TEXT_WEIGHT_ULTRA_BOLD
-    })
-    public @interface RobotoTextWeight {}
-
     public static final int TEXT_WEIGHT_NORMAL = 0;
     public static final int TEXT_WEIGHT_THIN = 1;
     public static final int TEXT_WEIGHT_LIGHT = 2;
     public static final int TEXT_WEIGHT_MEDIUM = 3;
     public static final int TEXT_WEIGHT_BOLD = 4;
     public static final int TEXT_WEIGHT_ULTRA_BOLD = 5;
-
-
-    @Retention(SOURCE)
-    @IntDef({
-            TEXT_STYLE_NORMAL,
-            TEXT_STYLE_ITALIC
-    })
-    public @interface RobotoTextStyle {}
-
     public static final int TEXT_STYLE_NORMAL = 0;
     public static final int TEXT_STYLE_ITALIC = 1;
-
     /**
      * Array of created typefaces for later reused.
      */
     private static final SparseArray<Typeface> typefacesCache = new SparseArray<>(32);
 
-    private RobotoTypefaces() {}
+
+    private RobotoTypefaces() {
+    }
 
     /**
      * Obtain typeface.
@@ -186,7 +118,7 @@ public final class RobotoTypefaces {
      */
     @NonNull
     public static Typeface obtainTypeface(@NonNull Context context, @RobotoFontFamily int fontFamily,
-            @RobotoTextWeight int textWeight, @RobotoTextStyle int textStyle) {
+                                          @RobotoTextWeight int textWeight, @RobotoTextStyle int textStyle) {
         @RobotoTypeface int typeface;
         if (fontFamily == FONT_FAMILY_ROBOTO) {
             if (textStyle == TEXT_STYLE_NORMAL) {
@@ -529,13 +461,13 @@ public final class RobotoTypefaces {
     /**
      * Set up typeface for TextView.
      *
-     * @param textView The text view
+     * @param textView   The text view
      * @param fontFamily The value of "robotoFontFamily" attribute
      * @param textWeight The value of "robotoTextWeight" attribute
      * @param textStyle  The value of "robotoTextStyle" attribute
      */
     public static void setUpTypeface(@NonNull TextView textView, @RobotoFontFamily int fontFamily,
-            @RobotoTextWeight int textWeight, @RobotoTextStyle int textStyle) {
+                                     @RobotoTextWeight int textWeight, @RobotoTextStyle int textStyle) {
         setUpTypeface(textView, obtainTypeface(textView.getContext(), fontFamily, textWeight, textStyle));
     }
 
@@ -561,5 +493,73 @@ public final class RobotoTypefaces {
     public static void setUpTypeface(@NonNull Paint paint, @NonNull Typeface typeface) {
         paint.setFlags(paint.getFlags() | Paint.ANTI_ALIAS_FLAG | Paint.SUBPIXEL_TEXT_FLAG);
         paint.setTypeface(typeface);
+    }
+
+    @Retention(RetentionPolicy.SOURCE)
+    @IntDef({
+            TYPEFACE_ROBOTO_THIN,
+            TYPEFACE_ROBOTO_THIN_ITALIC,
+            TYPEFACE_ROBOTO_LIGHT,
+            TYPEFACE_ROBOTO_LIGHT_ITALIC,
+            TYPEFACE_ROBOTO_REGULAR,
+            TYPEFACE_ROBOTO_ITALIC,
+            TYPEFACE_ROBOTO_MEDIUM,
+            TYPEFACE_ROBOTO_MEDIUM_ITALIC,
+            TYPEFACE_ROBOTO_BOLD,
+            TYPEFACE_ROBOTO_BOLD_ITALIC,
+            TYPEFACE_ROBOTO_BLACK,
+            TYPEFACE_ROBOTO_BLACK_ITALIC,
+            TYPEFACE_ROBOTO_CONDENSED_LIGHT,
+            TYPEFACE_ROBOTO_CONDENSED_LIGHT_ITALIC,
+            TYPEFACE_ROBOTO_CONDENSED_REGULAR,
+            TYPEFACE_ROBOTO_CONDENSED_ITALIC,
+            TYPEFACE_ROBOTO_CONDENSED_BOLD,
+            TYPEFACE_ROBOTO_CONDENSED_BOLD_ITALIC,
+            TYPEFACE_ROBOTO_SLAB_THIN,
+            TYPEFACE_ROBOTO_SLAB_LIGHT,
+            TYPEFACE_ROBOTO_SLAB_REGULAR,
+            TYPEFACE_ROBOTO_SLAB_BOLD,
+            TYPEFACE_ROBOTO_MONO_THIN,
+            TYPEFACE_ROBOTO_MONO_THIN_ITALIC,
+            TYPEFACE_ROBOTO_MONO_LIGHT,
+            TYPEFACE_ROBOTO_MONO_LIGHT_ITALIC,
+            TYPEFACE_ROBOTO_MONO_REGULAR,
+            TYPEFACE_ROBOTO_MONO_ITALIC,
+            TYPEFACE_ROBOTO_MONO_MEDIUM,
+            TYPEFACE_ROBOTO_MONO_MEDIUM_ITALIC,
+            TYPEFACE_ROBOTO_MONO_BOLD,
+            TYPEFACE_ROBOTO_MONO_BOLD_ITALIC,
+    })
+    public @interface RobotoTypeface {
+    }
+
+    @Retention(RetentionPolicy.SOURCE)
+    @IntDef({
+            FONT_FAMILY_ROBOTO,
+            FONT_FAMILY_ROBOTO_CONDENSED,
+            FONT_FAMILY_ROBOTO_SLAB,
+            FONT_FAMILY_ROBOTO_MONO
+    })
+    public @interface RobotoFontFamily {
+    }
+
+    @Retention(RetentionPolicy.SOURCE)
+    @IntDef({
+            TEXT_WEIGHT_NORMAL,
+            TEXT_WEIGHT_THIN,
+            TEXT_WEIGHT_LIGHT,
+            TEXT_WEIGHT_MEDIUM,
+            TEXT_WEIGHT_BOLD,
+            TEXT_WEIGHT_ULTRA_BOLD
+    })
+    public @interface RobotoTextWeight {
+    }
+
+    @Retention(RetentionPolicy.SOURCE)
+    @IntDef({
+            TEXT_STYLE_NORMAL,
+            TEXT_STYLE_ITALIC
+    })
+    public @interface RobotoTextStyle {
     }
 }

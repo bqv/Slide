@@ -94,7 +94,8 @@ public class RobotoInflater implements LayoutInflaterFactory {
     private static class StubAppCompatCallback implements AppCompatCallback {
         static final StubAppCompatCallback INSTANCE = new StubAppCompatCallback();
 
-        private StubAppCompatCallback() {}
+        private StubAppCompatCallback() {
+        }
 
         @Override
         public void onSupportActionModeStarted(ActionMode mode) {

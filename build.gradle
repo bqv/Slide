@@ -1,21 +1,19 @@
-apply from: 'dependencies.gradle'
-
 buildscript {
     apply from: 'dependencies.gradle'
 
     repositories {
-        jcenter()
+        google()
+        mavenCentral()
     }
     dependencies {
         classpath gradlePlugins.android
-        classpath gradlePlugins.versions
     }
 }
 
 allprojects {
     repositories {
         google()
-        jcenter()
+        mavenCentral()
     }
 }
 

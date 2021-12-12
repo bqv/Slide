@@ -78,7 +78,7 @@ public class RobotoTextAppearanceSpan extends MetricAffectingSpan {
      * Makes text be drawn with the specified typeface, size and colors.
      */
     public RobotoTextAppearanceSpan(Context context, @RobotoTypeface int typeface,
-            int size, @Nullable ColorStateList color, @Nullable ColorStateList linkColor) {
+                                    int size, @Nullable ColorStateList color, @Nullable ColorStateList linkColor) {
         this.typeface = RobotoTypefaces.obtainTypeface(context, typeface);
         this.textSize = size;
         this.textColor = color;

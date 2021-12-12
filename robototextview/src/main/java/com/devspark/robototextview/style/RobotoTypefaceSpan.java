@@ -12,8 +12,6 @@ import com.devspark.robototextview.RobotoTypefaces.RobotoTextStyle;
 import com.devspark.robototextview.RobotoTypefaces.RobotoTextWeight;
 import com.devspark.robototextview.RobotoTypefaces.RobotoTypeface;
 
-import static com.devspark.robototextview.RobotoTypefaces.TYPEFACE_ROBOTO_REGULAR;
-
 /**
  * Span for replacing typeface.
  */
@@ -31,7 +29,7 @@ public class RobotoTypefaceSpan extends MetricAffectingSpan {
      *                access the current theme, resources, etc.
      */
     public RobotoTypefaceSpan(Context context) {
-        this(context, TYPEFACE_ROBOTO_REGULAR);
+        this(context, RobotoTypefaces.TYPEFACE_ROBOTO_REGULAR);
     }
 
     /**
@@ -55,7 +53,7 @@ public class RobotoTypefaceSpan extends MetricAffectingSpan {
      * @param textStyle  The value of "robotoTextStyle" attribute
      */
     public RobotoTypefaceSpan(Context context, @RobotoFontFamily int fontFamily,
-            @RobotoTextWeight int textWeight, @RobotoTextStyle int textStyle) {
+                              @RobotoTextWeight int textWeight, @RobotoTextStyle int textStyle) {
         this.typeface = RobotoTypefaces.obtainTypeface(context, fontFamily, textWeight, textStyle);
     }
 

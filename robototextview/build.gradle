@@ -1,9 +1,5 @@
 apply plugin: 'com.android.library'
 
-dependencies {
-    compile libraries.supportAppCompat
-}
-
 android {
     compileSdkVersion versions.compileSdk
     buildToolsVersion versions.buildTools
@@ -11,4 +7,8 @@ android {
     defaultConfig {
         minSdkVersion versions.minSdk
     }
+}
+
+dependencies {
+    compile libraries.supportAppCompat
 }

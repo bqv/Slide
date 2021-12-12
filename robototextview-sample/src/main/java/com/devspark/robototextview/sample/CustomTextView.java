@@ -5,7 +5,6 @@ import android.support.annotation.Nullable;
 import android.support.v7.widget.AppCompatTextView;
 import android.util.AttributeSet;
 
-
 public class CustomTextView extends AppCompatTextView {
 
     public CustomTextView(Context context) {

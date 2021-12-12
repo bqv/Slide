@@ -6,7 +6,6 @@ import android.support.v7.app.AppCompatActivity;
 
 import com.devspark.robototextview.inflater.RobotoInflater;
 
-
 public class InflaterActivity extends AppCompatActivity {
 
     @Override

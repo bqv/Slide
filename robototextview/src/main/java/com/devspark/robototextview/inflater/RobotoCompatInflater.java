@@ -38,6 +38,33 @@ final class RobotoCompatInflater {
 
     private final Object[] mConstructorArgs = new Object[2];
 
+    /**
+     * Allows us to emulate the {@code android:theme} attribute for devices before L.
+     */
+    @SuppressLint("PrivateResource")
+    private static Context themifyContext(Context context, AttributeSet attrs, boolean useAppTheme) {
+        final TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.View, 0, 0);
+        int themeId = a.getResourceId(R.styleable.View_android_theme, 0);
+        if (useAppTheme && themeId == 0) {
+            // ...if that didn't work, try reading app:theme (for legacy reasons) if enabled
+            themeId = a.getResourceId(R.styleable.View_theme, 0);
+
+            if (themeId != 0) {
+                Log.i(LOG_TAG, "app:theme is now deprecated. "
+                        + "Please move to using android:theme instead.");
+            }
+        }
+        a.recycle();
+
+        if (themeId != 0 && (!(context instanceof ContextThemeWrapper)
+                || ((ContextThemeWrapper) context).getThemeResId() != themeId)) {
+            // If the context isn't a ContextThemeWrapper, or it is but does not have
+            // the same theme as we need, wrap it in a new wrapper
+            context = new ContextThemeWrapper(context, themeId);
+        }
+        return context;
+    }
+
     final View createView(View parent, final String name, @NonNull Context context,
                           @NonNull AttributeSet attrs, boolean inheritContext,
                           boolean readAppTheme, boolean wrapContext) {
@@ -133,33 +160,6 @@ final class RobotoCompatInflater {
             // try
             return null;
         }
-    }
-
-    /**
-     * Allows us to emulate the {@code android:theme} attribute for devices before L.
-     */
-    @SuppressLint("PrivateResource")
-    private static Context themifyContext(Context context, AttributeSet attrs, boolean useAppTheme) {
-        final TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.View, 0, 0);
-        int themeId = a.getResourceId(R.styleable.View_android_theme, 0);
-        if (useAppTheme && themeId == 0) {
-            // ...if that didn't work, try reading app:theme (for legacy reasons) if enabled
-            themeId = a.getResourceId(R.styleable.View_theme, 0);
-
-            if (themeId != 0) {
-                Log.i(LOG_TAG, "app:theme is now deprecated. "
-                        + "Please move to using android:theme instead.");
-            }
-        }
-        a.recycle();
-
-        if (themeId != 0 && (!(context instanceof ContextThemeWrapper)
-                || ((ContextThemeWrapper) context).getThemeResId() != themeId)) {
-            // If the context isn't a ContextThemeWrapper, or it is but does not have
-            // the same theme as we need, wrap it in a new wrapper
-            context = new ContextThemeWrapper(context, themeId);
-        }
-        return context;
     }
 
     /**
