@@ -12,5 +12,3 @@ android {
         minSdkVersion versions.minSdk
     }
 }
-
-apply from: rootProject.file('gradle/gradle-mvn-push.gradle')
