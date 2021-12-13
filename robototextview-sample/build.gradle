@@ -14,5 +14,6 @@ android {
 }
 
 dependencies {
-    compile project(':robototextview')
+    implementation project(':robototextview')
+    implementation libraries.supportAppCompat
 }
