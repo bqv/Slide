@@ -201,12 +201,9 @@ final class RobotoCompatInflater {
             while (context != null) {
                 try {
                     if (!context.isRestricted()) {
-                        final Method method = context.getClass().getMethod(name, View.class);
-                        if (method != null) {
-                            mResolvedMethod = method;
-                            mResolvedContext = context;
-                            return;
-                        }
+                        mResolvedMethod = context.getClass().getMethod(name, View.class);
+                        mResolvedContext = context;
+                        return;
                     }
                 } catch (NoSuchMethodException e) {
                     // Failed to find method, keep searching up the hierarchy.

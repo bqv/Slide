@@ -1,8 +1,8 @@
 ext {
     versions = [
             minSdk    : 14,
-            targetSdk : 26,
-            compileSdk: 26,
+            targetSdk : 28,
+            compileSdk: 28,
             buildTools: '30.0.3'
     ]
 
@@ -12,6 +12,6 @@ ext {
 
     libraries = [
             junit           : 'junit:junit:4.13.2',
-            supportAppCompat: 'com.android.support:appcompat-v7:26.0.0'
+            supportAppCompat: 'com.android.support:appcompat-v7:28.0.0'
     ]
 }

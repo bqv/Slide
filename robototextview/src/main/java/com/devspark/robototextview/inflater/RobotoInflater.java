@@ -6,7 +6,6 @@ import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.view.LayoutInflaterCompat;
-import android.support.v4.view.LayoutInflaterFactory;
 import android.support.v4.view.ViewCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.app.AppCompatCallback;
@@ -14,6 +13,7 @@ import android.support.v7.app.AppCompatDelegate;
 import android.support.v7.view.ActionMode;
 import android.support.v7.widget.VectorEnabledTintResources;
 import android.util.AttributeSet;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewParent;
 import android.view.Window;
@@ -22,7 +22,7 @@ import android.widget.TextView;
 import com.devspark.robototextview.RobotoTypefaces;
 
 @SuppressWarnings("RestrictedApi")
-public class RobotoInflater implements LayoutInflaterFactory {
+public class RobotoInflater implements LayoutInflater.Factory2 {
     private final RobotoCompatInflater mCompatInflater = new RobotoCompatInflater();
     private final AppCompatDelegate mAppCompatDelegate;
     private final Window mWindow;
@@ -34,12 +34,12 @@ public class RobotoInflater implements LayoutInflaterFactory {
 
     public static void attach(@NonNull Activity activity) {
         if (activity instanceof AppCompatActivity) {
-            LayoutInflaterCompat.setFactory(activity.getLayoutInflater(),
+            LayoutInflaterCompat.setFactory2(activity.getLayoutInflater(),
                     new RobotoInflater(((AppCompatActivity) activity).getDelegate(), activity.getWindow()));
         } else {
             final Window window = activity.getWindow();
             final Window.Callback callback = window.getCallback();
-            LayoutInflaterCompat.setFactory(activity.getLayoutInflater(),
+            LayoutInflaterCompat.setFactory2(activity.getLayoutInflater(),
                     new RobotoInflater(AppCompatDelegate.create(activity, StubAppCompatCallback.INSTANCE), window));
             window.setCallback(callback);
         }
@@ -65,6 +65,10 @@ public class RobotoInflater implements LayoutInflaterFactory {
         }
     }
 
+    @Override
+    public View onCreateView(String name, Context context, AttributeSet attrs) {
+        return onCreateView(null, name, context, attrs);
+    }
 
     private boolean shouldInheritContext(ViewParent parent) {
         if (parent == null) {
