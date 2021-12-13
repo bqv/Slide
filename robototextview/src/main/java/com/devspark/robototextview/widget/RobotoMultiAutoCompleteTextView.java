@@ -17,9 +17,10 @@
 package com.devspark.robototextview.widget;
 
 import android.content.Context;
-import android.support.v7.widget.AppCompatMultiAutoCompleteTextView;
 import android.util.AttributeSet;
 import android.widget.MultiAutoCompleteTextView;
+
+import androidx.appcompat.widget.AppCompatMultiAutoCompleteTextView;
 
 import com.devspark.robototextview.RobotoTypefaces;
 

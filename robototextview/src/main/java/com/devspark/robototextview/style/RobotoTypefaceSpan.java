@@ -2,9 +2,10 @@ package com.devspark.robototextview.style;
 
 import android.content.Context;
 import android.graphics.Typeface;
-import android.support.annotation.NonNull;
 import android.text.TextPaint;
 import android.text.style.MetricAffectingSpan;
+
+import androidx.annotation.NonNull;
 
 import com.devspark.robototextview.RobotoTypefaces;
 import com.devspark.robototextview.RobotoTypefaces.RobotoFontFamily;

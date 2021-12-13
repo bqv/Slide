@@ -17,9 +17,10 @@
 package com.devspark.robototextview.widget;
 
 import android.content.Context;
-import android.support.v7.widget.SwitchCompat;
 import android.util.AttributeSet;
 import android.widget.Switch;
+
+import androidx.appcompat.widget.SwitchCompat;
 
 import com.devspark.robototextview.RobotoTypefaces;
 

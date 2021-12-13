@@ -17,9 +17,10 @@
 package com.devspark.robototextview.widget;
 
 import android.content.Context;
-import android.support.v7.widget.AppCompatButton;
 import android.util.AttributeSet;
 import android.widget.Button;
+
+import androidx.appcompat.widget.AppCompatButton;
 
 import com.devspark.robototextview.RobotoTypefaces;
 

@@ -17,9 +17,10 @@
 package com.devspark.robototextview.widget;
 
 import android.content.Context;
-import android.support.v7.widget.AppCompatCheckBox;
 import android.util.AttributeSet;
 import android.widget.CheckBox;
+
+import androidx.appcompat.widget.AppCompatCheckBox;
 
 import com.devspark.robototextview.RobotoTypefaces;
 

@@ -17,9 +17,10 @@
 package com.devspark.robototextview.widget;
 
 import android.content.Context;
-import android.support.v7.widget.AppCompatRadioButton;
 import android.util.AttributeSet;
 import android.widget.RadioButton;
+
+import androidx.appcompat.widget.AppCompatRadioButton;
 
 import com.devspark.robototextview.RobotoTypefaces;
 

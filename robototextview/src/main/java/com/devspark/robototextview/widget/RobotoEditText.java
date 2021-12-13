@@ -17,9 +17,10 @@
 package com.devspark.robototextview.widget;
 
 import android.content.Context;
-import android.support.v7.widget.AppCompatEditText;
 import android.util.AttributeSet;
 import android.widget.EditText;
+
+import androidx.appcompat.widget.AppCompatEditText;
 
 import com.devspark.robototextview.RobotoTypefaces;
 
