@@ -1,30 +1,21 @@
 package com.devspark.robototextview.inflater;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.res.TypedArray;
-import android.os.Build;
+import android.util.ArrayMap;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.InflateException;
 import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.view.ContextThemeWrapper;
-import androidx.appcompat.widget.TintContextWrapper;
-import androidx.collection.ArrayMap;
-import androidx.core.view.ViewCompat;
-
-import com.devspark.robototextview.R;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Map;
 
-@SuppressWarnings("RestrictedApi")
 final class RobotoCompatInflater {
 
     private static final Class<?>[] sConstructorSignature = new Class[]{Context.class, AttributeSet.class};
@@ -33,52 +24,11 @@ final class RobotoCompatInflater {
 
     private static final String[] sClassPrefixList = {"android.widget.", "android.view.", "android.webkit."};
 
-    private static final String LOG_TAG = "RobotoCompatInflater";
-
     private static final Map<String, Constructor<? extends View>> sConstructorMap = new ArrayMap<>();
 
     private final Object[] mConstructorArgs = new Object[2];
 
-    /**
-     * Allows us to emulate the {@code android:theme} attribute for devices before L.
-     */
-    @SuppressLint("PrivateResource")
-    private static Context themifyContext(Context context, AttributeSet attrs, boolean useAppTheme) {
-        final TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.View, 0, 0);
-        int themeId = a.getResourceId(R.styleable.View_android_theme, 0);
-        if (useAppTheme && themeId == 0) {
-            // ...if that didn't work, try reading app:theme (for legacy reasons) if enabled
-            themeId = a.getResourceId(R.styleable.View_theme, 0);
-
-            if (themeId != 0) {
-                Log.i(LOG_TAG, "app:theme is now deprecated. "
-                        + "Please move to using android:theme instead.");
-            }
-        }
-        a.recycle();
-
-        if (themeId != 0 && (!(context instanceof ContextThemeWrapper)
-                || ((ContextThemeWrapper) context).getThemeResId() != themeId)) {
-            // If the context isn't a ContextThemeWrapper, or it is but does not have
-            // the same theme as we need, wrap it in a new wrapper
-            context = new ContextThemeWrapper(context, themeId);
-        }
-        return context;
-    }
-
-    final View createView(View parent, final String name, @NonNull Context context,
-                          @NonNull AttributeSet attrs, boolean inheritContext,
-                          boolean readAppTheme, boolean wrapContext) {
-        if (inheritContext && parent != null) {
-            context = parent.getContext();
-        }
-        if (readAppTheme) {
-            context = themifyContext(context, attrs, true);
-        }
-        if (wrapContext) {
-            context = TintContextWrapper.wrap(context);
-        }
-
+    final View createView(final String name, @NonNull Context context, @NonNull AttributeSet attrs) {
         View view = createViewFromTag(context, name, attrs);
 
         if (view != null) {
@@ -88,7 +38,6 @@ final class RobotoCompatInflater {
         return view;
     }
 
-    @SuppressWarnings("ForLoopReplaceableByForEach")
     private View createViewFromTag(Context context, String name, AttributeSet attrs) {
         if (name.equals("view")) {
             name = attrs.getAttributeValue(null, "class");
@@ -99,8 +48,8 @@ final class RobotoCompatInflater {
             mConstructorArgs[1] = attrs;
 
             if (-1 == name.indexOf('.')) {
-                for (int i = 0; i < sClassPrefixList.length; i++) {
-                    final View view = createView(context, name, sClassPrefixList[i]);
+                for (String s : sClassPrefixList) {
+                    final View view = createView(context, name, s);
                     if (view != null) {
                         return view;
                     }
@@ -125,11 +74,9 @@ final class RobotoCompatInflater {
     private void checkOnClickListener(View view, AttributeSet attrs) {
         final Context context = view.getContext();
 
-        if (!(context instanceof ContextWrapper) ||
-                (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH_MR1 && !ViewCompat.hasOnClickListeners(view))) {
-            // Skip our compat functionality if: the Context isn't a ContextWrapper, or
-            // the view doesn't have an OnClickListener (we can only rely on this on API 15+ so
-            // always use our compat code on older devices)
+        if (!(context instanceof ContextWrapper) || !view.hasOnClickListeners()) {
+            // Skip our functionality if: the Context isn't a ContextWrapper, or
+            // the view doesn't have an OnClickListener
             return;
         }
 
@@ -141,8 +88,7 @@ final class RobotoCompatInflater {
         a.recycle();
     }
 
-    private View createView(Context context, String name, String prefix)
-            throws ClassNotFoundException, InflateException {
+    private View createView(Context context, String name, String prefix) throws InflateException {
         Constructor<? extends View> constructor = sConstructorMap.get(name);
 
         try {
