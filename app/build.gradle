@@ -1,10 +1,7 @@
 apply plugin: 'com.android.application'
 
 android {
-
     compileSdkVersion 27
-
-
     defaultConfig {
         applicationId "gun0912.tedbottompickerdemo"
         minSdkVersion 16
@@ -19,36 +16,28 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
-
     lintOptions {
         abortOnError false
     }
-
     compileOptions {
+        encoding "UTF-8"
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
 }
 
-
-repositories {
-
-
-}
-
 dependencies {
-    implementation fileTree(include: ['*.jar'], dir: 'libs')
-    testImplementation 'junit:junit:4.12'
-    implementation 'com.android.support:appcompat-v7:27.1.1'
     implementation project(':tedbottompicker')
+
+    // Android support
+    implementation 'com.android.support:appcompat-v7:27.1.1'
     implementation 'com.android.support:multidex:1.0.3'
 
+    // Third-party
+    implementation "com.github.bumptech.glide:glide:$glideVersion"
+    annotationProcessor "com.github.bumptech.glide:compiler:$glideVersion"
     implementation 'gun0912.ted:tedpermission:2.2.0'
-    implementation 'com.github.bumptech.glide:glide:4.7.1'
-    annotationProcessor 'com.github.bumptech.glide:compiler:4.7.1'
-
+    implementation "io.reactivex.rxjava2:rxjava:$rxjavaVersion"
     debugImplementation 'com.squareup.leakcanary:leakcanary-android:1.6.3'
     releaseImplementation 'com.squareup.leakcanary:leakcanary-android-no-op:1.6.3'
-
-    implementation "io.reactivex.rxjava2:rxjava:2.2.6"
 }

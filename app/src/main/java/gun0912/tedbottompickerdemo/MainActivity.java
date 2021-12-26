@@ -16,7 +16,6 @@ import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.RequestManager;
-import com.bumptech.glide.request.RequestOptions;
 import com.gun0912.tedpermission.PermissionListener;
 import com.gun0912.tedpermission.TedPermission;
 
@@ -237,7 +236,7 @@ public class MainActivity extends AppCompatActivity {
 
             requestManager
                     .load(uri.toString())
-                    .apply(new RequestOptions().fitCenter())
+                    .fitCenter()
                     .into(thumbnail);
 
             mSelectedImagesContainer.addView(imageHolder);

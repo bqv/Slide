@@ -41,7 +41,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
-import com.bumptech.glide.request.RequestOptions;
 import com.gun0912.tedonactivityresult.TedOnActivityResult;
 import com.gun0912.tedonactivityresult.listener.OnActivityResultListener;
 
@@ -317,10 +316,9 @@ public class TedBottomSheetDialogFragment extends BottomSheetDialogFragment {
             Glide.with(getActivity())
                     .load(uri)
                     .thumbnail(0.1f)
-                    .apply(new RequestOptions()
-                            .centerCrop()
-                            .placeholder(R.drawable.ic_gallery)
-                            .error(R.drawable.img_error))
+                    .centerCrop()
+                    .placeholder(R.drawable.ic_gallery)
+                    .error(R.drawable.img_error)
                     .into(thumbnail);
         } else {
             builder.imageProvider.onProvideImage(thumbnail, uri);
