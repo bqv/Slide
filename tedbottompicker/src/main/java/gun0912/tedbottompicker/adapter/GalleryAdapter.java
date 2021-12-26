@@ -193,7 +193,7 @@ public class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.GalleryV
             holder.itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    onItemClickListener.onItemClick(holder.itemView, holder.getAdapterPosition());
+                    onItemClickListener.onItemClick(holder.itemView, holder.getBindingAdapterPosition());
                 }
             });
         }

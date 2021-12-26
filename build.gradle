@@ -26,6 +26,6 @@ task clean(type: Delete) {
 }
 
 ext {
-    glideVersion = "4.9.0"
-    rxjavaVersion = "2.2.6"
+    glideVersion = "4.12.0"
+    rxjavaVersion = "2.2.21"
 }

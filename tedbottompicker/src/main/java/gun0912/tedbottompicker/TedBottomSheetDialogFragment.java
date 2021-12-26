@@ -131,7 +131,7 @@ public class TedBottomSheetDialogFragment extends BottomSheetDialogFragment {
                 (CoordinatorLayout.LayoutParams) ((View) contentView.getParent()).getLayoutParams();
         CoordinatorLayout.Behavior behavior = layoutParams.getBehavior();
         if (behavior instanceof BottomSheetBehavior) {
-            ((BottomSheetBehavior) behavior).setBottomSheetCallback(mBottomSheetBehaviorCallback);
+            ((BottomSheetBehavior) behavior).addBottomSheetCallback(mBottomSheetBehaviorCallback);
             if (builder != null && builder.peekHeight > 0) {
                 ((BottomSheetBehavior) behavior).setPeekHeight(builder.peekHeight);
             }
