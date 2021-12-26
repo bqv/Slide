@@ -19,7 +19,6 @@ import com.bumptech.glide.RequestManager;
 import com.gun0912.tedpermission.PermissionListener;
 import com.gun0912.tedpermission.TedPermission;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import gun0912.tedbottompicker.TedBottomPicker;
@@ -81,7 +80,7 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 @Override
-                public void onPermissionDenied(ArrayList<String> deniedPermissions) {
+                public void onPermissionDenied(List<String> deniedPermissions) {
                     Toast.makeText(MainActivity.this, "Permission Denied\n" + deniedPermissions.toString(), Toast.LENGTH_SHORT).show();
                 }
 
@@ -117,7 +116,7 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 @Override
-                public void onPermissionDenied(ArrayList<String> deniedPermissions) {
+                public void onPermissionDenied(List<String> deniedPermissions) {
                     Toast.makeText(MainActivity.this, "Permission Denied\n" + deniedPermissions.toString(), Toast.LENGTH_SHORT).show();
                 }
 
@@ -160,7 +159,7 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 @Override
-                public void onPermissionDenied(ArrayList<String> deniedPermissions) {
+                public void onPermissionDenied(List<String> deniedPermissions) {
                     Toast.makeText(MainActivity.this, "Permission Denied\n" + deniedPermissions.toString(), Toast.LENGTH_SHORT).show();
                 }
 
@@ -197,7 +196,7 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 @Override
-                public void onPermissionDenied(ArrayList<String> deniedPermissions) {
+                public void onPermissionDenied(List<String> deniedPermissions) {
                     Toast.makeText(MainActivity.this, "Permission Denied\n" + deniedPermissions.toString(), Toast.LENGTH_SHORT).show();
                 }
 
