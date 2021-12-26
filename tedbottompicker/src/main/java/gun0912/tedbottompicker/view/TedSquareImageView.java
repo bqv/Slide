@@ -5,7 +5,8 @@ import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
-import android.widget.ImageView;
+
+import androidx.appcompat.widget.AppCompatImageView;
 
 import gun0912.tedbottompicker.R;
 
@@ -13,7 +14,7 @@ import gun0912.tedbottompicker.R;
 /**
  * Created by Gil on 09/06/2014.
  */
-public class TedSquareImageView extends ImageView {
+public class TedSquareImageView extends AppCompatImageView {
 
     String fit_mode;
     private Drawable foreground;
