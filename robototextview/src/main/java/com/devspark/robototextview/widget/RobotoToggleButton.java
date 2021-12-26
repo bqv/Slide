@@ -20,6 +20,8 @@ import android.content.Context;
 import android.util.AttributeSet;
 import android.widget.ToggleButton;
 
+import androidx.appcompat.widget.AppCompatToggleButton;
+
 import com.devspark.robototextview.RobotoTypefaces;
 
 /**
@@ -27,7 +29,7 @@ import com.devspark.robototextview.RobotoTypefaces;
  *
  * @author Evgeny Shishkin
  */
-public class RobotoToggleButton extends ToggleButton {
+public class RobotoToggleButton extends AppCompatToggleButton {
 
     /**
      * Simple constructor to use when creating a widget from code.
