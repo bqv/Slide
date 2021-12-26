@@ -1,7 +1,6 @@
 package gun0912.tedbottompicker;
 
 import android.Manifest;
-import android.app.Activity;
 import android.app.Dialog;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -407,9 +406,7 @@ public class TedBottomSheetDialogFragment extends BottomSheetDialogFragment {
                 .setListener(new OnActivityResultListener() {
                     @Override
                     public void onActivityResult(int resultCode, Intent data) {
-                        if (resultCode == Activity.RESULT_OK) {
-                            onActivityResultCamera(cameraImageUri);
-                        }
+                        onActivityResultCamera(cameraImageUri);
                     }
                 })
                 .startActivityForResult();
@@ -505,9 +502,7 @@ public class TedBottomSheetDialogFragment extends BottomSheetDialogFragment {
                 .setListener(new OnActivityResultListener() {
                     @Override
                     public void onActivityResult(int resultCode, Intent data) {
-                        if (resultCode == Activity.RESULT_OK) {
-                            onActivityResultGallery(data);
-                        }
+                        onActivityResultGallery(data);
                     }
                 })
                 .startActivityForResult();
