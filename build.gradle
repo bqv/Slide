@@ -7,7 +7,7 @@ buildscript {
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:4.2.2'
-        classpath 'com.vanniktech:gradle-maven-publish-plugin:0.18.0'
+        //classpath 'com.vanniktech:gradle-maven-publish-plugin:0.18.0'
     }
 }
 
@@ -16,9 +16,8 @@ allprojects {
         google()
         mavenCentral()
     }
-
-    group = GROUP
-    version = VERSION_NAME
+    /*group = GROUP
+    version = VERSION_NAME*/
 }
 
 task clean(type: Delete) {
