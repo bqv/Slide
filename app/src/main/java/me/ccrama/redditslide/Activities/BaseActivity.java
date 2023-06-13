@@ -41,8 +41,7 @@ import me.ccrama.redditslide.Visuals.Palette;
  */
 
 public class BaseActivity extends PeekViewActivity
-        implements SwipeBackActivityBase, NfcAdapter.CreateNdefMessageCallback,
-        NfcAdapter.OnNdefPushCompleteCallback {
+        implements SwipeBackActivityBase {
     @Nullable
     public    Toolbar                 mToolbar;
     protected SwipeBackActivityHelper mHelper;
@@ -441,36 +440,12 @@ public class BaseActivity extends PeekViewActivity
     public String shareUrl;
 
     public void setShareUrl(String url) {
-        try {
-            if (url != null) {
-                shareUrl = url;
-                mNfcAdapter = NfcAdapter.getDefaultAdapter(this);
-                if (mNfcAdapter != null) {
-                    // Register callback to set NDEF message
-                    mNfcAdapter.setNdefPushMessageCallback(this, this);
-                    // Register callback to listen for message-sent success
-                    mNfcAdapter.setOnNdefPushCompleteCallback(this, this);
-                } else {
-                    Log.i("LinkDetails", "NFC is not available on this device");
-                }
-            }
-        } catch (Exception e) {
+        if (url != null) {
+            shareUrl = url;
+            mNfcAdapter = null;
 
+            Log.i("LinkDetails", "NFC is not available on this device");
         }
-    }
-
-    @Override
-    public NdefMessage createNdefMessage(NfcEvent event) {
-        if (shareUrl != null) {
-            return new NdefMessage(new NdefRecord[]{
-                    NdefRecord.createUri(shareUrl)
-            });
-        }
-        return null;
-    }
-
-    @Override
-    public void onNdefPushComplete(NfcEvent arg0) {
     }
 
     /**

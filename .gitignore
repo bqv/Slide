@@ -32,5 +32,4 @@ captures
 
 crowdin.properties
 app/src/main/assets/secretconstants.properties
-app/noGPlay/
-app/withGPlay/
+app/libre/
