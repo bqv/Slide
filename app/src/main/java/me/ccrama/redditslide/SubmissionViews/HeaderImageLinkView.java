@@ -42,7 +42,7 @@ import me.ccrama.redditslide.ForceTouch.callback.OnRemove;
 import me.ccrama.redditslide.ForceTouch.callback.SimpleOnPeek;
 import me.ccrama.redditslide.HasSeen;
 import ltd.ucode.slide.R;
-import me.ccrama.redditslide.Reddit;
+import ltd.ucode.slide.Reddit;
 import me.ccrama.redditslide.SettingValues;
 import me.ccrama.redditslide.Views.PeekMediaView;
 import me.ccrama.redditslide.Views.TransparentTagTextView;

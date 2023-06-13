@@ -18,7 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import me.ccrama.redditslide.Constants;
-import me.ccrama.redditslide.Reddit;
+import ltd.ucode.slide.Reddit;
 import me.ccrama.redditslide.util.HttpUtil;
 import me.ccrama.redditslide.util.LogUtil;
 import okhttp3.OkHttpClient;

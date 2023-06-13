@@ -18,7 +18,7 @@ import java.util.Map;
 
 import me.ccrama.redditslide.Activities.Search;
 import ltd.ucode.slide.R;
-import me.ccrama.redditslide.Reddit;
+import ltd.ucode.slide.Reddit;
 import me.ccrama.redditslide.Visuals.ColorPreferences;
 
 public class SortingUtil {

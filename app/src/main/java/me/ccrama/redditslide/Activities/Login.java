@@ -35,7 +35,7 @@ import java.util.Set;
 import me.ccrama.redditslide.Authentication;
 import me.ccrama.redditslide.CaseInsensitiveArrayList;
 import ltd.ucode.slide.R;
-import me.ccrama.redditslide.Reddit;
+import ltd.ucode.slide.Reddit;
 import me.ccrama.redditslide.UserSubscriptions;
 import me.ccrama.redditslide.Visuals.GetClosestColor;
 import me.ccrama.redditslide.Visuals.Palette;

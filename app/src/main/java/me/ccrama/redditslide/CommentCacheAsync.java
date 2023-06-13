@@ -30,6 +30,7 @@ import java.util.Map;
 import java.util.Set;
 
 import ltd.ucode.slide.R;
+import ltd.ucode.slide.Reddit;
 import me.ccrama.redditslide.util.GifUtils;
 import me.ccrama.redditslide.util.LogUtil;
 import me.ccrama.redditslide.util.PhotoLoader;

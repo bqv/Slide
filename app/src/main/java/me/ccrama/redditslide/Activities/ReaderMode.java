@@ -20,7 +20,7 @@ import org.jsoup.nodes.Document;
 
 import me.ccrama.redditslide.Constants;
 import ltd.ucode.slide.R;
-import me.ccrama.redditslide.Reddit;
+import ltd.ucode.slide.Reddit;
 import me.ccrama.redditslide.SpoilerRobotoTextView;
 import me.ccrama.redditslide.Visuals.Palette;
 import me.ccrama.redditslide.util.LinkUtil;

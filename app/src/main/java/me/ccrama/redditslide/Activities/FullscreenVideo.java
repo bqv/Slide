@@ -12,7 +12,7 @@ import android.webkit.WebView;
 import androidx.appcompat.app.AlertDialog;
 
 import ltd.ucode.slide.R;
-import me.ccrama.redditslide.Reddit;
+import ltd.ucode.slide.Reddit;
 import me.ccrama.redditslide.util.LinkUtil;
 import me.ccrama.redditslide.util.LogUtil;
 

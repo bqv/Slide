@@ -11,7 +11,7 @@ import org.json.JSONObject;
 import java.io.File;
 import java.io.IOException;
 
-import me.ccrama.redditslide.Reddit;
+import ltd.ucode.slide.Reddit;
 import me.ccrama.redditslide.util.ImgurUtils;
 import me.ccrama.redditslide.util.ProgressRequestBody;
 import okhttp3.MediaType;

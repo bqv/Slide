@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Locale;
 
 import me.ccrama.redditslide.Activities.BaseActivity;
-import me.ccrama.redditslide.Activities.MainActivity;
+import ltd.ucode.slide.Activities.MainActivity;
 import me.ccrama.redditslide.Activities.SubredditView;
 import me.ccrama.redditslide.Authentication;
 import ltd.ucode.slide.BuildConfig;
@@ -32,7 +32,7 @@ import me.ccrama.redditslide.OfflineSubreddit;
 import me.ccrama.redditslide.PostLoader;
 import me.ccrama.redditslide.PostMatch;
 import ltd.ucode.slide.R;
-import me.ccrama.redditslide.Reddit;
+import ltd.ucode.slide.Reddit;
 import me.ccrama.redditslide.SettingValues;
 import me.ccrama.redditslide.SubmissionCache;
 import me.ccrama.redditslide.Synccit.MySynccitReadTask;

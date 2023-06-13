@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import me.ccrama.redditslide.Reddit;
+import ltd.ucode.slide.Reddit;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;

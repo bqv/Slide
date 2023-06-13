@@ -25,7 +25,7 @@ import me.ccrama.redditslide.Activities.Album;
 import me.ccrama.redditslide.Activities.GalleryImage;
 import me.ccrama.redditslide.Activities.MediaView;
 import ltd.ucode.slide.R;
-import me.ccrama.redditslide.Reddit;
+import ltd.ucode.slide.Reddit;
 import me.ccrama.redditslide.SettingValues;
 import me.ccrama.redditslide.SpoilerRobotoTextView;
 import me.ccrama.redditslide.Visuals.FontPreferences;

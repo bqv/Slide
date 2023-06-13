@@ -26,6 +26,7 @@ import java.util.HashSet;
 import java.util.UUID;
 
 import ltd.ucode.slide.BuildConfig;
+import ltd.ucode.slide.Reddit;
 import me.ccrama.redditslide.util.LogUtil;
 import me.ccrama.redditslide.util.NetworkUtil;
 import okhttp3.Protocol;

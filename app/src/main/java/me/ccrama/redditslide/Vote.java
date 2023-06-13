@@ -13,6 +13,7 @@ import net.dean.jraw.models.PublicContribution;
 import net.dean.jraw.models.VoteDirection;
 
 import ltd.ucode.slide.R;
+import ltd.ucode.slide.Reddit;
 import me.ccrama.redditslide.util.LayoutUtils;
 
 /**

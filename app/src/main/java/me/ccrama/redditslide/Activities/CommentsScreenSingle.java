@@ -30,7 +30,7 @@ import me.ccrama.redditslide.HasSeen;
 import me.ccrama.redditslide.LastComments;
 import me.ccrama.redditslide.Notifications.NotificationJobScheduler;
 import ltd.ucode.slide.R;
-import me.ccrama.redditslide.Reddit;
+import ltd.ucode.slide.Reddit;
 import me.ccrama.redditslide.SettingValues;
 import me.ccrama.redditslide.SwipeLayout.Utils;
 import me.ccrama.redditslide.UserSubscriptions;

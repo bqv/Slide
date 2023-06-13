@@ -15,10 +15,10 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
 
-import me.ccrama.redditslide.Activities.MainActivity;
+import ltd.ucode.slide.Activities.MainActivity;
 import me.ccrama.redditslide.Activities.SubredditView;
 import ltd.ucode.slide.R;
-import me.ccrama.redditslide.Reddit;
+import ltd.ucode.slide.Reddit;
 import me.ccrama.redditslide.SettingValues;
 import me.ccrama.redditslide.Visuals.ColorPreferences;
 import me.ccrama.redditslide.Visuals.Palette;

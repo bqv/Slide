@@ -26,7 +26,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 
 import ltd.ucode.slide.R;
-import me.ccrama.redditslide.Reddit;
+import ltd.ucode.slide.Reddit;
 import me.ccrama.redditslide.Views.CanvasView;
 import me.ccrama.redditslide.Views.DoEditorActions;
 import me.ccrama.redditslide.Visuals.Palette;
@@ -66,7 +66,7 @@ public class Draw extends BaseActivity implements ColorChooserDialog.ColorCallba
     }
 
     public int getLastColor() {
-        return Reddit.colors.getInt("drawColor", Palette.getDefaultAccent());
+        return Reddit.colours.getInt("drawColor", Palette.getDefaultAccent());
     }
 
     @Override
@@ -153,7 +153,7 @@ public class Draw extends BaseActivity implements ColorChooserDialog.ColorCallba
         drawView.setPaintStrokeColor(selectedColor);
         BlendModeUtil.tintDrawableAsModulate(color.getBackground(), selectedColor);
 
-        Reddit.colors.edit().putInt("drawColor", selectedColor).commit();
+        Reddit.colours.edit().putInt("drawColor", selectedColor).commit();
     }
 
     @Override

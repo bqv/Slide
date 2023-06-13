@@ -24,12 +24,12 @@ import java.util.List;
 import java.util.Locale;
 
 import me.ccrama.redditslide.Activities.CommentsScreen;
-import me.ccrama.redditslide.Activities.MainActivity;
+import ltd.ucode.slide.Activities.MainActivity;
 import me.ccrama.redditslide.Activities.SubredditView;
 import me.ccrama.redditslide.Authentication;
 import me.ccrama.redditslide.Fragments.SubmissionsView;
 import ltd.ucode.slide.R;
-import me.ccrama.redditslide.Reddit;
+import ltd.ucode.slide.Reddit;
 import me.ccrama.redditslide.SettingValues;
 import me.ccrama.redditslide.SubmissionViews.PopulateSubmissionViewHolder;
 import me.ccrama.redditslide.Views.CatchStaggeredGridLayoutManager;

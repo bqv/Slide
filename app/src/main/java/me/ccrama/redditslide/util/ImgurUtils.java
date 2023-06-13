@@ -15,7 +15,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-import me.ccrama.redditslide.Reddit;
+import ltd.ucode.slide.Reddit;
 
 //Following methods sourced from https://github.com/Kennyc1012/Opengur, Code by Kenny Campagna
 public class ImgurUtils {

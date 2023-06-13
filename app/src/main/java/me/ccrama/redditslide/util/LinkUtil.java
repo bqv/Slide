@@ -36,7 +36,7 @@ import me.ccrama.redditslide.Activities.MakeExternal;
 import me.ccrama.redditslide.Activities.ReaderMode;
 import me.ccrama.redditslide.Activities.Website;
 import ltd.ucode.slide.R;
-import me.ccrama.redditslide.Reddit;
+import ltd.ucode.slide.Reddit;
 import me.ccrama.redditslide.SettingValues;
 import me.ccrama.redditslide.SpoilerRobotoTextView;
 import me.ccrama.redditslide.SubmissionViews.PopulateBase;

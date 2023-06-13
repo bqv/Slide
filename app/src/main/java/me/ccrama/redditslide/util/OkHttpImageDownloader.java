@@ -12,7 +12,7 @@ import com.nostra13.universalimageloader.core.download.BaseImageDownloader;
 import java.io.IOException;
 import java.io.InputStream;
 
-import me.ccrama.redditslide.Reddit;
+import ltd.ucode.slide.Reddit;
 import okhttp3.Request;
 import okhttp3.ResponseBody;
 

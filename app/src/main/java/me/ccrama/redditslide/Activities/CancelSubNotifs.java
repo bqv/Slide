@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.Locale;
 
 import me.ccrama.redditslide.Notifications.CheckForMail;
-import me.ccrama.redditslide.Reddit;
+import ltd.ucode.slide.Reddit;
 import me.ccrama.redditslide.util.StringUtil;
 
 /**

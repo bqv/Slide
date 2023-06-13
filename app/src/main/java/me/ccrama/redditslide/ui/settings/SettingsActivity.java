@@ -40,7 +40,7 @@ import me.ccrama.redditslide.Authentication;
 import ltd.ucode.slide.BuildConfig;
 import me.ccrama.redditslide.Fragments.FolderChooserDialogCreate;
 import ltd.ucode.slide.R;
-import me.ccrama.redditslide.Reddit;
+import ltd.ucode.slide.Reddit;
 import me.ccrama.redditslide.SettingValues;
 import me.ccrama.redditslide.Visuals.Palette;
 import me.ccrama.redditslide.ui.settings.dragSort.ReorderSubreddits;
@@ -506,7 +506,7 @@ public class SettingsActivity extends BaseActivity
                         @Override
                         public void onDismiss(DialogInterface dialog) {
                             Reddit.dpWidth = landscape.getProgress() + 1;
-                            Reddit.colors.edit()
+                            Reddit.colours.edit()
                                     .putInt("tabletOVERRIDE", landscape.getProgress() + 1)
                                     .apply();
                         }

@@ -8,7 +8,7 @@ import net.dean.jraw.models.Thumbnails;
 import java.util.List;
 
 import me.ccrama.redditslide.ContentType;
-import me.ccrama.redditslide.Reddit;
+import ltd.ucode.slide.Reddit;
 import me.ccrama.redditslide.SettingValues;
 
 /**

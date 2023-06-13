@@ -3,7 +3,6 @@ package ltd.ucode.slide.Activities
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
-import me.ccrama.redditslide.Activities.MainActivity
 
 class Slide : Activity() {
     public override fun onCreate(savedInstance: Bundle?) {

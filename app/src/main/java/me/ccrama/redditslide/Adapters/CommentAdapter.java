@@ -79,7 +79,7 @@ import me.ccrama.redditslide.ImageFlairs;
 import me.ccrama.redditslide.LastComments;
 import me.ccrama.redditslide.OpenRedditLink;
 import ltd.ucode.slide.R;
-import me.ccrama.redditslide.Reddit;
+import ltd.ucode.slide.Reddit;
 import me.ccrama.redditslide.SettingValues;
 import me.ccrama.redditslide.SpoilerRobotoTextView;
 import me.ccrama.redditslide.SubmissionViews.PopulateSubmissionViewHolder;

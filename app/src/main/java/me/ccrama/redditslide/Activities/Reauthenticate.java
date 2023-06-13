@@ -28,7 +28,7 @@ import java.util.Set;
 
 import me.ccrama.redditslide.Authentication;
 import ltd.ucode.slide.R;
-import me.ccrama.redditslide.Reddit;
+import ltd.ucode.slide.Reddit;
 import me.ccrama.redditslide.util.LogUtil;
 
 

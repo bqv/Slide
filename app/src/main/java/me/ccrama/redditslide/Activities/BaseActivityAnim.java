@@ -3,7 +3,7 @@ package me.ccrama.redditslide.Activities;
 import android.os.Bundle;
 
 import ltd.ucode.slide.R;
-import me.ccrama.redditslide.Reddit;
+import ltd.ucode.slide.Reddit;
 import me.ccrama.redditslide.SwipeLayout.app.SwipeBackActivityBase;
 
 

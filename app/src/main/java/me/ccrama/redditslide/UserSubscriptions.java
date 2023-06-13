@@ -28,8 +28,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import ltd.ucode.slide.Reddit;
 import me.ccrama.redditslide.Activities.Login;
-import me.ccrama.redditslide.Activities.MainActivity;
+import ltd.ucode.slide.Activities.MainActivity;
 import me.ccrama.redditslide.Activities.MultiredditOverview;
 import me.ccrama.redditslide.Activities.NewsActivity;
 import me.ccrama.redditslide.Toolbox.Toolbox;

@@ -10,7 +10,7 @@ import android.content.Intent;
 import android.os.AsyncTask;
 
 import me.ccrama.redditslide.CommentCacheAsync;
-import me.ccrama.redditslide.Reddit;
+import ltd.ucode.slide.Reddit;
 import me.ccrama.redditslide.util.NetworkUtil;
 
 public class CacheAll extends BroadcastReceiver {

@@ -1,4 +1,4 @@
-package me.ccrama.redditslide.Activities
+package ltd.ucode.slide.Activities
 
 import android.content.Intent
 import android.graphics.Color
@@ -20,7 +20,7 @@ import ltd.ucode.slide.databinding.ChoosemainBinding
 import ltd.ucode.slide.databinding.ChoosethemesmallBinding
 import ltd.ucode.slide.databinding.FragmentPersonalizeBinding
 import ltd.ucode.slide.databinding.FragmentWelcomeBinding
-import me.ccrama.redditslide.Reddit
+import ltd.ucode.slide.Reddit
 import me.ccrama.redditslide.Visuals.ColorPreferences
 import me.ccrama.redditslide.Visuals.FontPreferences
 import me.ccrama.redditslide.Visuals.Palette
@@ -137,7 +137,7 @@ class Tutorial : AppCompatActivity() {
                     }
                 }
                 choosemainBinding.ok.setOnClickListener { v13: View? ->
-                    Reddit.colors.edit().putInt("DEFAULTCOLOR", choosemainBinding.picker2.color)
+                    Reddit.colours!!.edit().putInt("DEFAULTCOLOR", choosemainBinding.picker2.color)
                         .apply()
                     finishDialogLayout()
                 }
@@ -211,8 +211,8 @@ class Tutorial : AppCompatActivity() {
                     .show()
             }
             personalizeBinding!!.done.setOnClickListener { v1: View? ->
-                Reddit.colors.edit().putString("Tutorial", "S").commit()
-                Reddit.appRestart.edit().putString("startScreen", "a").apply()
+                Reddit.colours!!.edit().putString("Tutorial", "S").commit()
+                Reddit.appRestart!!.edit().putString("startScreen", "a").apply()
                 Reddit.forceRestart(activity, false)
             }
             return personalizeBinding!!.root

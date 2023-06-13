@@ -17,7 +17,7 @@ import me.ccrama.redditslide.Authentication;
 import me.ccrama.redditslide.Constants;
 import me.ccrama.redditslide.Fragments.SubredditListView;
 import me.ccrama.redditslide.PostMatch;
-import me.ccrama.redditslide.Reddit;
+import ltd.ucode.slide.Reddit;
 import me.ccrama.redditslide.SettingValues;
 
 /**

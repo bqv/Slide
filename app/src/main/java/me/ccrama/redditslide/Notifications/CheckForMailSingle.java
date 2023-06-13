@@ -32,7 +32,7 @@ import me.ccrama.redditslide.Activities.OpenContent;
 import me.ccrama.redditslide.Adapters.MarkAsReadService;
 import me.ccrama.redditslide.Authentication;
 import ltd.ucode.slide.R;
-import me.ccrama.redditslide.Reddit;
+import ltd.ucode.slide.Reddit;
 import me.ccrama.redditslide.SettingValues;
 
 public class CheckForMailSingle extends BroadcastReceiver {

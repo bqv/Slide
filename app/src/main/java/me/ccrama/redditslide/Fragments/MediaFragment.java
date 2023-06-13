@@ -55,7 +55,7 @@ import me.ccrama.redditslide.Activities.TumblrPager;
 import me.ccrama.redditslide.Activities.Website;
 import me.ccrama.redditslide.ContentType;
 import ltd.ucode.slide.R;
-import me.ccrama.redditslide.Reddit;
+import ltd.ucode.slide.Reddit;
 import me.ccrama.redditslide.SecretConstants;
 import me.ccrama.redditslide.SettingValues;
 import me.ccrama.redditslide.SubmissionViews.PopulateShadowboxInfo;

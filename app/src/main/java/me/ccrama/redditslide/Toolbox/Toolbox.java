@@ -18,7 +18,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import me.ccrama.redditslide.Authentication;
-import me.ccrama.redditslide.Reddit;
+import ltd.ucode.slide.Reddit;
 
 /**
  * Main class for /r/toolbox functionality

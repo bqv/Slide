@@ -28,7 +28,7 @@ import me.ccrama.redditslide.Autocache.AutoCacheScheduler;
 import me.ccrama.redditslide.Notifications.NotificationJobScheduler;
 import me.ccrama.redditslide.PostMatch;
 import ltd.ucode.slide.R;
-import me.ccrama.redditslide.Reddit;
+import ltd.ucode.slide.Reddit;
 import me.ccrama.redditslide.Visuals.Palette;
 import me.ccrama.redditslide.util.CompatUtil;
 import me.ccrama.redditslide.util.LogUtil;

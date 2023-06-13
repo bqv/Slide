@@ -46,7 +46,7 @@ import me.ccrama.redditslide.Fragments.FolderChooserDialogCreate.FolderCallback;
 import me.ccrama.redditslide.Notifications.CheckForMail;
 import me.ccrama.redditslide.Notifications.NotificationJobScheduler;
 import ltd.ucode.slide.R;
-import me.ccrama.redditslide.Reddit;
+import ltd.ucode.slide.Reddit;
 import me.ccrama.redditslide.SettingValues;
 import me.ccrama.redditslide.UserSubscriptions;
 import me.ccrama.redditslide.Visuals.Palette;
@@ -122,7 +122,7 @@ public class SettingsGeneralFragment<ActivityType extends AppCompatActivity & Fo
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (!isChecked) {
                     Reddit.notificationTime = -1;
-                    Reddit.colors.edit().putInt("notificationOverride", -1).apply();
+                    Reddit.colours.edit().putInt("notificationOverride", -1).apply();
                     checkBox.setText(context.getString(R.string.settings_mail_check));
                     landscape.setValue(0, true);
                     if (Reddit.notifications != null) {
@@ -152,7 +152,7 @@ public class SettingsGeneralFragment<ActivityType extends AppCompatActivity & Fo
             public void onDismiss(DialogInterface dialog) {
                 if (checkBox.isChecked()) {
                     Reddit.notificationTime = landscape.getValue() * 15;
-                    Reddit.colors.edit()
+                    Reddit.colours.edit()
                             .putInt("notificationOverride", landscape.getValue() * 15)
                             .apply();
                     if (Reddit.notifications == null) {
@@ -171,7 +171,7 @@ public class SettingsGeneralFragment<ActivityType extends AppCompatActivity & Fo
             public void onClick(View d) {
                 if (checkBox.isChecked()) {
                     Reddit.notificationTime = landscape.getValue() * 15;
-                    Reddit.colors.edit()
+                    Reddit.colours.edit()
                             .putInt("notificationOverride", landscape.getValue() * 15)
                             .apply();
                     if (Reddit.notifications == null) {
@@ -188,7 +188,7 @@ public class SettingsGeneralFragment<ActivityType extends AppCompatActivity & Fo
                     }
                 } else {
                     Reddit.notificationTime = -1;
-                    Reddit.colors.edit().putInt("notificationOverride", -1).apply();
+                    Reddit.colours.edit().putInt("notificationOverride", -1).apply();
                     if (Reddit.notifications == null) {
                         Reddit.notifications =
                                 new NotificationJobScheduler(context.getApplication());

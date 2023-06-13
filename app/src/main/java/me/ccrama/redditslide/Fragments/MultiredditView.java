@@ -41,7 +41,7 @@ import me.ccrama.redditslide.HasSeen;
 import me.ccrama.redditslide.Hidden;
 import me.ccrama.redditslide.OfflineSubreddit;
 import ltd.ucode.slide.R;
-import me.ccrama.redditslide.Reddit;
+import ltd.ucode.slide.Reddit;
 import me.ccrama.redditslide.SettingValues;
 import me.ccrama.redditslide.UserSubscriptions;
 import me.ccrama.redditslide.Views.CatchStaggeredGridLayoutManager;
@@ -150,7 +150,7 @@ public class MultiredditView extends Fragment implements SubmissionDisplay {
                                     .setTitle(R.string.settings_fabclear)
                                     .setMessage(R.string.settings_fabclear_msg)
                                     .setPositiveButton(R.string.btn_ok, (dialog, which) -> {
-                                        Reddit.colors.edit()
+                                        Reddit.colours.edit()
                                                 .putBoolean(SettingValues.PREF_FAB_CLEAR, true)
                                                 .apply();
                                         Reddit.fabClear = true;
@@ -170,7 +170,7 @@ public class MultiredditView extends Fragment implements SubmissionDisplay {
                                     .setTitle(R.string.settings_fabclear)
                                     .setMessage(R.string.settings_fabclear_msg)
                                     .setPositiveButton(R.string.btn_ok, (dialog, which) -> {
-                                        Reddit.colors.edit()
+                                        Reddit.colours.edit()
                                                 .putBoolean(SettingValues.PREF_FAB_CLEAR, true)
                                                 .apply();
                                         Reddit.fabClear = true;

@@ -11,7 +11,7 @@ import java.util.List;
 
 import me.ccrama.redditslide.OpenRedditLink;
 import ltd.ucode.slide.R;
-import me.ccrama.redditslide.Reddit;
+import ltd.ucode.slide.Reddit;
 import me.ccrama.redditslide.SpoilerRobotoTextView;
 import me.ccrama.redditslide.Views.CommentOverflow;
 import me.ccrama.redditslide.Views.SidebarLayout;

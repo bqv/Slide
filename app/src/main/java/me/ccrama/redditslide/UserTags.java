@@ -2,6 +2,8 @@ package me.ccrama.redditslide;
 
 import java.util.Locale;
 
+import ltd.ucode.slide.Reddit;
+
 public class UserTags {
 
 

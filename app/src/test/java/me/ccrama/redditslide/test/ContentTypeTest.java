@@ -8,7 +8,7 @@ import java.util.HashSet;
 
 import me.ccrama.redditslide.ContentType;
 import me.ccrama.redditslide.ContentType.Type;
-import me.ccrama.redditslide.Reddit;
+import ltd.ucode.slide.Reddit;
 import me.ccrama.redditslide.SettingValues;
 
 import static org.hamcrest.CoreMatchers.is;

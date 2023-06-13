@@ -11,7 +11,7 @@ import android.os.Build;
 import androidx.annotation.RequiresApi;
 import androidx.core.content.ContextCompat;
 
-import me.ccrama.redditslide.Reddit;
+import ltd.ucode.slide.Reddit;
 
 /**
  * Collection of various network utility methods.

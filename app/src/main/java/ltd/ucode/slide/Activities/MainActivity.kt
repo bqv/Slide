@@ -1,4 +1,4 @@
-package me.ccrama.redditslide.Activities
+package ltd.ucode.slide.Activities
 
 import android.Manifest
 import android.animation.Animator
@@ -26,7 +26,6 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Parcelable
-import android.telecom.DisconnectCause.RESTRICTED
 import android.text.Editable
 import android.util.Log
 import android.view.Gravity
@@ -81,9 +80,26 @@ import com.afollestad.materialdialogs.MaterialDialog
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.tabs.TabLayout
 import com.lusfold.androidkeyvaluestore.KVStore
-import ltd.ucode.slide.Activities.Slide
 import ltd.ucode.slide.BuildConfig
 import ltd.ucode.slide.R
+import me.ccrama.redditslide.Activities.Announcement
+import me.ccrama.redditslide.Activities.BaseActivity
+import me.ccrama.redditslide.Activities.CancelSubNotifs
+import me.ccrama.redditslide.Activities.Discover
+import me.ccrama.redditslide.Activities.Gallery
+import me.ccrama.redditslide.Activities.Inbox
+import me.ccrama.redditslide.Activities.Loader
+import me.ccrama.redditslide.Activities.Login
+import me.ccrama.redditslide.Activities.ModQueue
+import me.ccrama.redditslide.Activities.MultiredditOverview
+import me.ccrama.redditslide.Activities.PostReadLater
+import me.ccrama.redditslide.Activities.Profile
+import me.ccrama.redditslide.Activities.Search
+import me.ccrama.redditslide.Activities.SendMessage
+import me.ccrama.redditslide.Activities.Shadowbox
+import me.ccrama.redditslide.Activities.Submit
+import me.ccrama.redditslide.Activities.SubredditView
+import me.ccrama.redditslide.Activities.Wiki
 import me.ccrama.redditslide.Adapters.SideArrayAdapter
 import me.ccrama.redditslide.Authentication
 import me.ccrama.redditslide.Autocache.AutoCacheScheduler
@@ -102,7 +118,7 @@ import me.ccrama.redditslide.Notifications.CheckForMail.AsyncGetSubs
 import me.ccrama.redditslide.Notifications.NotificationJobScheduler
 import me.ccrama.redditslide.OpenRedditLink
 import me.ccrama.redditslide.PostMatch
-import me.ccrama.redditslide.Reddit
+import ltd.ucode.slide.Reddit
 import me.ccrama.redditslide.SettingValues
 import me.ccrama.redditslide.SpoilerRobotoTextView
 import me.ccrama.redditslide.Synccit.MySynccitUpdateTask
@@ -806,21 +822,11 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             requestPermission()
         }
         var first = false
-        if (Reddit.colors != null && !Reddit.colors.contains("firstStart53")) {
-            AlertDialog.Builder(this)
-                .setTitle("Content settings have moved!")
-                .setMessage("NSFW content is now disabled by default. If you are over the age of 18, to re-enable NSFW content, visit Settings > Content settings")
-                .setPositiveButton(R.string.btn_ok, null)
-                .setCancelable(false)
-                .show()
-            Reddit.colors.edit().putBoolean("firstStart53", true).apply()
-        }
-        if (Reddit.colors != null && !Reddit.colors.contains("Tutorial")) {
+        if (Reddit.colours != null && !Reddit.colours!!.contains("Tutorial")) {
             first = true
             if (Reddit.appRestart == null) {
                 Reddit.appRestart = getSharedPreferences("appRestart", 0)
             }
-            Reddit.appRestart.edit().putBoolean("firststart52", true).apply()
             val i = Intent(this, Tutorial::class.java)
             doForcePrefs()
             startActivity(i)
@@ -836,7 +842,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                             AsyncTask.THREAD_POOL_EXECUTOR
                         )
                     }
-                    if (!Reddit.appRestart.getString(CheckForMail.SUBS_TO_GET, "")!!.isEmpty()) {
+                    if (!Reddit.appRestart!!.getString(CheckForMail.SUBS_TO_GET, "")!!.isEmpty()) {
                         AsyncGetSubs(this@MainActivity).executeOnExecutor(
                             AsyncTask.THREAD_POOL_EXECUTOR
                         )
@@ -859,12 +865,12 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                                     if (s.isStickied && s.submissionFlair.text != null && s.submissionFlair
                                             .text
                                             .equals("Announcement", ignoreCase = true)
-                                        && !Reddit.appRestart.contains(
+                                        && !Reddit.appRestart!!.contains(
                                             "announcement" + s.fullName
                                         )
                                         && s.title.contains(version)
                                     ) {
-                                        Reddit.appRestart.edit()
+                                        Reddit.appRestart!!.edit()
                                             .putBoolean(
                                                 "announcement" + s.fullName,
                                                 true
@@ -875,13 +881,13 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                                                 && s.isStickied) && s.submissionFlair.text != null && s.submissionFlair
                                             .text
                                             .equals("Alpha", ignoreCase = true)
-                                        && !Reddit.appRestart.contains(
+                                        && !Reddit.appRestart!!.contains(
                                             "announcement" + s.fullName
                                         )
                                         && s.title
                                             .contains(BuildConfig.VERSION_NAME)
                                     ) {
-                                        Reddit.appRestart.edit()
+                                        Reddit.appRestart!!.edit()
                                             .putBoolean(
                                                 "announcement" + s.fullName,
                                                 true
@@ -893,11 +899,11 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                                             .text
                                             .equals("PRO", ignoreCase = true)
                                         && !SettingValues.isPro
-                                        && !Reddit.appRestart.contains(
+                                        && !Reddit.appRestart!!.contains(
                                             "announcement" + s.fullName
                                         )
                                     ) {
-                                        Reddit.appRestart.edit()
+                                        Reddit.appRestart!!.edit()
                                             .putBoolean(
                                                 "announcement" + s.fullName,
                                                 true
@@ -915,16 +921,16 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                         override fun onPostExecute(s: Submission?) {
                             checkedPopups = true
                             if (s != null) {
-                                Reddit.appRestart.edit()
+                                Reddit.appRestart!!.edit()
                                     .putString(
                                         "page",
                                         s.dataNode["selftext_html"].asText()
                                     )
                                     .apply()
-                                Reddit.appRestart.edit()
+                                Reddit.appRestart!!.edit()
                                     .putString("title", s.title)
                                     .apply()
-                                Reddit.appRestart.edit().putString("url", s.url).apply()
+                                Reddit.appRestart!!.edit().putString("url", s.url).apply()
                                 val title: String
                                 title = if (s.title.lowercase().contains("release")) {
                                     getString(R.string.btn_changelog)
@@ -1001,25 +1007,25 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
         }
         sidebarBody = findViewById(R.id.sidebar_text) as SpoilerRobotoTextView?
         sidebarOverflow = findViewById(R.id.commentOverflow) as CommentOverflow?
-        if (!Reddit.appRestart.getBoolean("isRestarting", false) && Reddit.colors.contains(
+        if (!Reddit.appRestart!!.getBoolean("isRestarting", false) && Reddit.colours!!.contains(
                 "Tutorial"
             )
         ) {
             LogUtil.v("Starting main " + Authentication.name)
-            Authentication.isLoggedIn = Reddit.appRestart.getBoolean("loggedin", false)
-            Authentication.name = Reddit.appRestart.getString("name", "LOGGEDOUT")
+            Authentication.isLoggedIn = Reddit.appRestart!!.getBoolean("loggedin", false)
+            Authentication.name = Reddit.appRestart!!.getString("name", "LOGGEDOUT")
             UserSubscriptions.doMainActivitySubs(this)
         } else if (!first) {
             LogUtil.v("Starting main 2 " + Authentication.name)
-            Authentication.isLoggedIn = Reddit.appRestart.getBoolean("loggedin", false)
-            Authentication.name = Reddit.appRestart.getString("name", "LOGGEDOUT")
-            Reddit.appRestart.edit().putBoolean("isRestarting", false).commit()
+            Authentication.isLoggedIn = Reddit.appRestart!!.getBoolean("loggedin", false)
+            Authentication.name = Reddit.appRestart!!.getString("name", "LOGGEDOUT")
+            Reddit.appRestart!!.edit().putBoolean("isRestarting", false).commit()
             Reddit.isRestarting = false
             UserSubscriptions.doMainActivitySubs(this)
         }
         val seen = getSharedPreferences("SEEN", 0)
         if (!seen.contains("isCleared") && !seen.all.isEmpty()
-            || !Reddit.appRestart.contains("hasCleared")
+            || !Reddit.appRestart!!.contains("hasCleared")
         ) {
             object : AsyncTask<Void?, Void?, Void?>() {
                 protected override fun doInBackground(vararg params: Void?): Void? {
@@ -1037,9 +1043,9 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                         getSharedPreferences("HIDDEN", 0).edit().clear().apply()
                         getSharedPreferences("HIDDEN_POSTS", 0).edit().clear().apply()
                     }
-                    if (!Reddit.appRestart.contains("hasCleared")) {
-                        val e = Reddit.appRestart.edit()
-                        val toClear = Reddit.appRestart.all
+                    if (!Reddit.appRestart!!.contains("hasCleared")) {
+                        val e = Reddit.appRestart!!.edit()
+                        val toClear = Reddit.appRestart!!.all
                         for ((key, value) in toClear) {
                             if (value is String
                                 && value.length > 300
@@ -1557,7 +1563,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             header.findViewById<View>(R.id.offline)
                 .setOnClickListener(object : OnSingleClickListener() {
                     override fun onSingleClick(view: View) {
-                        Reddit.appRestart.edit().putBoolean("forceoffline", true).commit()
+                        Reddit.appRestart!!.edit().putBoolean("forceoffline", true).commit()
                         Reddit.forceRestart(this@MainActivity, false)
                     }
                 })
@@ -1711,7 +1717,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             header.findViewById<View>(R.id.offline)
                 .setOnClickListener(object : OnSingleClickListener() {
                     override fun onSingleClick(view: View) {
-                        Reddit.appRestart.edit().putBoolean("forceoffline", true).commit()
+                        Reddit.appRestart!!.edit().putBoolean("forceoffline", true).commit()
                         Reddit.forceRestart(this@MainActivity, false)
                     }
                 })
@@ -1751,7 +1757,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             header.findViewById<View>(R.id.online)
                 .setOnClickListener(object : OnSingleClickListener() {
                     override fun onSingleClick(view: View) {
-                        Reddit.appRestart.edit().remove("forceoffline").commit()
+                        Reddit.appRestart!!.edit().remove("forceoffline").commit()
                         Reddit.forceRestart(this@MainActivity, false)
                     }
                 })
@@ -2051,7 +2057,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
 
             //get all subs that have Notifications enabled
             val rawSubs =
-                StringUtil.stringToArray(Reddit.appRestart.getString(CheckForMail.SUBS_TO_GET, ""))
+                StringUtil.stringToArray(Reddit.appRestart!!.getString(CheckForMail.SUBS_TO_GET, ""))
             val subThresholds = HashMap<String, Int>()
             for (s in rawSubs) {
                 try {
@@ -2200,7 +2206,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                                         0
                                     ) { dialog, itemView, which, text ->
                                         val subs = StringUtil.stringToArray(
-                                            Reddit.appRestart
+                                            Reddit.appRestart!!
                                                 .getString(
                                                     CheckForMail.SUBS_TO_GET,
                                                     ""
@@ -2211,7 +2217,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                                                     + ":"
                                                     + text
                                         )
-                                        Reddit.appRestart
+                                        Reddit.appRestart!!
                                             .edit()
                                             .putString(
                                                 CheckForMail.SUBS_TO_GET,
@@ -2410,7 +2416,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                 .isEmpty()
         ) {
             findViewById(R.id.subimage).visibility = View.VISIBLE
-            (application as Reddit).imageLoader
+            (application as Reddit).imageLoader!!
                 .displayImage(
                     subreddit.dataNode["icon_img"].asText(),
                     findViewById(R.id.subimage) as ImageView?
@@ -2421,7 +2427,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
         val bannerImage = subreddit.bannerImage
         if (bannerImage != null && !bannerImage.isEmpty()) {
             findViewById(R.id.sub_banner).visibility = View.VISIBLE
-            (application as Reddit).imageLoader
+            (application as Reddit).imageLoader!!
                 .displayImage(
                     bannerImage,
                     findViewById(R.id.sub_banner) as ImageView?
@@ -3542,7 +3548,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                 .cancelable(false)
                 .onNegative { dialog, which -> finish() }
                 .onPositive { dialog, which ->
-                    Reddit.appRestart.edit().remove("forceoffline").commit()
+                    Reddit.appRestart!!.edit().remove("forceoffline").commit()
                     Reddit.forceRestart(this@MainActivity, false)
                 }
                 .show()
@@ -3994,7 +4000,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                     me = Authentication.me
                     if (Authentication.name.equals("loggedout", ignoreCase = true)) {
                         Authentication.name = me.fullName
-                        Reddit.appRestart.edit().putString("name", Authentication.name).apply()
+                        Reddit.appRestart!!.edit().putString("name", Authentication.name).apply()
                         restart = true
                         return null
                     }
@@ -4004,11 +4010,11 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                         .apply()
                     if (Reddit.notificationTime != -1) {
                         Reddit.notifications = NotificationJobScheduler(this@MainActivity)
-                        Reddit.notifications.start()
+                        Reddit.notifications!!.start()
                     }
-                    if (Reddit.cachedData.contains("toCache")) {
+                    if (Reddit.cachedData!!.contains("toCache")) {
                         Reddit.autoCache = AutoCacheScheduler(this@MainActivity)
-                        Reddit.autoCache.start()
+                        Reddit.autoCache!!.start()
                     }
                     val name = me.fullName
                     Authentication.name = name
@@ -4058,7 +4064,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                 })
             }
             if (count != -1) {
-                val oldCount = Reddit.appRestart.getInt("inbox", 0)
+                val oldCount = Reddit.appRestart!!.getInt("inbox", 0)
                 if (count > oldCount) {
                     val s = Snackbar.make(
                         mToolbar!!,
@@ -4076,7 +4082,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                         })
                     LayoutUtils.showSnackbar(s)
                 }
-                Reddit.appRestart.edit().putInt("inbox", count).apply()
+                Reddit.appRestart!!.edit().putInt("inbox", count).apply()
             }
             val badge = headerMain!!.findViewById<View>(R.id.count)
             if (count == 0) {
