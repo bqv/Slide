@@ -1021,25 +1021,24 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             App.isRestarting = false
             UserSubscriptions.doMainActivitySubs(this)
         }
-        val seen = getSharedPreferences("SEEN", 0)
-        if (!seen.contains("isCleared") && !seen.all.isEmpty()
+        if (!Preferences.seen.contains("isCleared") && !Preferences.seen.all.isEmpty()
             || !Preferences.appRestart.contains("hasCleared")
         ) {
             object : AsyncTask<Void?, Void?, Void?>() {
                 protected override fun doInBackground(vararg params: Void?): Void? {
                     val m = KVStore.getInstance()
-                    val values = seen.all
+                    val values = Preferences.seen.all
                     for ((key, value) in values) {
                         if (key.length == 6 && value is Boolean) {
                             m.insert(key, "true")
                         } else if (value is Long) {
-                            m.insert(key, seen.getLong(key, 0).toString())
+                            m.insert(key, Preferences.seen.getLong(key, 0).toString())
                         }
                     }
-                    seen.edit().clear().putBoolean("isCleared", true).apply()
-                    if (getSharedPreferences("HIDDEN_POSTS", 0).all.size != 0) {
-                        getSharedPreferences("HIDDEN", 0).edit().clear().apply()
-                        getSharedPreferences("HIDDEN_POSTS", 0).edit().clear().apply()
+                    Preferences.seen.edit().clear().putBoolean("isCleared", true).apply()
+                    if (Preferences.hiddenPosts.all.isNotEmpty()) {
+                        Preferences.hidden.edit().clear().apply()
+                        Preferences.hiddenPosts.edit().clear().apply()
                     }
                     if (!Preferences.appRestart.contains("hasCleared")) {
                         val e = Preferences.appRestart.edit()

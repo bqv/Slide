@@ -29,6 +29,8 @@ object Preferences {
     val subscriptions: SharedPreferences by lazy { getSharedPreferences("SUBS") }
 
     val filters: SharedPreferences by lazy { getSharedPreferences("FILTERS") }
+
+    val upgrade: SharedPreferences by lazy { getSharedPreferences("UPGRADE") }
 }
 
 private fun getSharedPreferences(name: String, mode: Int = 0): SharedPreferences {

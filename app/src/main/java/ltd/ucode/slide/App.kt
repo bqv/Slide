@@ -160,14 +160,14 @@ class App : MultiDexApplication(), ActivityLifecycleCallbacks {
             SettingValues.PREF_OVERRIDE_LANGUAGE,
             false
         )
-        AlbumUtils.albumRequests = getSharedPreferences("albums", 0)
-        TumblrUtils.tumblrRequests = getSharedPreferences("tumblr", 0)
-        cachedData = getSharedPreferences("cache", 0)
+        AlbumUtils.albumRequests = Preferences.albums
+        TumblrUtils.tumblrRequests = Preferences.tumblr
+        cachedData = Preferences.cache
         if (!cachedData!!.contains("hasReset")) {
             cachedData!!.edit().clear().putBoolean("hasReset", true).apply()
         }
         registerActivityLifecycleCallbacks(this)
-        UserSubscriptions.subscriptions = getSharedPreferences("SUBSNEW", 0)
+        UserSubscriptions.subscriptions = Preferences.subscriptions
         UserSubscriptions.multiNameToSubs = getSharedPreferences("MULTITONAME", 0)
         UserSubscriptions.newsNameToSubs = getSharedPreferences("NEWSMULTITONAME", 0)
         UserSubscriptions.news = getSharedPreferences("NEWS", 0)
@@ -176,9 +176,9 @@ class App : MultiDexApplication(), ActivityLifecycleCallbacks {
             .putString("news", "worldnews+news+politics")
             .apply()
         UserSubscriptions.pinned = getSharedPreferences("PINNED", 0)
-        PostMatch.filters = getSharedPreferences("FILTERS", 0)
+        PostMatch.filters = Preferences.filters
         ImageFlairs.flairs = getSharedPreferences("FLAIRS", 0)
-        SettingValues.setAllValues(getSharedPreferences("SETTINGS", 0))
+        SettingValues.setAllValues(Preferences.settings)
         SortingUtil.defaultSorting = SettingValues.defaultSorting
         SortingUtil.timePeriod = SettingValues.timePeriod
         KVStore.init(this, "SEEN")
