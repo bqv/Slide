@@ -34,7 +34,7 @@ import java.util.Locale;
 import me.ccrama.redditslide.ActionStates;
 import me.ccrama.redditslide.Adapters.ProfileCommentViewHolder;
 import me.ccrama.redditslide.Adapters.SubmissionViewHolder;
-import me.ccrama.redditslide.Authentication;
+import ltd.ucode.slide.Authentication;
 import me.ccrama.redditslide.ForceTouch.PeekViewActivity;
 import me.ccrama.redditslide.OpenRedditLink;
 import ltd.ucode.slide.R;

@@ -11,7 +11,7 @@ import net.dean.jraw.managers.AccountManager;
 import net.dean.jraw.models.Submission;
 
 import me.ccrama.redditslide.Activities.MediaView;
-import me.ccrama.redditslide.Authentication;
+import ltd.ucode.slide.Authentication;
 import me.ccrama.redditslide.Fragments.SubmissionsView;
 import ltd.ucode.slide.R;
 import me.ccrama.redditslide.util.LayoutUtils;

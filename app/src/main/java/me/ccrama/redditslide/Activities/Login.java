@@ -32,7 +32,7 @@ import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
 
-import me.ccrama.redditslide.Authentication;
+import ltd.ucode.slide.Authentication;
 import me.ccrama.redditslide.CaseInsensitiveArrayList;
 import ltd.ucode.slide.R;
 import ltd.ucode.slide.Reddit;

@@ -23,7 +23,7 @@ import net.dean.jraw.managers.InboxManager;
 import java.util.HashSet;
 import java.util.Set;
 
-import me.ccrama.redditslide.Authentication;
+import ltd.ucode.slide.Authentication;
 import me.ccrama.redditslide.Autocache.AutoCacheScheduler;
 import me.ccrama.redditslide.ContentGrabber;
 import me.ccrama.redditslide.Fragments.InboxPage;

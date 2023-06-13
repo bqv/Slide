@@ -10,7 +10,7 @@ import android.text.style.RelativeSizeSpan;
 import android.widget.TextView;
 
 import me.ccrama.redditslide.Adapters.ProfileCommentViewHolder;
-import me.ccrama.redditslide.Authentication;
+import ltd.ucode.slide.Authentication;
 import ltd.ucode.slide.R;
 
 /**

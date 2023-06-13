@@ -2,7 +2,7 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    tools:context=".Activities.Profile">
+    tools:context=".activity.Profile">
     <item
         android:id="@+id/category"
         android:icon="@drawable/ic_folder"

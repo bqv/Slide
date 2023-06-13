@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-import me.ccrama.redditslide.Authentication;
+import ltd.ucode.slide.Authentication;
 import ltd.ucode.slide.Reddit;
 
 /**

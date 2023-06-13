@@ -12,7 +12,7 @@ import net.dean.jraw.paginators.UserContributionPaginator;
 
 import java.util.ArrayList;
 
-import me.ccrama.redditslide.Authentication;
+import ltd.ucode.slide.Authentication;
 import me.ccrama.redditslide.HasSeen;
 import me.ccrama.redditslide.PostMatch;
 import me.ccrama.redditslide.util.SortingUtil;

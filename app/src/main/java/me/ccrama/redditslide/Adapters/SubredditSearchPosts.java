@@ -18,7 +18,7 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 
 import me.ccrama.redditslide.Activities.MultiredditOverview;
-import me.ccrama.redditslide.Authentication;
+import ltd.ucode.slide.Authentication;
 import me.ccrama.redditslide.PostMatch;
 import ltd.ucode.slide.R;
 import me.ccrama.redditslide.util.SortingUtil;

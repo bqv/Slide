@@ -30,7 +30,7 @@ import java.util.List;
 import me.ccrama.redditslide.Activities.Inbox;
 import me.ccrama.redditslide.Activities.OpenContent;
 import me.ccrama.redditslide.Adapters.MarkAsReadService;
-import me.ccrama.redditslide.Authentication;
+import ltd.ucode.slide.Authentication;
 import ltd.ucode.slide.R;
 import ltd.ucode.slide.Reddit;
 import me.ccrama.redditslide.SettingValues;

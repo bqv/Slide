@@ -29,6 +29,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
+import ltd.ucode.slide.Authentication;
 import ltd.ucode.slide.R;
 import ltd.ucode.slide.Reddit;
 import me.ccrama.redditslide.util.GifUtils;

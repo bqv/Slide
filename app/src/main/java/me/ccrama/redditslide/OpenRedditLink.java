@@ -11,10 +11,11 @@ import androidx.annotation.Nullable;
 import java.util.List;
 import java.util.Objects;
 
+import ltd.ucode.slide.Authentication;
 import ltd.ucode.slide.Reddit;
 import me.ccrama.redditslide.Activities.CommentsScreenSingle;
 import me.ccrama.redditslide.Activities.LiveThread;
-import ltd.ucode.slide.Activities.MainActivity;
+import ltd.ucode.slide.activity.MainActivity;
 import me.ccrama.redditslide.Activities.MultiredditOverview;
 import me.ccrama.redditslide.Activities.OpenContent;
 import me.ccrama.redditslide.Activities.Profile;

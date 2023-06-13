@@ -25,7 +25,7 @@ import net.dean.jraw.models.PrivateMessage;
 import java.util.ArrayList;
 import java.util.Locale;
 
-import me.ccrama.redditslide.Authentication;
+import ltd.ucode.slide.Authentication;
 import me.ccrama.redditslide.DataShare;
 import ltd.ucode.slide.R;
 import me.ccrama.redditslide.UserSubscriptions;

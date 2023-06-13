@@ -15,7 +15,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
 
-import ltd.ucode.slide.Activities.MainActivity;
+import ltd.ucode.slide.activity.MainActivity;
 import me.ccrama.redditslide.Activities.SubredditView;
 import ltd.ucode.slide.R;
 import ltd.ucode.slide.Reddit;

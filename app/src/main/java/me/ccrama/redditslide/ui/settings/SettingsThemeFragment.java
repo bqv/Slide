@@ -34,7 +34,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import me.ccrama.redditslide.Activities.BaseActivity;
-import ltd.ucode.slide.Activities.Slide;
+import ltd.ucode.slide.activity.Slide;
 import ltd.ucode.slide.R;
 import ltd.ucode.slide.Reddit;
 import me.ccrama.redditslide.SettingValues;

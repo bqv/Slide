@@ -12,7 +12,6 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.net.Uri
-import android.os.AsyncTask
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
@@ -36,8 +35,7 @@ import com.google.android.exoplayer2.upstream.cache.SimpleCache
 import com.jakewharton.processphoenix.ProcessPhoenix
 import com.lusfold.androidkeyvaluestore.KVStore
 import com.nostra13.universalimageloader.core.ImageLoader
-import ltd.ucode.slide.Activities.MainActivity
-import me.ccrama.redditslide.Authentication
+import ltd.ucode.slide.activity.MainActivity
 import me.ccrama.redditslide.Autocache.AutoCacheScheduler
 import me.ccrama.redditslide.ContentType
 import me.ccrama.redditslide.ImageFlairs
@@ -45,7 +43,6 @@ import me.ccrama.redditslide.ImgurAlbum.AlbumUtils
 import me.ccrama.redditslide.Notifications.NotificationJobScheduler
 import me.ccrama.redditslide.Notifications.NotificationPiggyback
 import me.ccrama.redditslide.PostMatch
-import me.ccrama.redditslide.SecretConstants
 import me.ccrama.redditslide.SettingValues
 import me.ccrama.redditslide.Tumblr.TumblrUtils
 import me.ccrama.redditslide.UserSubscriptions
@@ -75,9 +72,6 @@ import java.net.UnknownHostException
 import java.util.Calendar
 import java.util.Locale
 
-/**
- * Created by ccrama on 9/17/2015.
- */
 class Reddit : MultiDexApplication(), ActivityLifecycleCallbacks {
     var active = false
     @JvmField
@@ -103,7 +97,7 @@ class Reddit : MultiDexApplication(), ActivityLifecycleCallbacks {
             builder.dns(GfycatIpv4Dns())
             client = builder.build()
         }
-        if (authentication != null && Authentication.didOnline && Authentication.authentication.getLong(
+        if (authentication != null && Authentication.didOnline && Authentication.authentication!!.getLong(
                 "expires",
                 0
             ) <= Calendar.getInstance()
@@ -194,7 +188,7 @@ class Reddit : MultiDexApplication(), ActivityLifecycleCallbacks {
         }
         authentication = Authentication(this)
         AdBlocker.init(this)
-        Authentication.mod = Authentication.authentication.getBoolean(SHARED_PREF_IS_MOD, false)
+        Authentication.mod = Authentication.authentication!!.getBoolean(SHARED_PREF_IS_MOD, false)
         enter_animation_time = enter_animation_time_original * enter_animation_time_multiplier
         fabClear = colours!!.getBoolean(SettingValues.PREF_FAB_CLEAR, false)
         val widthDp = this.resources.configuration.screenWidthDp

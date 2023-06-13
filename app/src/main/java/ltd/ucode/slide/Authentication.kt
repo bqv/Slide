@@ -1,350 +1,330 @@
-package me.ccrama.redditslide;
+package ltd.ucode.slide
 
-import android.app.Activity;
-import android.content.Context;
-import android.content.SharedPreferences;
-import android.os.AsyncTask;
-import android.util.Log;
-import android.widget.Toast;
+import android.app.Activity
+import android.content.Context
+import android.content.DialogInterface
+import android.content.SharedPreferences
+import android.os.AsyncTask
+import android.util.Log
+import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
+import ltd.ucode.slide.Reddit.Companion.forceRestart
+import ltd.ucode.slide.Reddit.Companion.setDefaultErrorHandler
+import me.ccrama.redditslide.UserSubscriptions
+import me.ccrama.redditslide.util.LogUtil
+import me.ccrama.redditslide.util.NetworkUtil
+import net.dean.jraw.RedditClient
+import net.dean.jraw.http.LoggingMode
+import net.dean.jraw.http.NetworkException
+import net.dean.jraw.http.OkHttpAdapter
+import net.dean.jraw.http.UserAgent
+import net.dean.jraw.http.oauth.Credentials
+import net.dean.jraw.http.oauth.OAuthData
+import net.dean.jraw.models.LoggedInAccount
+import okhttp3.Protocol
+import java.util.Calendar
+import java.util.UUID
 
-import androidx.appcompat.app.AlertDialog;
-
-import ltd.ucode.slide.R;
-
-import net.dean.jraw.RedditClient;
-import net.dean.jraw.http.LoggingMode;
-import net.dean.jraw.http.NetworkException;
-import net.dean.jraw.http.OkHttpAdapter;
-import net.dean.jraw.http.UserAgent;
-import net.dean.jraw.http.oauth.Credentials;
-import net.dean.jraw.http.oauth.OAuthData;
-import net.dean.jraw.http.oauth.OAuthHelper;
-import net.dean.jraw.models.LoggedInAccount;
-
-import java.util.Calendar;
-import java.util.HashSet;
-import java.util.UUID;
-
-import ltd.ucode.slide.BuildConfig;
-import ltd.ucode.slide.Reddit;
-import me.ccrama.redditslide.util.LogUtil;
-import me.ccrama.redditslide.util.NetworkUtil;
-import okhttp3.Protocol;
-
-/**
- * Created by ccrama on 3/30/2015.
- */
-public class Authentication {
-    private static final String CLIENT_ID    = "KI2Nl9A_ouG9Qw";
-    private static final String REDIRECT_URL = "http://www.ccrama.me";
-    public static boolean           isLoggedIn;
-    public static RedditClient      reddit;
-    public static LoggedInAccount   me;
-    public static boolean           mod;
-    public static String            name;
-    public static SharedPreferences authentication;
-    public static String            refresh;
-
-    public         boolean       hasDone;
-    public static  boolean       didOnline;
-    private static OkHttpAdapter httpAdapter;
-
-    public static void resetAdapter() {
-        new AsyncTask<Void, Void, Void>() {
-            @Override
-            protected Void doInBackground(Void... params) {
-                if (httpAdapter != null && httpAdapter.getNativeClient() != null) {
-                    httpAdapter.getNativeClient().connectionPool().evictAll();
-                }
-                return null;
-            }
-        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+class Authentication(context: Context?) {
+    var hasDone = false
+    fun updateToken(c: Context) {
+        if (BuildConfig.DEBUG) LogUtil.v("Executing update token")
+        if (reddit == null) {
+            hasDone = true
+            isLoggedIn = false
+            reddit = RedditClient(
+                UserAgent.of("android:ltd.ucode.slide:v" + BuildConfig.VERSION_NAME)
+            )
+            reddit!!.loggingMode = LoggingMode.ALWAYS
+            didOnline = true
+            VerifyCredentials(c).execute()
+        } else {
+            UpdateToken(c).execute()
+        }
     }
 
-    public Authentication(Context context) {
-        Reddit.setDefaultErrorHandler(context);
-
+    init {
+        setDefaultErrorHandler(context)
         if (NetworkUtil.isConnected(context)) {
-            hasDone = true;
-            httpAdapter = new OkHttpAdapter(Reddit.client, Protocol.HTTP_2);
-            isLoggedIn = false;
-            reddit = new RedditClient(
-                    UserAgent.of("android:me.ccrama.RedditSlide:v" + BuildConfig.VERSION_NAME),
-                    httpAdapter);
-            reddit.setRetryLimit(2);
-            if (BuildConfig.DEBUG) reddit.setLoggingMode(LoggingMode.ALWAYS);
-            didOnline = true;
-            new VerifyCredentials(context).execute();
+            hasDone = true
+            httpAdapter = OkHttpAdapter(Reddit.client, Protocol.HTTP_2)
+            isLoggedIn = false
+            reddit = RedditClient(
+                UserAgent.of("android:me.ccrama.RedditSlide:v" + BuildConfig.VERSION_NAME),
+                httpAdapter
+            )
+            reddit!!.retryLimit = 2
+            if (BuildConfig.DEBUG) reddit!!.loggingMode = LoggingMode.ALWAYS
+            didOnline = true
+            VerifyCredentials(context).execute()
         } else {
-            isLoggedIn = Reddit.appRestart.getBoolean("loggedin", false);
-            name = Reddit.appRestart.getString("name", "");
-            if ((name.isEmpty() || !isLoggedIn) && !authentication.getString("lasttoken", "")
-                    .isEmpty()) {
-                for (String s : Authentication.authentication.getStringSet("accounts",
-                        new HashSet<String>())) {
-                    if (s.contains(authentication.getString("lasttoken", ""))) {
-                        name = (s.split(":")[0]);
-                        break;
+            isLoggedIn = Reddit.appRestart!!.getBoolean("loggedin", false)
+            name = Reddit.appRestart!!.getString("name", "")
+            if ((name!!.isEmpty() || !isLoggedIn) && !authentication!!.getString("lasttoken", "")!!
+                    .isEmpty()
+            ) {
+                for (s in authentication!!.getStringSet(
+                    "accounts",
+                    HashSet()
+                )!!) {
+                    if (s.contains(authentication!!.getString("lasttoken", "")!!)) {
+                        name = s.split(":".toRegex()).dropLastWhile { it.isEmpty() }
+                            .toTypedArray()[0]
+                        break
                     }
                 }
-                isLoggedIn = true;
+                isLoggedIn = true
             }
         }
-
-
     }
 
-
-    public void updateToken(Context c) {
-        if (BuildConfig.DEBUG) LogUtil.v("Executing update token");
-        if (reddit == null) {
-            hasDone = true;
-            isLoggedIn = false;
-            reddit = new RedditClient(
-                    UserAgent.of("android:me.ccrama.RedditSlide:v" + BuildConfig.VERSION_NAME));
-            reddit.setLoggingMode(LoggingMode.ALWAYS);
-            didOnline = true;
-
-            new VerifyCredentials(c).execute();
-        } else {
-            new UpdateToken(c).execute();
-        }
-    }
-
-    public static boolean authedOnce;
-
-    public static class UpdateToken extends AsyncTask<Void, Void, Void> {
-
-        Context context;
-
-        public UpdateToken(Context c) {
-            this.context = c;
-        }
-
-        @Override
-        protected Void doInBackground(Void... params) {
+    class UpdateToken(var context: Context) : AsyncTask<Void?, Void?, Void?>() {
+        protected override fun doInBackground(vararg params: Void?): Void? {
             if (authedOnce && NetworkUtil.isConnected(context)) {
-                didOnline = true;
-                if (name != null && !name.isEmpty()) {
-                    Log.v(LogUtil.getTag(), "REAUTH");
+                didOnline = true
+                if (name != null && !name!!.isEmpty()) {
+                    Log.v(LogUtil.getTag(), "REAUTH")
                     if (isLoggedIn) {
                         try {
-
-                            final Credentials credentials =
-                                    Credentials.installedApp(CLIENT_ID, REDIRECT_URL);
-                            Log.v(LogUtil.getTag(), "REAUTH LOGGED IN");
-
-                            OAuthHelper oAuthHelper = reddit.getOAuthHelper();
-
-                            oAuthHelper.setRefreshToken(refresh);
-                            OAuthData finalData;
-                            if (authentication.contains("backedCreds")
-                                    && authentication.getLong("expires", 0) > Calendar.getInstance()
-                                    .getTimeInMillis()) {
-                                finalData = oAuthHelper.refreshToken(credentials,
-                                        authentication.getString("backedCreds",
-                                                "")); //does a request
+                            val credentials = Credentials.installedApp(CLIENT_ID, REDIRECT_URL)
+                            Log.v(LogUtil.getTag(), "REAUTH LOGGED IN")
+                            val oAuthHelper = reddit!!.oAuthHelper
+                            oAuthHelper.refreshToken = refresh
+                            val finalData: OAuthData
+                            if (authentication!!.contains("backedCreds")
+                                && authentication!!.getLong("expires", 0) > Calendar.getInstance()
+                                    .timeInMillis
+                            ) {
+                                finalData = oAuthHelper.refreshToken(
+                                    credentials,
+                                    authentication!!.getString(
+                                        "backedCreds",
+                                        ""
+                                    )
+                                ) //does a request
                             } else {
-                                finalData = oAuthHelper.refreshToken(credentials); //does a request
-                                authentication.edit()
-                                        .putLong("expires",
-                                                Calendar.getInstance().getTimeInMillis() + 3000000)
-                                        .commit();
+                                finalData = oAuthHelper.refreshToken(credentials) //does a request
+                                authentication!!.edit()
+                                    .putLong(
+                                        "expires",
+                                        Calendar.getInstance().timeInMillis + 3000000
+                                    )
+                                    .commit()
                             }
-                            authentication.edit()
-                                    .putString("backedCreds", finalData.getDataNode().toString())
-                                    .commit();
-                            reddit.authenticate(finalData);
-                            refresh = oAuthHelper.getRefreshToken();
-                            refresh = reddit.getOAuthHelper().getRefreshToken();
-
-                            if (reddit.isAuthenticated()) {
+                            authentication!!.edit()
+                                .putString("backedCreds", finalData.dataNode.toString())
+                                .commit()
+                            reddit!!.authenticate(finalData)
+                            refresh = oAuthHelper.refreshToken
+                            refresh = reddit!!.oAuthHelper.refreshToken
+                            if (reddit!!.isAuthenticated) {
                                 if (me == null) {
-                                    me = reddit.me();
+                                    me = reddit!!.me()
                                 }
-                                Authentication.isLoggedIn = true;
-
+                                isLoggedIn = true
                             }
-                            Log.v(LogUtil.getTag(), "AUTHENTICATED");
-                        } catch (Exception e) {
-                            e.printStackTrace();
+                            Log.v(LogUtil.getTag(), "AUTHENTICATED")
+                        } catch (e: Exception) {
+                            e.printStackTrace()
                         }
-
                     } else {
-                        final Credentials fcreds =
-                                Credentials.userlessApp(CLIENT_ID, UUID.randomUUID());
-                        OAuthData authData;
-                        if (BuildConfig.DEBUG) LogUtil.v("Not logged in");
+                        val fcreds = Credentials.userlessApp(CLIENT_ID, UUID.randomUUID())
+                        val authData: OAuthData
+                        if (BuildConfig.DEBUG) LogUtil.v("Not logged in")
                         try {
-
-                            authData = reddit.getOAuthHelper().easyAuth(fcreds);
-                            authentication.edit()
-                                    .putLong("expires",
-                                            Calendar.getInstance().getTimeInMillis() + 3000000)
-                                    .commit();
-                            authentication.edit()
-                                    .putString("backedCreds", authData.getDataNode().toString())
-                                    .commit();
-                            Authentication.name = "LOGGEDOUT";
-                            mod = false;
-
-                            reddit.authenticate(authData);
-                            Log.v(LogUtil.getTag(), "REAUTH LOGGED IN");
-
-                        } catch (Exception e) {
+                            authData = reddit!!.oAuthHelper.easyAuth(fcreds)
+                            authentication!!.edit()
+                                .putLong(
+                                    "expires",
+                                    Calendar.getInstance().timeInMillis + 3000000
+                                )
+                                .commit()
+                            authentication!!.edit()
+                                .putString("backedCreds", authData.dataNode.toString())
+                                .commit()
+                            name = "LOGGEDOUT"
+                            mod = false
+                            reddit!!.authenticate(authData)
+                            Log.v(LogUtil.getTag(), "REAUTH LOGGED IN")
+                        } catch (e: Exception) {
                             try {
-                                ((Activity) context).runOnUiThread(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        try {
-
-                                            new AlertDialog.Builder(context)
-                                                    .setTitle(R.string.err_general)
-                                                    .setMessage(R.string.err_no_connection)
-                                                    .setPositiveButton(R.string.btn_yes, (dialog, which) ->
-                                                            new UpdateToken(context)
-                                                                    .executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR))
-                                                    .setNegativeButton(R.string.btn_no, (dialog, which) ->
-                                                            Reddit.forceRestart(context, false))
-                                                    .show();
-                                        } catch (Exception ignored) {
-
-                                        }
+                                (context as Activity).runOnUiThread {
+                                    try {
+                                        AlertDialog.Builder(context)
+                                            .setTitle(R.string.err_general)
+                                            .setMessage(R.string.err_no_connection)
+                                            .setPositiveButton(R.string.btn_yes) { dialog: DialogInterface?, which: Int ->
+                                                UpdateToken(context)
+                                                    .executeOnExecutor(THREAD_POOL_EXECUTOR)
+                                            }
+                                            .setNegativeButton(R.string.btn_no) { dialog: DialogInterface?, which: Int ->
+                                                forceRestart(
+                                                    context,
+                                                    false
+                                                )
+                                            }
+                                            .show()
+                                    } catch (ignored: Exception) {
                                     }
-                                });
-                            } catch (Exception e2) {
-                                Toast.makeText(context,
-                                        "Reddit could not be reached. Try again soon",
-                                        Toast.LENGTH_SHORT).show();
+                                }
+                            } catch (e2: Exception) {
+                                Toast.makeText(
+                                    context,
+                                    "Reddit could not be reached. Try again soon",
+                                    Toast.LENGTH_SHORT
+                                ).show()
                             }
 
                             //TODO fail
                         }
                     }
-
-
                 }
-
             }
-            if (BuildConfig.DEBUG) LogUtil.v("Done loading token");
-            return null;
-
+            if (BuildConfig.DEBUG) LogUtil.v("Done loading token")
+            return null
         }
-
     }
 
+    class VerifyCredentials(var mContext: Context?) : AsyncTask<String?, Void?, Void?>() {
+        var lastToken: String?
+        var single = false
 
-    public static class VerifyCredentials extends AsyncTask<String, Void, Void> {
-        Context      mContext;
-        String       lastToken;
-        boolean      single;
-
-        public VerifyCredentials(Context context) {
-            mContext = context;
-            lastToken = authentication.getString("lasttoken", "");
+        init {
+            lastToken = authentication!!.getString("lasttoken", "")
         }
 
-        @Override
-        protected Void doInBackground(String... subs) {
-           doVerify(lastToken, reddit,single,mContext);
-            return null;
+        protected override fun doInBackground(vararg subs: String?): Void? {
+            doVerify(lastToken, reddit, single, mContext)
+            return null
         }
-
     }
 
-    public static void doVerify(String lastToken, RedditClient baseReddit,boolean single, Context mContext){
-        try {
+    companion object {
+        private const val CLIENT_ID = "KI2Nl9A_ouG9Qw"
+        private const val REDIRECT_URL = "http://www.ccrama.me"
+        @JvmField
+        var isLoggedIn = false
+        @JvmField
+        var reddit: RedditClient? = null
+        @JvmField
+        var me: LoggedInAccount? = null
+        @JvmField
+        var mod = false
+        @JvmField
+        var name: String? = null
+        @JvmField
+        var authentication: SharedPreferences? = null
+        @JvmField
+        var refresh: String? = null
+        @JvmField
+        var didOnline = false
+        private var httpAdapter: OkHttpAdapter? = null
+        fun resetAdapter() {
+            object : AsyncTask<Void?, Void?, Void?>() {
+                protected override fun doInBackground(vararg params: Void?): Void? {
+                    if (httpAdapter != null && httpAdapter!!.nativeClient != null) {
+                        httpAdapter!!.nativeClient.connectionPool().evictAll()
+                    }
+                    return null
+                }
+            }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR)
+        }
 
-            if (BuildConfig.DEBUG) LogUtil.v("TOKEN IS " + lastToken);
-            if (!lastToken.isEmpty()) {
-
-                Credentials credentials = Credentials.installedApp(CLIENT_ID, REDIRECT_URL);
-                OAuthHelper oAuthHelper = baseReddit.getOAuthHelper();
-                oAuthHelper.setRefreshToken(lastToken);
-
-                try {
-                    OAuthData finalData;
-                    if (!single
-                            && authentication.contains("backedCreds")
-                            && authentication.getLong("expires", 0) > Calendar.getInstance()
-                            .getTimeInMillis()) {
-                        finalData = oAuthHelper.refreshToken(credentials,
-                                authentication.getString("backedCreds", ""));
-                    } else {
-                        finalData = oAuthHelper.refreshToken(credentials); //does a request
+        var authedOnce = false
+        @JvmStatic
+        fun doVerify(
+            lastToken: String?,
+            baseReddit: RedditClient?,
+            single: Boolean,
+            mContext: Context?
+        ) {
+            try {
+                if (BuildConfig.DEBUG) LogUtil.v("TOKEN IS $lastToken")
+                if (!lastToken!!.isEmpty()) {
+                    val credentials = Credentials.installedApp(CLIENT_ID, REDIRECT_URL)
+                    val oAuthHelper = baseReddit!!.oAuthHelper
+                    oAuthHelper.refreshToken = lastToken
+                    try {
+                        val finalData: OAuthData
+                        if ((!single
+                                    && authentication!!.contains("backedCreds")) && authentication!!.getLong(
+                                "expires",
+                                0
+                            ) > Calendar.getInstance()
+                                .timeInMillis
+                        ) {
+                            finalData = oAuthHelper.refreshToken(
+                                credentials,
+                                authentication!!.getString("backedCreds", "")
+                            )
+                        } else {
+                            finalData = oAuthHelper.refreshToken(credentials) //does a request
+                            if (!single) {
+                                authentication!!.edit()
+                                    .putLong(
+                                        "expires",
+                                        Calendar.getInstance().timeInMillis + 3000000
+                                    )
+                                    .apply()
+                            }
+                        }
+                        baseReddit.authenticate(finalData)
                         if (!single) {
-                            authentication.edit()
-                                    .putLong("expires",
-                                            Calendar.getInstance().getTimeInMillis() + 3000000)
-                                    .apply();
+                            authentication!!.edit()
+                                .putString("backedCreds", finalData.dataNode.toString())
+                                .apply()
+                            refresh = oAuthHelper.refreshToken
+                            if (BuildConfig.DEBUG) {
+                                LogUtil.v("ACCESS TOKEN IS " + finalData.accessToken)
+                            }
+                            isLoggedIn = true
+                            UserSubscriptions.doCachedModSubs()
+                        }
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                        if (e is NetworkException) {
+                            Toast.makeText(
+                                mContext, "Error " + e.response
+                                    .statusMessage + ": " + e.message,
+                                Toast.LENGTH_LONG
+                            ).show()
                         }
                     }
-                    baseReddit.authenticate(finalData);
-
-                    if (!single) {
-                        authentication.edit()
-                                .putString("backedCreds", finalData.getDataNode().toString())
-                                .apply();
-                        refresh = oAuthHelper.getRefreshToken();
-                        if (BuildConfig.DEBUG) {
-                            LogUtil.v("ACCESS TOKEN IS " + finalData.getAccessToken());
+                    didOnline = true
+                } else if (!single) {
+                    if (BuildConfig.DEBUG) LogUtil.v("NOT LOGGED IN")
+                    val fcreds = Credentials.userlessApp(CLIENT_ID, UUID.randomUUID())
+                    val authData: OAuthData
+                    try {
+                        authData = reddit!!.oAuthHelper.easyAuth(fcreds)
+                        authentication!!.edit()
+                            .putLong(
+                                "expires",
+                                Calendar.getInstance().timeInMillis + 3000000
+                            )
+                            .apply()
+                        authentication!!.edit()
+                            .putString("backedCreds", authData.dataNode.toString())
+                            .apply()
+                        reddit!!.authenticate(authData)
+                        name = "LOGGEDOUT"
+                        Reddit.notFirst = true
+                        didOnline = true
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                        if (e is NetworkException) {
+                            Toast.makeText(
+                                mContext, "Error " + e.response
+                                    .statusMessage + ": " + e.message,
+                                Toast.LENGTH_LONG
+                            ).show()
                         }
-
-                        Authentication.isLoggedIn = true;
-
-                        UserSubscriptions.doCachedModSubs();
-                    }
-
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    if (e instanceof NetworkException) {
-                        Toast.makeText(mContext, "Error " + ((NetworkException) e).getResponse()
-                                        .getStatusMessage() + ": " + (e).getMessage(),
-                                Toast.LENGTH_LONG).show();
-                    }
-
-                }
-                didOnline = true;
-
-            } else if (!single) {
-                if (BuildConfig.DEBUG) LogUtil.v("NOT LOGGED IN");
-
-                final Credentials fcreds =
-                        Credentials.userlessApp(CLIENT_ID, UUID.randomUUID());
-                OAuthData authData;
-                try {
-
-                    authData = reddit.getOAuthHelper().easyAuth(fcreds);
-                    authentication.edit()
-                            .putLong("expires",
-                                    Calendar.getInstance().getTimeInMillis() + 3000000)
-                            .apply();
-                    authentication.edit()
-                            .putString("backedCreds", authData.getDataNode().toString())
-                            .apply();
-                    reddit.authenticate(authData);
-
-                    Authentication.name = "LOGGEDOUT";
-                    Reddit.notFirst = true;
-                    didOnline = true;
-
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    if (e instanceof NetworkException) {
-                        Toast.makeText(mContext, "Error " + ((NetworkException) e).getResponse()
-                                        .getStatusMessage() + ": " + (e).getMessage(),
-                                Toast.LENGTH_LONG).show();
                     }
                 }
-
-
+                if (!single) authedOnce = true
+            } catch (e: Exception) {
+                //TODO fail
             }
-            if (!single) authedOnce = true;
-
-        } catch (Exception e) {
-            //TODO fail
-
-
         }
     }
 }

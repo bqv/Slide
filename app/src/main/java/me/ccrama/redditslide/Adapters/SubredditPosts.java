@@ -20,9 +20,9 @@ import java.util.List;
 import java.util.Locale;
 
 import me.ccrama.redditslide.Activities.BaseActivity;
-import ltd.ucode.slide.Activities.MainActivity;
+import ltd.ucode.slide.activity.MainActivity;
 import me.ccrama.redditslide.Activities.SubredditView;
-import me.ccrama.redditslide.Authentication;
+import ltd.ucode.slide.Authentication;
 import ltd.ucode.slide.BuildConfig;
 import me.ccrama.redditslide.Constants;
 import me.ccrama.redditslide.Fragments.SubmissionsView;

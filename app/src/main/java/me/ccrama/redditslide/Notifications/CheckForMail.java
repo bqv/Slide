@@ -40,7 +40,7 @@ import me.ccrama.redditslide.Activities.Inbox;
 import me.ccrama.redditslide.Activities.ModQueue;
 import me.ccrama.redditslide.Activities.OpenContent;
 import me.ccrama.redditslide.Adapters.MarkAsReadService;
-import me.ccrama.redditslide.Authentication;
+import ltd.ucode.slide.Authentication;
 import me.ccrama.redditslide.HasSeen;
 import ltd.ucode.slide.R;
 import ltd.ucode.slide.Reddit;

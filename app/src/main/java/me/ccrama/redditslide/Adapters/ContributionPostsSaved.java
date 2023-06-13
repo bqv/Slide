@@ -6,7 +6,7 @@ import net.dean.jraw.paginators.UserSavedPaginator;
 
 import java.util.ArrayList;
 
-import me.ccrama.redditslide.Authentication;
+import ltd.ucode.slide.Authentication;
 import me.ccrama.redditslide.HasSeen;
 import me.ccrama.redditslide.PostMatch;
 import me.ccrama.redditslide.SettingValues;

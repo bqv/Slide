@@ -10,7 +10,7 @@ import net.dean.jraw.managers.AccountManager;
 import net.dean.jraw.models.Submission;
 
 import me.ccrama.redditslide.ActionStates;
-import me.ccrama.redditslide.Authentication;
+import ltd.ucode.slide.Authentication;
 import ltd.ucode.slide.R;
 import me.ccrama.redditslide.util.LayoutUtils;
 

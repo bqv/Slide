@@ -1,4 +1,4 @@
-package ltd.ucode.slide.Activities
+package ltd.ucode.slide.activity
 
 import android.Manifest
 import android.animation.Animator
@@ -101,7 +101,7 @@ import me.ccrama.redditslide.Activities.Submit
 import me.ccrama.redditslide.Activities.SubredditView
 import me.ccrama.redditslide.Activities.Wiki
 import me.ccrama.redditslide.Adapters.SideArrayAdapter
-import me.ccrama.redditslide.Authentication
+import ltd.ucode.slide.Authentication
 import me.ccrama.redditslide.Autocache.AutoCacheScheduler
 import me.ccrama.redditslide.CaseInsensitiveArrayList
 import me.ccrama.redditslide.CommentCacheAsync
@@ -1403,7 +1403,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                     AnimatorUtil.flipAnimator(true, header.findViewById(R.id.headerflip)).start()
                 }
             }
-            for (s in Authentication.authentication.getStringSet("accounts", HashSet())!!) {
+            for (s in Authentication.authentication!!.getStringSet("accounts", HashSet())!!) {
                 if (s.contains(":")) {
                     accounts[s.split(":".toRegex()).dropLastWhile { it.isEmpty() }
                         .toTypedArray()[0]] = s.split(":".toRegex()).dropLastWhile { it.isEmpty() }
@@ -1427,7 +1427,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                         .setTitle(R.string.profile_remove)
                         .setMessage(R.string.profile_remove_account)
                         .setNegativeButton(R.string.btn_delete) { dialog2: DialogInterface, which2: Int ->
-                            val accounts2 = Authentication.authentication.getStringSet(
+                            val accounts2 = Authentication.authentication!!.getStringSet(
                                 "accounts", HashSet()
                             )
                             val done: MutableSet<String> = HashSet()
@@ -1436,7 +1436,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                                     done.add(s)
                                 }
                             }
-                            Authentication.authentication.edit()
+                            Authentication.authentication!!.edit()
                                 .putStringSet("accounts", done)
                                 .commit()
                             dialog2.dismiss()
@@ -1453,13 +1453,13 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                                         if (accounts.containsKey(s) && !accounts[s]
                                                 !!.isEmpty()
                                         ) {
-                                            Authentication.authentication.edit()
+                                            Authentication.authentication!!.edit()
                                                 .putString("lasttoken", accounts[s])
                                                 .remove("backedCreds")
                                                 .commit()
                                         } else {
                                             val tokens = ArrayList(
-                                                Authentication.authentication.getStringSet(
+                                                Authentication.authentication!!.getStringSet(
                                                     "tokens", HashSet()
                                                 )
                                             )
@@ -1467,7 +1467,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                                             if (keys.indexOf(s) > tokens.size) {
                                                 index -= 1
                                             }
-                                            Authentication.authentication.edit()
+                                            Authentication.authentication!!.edit()
                                                 .putString(
                                                     "lasttoken",
                                                     tokens[index]
@@ -1484,7 +1484,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                                 if (!d) {
                                     Authentication.name = "LOGGEDOUT"
                                     Authentication.isLoggedIn = false
-                                    Authentication.authentication.edit()
+                                    Authentication.authentication!!.edit()
                                         .remove("lasttoken")
                                         .remove("backedCreds")
                                         .commit()
@@ -1506,15 +1506,15 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                         LogUtil.v("Switching to $accName")
                         if (!accounts[accName]!!.isEmpty()) {
                             LogUtil.v("Using token " + accounts[accName])
-                            Authentication.authentication.edit()
+                            Authentication.authentication!!.edit()
                                 .putString("lasttoken", accounts[accName])
                                 .remove("backedCreds")
                                 .apply()
                         } else {
                             val tokens = ArrayList(
-                                Authentication.authentication.getStringSet("tokens", HashSet())
+                                Authentication.authentication!!.getStringSet("tokens", HashSet())
                             )
-                            Authentication.authentication.edit()
+                            Authentication.authentication!!.edit()
                                 .putString("lasttoken", tokens[keys.indexOf(accName)])
                                 .remove("backedCreds")
                                 .apply()
@@ -1545,7 +1545,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                     override fun onSingleClick(v: View) {
                         Authentication.name = "LOGGEDOUT"
                         Authentication.isLoggedIn = false
-                        Authentication.authentication.edit()
+                        Authentication.authentication!!.edit()
                             .remove("lasttoken")
                             .remove("backedCreds")
                             .apply()
@@ -1599,7 +1599,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                 }
             }
             val accounts = HashMap<String, String>()
-            for (s in Authentication.authentication.getStringSet("accounts", HashSet())!!) {
+            for (s in Authentication.authentication!!.getStringSet("accounts", HashSet())!!) {
                 if (s.contains(":")) {
                     accounts[s.split(":".toRegex()).dropLastWhile { it.isEmpty() }
                         .toTypedArray()[0]] = s.split(":".toRegex()).dropLastWhile { it.isEmpty() }
@@ -1622,7 +1622,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                         .setTitle(R.string.profile_remove)
                         .setMessage(R.string.profile_remove_account)
                         .setNegativeButton(R.string.btn_delete) { dialog2: DialogInterface, which2: Int ->
-                            val accounts2 = Authentication.authentication.getStringSet(
+                            val accounts2 = Authentication.authentication!!.getStringSet(
                                 "accounts", HashSet()
                             )
                             val done: MutableSet<String> = HashSet()
@@ -1631,7 +1631,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                                     done.add(s)
                                 }
                             }
-                            Authentication.authentication.edit()
+                            Authentication.authentication!!.edit()
                                 .putStringSet("accounts", done)
                                 .commit()
                             dialog2.dismiss()
@@ -1643,17 +1643,17 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                                         d = true
                                         LogUtil.v("Switching to $s")
                                         if (!accounts[s]!!.isEmpty()) {
-                                            Authentication.authentication.edit()
+                                            Authentication.authentication!!.edit()
                                                 .putString("lasttoken", accounts[s])
                                                 .remove("backedCreds")
                                                 .commit()
                                         } else {
                                             val tokens = ArrayList(
-                                                Authentication.authentication.getStringSet(
+                                                Authentication.authentication!!.getStringSet(
                                                     "tokens", HashSet()
                                                 )
                                             )
-                                            Authentication.authentication.edit()
+                                            Authentication.authentication!!.edit()
                                                 .putString("lasttoken", tokens[keys.indexOf(s)])
                                                 .remove("backedCreds")
                                                 .commit()
@@ -1666,7 +1666,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                                 if (!d) {
                                     Authentication.name = "LOGGEDOUT"
                                     Authentication.isLoggedIn = false
-                                    Authentication.authentication.edit()
+                                    Authentication.authentication!!.edit()
                                         .remove("lasttoken")
                                         .remove("backedCreds")
                                         .commit()
@@ -1685,15 +1685,15 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                     override fun onSingleClick(v: View) {
                         if (!accName.equals(Authentication.name, ignoreCase = true)) {
                             if (!accounts[accName]!!.isEmpty()) {
-                                Authentication.authentication.edit()
+                                Authentication.authentication!!.edit()
                                     .putString("lasttoken", accounts[accName])
                                     .remove("backedCreds")
                                     .commit()
                             } else {
                                 val tokens = ArrayList(
-                                    Authentication.authentication.getStringSet("tokens", HashSet())
+                                    Authentication.authentication!!.getStringSet("tokens", HashSet())
                                 )
-                                Authentication.authentication.edit()
+                                Authentication.authentication!!.edit()
                                     .putString("lasttoken", tokens[keys.indexOf(accName)])
                                     .remove("backedCreds")
                                     .commit()
@@ -3981,7 +3981,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
 
         protected override fun doInBackground(vararg params: String?): Subreddit? {
             return try {
-                Authentication.reddit.getSubreddit(params[0])
+                Authentication.reddit!!.getSubreddit(params[0])
             } catch (e: Exception) {
                 null
             }
@@ -3996,8 +3996,8 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             try {
                 val me: LoggedInAccount
                 if (Authentication.me == null) {
-                    Authentication.me = Authentication.reddit.me()
-                    me = Authentication.me
+                    Authentication.me = Authentication.reddit!!.me()
+                    me = Authentication.me!!
                     if (Authentication.name.equals("loggedout", ignoreCase = true)) {
                         Authentication.name = me.fullName
                         Reddit.appRestart!!.edit().putString("name", Authentication.name).apply()
@@ -4005,7 +4005,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                         return null
                     }
                     Authentication.mod = me.isMod
-                    Authentication.authentication.edit()
+                    Authentication.authentication!!.edit()
                         .putBoolean(Reddit.SHARED_PREF_IS_MOD, Authentication.mod)
                         .apply()
                     if (Reddit.notificationTime != -1) {
@@ -4019,15 +4019,15 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                     val name = me.fullName
                     Authentication.name = name
                     LogUtil.v("AUTHENTICATED")
-                    if (Authentication.reddit.isAuthenticated) {
-                        val accounts = Authentication.authentication.getStringSet(
+                    if (Authentication.reddit!!.isAuthenticated) {
+                        val accounts = Authentication.authentication!!.getStringSet(
                             "accounts",
                             HashSet()
                         )
                         if (accounts!!.contains(name)) { //convert to new system
                             accounts.remove(name)
                             accounts.add(name + ":" + Authentication.refresh)
-                            Authentication.authentication.edit()
+                            Authentication.authentication!!.edit()
                                 .putStringSet("accounts", accounts)
                                 .commit() //force commit
                         }
@@ -4035,7 +4035,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                         Reddit.notFirst = true
                     }
                 } else {
-                    me = Authentication.reddit.me()
+                    me = Authentication.reddit!!.me()
                 }
                 count = me.inboxCount //Force reload of the LoggedInAccount object
                 UserSubscriptions.doFriendsOfMain(this@MainActivity)

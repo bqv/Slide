@@ -26,7 +26,7 @@ import net.dean.jraw.models.LoggedInAccount;
 import java.util.HashSet;
 import java.util.Set;
 
-import me.ccrama.redditslide.Authentication;
+import ltd.ucode.slide.Authentication;
 import ltd.ucode.slide.R;
 import ltd.ucode.slide.Reddit;
 import me.ccrama.redditslide.util.LogUtil;

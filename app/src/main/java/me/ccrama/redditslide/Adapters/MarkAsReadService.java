@@ -12,7 +12,7 @@ import androidx.core.content.ContextCompat;
 import net.dean.jraw.http.NetworkException;
 import net.dean.jraw.managers.InboxManager;
 
-import me.ccrama.redditslide.Authentication;
+import ltd.ucode.slide.Authentication;
 import me.ccrama.redditslide.Notifications.CheckForMail;
 import me.ccrama.redditslide.util.NetworkUtil;
 

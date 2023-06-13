@@ -52,7 +52,7 @@ import java.util.List;
 import java.util.Map;
 
 import me.ccrama.redditslide.Activities.Reauthenticate;
-import me.ccrama.redditslide.Authentication;
+import ltd.ucode.slide.Authentication;
 import me.ccrama.redditslide.OpenRedditLink;
 import ltd.ucode.slide.R;
 import me.ccrama.redditslide.SettingValues;

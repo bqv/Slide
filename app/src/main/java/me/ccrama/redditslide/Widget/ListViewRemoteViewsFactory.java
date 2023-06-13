@@ -23,7 +23,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import me.ccrama.redditslide.Activities.OpenContent;
-import me.ccrama.redditslide.Authentication;
+import ltd.ucode.slide.Authentication;
 import me.ccrama.redditslide.Autocache.AutoCacheScheduler;
 import me.ccrama.redditslide.Notifications.NotificationJobScheduler;
 import me.ccrama.redditslide.PostMatch;

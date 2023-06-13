@@ -9,6 +9,8 @@ import net.dean.jraw.models.Submission;
 import java.util.HashSet;
 import java.util.Set;
 
+import ltd.ucode.slide.Authentication;
+
 /**
  * Created by carlo_000 on 10/16/2015.
  */

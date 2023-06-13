@@ -14,7 +14,7 @@ import net.dean.jraw.paginators.Paginator;
 
 import java.util.ArrayList;
 
-import me.ccrama.redditslide.Authentication;
+import ltd.ucode.slide.Authentication;
 
 /**
  * Created by ccrama on 9/17/2015.

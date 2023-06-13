@@ -10,7 +10,7 @@ import net.dean.jraw.paginators.ModLogPaginator;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 
-import me.ccrama.redditslide.Authentication;
+import ltd.ucode.slide.Authentication;
 
 /**
  * Created by ccrama on 9/17/2015.

@@ -49,7 +49,7 @@ import java.util.Locale;
 import me.ccrama.redditslide.Activities.Inbox;
 import me.ccrama.redditslide.Activities.Profile;
 import me.ccrama.redditslide.Activities.SendMessage;
-import me.ccrama.redditslide.Authentication;
+import ltd.ucode.slide.Authentication;
 import me.ccrama.redditslide.DataShare;
 import me.ccrama.redditslide.Drafts;
 import me.ccrama.redditslide.OpenRedditLink;

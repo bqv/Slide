@@ -36,7 +36,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import me.ccrama.redditslide.Activities.BaseActivity;
-import me.ccrama.redditslide.Authentication;
+import ltd.ucode.slide.Authentication;
 import ltd.ucode.slide.BuildConfig;
 import me.ccrama.redditslide.Fragments.FolderChooserDialogCreate;
 import ltd.ucode.slide.R;

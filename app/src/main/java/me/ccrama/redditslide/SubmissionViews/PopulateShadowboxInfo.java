@@ -46,7 +46,7 @@ import java.util.Locale;
 import me.ccrama.redditslide.ActionStates;
 import me.ccrama.redditslide.Activities.Profile;
 import me.ccrama.redditslide.Activities.SubredditView;
-import me.ccrama.redditslide.Authentication;
+import ltd.ucode.slide.Authentication;
 import me.ccrama.redditslide.HasSeen;
 import ltd.ucode.slide.R;
 import ltd.ucode.slide.Reddit;

@@ -69,7 +69,7 @@ import java.util.TreeMap;
 
 import me.ccrama.redditslide.ActionStates;
 import me.ccrama.redditslide.Activities.BaseActivity;
-import me.ccrama.redditslide.Authentication;
+import ltd.ucode.slide.Authentication;
 import ltd.ucode.slide.BuildConfig;
 import me.ccrama.redditslide.Constants;
 import me.ccrama.redditslide.Drafts;

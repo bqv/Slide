@@ -35,6 +35,7 @@ import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import ltd.ucode.slide.Authentication;
 import ltd.ucode.slide.R;
 import me.ccrama.redditslide.Activities.SendMessage;
 import me.ccrama.redditslide.util.LogUtil;

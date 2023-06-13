@@ -14,8 +14,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
-import ltd.ucode.slide.Activities.Slide;
-import me.ccrama.redditslide.Authentication;
+import ltd.ucode.slide.activity.Slide;
+import ltd.ucode.slide.Authentication;
 import ltd.ucode.slide.R;
 import me.ccrama.redditslide.SettingValues;
 

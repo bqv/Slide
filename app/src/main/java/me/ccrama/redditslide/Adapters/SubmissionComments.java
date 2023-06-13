@@ -22,7 +22,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
 
-import me.ccrama.redditslide.Authentication;
+import ltd.ucode.slide.Authentication;
 import me.ccrama.redditslide.Fragments.CommentPage;
 import me.ccrama.redditslide.LastComments;
 import me.ccrama.redditslide.util.NetworkUtil;

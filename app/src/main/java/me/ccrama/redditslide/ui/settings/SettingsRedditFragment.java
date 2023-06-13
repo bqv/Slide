@@ -6,7 +6,7 @@ import android.widget.TextView;
 
 import androidx.appcompat.widget.SwitchCompat;
 
-import me.ccrama.redditslide.Authentication;
+import ltd.ucode.slide.Authentication;
 import ltd.ucode.slide.R;
 import me.ccrama.redditslide.SettingValues;
 import me.ccrama.redditslide.Visuals.Palette;

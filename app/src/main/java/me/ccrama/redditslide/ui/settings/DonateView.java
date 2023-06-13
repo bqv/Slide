@@ -14,7 +14,7 @@ import androidx.core.content.ContextCompat;
 import com.rey.material.widget.Slider;
 
 import me.ccrama.redditslide.Activities.BaseActivityAnim;
-import me.ccrama.redditslide.Authentication;
+import ltd.ucode.slide.Authentication;
 import ltd.ucode.slide.R;
 import ltd.ucode.slide.Reddit;
 import me.ccrama.redditslide.SettingValues;

@@ -1,4 +1,4 @@
-package ltd.ucode.slide.Activities
+package ltd.ucode.slide.activity
 
 import android.content.Intent
 import android.graphics.Color

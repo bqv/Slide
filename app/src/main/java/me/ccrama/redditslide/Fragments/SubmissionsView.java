@@ -35,7 +35,7 @@ import java.util.List;
 import java.util.Locale;
 
 import me.ccrama.redditslide.Activities.BaseActivity;
-import ltd.ucode.slide.Activities.MainActivity;
+import ltd.ucode.slide.activity.MainActivity;
 import me.ccrama.redditslide.Activities.Search;
 import me.ccrama.redditslide.Activities.Submit;
 import me.ccrama.redditslide.Activities.SubredditView;

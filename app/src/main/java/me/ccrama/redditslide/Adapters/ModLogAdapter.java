@@ -26,7 +26,7 @@ import net.dean.jraw.models.ModAction;
 
 import java.util.Locale;
 
-import me.ccrama.redditslide.Authentication;
+import ltd.ucode.slide.Authentication;
 import me.ccrama.redditslide.OpenRedditLink;
 import ltd.ucode.slide.R;
 import me.ccrama.redditslide.SettingValues;

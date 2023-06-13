@@ -7,6 +7,7 @@ import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.widget.Toast;
 
+import ltd.ucode.slide.Authentication;
 import ltd.ucode.slide.R;
 
 import net.dean.jraw.ApiException;
@@ -30,7 +31,7 @@ import java.util.Map;
 
 import ltd.ucode.slide.Reddit;
 import me.ccrama.redditslide.Activities.Login;
-import ltd.ucode.slide.Activities.MainActivity;
+import ltd.ucode.slide.activity.MainActivity;
 import me.ccrama.redditslide.Activities.MultiredditOverview;
 import me.ccrama.redditslide.Activities.NewsActivity;
 import me.ccrama.redditslide.Toolbox.Toolbox;

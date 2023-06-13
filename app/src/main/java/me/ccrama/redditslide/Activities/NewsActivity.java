@@ -32,9 +32,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import ltd.ucode.slide.Activities.Slide;
+import ltd.ucode.slide.activity.Slide;
 import me.ccrama.redditslide.Adapters.SubredditPostsRealm;
-import me.ccrama.redditslide.Authentication;
+import ltd.ucode.slide.Authentication;
 import me.ccrama.redditslide.CaseInsensitiveArrayList;
 import me.ccrama.redditslide.Fragments.NewsView;
 import ltd.ucode.slide.R;

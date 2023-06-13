@@ -19,7 +19,7 @@ import net.dean.jraw.managers.WikiManager;
 import java.util.ArrayList;
 import java.util.List;
 
-import me.ccrama.redditslide.Authentication;
+import ltd.ucode.slide.Authentication;
 import me.ccrama.redditslide.Fragments.WikiPage;
 import ltd.ucode.slide.R;
 import me.ccrama.redditslide.Views.ToggleSwipeViewPager;

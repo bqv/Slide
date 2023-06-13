@@ -24,9 +24,9 @@ import java.util.List;
 import java.util.Locale;
 
 import me.ccrama.redditslide.Activities.CommentsScreen;
-import ltd.ucode.slide.Activities.MainActivity;
+import ltd.ucode.slide.activity.MainActivity;
 import me.ccrama.redditslide.Activities.SubredditView;
-import me.ccrama.redditslide.Authentication;
+import ltd.ucode.slide.Authentication;
 import me.ccrama.redditslide.Fragments.SubmissionsView;
 import ltd.ucode.slide.R;
 import ltd.ucode.slide.Reddit;

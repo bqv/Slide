@@ -22,7 +22,7 @@ import net.dean.jraw.models.Subreddit;
 
 import java.util.List;
 
-import me.ccrama.redditslide.Authentication;
+import ltd.ucode.slide.Authentication;
 import me.ccrama.redditslide.OpenRedditLink;
 import ltd.ucode.slide.R;
 import me.ccrama.redditslide.SpoilerRobotoTextView;
