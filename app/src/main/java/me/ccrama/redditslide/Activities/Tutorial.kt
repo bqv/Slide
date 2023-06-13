@@ -1,270 +1,236 @@
-package me.ccrama.redditslide.Activities;
+package me.ccrama.redditslide.Activities
 
-import android.content.Intent;
-import android.content.res.Resources;
-import android.graphics.Color;
-import android.os.Build;
-import android.os.Bundle;
-import android.util.Pair;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.view.Window;
-import android.view.WindowManager;
+import android.content.Intent
+import android.graphics.Color
+import android.os.Build
+import android.os.Bundle
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.view.WindowManager
+import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentManager
+import androidx.fragment.app.FragmentStatePagerAdapter
+import ltd.ucode.slide.databinding.ActivityTutorialBinding
+import ltd.ucode.slide.databinding.ChooseaccentBinding
+import ltd.ucode.slide.databinding.ChoosemainBinding
+import ltd.ucode.slide.databinding.ChoosethemesmallBinding
+import ltd.ucode.slide.databinding.FragmentPersonalizeBinding
+import ltd.ucode.slide.databinding.FragmentWelcomeBinding
+import me.ccrama.redditslide.Reddit
+import me.ccrama.redditslide.Visuals.ColorPreferences
+import me.ccrama.redditslide.Visuals.FontPreferences
+import me.ccrama.redditslide.Visuals.Palette
+import me.ccrama.redditslide.util.BlendModeUtil
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.ContextCompat;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentStatePagerAdapter;
-
-import me.ccrama.redditslide.Reddit;
-import me.ccrama.redditslide.Visuals.ColorPreferences;
-import me.ccrama.redditslide.Visuals.FontPreferences;
-import me.ccrama.redditslide.Visuals.Palette;
-import ltd.ucode.slide.databinding.ActivityTutorialBinding;
-import ltd.ucode.slide.databinding.ChooseaccentBinding;
-import ltd.ucode.slide.databinding.ChoosemainBinding;
-import ltd.ucode.slide.databinding.ChoosethemesmallBinding;
-import ltd.ucode.slide.databinding.FragmentPersonalizeBinding;
-import ltd.ucode.slide.databinding.FragmentWelcomeBinding;
-import me.ccrama.redditslide.util.BlendModeUtil;
-
-/**
- * Created by ccrama on 3/5/2015.
- */
-
-public class Tutorial extends AppCompatActivity {
-    /**
-     * The pages (wizard steps) to show in this demo.
-     */
-    private static final int POS_WELCOME = 0;
-    private static final int POS_PERSONALIZE = 1;
-    private static final int NUM_PAGES = 2;
-    private int back;
-    private ActivityTutorialBinding binding;
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
-        final Resources.Theme theme = getTheme();
-        theme.applyStyle(new FontPreferences(this).getCommentFontStyle().getResId(), true);
-        theme.applyStyle(new FontPreferences(this).getPostFontStyle().getResId(), true);
-        theme.applyStyle(new ColorPreferences(this).getFontStyle().getBaseId(), true);
-
-        binding = ActivityTutorialBinding.inflate(getLayoutInflater());
-        setContentView(binding.getRoot());
+class Tutorial : AppCompatActivity() {
+    private var back = 0
+    private var binding: ActivityTutorialBinding? = null
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        val theme = theme
+        theme.applyStyle(FontPreferences(this).commentFontStyle.resId, true)
+        theme.applyStyle(FontPreferences(this).postFontStyle.resId, true)
+        theme.applyStyle(ColorPreferences(this).fontStyle.baseId, true)
+        binding = ActivityTutorialBinding.inflate(layoutInflater)
+        setContentView(binding!!.root)
 
         // The pager adapter, which provides the pages to the view pager widget.
-        binding.tutorialViewPager.setAdapter(new TutorialPagerAdapter(getSupportFragmentManager()));
-
-        if (getIntent().hasExtra("page")) {
-            binding.tutorialViewPager.setCurrentItem(1);
+        binding!!.tutorialViewPager.adapter = TutorialPagerAdapter(supportFragmentManager)
+        if (intent.hasExtra("page")) {
+            binding!!.tutorialViewPager.currentItem = 1
         }
-
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            final Window window = this.getWindow();
-            window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
-            window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
-            window.setStatusBarColor(Palette.getDarkerColor(Color.parseColor("#FF5252")));
+            val window = this.window
+            window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS)
+            window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
+            window.statusBarColor =
+                Palette.getDarkerColor(Color.parseColor("#FF5252"))
         }
     }
 
-    @Override
-    public void onBackPressed() {
-        final int currentItem = binding.tutorialViewPager.getCurrentItem();
+    override fun onBackPressed() {
+        val currentItem = binding!!.tutorialViewPager.currentItem
         if (currentItem == POS_WELCOME) {
             // If the user is currently looking at the first step, allow the system to handle the
             // Back button. This calls finish() on this activity and pops the back stack.
         } else {
             // Otherwise, select the previous step.
-            binding.tutorialViewPager.setCurrentItem(currentItem - 1);
+            binding!!.tutorialViewPager.currentItem = currentItem - 1
         }
     }
 
-    public static class Welcome extends Fragment {
-        private FragmentWelcomeBinding welcomeBinding;
-
-        @Override
-        public View onCreateView(@NonNull LayoutInflater inflater, final ViewGroup container,
-                                 Bundle savedInstanceState) {
-            welcomeBinding = FragmentWelcomeBinding.inflate(inflater, container, false);
-            welcomeBinding.welcomeGetStarted.setOnClickListener(v1 ->
-                    ((Tutorial) getActivity()).binding.tutorialViewPager.setCurrentItem(1));
-            return welcomeBinding.getRoot();
-        }
-
-        @Override
-        public void onDestroyView() {
-            super.onDestroyView();
-            welcomeBinding = null;
-        }
-    }
-
-    public static class Personalize extends Fragment {
-        private FragmentPersonalizeBinding personalizeBinding;
-
-        @Override
-        public View onCreateView(@NonNull LayoutInflater inflater, final ViewGroup container,
-                                 Bundle savedInstanceState) {
-            ((Tutorial) getActivity()).back = new ColorPreferences(getContext()).getFontStyle().getThemeType();
-
-            personalizeBinding = FragmentPersonalizeBinding.inflate(inflater, container, false);
-
-            final int getFontColor = getActivity().getResources().getColor(
-                    new ColorPreferences(getContext()).getFontStyle().getColor());
-            BlendModeUtil.tintImageViewAsSrcAtop(personalizeBinding.secondaryColorPreview, getFontColor);
-            BlendModeUtil.tintImageViewAsSrcAtop(personalizeBinding.primaryColorPreview, Palette.getDefaultColor());
-            personalizeBinding.header.setBackgroundColor(Palette.getDefaultColor());
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                final Window window = getActivity().getWindow();
-                window.setStatusBarColor(Palette.getDarkerColor(Palette.getDefaultColor()));
+    class Welcome : Fragment() {
+        private var welcomeBinding: FragmentWelcomeBinding? = null
+        override fun onCreateView(
+            inflater: LayoutInflater, container: ViewGroup?,
+            savedInstanceState: Bundle?
+        ): View? {
+            welcomeBinding = FragmentWelcomeBinding.inflate(inflater, container, false)
+            welcomeBinding!!.welcomeGetStarted.setOnClickListener { v1: View? ->
+                (activity as Tutorial?)!!.binding!!.tutorialViewPager.currentItem = 1
             }
+            return welcomeBinding!!.root
+        }
 
-            personalizeBinding.primaryColor.setOnClickListener(v -> {
-                final ChoosemainBinding choosemainBinding =
-                        ChoosemainBinding.inflate(getActivity().getLayoutInflater());
+        override fun onDestroyView() {
+            super.onDestroyView()
+            welcomeBinding = null
+        }
+    }
 
-                choosemainBinding.title.setBackgroundColor(Palette.getDefaultColor());
-
-                choosemainBinding.picker.setColors(ColorPreferences.getBaseColors(getContext()));
-                for (final int i : choosemainBinding.picker.getColors()) {
-                    for (final int i2 : ColorPreferences.getColors(getContext(), i)) {
+    class Personalize : Fragment() {
+        private var personalizeBinding: FragmentPersonalizeBinding? = null
+        override fun onCreateView(
+            inflater: LayoutInflater, container: ViewGroup?,
+            savedInstanceState: Bundle?
+        ): View? {
+            (activity as Tutorial?)!!.back = ColorPreferences(context).fontStyle.themeType
+            personalizeBinding = FragmentPersonalizeBinding.inflate(inflater, container, false)
+            val getFontColor = activity!!.resources.getColor(
+                ColorPreferences(context).fontStyle.color
+            )
+            BlendModeUtil.tintImageViewAsSrcAtop(
+                personalizeBinding!!.secondaryColorPreview,
+                getFontColor
+            )
+            BlendModeUtil.tintImageViewAsSrcAtop(
+                personalizeBinding!!.primaryColorPreview,
+                Palette.getDefaultColor()
+            )
+            personalizeBinding!!.header.setBackgroundColor(Palette.getDefaultColor())
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                val window = activity!!.window
+                window.statusBarColor = Palette.getDarkerColor(Palette.getDefaultColor())
+            }
+            personalizeBinding!!.primaryColor.setOnClickListener { v: View? ->
+                val choosemainBinding = ChoosemainBinding.inflate(
+                    activity!!.layoutInflater
+                )
+                choosemainBinding.title.setBackgroundColor(Palette.getDefaultColor())
+                choosemainBinding.picker.colors = ColorPreferences.getBaseColors(context)
+                for (i in choosemainBinding.picker.colors) {
+                    for (i2 in ColorPreferences.getColors(context, i)) {
                         if (i2 == Palette.getDefaultColor()) {
-                            choosemainBinding.picker.setSelectedColor(i);
-                            choosemainBinding.picker2.setColors(ColorPreferences.getColors(getContext(), i));
-                            choosemainBinding.picker2.setSelectedColor(i2);
-                            break;
+                            choosemainBinding.picker.setSelectedColor(i)
+                            choosemainBinding.picker2.colors =
+                                ColorPreferences.getColors(context, i)
+                            choosemainBinding.picker2.setSelectedColor(i2)
+                            break
                         }
                     }
                 }
-
-                choosemainBinding.picker.setOnColorChangedListener(c -> {
-                    choosemainBinding.picker2.setColors(ColorPreferences.getColors(getContext(), c));
-                    choosemainBinding.picker2.setSelectedColor(c);
-                });
-
-                choosemainBinding.picker2.setOnColorChangedListener(i -> {
-                    choosemainBinding.title.setBackgroundColor(choosemainBinding.picker2.getColor());
-                    personalizeBinding.header.setBackgroundColor(choosemainBinding.picker2.getColor());
-
+                choosemainBinding.picker.setOnColorChangedListener { c: Int ->
+                    choosemainBinding.picker2.colors = ColorPreferences.getColors(context, c)
+                    choosemainBinding.picker2.setSelectedColor(c)
+                }
+                choosemainBinding.picker2.setOnColorChangedListener { i: Int ->
+                    choosemainBinding.title.setBackgroundColor(choosemainBinding.picker2.color)
+                    personalizeBinding!!.header.setBackgroundColor(choosemainBinding.picker2.color)
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                        final Window window = getActivity().getWindow();
-                        window.setStatusBarColor(Palette.getDarkerColor(choosemainBinding.picker2.getColor()));
-                    }
-                });
-
-                choosemainBinding.ok.setOnClickListener(v13 -> {
-                    Reddit.colors.edit().putInt("DEFAULTCOLOR", choosemainBinding.picker2.getColor()).apply();
-                    finishDialogLayout();
-                });
-
-                new AlertDialog.Builder(getContext())
-                        .setView(choosemainBinding.getRoot())
-                        .show();
-            });
-
-            personalizeBinding.secondaryColor.setOnClickListener(v -> {
-                final ChooseaccentBinding accentBinding
-                        = ChooseaccentBinding.inflate(getActivity().getLayoutInflater());
-
-                accentBinding.title.setBackgroundColor(Palette.getDefaultColor());
-
-                final int[] arrs = new int[ColorPreferences.getNumColorsFromThemeType(0)];
-                int i = 0;
-                for (final ColorPreferences.Theme type : ColorPreferences.Theme.values()) {
-                    if (type.getThemeType()
-                            == ColorPreferences.ColorThemeOptions.Dark.getValue()) {
-                        arrs[i] = ContextCompat.getColor(getActivity(), type.getColor());
-
-                        i++;
+                        val window = activity!!.window
+                        window.statusBarColor =
+                            Palette.getDarkerColor(choosemainBinding.picker2.color)
                     }
                 }
-
-                accentBinding.picker3.setColors(arrs);
-                accentBinding.picker3.setSelectedColor(new ColorPreferences(getActivity()).getColor(""));
-
-                accentBinding.ok.setOnClickListener(v12 -> {
-                    final int color = accentBinding.picker3.getColor();
-                    ColorPreferences.Theme theme = null;
-                    for (final ColorPreferences.Theme type : ColorPreferences.Theme.values()) {
-                        if (ContextCompat.getColor(getActivity(), type.getColor()) == color
-                                && ((Tutorial) getActivity()).back == type.getThemeType()
+                choosemainBinding.ok.setOnClickListener { v13: View? ->
+                    Reddit.colors.edit().putInt("DEFAULTCOLOR", choosemainBinding.picker2.color)
+                        .apply()
+                    finishDialogLayout()
+                }
+                AlertDialog.Builder(context!!)
+                    .setView(choosemainBinding.root)
+                    .show()
+            }
+            personalizeBinding!!.secondaryColor.setOnClickListener { v: View? ->
+                val accentBinding = ChooseaccentBinding.inflate(
+                    activity!!.layoutInflater
+                )
+                accentBinding.title.setBackgroundColor(Palette.getDefaultColor())
+                val arrs = IntArray(ColorPreferences.getNumColorsFromThemeType(0))
+                var i = 0
+                for (type in ColorPreferences.Theme.values()) {
+                    if (type.themeType
+                        == ColorPreferences.ColorThemeOptions.Dark.value
+                    ) {
+                        arrs[i] = ContextCompat.getColor(activity!!, type.color)
+                        i++
+                    }
+                }
+                accentBinding.picker3.colors = arrs
+                accentBinding.picker3.setSelectedColor(ColorPreferences(activity).getColor(""))
+                accentBinding.ok.setOnClickListener { v12: View? ->
+                    val color = accentBinding.picker3.color
+                    var theme: ColorPreferences.Theme? = null
+                    for (type in ColorPreferences.Theme.values()) {
+                        if (ContextCompat.getColor(activity!!, type.color) == color
+                            && (activity as Tutorial?)!!.back == type.themeType
                         ) {
-                            theme = type;
-                            break;
+                            theme = type
+                            break
                         }
                     }
-                    new ColorPreferences(getActivity()).setFontStyle(theme);
-                    finishDialogLayout();
-                });
-
-                new AlertDialog.Builder(getActivity())
-                        .setView(accentBinding.getRoot())
-                        .show();
-            });
-
-            personalizeBinding.baseColor.setOnClickListener(v -> {
-                final ChoosethemesmallBinding themesmallBinding
-                        = ChoosethemesmallBinding.inflate(getActivity().getLayoutInflater());
-                final View themesmallBindingRoot = themesmallBinding.getRoot();
-
-                themesmallBinding.title.setBackgroundColor(Palette.getDefaultColor());
-
-                for (final Pair<Integer, Integer> pair : ColorPreferences.themePairList) {
-                    themesmallBindingRoot.findViewById(pair.first).setOnClickListener(v14 -> {
-                        final String[] names =
-                                new ColorPreferences(getActivity()).getFontStyle()
-                                        .getTitle()
-                                        .split("_");
-                        final String name = names[names.length - 1];
-                        final String newName = name.replace("(", "");
-
-                        for (final ColorPreferences.Theme theme : ColorPreferences.Theme.values()) {
-                            if (theme.toString().contains(newName)
-                                    && theme.getThemeType() == pair.second
-                            ) {
-                                ((Tutorial) getActivity()).back = theme.getThemeType();
-                                new ColorPreferences(getActivity()).setFontStyle(theme);
-                                finishDialogLayout();
-                                break;
+                    ColorPreferences(activity).fontStyle = theme
+                    finishDialogLayout()
+                }
+                AlertDialog.Builder(activity!!)
+                    .setView(accentBinding.root)
+                    .show()
+            }
+            personalizeBinding!!.baseColor.setOnClickListener { v: View? ->
+                val themesmallBinding = ChoosethemesmallBinding.inflate(
+                    activity!!.layoutInflater
+                )
+                val themesmallBindingRoot: View = themesmallBinding.root
+                themesmallBinding.title.setBackgroundColor(Palette.getDefaultColor())
+                for (pair in ColorPreferences.themePairList) {
+                    themesmallBindingRoot.findViewById<View>(pair.first!!)
+                        .setOnClickListener { v14: View? ->
+                            val names = ColorPreferences(activity).fontStyle
+                                .title
+                                .split("_".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
+                            val name = names[names.size - 1]
+                            val newName = name.replace("(", "")
+                            for (theme in ColorPreferences.Theme.values()) {
+                                if (theme.toString().contains(newName)
+                                    && theme.themeType == pair.second
+                                ) {
+                                    (activity as Tutorial?)!!.back = theme.themeType
+                                    ColorPreferences(activity).fontStyle = theme
+                                    finishDialogLayout()
+                                    break
+                                }
                             }
                         }
-                    });
                 }
-
-                new AlertDialog.Builder(getActivity())
-                        .setView(themesmallBindingRoot)
-                        .show();
-            });
-
-            personalizeBinding.done.setOnClickListener(v1 -> {
-                Reddit.colors.edit().putString("Tutorial", "S").commit();
-                Reddit.appRestart.edit().putString("startScreen", "a").apply();
-                Reddit.forceRestart(getActivity(), false);
-            });
-
-            return personalizeBinding.getRoot();
+                AlertDialog.Builder(activity!!)
+                    .setView(themesmallBindingRoot)
+                    .show()
+            }
+            personalizeBinding!!.done.setOnClickListener { v1: View? ->
+                Reddit.colors.edit().putString("Tutorial", "S").commit()
+                Reddit.appRestart.edit().putString("startScreen", "a").apply()
+                Reddit.forceRestart(activity, false)
+            }
+            return personalizeBinding!!.root
         }
 
-        @Override
-        public void onDestroyView() {
-            super.onDestroyView();
-            personalizeBinding = null;
+        override fun onDestroyView() {
+            super.onDestroyView()
+            personalizeBinding = null
         }
 
-        private void finishDialogLayout() {
-            final Intent intent = new Intent(getActivity(), Tutorial.class);
-            intent.putExtra("page", 1);
-            intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-            startActivity(intent);
-            getActivity().overridePendingTransition(0, 0);
-
-            getActivity().finish();
-            getActivity().overridePendingTransition(0, 0);
+        private fun finishDialogLayout() {
+            val intent = Intent(activity, Tutorial::class.java)
+            intent.putExtra("page", 1)
+            intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION)
+            startActivity(intent)
+            activity!!.overridePendingTransition(0, 0)
+            activity!!.finish()
+            activity!!.overridePendingTransition(0, 0)
         }
     }
 
@@ -272,27 +238,29 @@ public class Tutorial extends AppCompatActivity {
      * A simple pager adapter that represents 5 ScreenSlidePageFragment objects, in
      * sequence.
      */
-    private static class TutorialPagerAdapter extends FragmentStatePagerAdapter {
-
-        TutorialPagerAdapter(final FragmentManager fm) {
-            super(fm, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT);
-        }
-
-        @NonNull
-        @Override
-        public Fragment getItem(int position) {
-            switch (position) {
-                default:
-                case POS_WELCOME:
-                    return new Welcome();
-                case POS_PERSONALIZE:
-                    return new Personalize();
+    private class TutorialPagerAdapter internal constructor(fm: FragmentManager?) :
+        FragmentStatePagerAdapter(
+            fm!!, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT
+        ) {
+        override fun getItem(position: Int): Fragment {
+            return when (position) {
+                POS_WELCOME -> Welcome()
+                POS_PERSONALIZE -> Personalize()
+                else -> Welcome()
             }
         }
 
-        @Override
-        public int getCount() {
-            return NUM_PAGES;
+        override fun getCount(): Int {
+            return NUM_PAGES
         }
+    }
+
+    companion object {
+        /**
+         * The pages (wizard steps) to show in this demo.
+         */
+        private const val POS_WELCOME = 0
+        private const val POS_PERSONALIZE = 1
+        private const val NUM_PAGES = 2
     }
 }
