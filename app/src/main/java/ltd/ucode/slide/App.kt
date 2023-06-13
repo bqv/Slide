@@ -26,6 +26,7 @@ import androidx.core.app.NotificationChannelCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
+import androidx.multidex.MultiDex
 import androidx.multidex.MultiDexApplication
 import com.google.android.exoplayer2.database.DatabaseProvider
 import com.google.android.exoplayer2.database.ExoDatabaseProvider
@@ -72,10 +73,18 @@ import java.net.UnknownHostException
 import java.util.Calendar
 import java.util.Locale
 
-class Reddit : MultiDexApplication(), ActivityLifecycleCallbacks {
+
+class App : MultiDexApplication(), ActivityLifecycleCallbacks {
     var active = false
+
     @JvmField
     var defaultImageLoader: ImageLoader? = null
+
+    override fun attachBaseContext(base: Context?) {
+        super.attachBaseContext(base)
+        MultiDex.install(base) // use base. install(this) will lead to error in pre-lollipop
+    }
+
     override fun onLowMemory() {
         super.onLowMemory()
         imageLoader!!.clearMemoryCache()
@@ -97,7 +106,7 @@ class Reddit : MultiDexApplication(), ActivityLifecycleCallbacks {
             builder.dns(GfycatIpv4Dns())
             client = builder.build()
         }
-        if (authentication != null && Authentication.didOnline && Authentication.authentication!!.getLong(
+        if (authentication != null && Authentication.didOnline && Preferences.authentication.getLong(
                 "expires",
                 0
             ) <= Calendar.getInstance()
@@ -151,7 +160,6 @@ class Reddit : MultiDexApplication(), ActivityLifecycleCallbacks {
             SettingValues.PREF_OVERRIDE_LANGUAGE,
             false
         )
-        appRestart = getSharedPreferences("appRestart", 0)
         AlbumUtils.albumRequests = getSharedPreferences("albums", 0)
         TumblrUtils.tumblrRequests = getSharedPreferences("tumblr", 0)
         cachedData = getSharedPreferences("cache", 0)
@@ -159,7 +167,6 @@ class Reddit : MultiDexApplication(), ActivityLifecycleCallbacks {
             cachedData!!.edit().clear().putBoolean("hasReset", true).apply()
         }
         registerActivityLifecycleCallbacks(this)
-        Authentication.authentication = getSharedPreferences("AUTH", 0)
         UserSubscriptions.subscriptions = getSharedPreferences("SUBSNEW", 0)
         UserSubscriptions.multiNameToSubs = getSharedPreferences("MULTITONAME", 0)
         UserSubscriptions.newsNameToSubs = getSharedPreferences("NEWSMULTITONAME", 0)
@@ -174,34 +181,32 @@ class Reddit : MultiDexApplication(), ActivityLifecycleCallbacks {
         SettingValues.setAllValues(getSharedPreferences("SETTINGS", 0))
         SortingUtil.defaultSorting = SettingValues.defaultSorting
         SortingUtil.timePeriod = SettingValues.timePeriod
-        colours = getSharedPreferences("COLOR", 0)
-        tags = getSharedPreferences("TAGS", 0)
         KVStore.init(this, "SEEN")
         doLanguages()
         lastPosition = ArrayList()
-        if (!appRestart!!.contains("startScreen")) {
-            Authentication.isLoggedIn = appRestart!!.getBoolean("loggedin", false)
-            Authentication.name = appRestart!!.getString("name", "LOGGEDOUT")
+        if (!Preferences.appRestart.contains("startScreen")) {
+            Authentication.isLoggedIn = Preferences.appRestart.getBoolean("loggedin", false)
+            Authentication.name = Preferences.appRestart.getString("name", "LOGGEDOUT")
             active = true
         } else {
-            appRestart!!.edit().remove("startScreen").apply()
+            Preferences.appRestart.edit().remove("startScreen").apply()
         }
         authentication = Authentication(this)
         AdBlocker.init(this)
-        Authentication.mod = Authentication.authentication!!.getBoolean(SHARED_PREF_IS_MOD, false)
+        Authentication.mod = Preferences.authentication.getBoolean(SHARED_PREF_IS_MOD, false)
         enter_animation_time = enter_animation_time_original * enter_animation_time_multiplier
-        fabClear = colours!!.getBoolean(SettingValues.PREF_FAB_CLEAR, false)
+        fabClear = Preferences.colours.getBoolean(SettingValues.PREF_FAB_CLEAR, false)
         val widthDp = this.resources.configuration.screenWidthDp
         val heightDp = this.resources.configuration.screenHeightDp
         var fina = Math.max(widthDp, heightDp)
         fina += 99
-        if (colours!!.contains("tabletOVERRIDE")) {
-            dpWidth = colours!!.getInt("tabletOVERRIDE", fina / 300)
+        if (Preferences.colours.contains("tabletOVERRIDE")) {
+            dpWidth = Preferences.colours.getInt("tabletOVERRIDE", fina / 300)
         } else {
             dpWidth = fina / 300
         }
-        if (colours!!.contains("notificationOverride")) {
-            notificationTime = colours!!.getInt("notificationOverride", 360)
+        if (Preferences.colours.contains("notificationOverride")) {
+            notificationTime = Preferences.colours.getInt("notificationOverride", 360)
         } else {
             notificationTime = 360
         }
@@ -323,6 +328,7 @@ class Reddit : MultiDexApplication(), ActivityLifecycleCallbacks {
 
     companion object {
         private var mApplication: Application? = null
+
         const val EMPTY_STRING = "NOTHING"
         const val enter_animation_time_original: Long = 600
         const val PREF_LAYOUT = "PRESET"
@@ -335,12 +341,6 @@ class Reddit : MultiDexApplication(), ActivityLifecycleCallbacks {
         const val enter_animation_time_multiplier = 1
         @JvmField
         var authentication: Authentication? = null
-        @JvmField
-        var colours: SharedPreferences? = null
-        @JvmField
-        var appRestart: SharedPreferences? = null
-        @JvmField
-        var tags: SharedPreferences? = null
         @JvmField
         var dpWidth = 0
         @JvmField
@@ -373,13 +373,13 @@ class Reddit : MultiDexApplication(), ActivityLifecycleCallbacks {
         @JvmStatic
         fun forceRestart(context: Context?, forceLoadScreen: Boolean) {
             if (forceLoadScreen) {
-                appRestart!!.edit().putString("startScreen", "").apply()
-                appRestart!!.edit().putBoolean("isRestarting", true).apply()
+                Preferences.appRestart.edit().putString("startScreen", "").apply()
+                Preferences.appRestart.edit().putBoolean("isRestarting", true).apply()
             }
-            if (appRestart!!.contains("back")) {
-                appRestart!!.edit().remove("back").apply()
+            if (Preferences.appRestart.contains("back")) {
+                Preferences.appRestart.edit().remove("back").apply()
             }
-            appRestart!!.edit().putBoolean("isRestarting", true).apply()
+            Preferences.appRestart.edit().putBoolean("isRestarting", true).apply()
             isRestarting = true
             ProcessPhoenix.triggerRebirth(context, Intent(context, MainActivity::class.java))
         }
@@ -466,7 +466,7 @@ class Reddit : MultiDexApplication(), ActivityLifecycleCallbacks {
                                         }
                                     }
                                     .setPositiveButton(R.string.btn_offline) { dialog: DialogInterface?, which: Int ->
-                                        appRestart!!.edit()
+                                        Preferences.appRestart.edit()
                                             .putBoolean("forceoffline", true)
                                             .apply()
                                         forceRestart(c, false)
@@ -539,7 +539,7 @@ class Reddit : MultiDexApplication(), ActivityLifecycleCallbacks {
                     ) {
                         t.printStackTrace()
                     } else {
-                        appRestart!!.edit()
+                        Preferences.appRestart.edit()
                             .putString("startScreen", "a")
                             .apply() //Force reload of data after crash incase state was not saved
                         try {
@@ -561,6 +561,7 @@ class Reddit : MultiDexApplication(), ActivityLifecycleCallbacks {
         const val CHANNEL_MAIL = "MAIL_NOTIFY"
         const val CHANNEL_MODMAIL = "MODMAIL_NOTIFY"
         const val CHANNEL_SUBCHECKING = "SUB_CHECK_NOTIFY"
+
         @JvmStatic
         val appContext: Context
             get() = mApplication!!.applicationContext

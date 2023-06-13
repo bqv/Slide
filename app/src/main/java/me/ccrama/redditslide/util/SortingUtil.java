@@ -18,7 +18,7 @@ import java.util.Map;
 
 import me.ccrama.redditslide.Activities.Search;
 import ltd.ucode.slide.R;
-import ltd.ucode.slide.Reddit;
+import ltd.ucode.slide.App;
 import me.ccrama.redditslide.Visuals.ColorPreferences;
 
 public class SortingUtil {
@@ -47,7 +47,7 @@ public class SortingUtil {
     }
 
     public static String[] getSearch() {
-        final Context appContext = Reddit.getAppContext();
+        final Context appContext = App.getAppContext();
         return new String[]{
                 appContext.getString(R.string.search_relevance),
                 appContext.getString(R.string.search_top),
@@ -119,7 +119,7 @@ public class SortingUtil {
     }
 
     public static String[] getSortingStrings() {
-        final Context appContext = Reddit.getAppContext();
+        final Context appContext = App.getAppContext();
         return new String[]{
                 appContext.getString(R.string.sorting_hot),
                 appContext.getString(R.string.sorting_new),
@@ -131,7 +131,7 @@ public class SortingUtil {
     }
 
     public static String[] getSortingCommentsStrings() {
-        final Context appContext = Reddit.getAppContext();
+        final Context appContext = App.getAppContext();
         return new String[]{
                 appContext.getString(R.string.sorting_best),
                 appContext.getString(R.string.sorting_top),
@@ -143,7 +143,7 @@ public class SortingUtil {
     }
 
     public static String[] getSortingTimesStrings() {
-        final Context appContext = Reddit.getAppContext();
+        final Context appContext = App.getAppContext();
         return new String[]{
                 appContext.getString(R.string.sorting_hour),
                 appContext.getString(R.string.sorting_day),
@@ -183,7 +183,7 @@ public class SortingUtil {
             SpannableString spanString = new SpannableString(sortingStrings[i]);
             if (i == sortingId) {
                 spanString.setSpan(new ForegroundColorSpan(
-                                new ColorPreferences(Reddit.getAppContext()).getColor(sub)), 0,
+                                new ColorPreferences(App.getAppContext()).getColor(sub)), 0,
                         spanString.length(), 0);
                 spanString.setSpan(new StyleSpan(Typeface.BOLD), 0, spanString.length(), 0);
             }

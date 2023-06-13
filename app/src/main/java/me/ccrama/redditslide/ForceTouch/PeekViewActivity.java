@@ -8,7 +8,7 @@ import android.widget.RelativeLayout;
 import androidx.appcompat.app.AppCompatActivity;
 
 import ltd.ucode.slide.R;
-import ltd.ucode.slide.Reddit;
+import ltd.ucode.slide.App;
 import me.ccrama.redditslide.util.DisplayUtil;
 
 
@@ -29,10 +29,10 @@ public class PeekViewActivity extends AppCompatActivity {
     public boolean dispatchTouchEvent(MotionEvent event) {
         if (peekView != null && event.getAction() == MotionEvent.ACTION_UP) {
 
-            if(Reddit.peek){
+            if(App.peek){
                 peekView.pop();
                 peekView.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY);
-                Reddit.peek = false;
+                App.peek = false;
             }
             // the user lifted their finger, so we are going to remove the peek view
             removePeek(event);
@@ -55,17 +55,17 @@ public class PeekViewActivity extends AppCompatActivity {
                     params.rightMargin = twelve;
                 }
 
-                if (event.getY() < (origY) / 2 && !Reddit.peek) {
+                if (event.getY() < (origY) / 2 && !App.peek) {
                     peekView.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
-                    Reddit.peek = true;
+                    App.peek = true;
                 } else if(event.getY() > (origY) / 2){
-                    Reddit.peek = false;
+                    App.peek = false;
                 }
                 peek.setLayoutParams(params);
             }
             // we don't want to pass along the touch event or else it will just scroll under the PeekView
             return false;
-        } else if (event.getAction() == MotionEvent.ACTION_MOVE && Reddit.peek) {
+        } else if (event.getAction() == MotionEvent.ACTION_MOVE && App.peek) {
             return false;
         }
 

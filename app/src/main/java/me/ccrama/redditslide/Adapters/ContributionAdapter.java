@@ -45,7 +45,7 @@ import me.ccrama.redditslide.HasSeen;
 import me.ccrama.redditslide.Hidden;
 import me.ccrama.redditslide.OpenRedditLink;
 import ltd.ucode.slide.R;
-import ltd.ucode.slide.Reddit;
+import ltd.ucode.slide.App;
 import me.ccrama.redditslide.SettingValues;
 import me.ccrama.redditslide.SubmissionViews.PopulateSubmissionViewHolder;
 import me.ccrama.redditslide.Views.CatchStaggeredGridLayoutManager;
@@ -206,9 +206,9 @@ public class ContributionAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                         public void onClick(View v) {
                             if (submission.isSelfPost()){
                                 if(SettingValues.shareLongLink){
-                                    Reddit.defaultShareText("", "https://reddit.com" + submission.getPermalink(), mContext);
+                                    App.defaultShareText("", "https://reddit.com" + submission.getPermalink(), mContext);
                                 } else {
-                                    Reddit.defaultShareText("", "https://redd.it/" + submission.getId(), mContext);
+                                    App.defaultShareText("", "https://redd.it/" + submission.getId(), mContext);
                                 }
                             }
                             else {
@@ -222,13 +222,13 @@ public class ContributionAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                                                 switch (which) {
                                                     case R.id.reddit_url:
                                                         if(SettingValues.shareLongLink){
-                                                            Reddit.defaultShareText(submission.getTitle(), "https://reddit.com" + submission.getPermalink(), mContext);
+                                                            App.defaultShareText(submission.getTitle(), "https://reddit.com" + submission.getPermalink(), mContext);
                                                         } else {
-                                                            Reddit.defaultShareText(submission.getTitle(), "https://redd.it/" + submission.getId(), mContext);
+                                                            App.defaultShareText(submission.getTitle(), "https://redd.it/" + submission.getId(), mContext);
                                                         }
                                                         break;
                                                     case R.id.link_url:
-                                                        Reddit.defaultShareText(submission.getTitle(), submission.getUrl(), mContext);
+                                                        App.defaultShareText(submission.getTitle(), submission.getUrl(), mContext);
                                                         break;
                                                 }
                                             }

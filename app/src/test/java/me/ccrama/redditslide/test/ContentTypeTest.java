@@ -8,7 +8,7 @@ import java.util.HashSet;
 
 import me.ccrama.redditslide.ContentType;
 import me.ccrama.redditslide.ContentType.Type;
-import ltd.ucode.slide.Reddit;
+import ltd.ucode.slide.App;
 import me.ccrama.redditslide.SettingValues;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -125,13 +125,13 @@ public class ContentTypeTest {
 
     @Test
     public void detectsVideo() {
-        Reddit.videoPlugin = true;
+        App.videoPlugin = true;
         assertThat(ContentType.getContentType("https://www.youtube.com/watch?v=lX_pF03vCSU"), is(Type.VIDEO));
         assertThat(ContentType.getContentType("https://youtu.be/lX_pF03vCSU"), is(Type.VIDEO));
 
         assertThat(ContentType.getContentType("https://www.gifyoutube.com/"), is(not(Type.VIDEO)));
 
-        Reddit.videoPlugin = false;
+        App.videoPlugin = false;
         assertThat(ContentType.getContentType("https://www.youtube.com/watch?v=lX_pF03vCSU"), is(not(Type.VIDEO)));
         assertThat(ContentType.getContentType("https://youtu.be/lX_pF03vCSU"), is(not(Type.VIDEO)));
     }

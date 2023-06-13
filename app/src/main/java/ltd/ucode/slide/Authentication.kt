@@ -3,13 +3,12 @@ package ltd.ucode.slide
 import android.app.Activity
 import android.content.Context
 import android.content.DialogInterface
-import android.content.SharedPreferences
 import android.os.AsyncTask
 import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
-import ltd.ucode.slide.Reddit.Companion.forceRestart
-import ltd.ucode.slide.Reddit.Companion.setDefaultErrorHandler
+import ltd.ucode.slide.App.Companion.forceRestart
+import ltd.ucode.slide.App.Companion.setDefaultErrorHandler
 import me.ccrama.redditslide.UserSubscriptions
 import me.ccrama.redditslide.util.LogUtil
 import me.ccrama.redditslide.util.NetworkUtil
@@ -32,9 +31,9 @@ class Authentication(context: Context?) {
         if (reddit == null) {
             hasDone = true
             isLoggedIn = false
-            reddit = RedditClient(
-                UserAgent.of("android:ltd.ucode.slide:v" + BuildConfig.VERSION_NAME)
-            )
+            //reddit = RedditClient(
+            //    UserAgent.of("android:ltd.ucode.slide:v" + BuildConfig.VERSION_NAME)
+            //)
             reddit!!.loggingMode = LoggingMode.ALWAYS
             didOnline = true
             VerifyCredentials(c).execute()
@@ -47,27 +46,27 @@ class Authentication(context: Context?) {
         setDefaultErrorHandler(context)
         if (NetworkUtil.isConnected(context)) {
             hasDone = true
-            httpAdapter = OkHttpAdapter(Reddit.client, Protocol.HTTP_2)
+            httpAdapter = OkHttpAdapter(App.client, Protocol.HTTP_2)
             isLoggedIn = false
-            reddit = RedditClient(
-                UserAgent.of("android:me.ccrama.RedditSlide:v" + BuildConfig.VERSION_NAME),
-                httpAdapter
-            )
+            //reddit = RedditClient(
+            //    UserAgent.of("android:ltd.ucode.slide:v" + BuildConfig.VERSION_NAME),
+            //    httpAdapter
+            //)
             reddit!!.retryLimit = 2
             if (BuildConfig.DEBUG) reddit!!.loggingMode = LoggingMode.ALWAYS
             didOnline = true
             VerifyCredentials(context).execute()
         } else {
-            isLoggedIn = Reddit.appRestart!!.getBoolean("loggedin", false)
-            name = Reddit.appRestart!!.getString("name", "")
-            if ((name!!.isEmpty() || !isLoggedIn) && !authentication!!.getString("lasttoken", "")!!
+            isLoggedIn = Preferences.appRestart.getBoolean("loggedin", false)
+            name = Preferences.appRestart.getString("name", "")
+            if ((name!!.isEmpty() || !isLoggedIn) && !Preferences.authentication.getString("lasttoken", "")!!
                     .isEmpty()
             ) {
-                for (s in authentication!!.getStringSet(
+                for (s in Preferences.authentication.getStringSet(
                     "accounts",
                     HashSet()
                 )!!) {
-                    if (s.contains(authentication!!.getString("lasttoken", "")!!)) {
+                    if (s.contains(Preferences.authentication.getString("lasttoken", "")!!)) {
                         name = s.split(":".toRegex()).dropLastWhile { it.isEmpty() }
                             .toTypedArray()[0]
                         break
@@ -91,27 +90,27 @@ class Authentication(context: Context?) {
                             val oAuthHelper = reddit!!.oAuthHelper
                             oAuthHelper.refreshToken = refresh
                             val finalData: OAuthData
-                            if (authentication!!.contains("backedCreds")
-                                && authentication!!.getLong("expires", 0) > Calendar.getInstance()
+                            if (Preferences.authentication.contains("backedCreds")
+                                && Preferences.authentication.getLong("expires", 0) > Calendar.getInstance()
                                     .timeInMillis
                             ) {
                                 finalData = oAuthHelper.refreshToken(
                                     credentials,
-                                    authentication!!.getString(
+                                    Preferences.authentication.getString(
                                         "backedCreds",
                                         ""
                                     )
                                 ) //does a request
                             } else {
                                 finalData = oAuthHelper.refreshToken(credentials) //does a request
-                                authentication!!.edit()
+                                Preferences.authentication.edit()
                                     .putLong(
                                         "expires",
                                         Calendar.getInstance().timeInMillis + 3000000
                                     )
                                     .commit()
                             }
-                            authentication!!.edit()
+                            Preferences.authentication.edit()
                                 .putString("backedCreds", finalData.dataNode.toString())
                                 .commit()
                             reddit!!.authenticate(finalData)
@@ -133,13 +132,13 @@ class Authentication(context: Context?) {
                         if (BuildConfig.DEBUG) LogUtil.v("Not logged in")
                         try {
                             authData = reddit!!.oAuthHelper.easyAuth(fcreds)
-                            authentication!!.edit()
+                            Preferences.authentication.edit()
                                 .putLong(
                                     "expires",
                                     Calendar.getInstance().timeInMillis + 3000000
                                 )
                                 .commit()
-                            authentication!!.edit()
+                            Preferences.authentication.edit()
                                 .putString("backedCreds", authData.dataNode.toString())
                                 .commit()
                             name = "LOGGEDOUT"
@@ -190,7 +189,7 @@ class Authentication(context: Context?) {
         var single = false
 
         init {
-            lastToken = authentication!!.getString("lasttoken", "")
+            lastToken = Preferences.authentication.getString("lasttoken", "")
         }
 
         protected override fun doInBackground(vararg subs: String?): Void? {
@@ -200,8 +199,8 @@ class Authentication(context: Context?) {
     }
 
     companion object {
-        private const val CLIENT_ID = "KI2Nl9A_ouG9Qw"
-        private const val REDIRECT_URL = "http://www.ccrama.me"
+        private const val CLIENT_ID = ""
+        private const val REDIRECT_URL = "http://slide.ucode.ltd"
         @JvmField
         var isLoggedIn = false
         @JvmField
@@ -212,8 +211,6 @@ class Authentication(context: Context?) {
         var mod = false
         @JvmField
         var name: String? = null
-        @JvmField
-        var authentication: SharedPreferences? = null
         @JvmField
         var refresh: String? = null
         @JvmField
@@ -247,7 +244,7 @@ class Authentication(context: Context?) {
                     try {
                         val finalData: OAuthData
                         if ((!single
-                                    && authentication!!.contains("backedCreds")) && authentication!!.getLong(
+                                    && Preferences.authentication.contains("backedCreds")) && Preferences.authentication.getLong(
                                 "expires",
                                 0
                             ) > Calendar.getInstance()
@@ -255,12 +252,12 @@ class Authentication(context: Context?) {
                         ) {
                             finalData = oAuthHelper.refreshToken(
                                 credentials,
-                                authentication!!.getString("backedCreds", "")
+                                Preferences.authentication.getString("backedCreds", "")
                             )
                         } else {
                             finalData = oAuthHelper.refreshToken(credentials) //does a request
                             if (!single) {
-                                authentication!!.edit()
+                                Preferences.authentication.edit()
                                     .putLong(
                                         "expires",
                                         Calendar.getInstance().timeInMillis + 3000000
@@ -270,7 +267,7 @@ class Authentication(context: Context?) {
                         }
                         baseReddit.authenticate(finalData)
                         if (!single) {
-                            authentication!!.edit()
+                            Preferences.authentication.edit()
                                 .putString("backedCreds", finalData.dataNode.toString())
                                 .apply()
                             refresh = oAuthHelper.refreshToken
@@ -297,18 +294,18 @@ class Authentication(context: Context?) {
                     val authData: OAuthData
                     try {
                         authData = reddit!!.oAuthHelper.easyAuth(fcreds)
-                        authentication!!.edit()
+                        Preferences.authentication.edit()
                             .putLong(
                                 "expires",
                                 Calendar.getInstance().timeInMillis + 3000000
                             )
                             .apply()
-                        authentication!!.edit()
+                        Preferences.authentication.edit()
                             .putString("backedCreds", authData.dataNode.toString())
                             .apply()
                         reddit!!.authenticate(authData)
                         name = "LOGGEDOUT"
-                        Reddit.notFirst = true
+                        App.notFirst = true
                         didOnline = true
                     } catch (e: Exception) {
                         e.printStackTrace()

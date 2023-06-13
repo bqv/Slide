@@ -5,7 +5,7 @@ import android.view.ViewTreeObserver;
 import android.view.Window;
 
 import ltd.ucode.slide.R;
-import ltd.ucode.slide.Reddit;
+import ltd.ucode.slide.App;
 import me.ccrama.redditslide.Visuals.Palette;
 
 /**
@@ -20,7 +20,7 @@ public class FullScreenActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         //TODO something like this getWindow().setFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS,
              //   WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
-        if (Reddit.peek) {
+        if (App.peek) {
             overridePendingTransition(R.anim.pop_in, 0);
         } else {
             overridePendingTransition(R.anim.slide_in, 0);

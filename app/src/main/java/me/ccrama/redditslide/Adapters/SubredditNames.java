@@ -17,7 +17,7 @@ import ltd.ucode.slide.Authentication;
 import me.ccrama.redditslide.Constants;
 import me.ccrama.redditslide.Fragments.SubredditListView;
 import me.ccrama.redditslide.PostMatch;
-import ltd.ucode.slide.Reddit;
+import ltd.ucode.slide.App;
 import me.ccrama.redditslide.SettingValues;
 
 /**
@@ -141,7 +141,7 @@ public class SubredditNames {
                 } catch (Exception e) {
                     e.printStackTrace();
                     if (e.getMessage().contains("Forbidden")) {
-                        Reddit.authentication.updateToken(context);
+                        App.authentication.updateToken(context);
                     }
 
                 }
@@ -165,7 +165,7 @@ public class SubredditNames {
                 } catch (Exception e) {
                     e.printStackTrace();
                     if (e.getMessage().contains("Forbidden")) {
-                        Reddit.authentication.updateToken(context);
+                        App.authentication.updateToken(context);
                     }
 
                 }

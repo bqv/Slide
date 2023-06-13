@@ -22,7 +22,7 @@ import java.util.Locale;
 
 import me.ccrama.redditslide.ForceTouch.PeekViewActivity;
 import ltd.ucode.slide.R;
-import ltd.ucode.slide.Reddit;
+import ltd.ucode.slide.App;
 import me.ccrama.redditslide.SettingValues;
 import me.ccrama.redditslide.SwipeLayout.SwipeBackLayout;
 import me.ccrama.redditslide.SwipeLayout.Utils;
@@ -277,14 +277,14 @@ public class BaseActivity extends PeekViewActivity
     @Override
     public void onResume() {
         super.onResume();
-        Reddit.setDefaultErrorHandler(this); //set defualt reddit api issue handler
+        App.setDefaultErrorHandler(this); //set defualt reddit api issue handler
         hideDecor();
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        Reddit.setDefaultErrorHandler(null); //remove defualt reddit api issue handler (mem leaks)
+        App.setDefaultErrorHandler(null); //remove defualt reddit api issue handler (mem leaks)
 
     }
 

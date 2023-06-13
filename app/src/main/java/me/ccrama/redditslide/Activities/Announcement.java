@@ -9,9 +9,10 @@ import androidx.appcompat.widget.AppCompatButton;
 
 import java.util.List;
 
+import ltd.ucode.slide.Preferences;
 import me.ccrama.redditslide.OpenRedditLink;
 import ltd.ucode.slide.R;
-import ltd.ucode.slide.Reddit;
+import ltd.ucode.slide.App;
 import me.ccrama.redditslide.SpoilerRobotoTextView;
 import me.ccrama.redditslide.Views.CommentOverflow;
 import me.ccrama.redditslide.Views.SidebarLayout;
@@ -44,13 +45,13 @@ public class Announcement extends BaseActivity {
         AppCompatButton okBtn = (AppCompatButton) findViewById(R.id.submission_dialog_ok);
         AppCompatButton commentsBtn = (AppCompatButton) findViewById(R.id.submission_dialog_comments);
 
-        setViews(Reddit.appRestart.getString("page", ""), "NO SUB", spoilerRobotoTextView, commentOverflow);
-        titleTextView.setText(Reddit.appRestart.getString("title", ""));
+        setViews(Preferences.INSTANCE.getAppRestart().getString("page", ""), "NO SUB", spoilerRobotoTextView, commentOverflow);
+        titleTextView.setText(Preferences.INSTANCE.getAppRestart().getString("title", ""));
 
         okBtn.setOnClickListener(v -> finish());
 
         commentsBtn.setOnClickListener(v -> {
-            OpenRedditLink.openUrl(Announcement.this, Reddit.appRestart.getString("url", ""), true);
+            OpenRedditLink.openUrl(Announcement.this, Preferences.INSTANCE.getAppRestart().getString("url", ""), true);
             finish();
         });
     }

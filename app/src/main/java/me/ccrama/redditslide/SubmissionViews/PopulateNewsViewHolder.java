@@ -72,7 +72,7 @@ import me.ccrama.redditslide.OfflineSubreddit;
 import me.ccrama.redditslide.OpenRedditLink;
 import me.ccrama.redditslide.PostMatch;
 import ltd.ucode.slide.R;
-import ltd.ucode.slide.Reddit;
+import ltd.ucode.slide.App;
 import me.ccrama.redditslide.SettingValues;
 import me.ccrama.redditslide.SubmissionCache;
 import me.ccrama.redditslide.Views.CreateCardView;
@@ -735,7 +735,7 @@ public class PopulateNewsViewHolder {
                         }
                         break;
                     case 4:
-                        Reddit.defaultShareText(CompatUtil.fromHtml(submission.getTitle()).toString(),
+                        App.defaultShareText(CompatUtil.fromHtml(submission.getTitle()).toString(),
                                 StringEscapeUtils.escapeHtml4(submission.getUrl()), mContext);
                         break;
                     case 12:
@@ -819,7 +819,7 @@ public class PopulateNewsViewHolder {
                         reportDialog.show();
                         break;
                     case 8:
-                        Reddit.defaultShareText(CompatUtil.fromHtml(submission.getTitle()).toString(),
+                        App.defaultShareText(CompatUtil.fromHtml(submission.getTitle()).toString(),
                                 "https://reddit.com" + submission.getPermalink(), mContext);
                         break;
                     case 6: {

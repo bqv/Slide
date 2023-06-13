@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Objects;
 
 import ltd.ucode.slide.Authentication;
-import ltd.ucode.slide.Reddit;
+import ltd.ucode.slide.App;
 import me.ccrama.redditslide.Activities.CommentsScreenSingle;
 import me.ccrama.redditslide.Activities.LiveThread;
 import ltd.ucode.slide.activity.MainActivity;
@@ -94,8 +94,8 @@ public class OpenRedditLink {
         switch (type) {
             case SHORTENED: {
                 i = new Intent(context, CommentsScreenSingle.class);
-                i.putExtra(CommentsScreenSingle.EXTRA_SUBREDDIT, Reddit.EMPTY_STRING);
-                i.putExtra(CommentsScreenSingle.EXTRA_CONTEXT, Reddit.EMPTY_STRING);
+                i.putExtra(CommentsScreenSingle.EXTRA_SUBREDDIT, App.EMPTY_STRING);
+                i.putExtra(CommentsScreenSingle.EXTRA_CONTEXT, App.EMPTY_STRING);
                 i.putExtra(CommentsScreenSingle.EXTRA_NP, np);
                 i.putExtra(CommentsScreenSingle.EXTRA_SUBMISSION, parts.get(0));
                 break;
@@ -196,15 +196,15 @@ public class OpenRedditLink {
                 } else {
                     i.putExtra(CommentsScreenSingle.EXTRA_SUBREDDIT, parts.get(1));
                 }
-                i.putExtra(CommentsScreenSingle.EXTRA_CONTEXT, Reddit.EMPTY_STRING);
+                i.putExtra(CommentsScreenSingle.EXTRA_CONTEXT, App.EMPTY_STRING);
                 i.putExtra(CommentsScreenSingle.EXTRA_NP, np);
                 i.putExtra(CommentsScreenSingle.EXTRA_SUBMISSION, parts.get(3));
                 break;
             }
             case SUBMISSION_WITHOUT_SUB: {
                 i = new Intent(context, CommentsScreenSingle.class);
-                i.putExtra(CommentsScreenSingle.EXTRA_SUBREDDIT, Reddit.EMPTY_STRING);
-                i.putExtra(CommentsScreenSingle.EXTRA_CONTEXT, Reddit.EMPTY_STRING);
+                i.putExtra(CommentsScreenSingle.EXTRA_SUBREDDIT, App.EMPTY_STRING);
+                i.putExtra(CommentsScreenSingle.EXTRA_CONTEXT, App.EMPTY_STRING);
                 i.putExtra(CommentsScreenSingle.EXTRA_NP, np);
                 i.putExtra(CommentsScreenSingle.EXTRA_SUBMISSION, parts.get(1));
                 break;

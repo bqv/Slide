@@ -102,6 +102,7 @@ import me.ccrama.redditslide.Activities.SubredditView
 import me.ccrama.redditslide.Activities.Wiki
 import me.ccrama.redditslide.Adapters.SideArrayAdapter
 import ltd.ucode.slide.Authentication
+import ltd.ucode.slide.Preferences
 import me.ccrama.redditslide.Autocache.AutoCacheScheduler
 import me.ccrama.redditslide.CaseInsensitiveArrayList
 import me.ccrama.redditslide.CommentCacheAsync
@@ -118,7 +119,7 @@ import me.ccrama.redditslide.Notifications.CheckForMail.AsyncGetSubs
 import me.ccrama.redditslide.Notifications.NotificationJobScheduler
 import me.ccrama.redditslide.OpenRedditLink
 import me.ccrama.redditslide.PostMatch
-import ltd.ucode.slide.Reddit
+import ltd.ucode.slide.App
 import me.ccrama.redditslide.SettingValues
 import me.ccrama.redditslide.SpoilerRobotoTextView
 import me.ccrama.redditslide.Synccit.MySynccitUpdateTask
@@ -527,7 +528,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        val subreddit = usedArray!![Reddit.currentPosition]
+        val subreddit = usedArray!![App.currentPosition]
         return when (item.itemId) {
             R.id.filter -> {
                 filterContent(shouldLoad)
@@ -669,7 +670,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             }
 
             R.id.share -> {
-                Reddit.defaultShareText(
+                App.defaultShareText(
                     "Slide for Reddit",
                     "https://play.google.com/store/apps/details?id=me.ccrama.redditslide",
                     this@MainActivity
@@ -822,11 +823,8 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             requestPermission()
         }
         var first = false
-        if (Reddit.colours != null && !Reddit.colours!!.contains("Tutorial")) {
+        if (!Preferences.colours.contains("Tutorial")) {
             first = true
-            if (Reddit.appRestart == null) {
-                Reddit.appRestart = getSharedPreferences("appRestart", 0)
-            }
             val i = Intent(this, Tutorial::class.java)
             doForcePrefs()
             startActivity(i)
@@ -842,7 +840,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                             AsyncTask.THREAD_POOL_EXECUTOR
                         )
                     }
-                    if (!Reddit.appRestart!!.getString(CheckForMail.SUBS_TO_GET, "")!!.isEmpty()) {
+                    if (!Preferences.appRestart.getString(CheckForMail.SUBS_TO_GET, "")!!.isEmpty()) {
                         AsyncGetSubs(this@MainActivity).executeOnExecutor(
                             AsyncTask.THREAD_POOL_EXECUTOR
                         )
@@ -865,12 +863,12 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                                     if (s.isStickied && s.submissionFlair.text != null && s.submissionFlair
                                             .text
                                             .equals("Announcement", ignoreCase = true)
-                                        && !Reddit.appRestart!!.contains(
+                                        && !Preferences.appRestart.contains(
                                             "announcement" + s.fullName
                                         )
                                         && s.title.contains(version)
                                     ) {
-                                        Reddit.appRestart!!.edit()
+                                        Preferences.appRestart.edit()
                                             .putBoolean(
                                                 "announcement" + s.fullName,
                                                 true
@@ -881,13 +879,13 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                                                 && s.isStickied) && s.submissionFlair.text != null && s.submissionFlair
                                             .text
                                             .equals("Alpha", ignoreCase = true)
-                                        && !Reddit.appRestart!!.contains(
+                                        && !Preferences.appRestart.contains(
                                             "announcement" + s.fullName
                                         )
                                         && s.title
                                             .contains(BuildConfig.VERSION_NAME)
                                     ) {
-                                        Reddit.appRestart!!.edit()
+                                        Preferences.appRestart.edit()
                                             .putBoolean(
                                                 "announcement" + s.fullName,
                                                 true
@@ -899,11 +897,11 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                                             .text
                                             .equals("PRO", ignoreCase = true)
                                         && !SettingValues.isPro
-                                        && !Reddit.appRestart!!.contains(
+                                        && !Preferences.appRestart.contains(
                                             "announcement" + s.fullName
                                         )
                                     ) {
-                                        Reddit.appRestart!!.edit()
+                                        Preferences.appRestart.edit()
                                             .putBoolean(
                                                 "announcement" + s.fullName,
                                                 true
@@ -921,16 +919,16 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                         override fun onPostExecute(s: Submission?) {
                             checkedPopups = true
                             if (s != null) {
-                                Reddit.appRestart!!.edit()
+                                Preferences.appRestart.edit()
                                     .putString(
                                         "page",
                                         s.dataNode["selftext_html"].asText()
                                     )
                                     .apply()
-                                Reddit.appRestart!!.edit()
+                                Preferences.appRestart.edit()
                                     .putString("title", s.title)
                                     .apply()
-                                Reddit.appRestart!!.edit().putString("url", s.url).apply()
+                                Preferences.appRestart.edit().putString("url", s.url).apply()
                                 val title: String
                                 title = if (s.title.lowercase().contains("release")) {
                                     getString(R.string.btn_changelog)
@@ -1007,25 +1005,25 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
         }
         sidebarBody = findViewById(R.id.sidebar_text) as SpoilerRobotoTextView?
         sidebarOverflow = findViewById(R.id.commentOverflow) as CommentOverflow?
-        if (!Reddit.appRestart!!.getBoolean("isRestarting", false) && Reddit.colours!!.contains(
+        if (!Preferences.appRestart.getBoolean("isRestarting", false) && Preferences.colours.contains(
                 "Tutorial"
             )
         ) {
             LogUtil.v("Starting main " + Authentication.name)
-            Authentication.isLoggedIn = Reddit.appRestart!!.getBoolean("loggedin", false)
-            Authentication.name = Reddit.appRestart!!.getString("name", "LOGGEDOUT")
+            Authentication.isLoggedIn = Preferences.appRestart.getBoolean("loggedin", false)
+            Authentication.name = Preferences.appRestart.getString("name", "LOGGEDOUT")
             UserSubscriptions.doMainActivitySubs(this)
         } else if (!first) {
             LogUtil.v("Starting main 2 " + Authentication.name)
-            Authentication.isLoggedIn = Reddit.appRestart!!.getBoolean("loggedin", false)
-            Authentication.name = Reddit.appRestart!!.getString("name", "LOGGEDOUT")
-            Reddit.appRestart!!.edit().putBoolean("isRestarting", false).commit()
-            Reddit.isRestarting = false
+            Authentication.isLoggedIn = Preferences.appRestart.getBoolean("loggedin", false)
+            Authentication.name = Preferences.appRestart.getString("name", "LOGGEDOUT")
+            Preferences.appRestart.edit().putBoolean("isRestarting", false).commit()
+            App.isRestarting = false
             UserSubscriptions.doMainActivitySubs(this)
         }
         val seen = getSharedPreferences("SEEN", 0)
         if (!seen.contains("isCleared") && !seen.all.isEmpty()
-            || !Reddit.appRestart!!.contains("hasCleared")
+            || !Preferences.appRestart.contains("hasCleared")
         ) {
             object : AsyncTask<Void?, Void?, Void?>() {
                 protected override fun doInBackground(vararg params: Void?): Void? {
@@ -1043,9 +1041,9 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                         getSharedPreferences("HIDDEN", 0).edit().clear().apply()
                         getSharedPreferences("HIDDEN_POSTS", 0).edit().clear().apply()
                     }
-                    if (!Reddit.appRestart!!.contains("hasCleared")) {
-                        val e = Reddit.appRestart!!.edit()
-                        val toClear = Reddit.appRestart!!.all
+                    if (!Preferences.appRestart.contains("hasCleared")) {
+                        val e = Preferences.appRestart.edit()
+                        val toClear = Preferences.appRestart.all
                         for ((key, value) in toClear) {
                             if (value is String
                                 && value.length > 300
@@ -1128,7 +1126,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
     }
 
     override fun networkAvailable() {
-        if (runAfterLoad == null && Reddit.authentication != null) {
+        if (runAfterLoad == null && App.authentication != null) {
             Authentication.resetAdapter()
         }
     }
@@ -1195,7 +1193,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                 }
             }
         }
-        Reddit.setDefaultErrorHandler(this)
+        App.setDefaultErrorHandler(this)
         if (sideArrayAdapter != null) {
             sideArrayAdapter!!.updateHistory(UserSubscriptions.getHistory())
         }
@@ -1403,7 +1401,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                     AnimatorUtil.flipAnimator(true, header.findViewById(R.id.headerflip)).start()
                 }
             }
-            for (s in Authentication.authentication!!.getStringSet("accounts", HashSet())!!) {
+            for (s in Preferences.authentication!!.getStringSet("accounts", HashSet())!!) {
                 if (s.contains(":")) {
                     accounts[s.split(":".toRegex()).dropLastWhile { it.isEmpty() }
                         .toTypedArray()[0]] = s.split(":".toRegex()).dropLastWhile { it.isEmpty() }
@@ -1427,7 +1425,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                         .setTitle(R.string.profile_remove)
                         .setMessage(R.string.profile_remove_account)
                         .setNegativeButton(R.string.btn_delete) { dialog2: DialogInterface, which2: Int ->
-                            val accounts2 = Authentication.authentication!!.getStringSet(
+                            val accounts2 = Preferences.authentication.getStringSet(
                                 "accounts", HashSet()
                             )
                             val done: MutableSet<String> = HashSet()
@@ -1436,7 +1434,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                                     done.add(s)
                                 }
                             }
-                            Authentication.authentication!!.edit()
+                            Preferences.authentication.edit()
                                 .putStringSet("accounts", done)
                                 .commit()
                             dialog2.dismiss()
@@ -1453,13 +1451,13 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                                         if (accounts.containsKey(s) && !accounts[s]
                                                 !!.isEmpty()
                                         ) {
-                                            Authentication.authentication!!.edit()
+                                            Preferences.authentication.edit()
                                                 .putString("lasttoken", accounts[s])
                                                 .remove("backedCreds")
                                                 .commit()
                                         } else {
                                             val tokens = ArrayList(
-                                                Authentication.authentication!!.getStringSet(
+                                                Preferences.authentication.getStringSet(
                                                     "tokens", HashSet()
                                                 )
                                             )
@@ -1467,7 +1465,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                                             if (keys.indexOf(s) > tokens.size) {
                                                 index -= 1
                                             }
-                                            Authentication.authentication!!.edit()
+                                            Preferences.authentication.edit()
                                                 .putString(
                                                     "lasttoken",
                                                     tokens[index]
@@ -1477,19 +1475,19 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                                         }
                                         Authentication.name = s
                                         UserSubscriptions.switchAccounts()
-                                        Reddit.forceRestart(this@MainActivity, true)
+                                        App.forceRestart(this@MainActivity, true)
                                         break
                                     }
                                 }
                                 if (!d) {
                                     Authentication.name = "LOGGEDOUT"
                                     Authentication.isLoggedIn = false
-                                    Authentication.authentication!!.edit()
+                                    Preferences.authentication.edit()
                                         .remove("lasttoken")
                                         .remove("backedCreds")
                                         .commit()
                                     UserSubscriptions.switchAccounts()
-                                    Reddit.forceRestart(this@MainActivity, true)
+                                    App.forceRestart(this@MainActivity, true)
                                 }
                             } else {
                                 accounts.remove(accName)
@@ -1506,22 +1504,22 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                         LogUtil.v("Switching to $accName")
                         if (!accounts[accName]!!.isEmpty()) {
                             LogUtil.v("Using token " + accounts[accName])
-                            Authentication.authentication!!.edit()
+                            Preferences.authentication.edit()
                                 .putString("lasttoken", accounts[accName])
                                 .remove("backedCreds")
                                 .apply()
                         } else {
                             val tokens = ArrayList(
-                                Authentication.authentication!!.getStringSet("tokens", HashSet())
+                                Preferences.authentication.getStringSet("tokens", HashSet())
                             )
-                            Authentication.authentication!!.edit()
+                            Preferences.authentication.edit()
                                 .putString("lasttoken", tokens[keys.indexOf(accName)])
                                 .remove("backedCreds")
                                 .apply()
                         }
                         Authentication.name = accName
                         UserSubscriptions.switchAccounts()
-                        Reddit.forceRestart(this@MainActivity, true)
+                        App.forceRestart(this@MainActivity, true)
                     }
                 }
                 accountList.addView(t)
@@ -1545,12 +1543,12 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                     override fun onSingleClick(v: View) {
                         Authentication.name = "LOGGEDOUT"
                         Authentication.isLoggedIn = false
-                        Authentication.authentication!!.edit()
+                        Preferences.authentication.edit()
                             .remove("lasttoken")
                             .remove("backedCreds")
                             .apply()
                         UserSubscriptions.switchAccounts()
-                        Reddit.forceRestart(this@MainActivity, true)
+                        App.forceRestart(this@MainActivity, true)
                     }
                 })
             header.findViewById<View>(R.id.add)
@@ -1563,8 +1561,8 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             header.findViewById<View>(R.id.offline)
                 .setOnClickListener(object : OnSingleClickListener() {
                     override fun onSingleClick(view: View) {
-                        Reddit.appRestart!!.edit().putBoolean("forceoffline", true).commit()
-                        Reddit.forceRestart(this@MainActivity, false)
+                        Preferences.appRestart.edit().putBoolean("forceoffline", true).commit()
+                        App.forceRestart(this@MainActivity, false)
                     }
                 })
             header.findViewById<View>(R.id.inbox)
@@ -1599,7 +1597,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                 }
             }
             val accounts = HashMap<String, String>()
-            for (s in Authentication.authentication!!.getStringSet("accounts", HashSet())!!) {
+            for (s in Preferences.authentication.getStringSet("accounts", HashSet())!!) {
                 if (s.contains(":")) {
                     accounts[s.split(":".toRegex()).dropLastWhile { it.isEmpty() }
                         .toTypedArray()[0]] = s.split(":".toRegex()).dropLastWhile { it.isEmpty() }
@@ -1622,7 +1620,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                         .setTitle(R.string.profile_remove)
                         .setMessage(R.string.profile_remove_account)
                         .setNegativeButton(R.string.btn_delete) { dialog2: DialogInterface, which2: Int ->
-                            val accounts2 = Authentication.authentication!!.getStringSet(
+                            val accounts2 = Preferences.authentication.getStringSet(
                                 "accounts", HashSet()
                             )
                             val done: MutableSet<String> = HashSet()
@@ -1631,7 +1629,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                                     done.add(s)
                                 }
                             }
-                            Authentication.authentication!!.edit()
+                            Preferences.authentication.edit()
                                 .putStringSet("accounts", done)
                                 .commit()
                             dialog2.dismiss()
@@ -1643,35 +1641,35 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                                         d = true
                                         LogUtil.v("Switching to $s")
                                         if (!accounts[s]!!.isEmpty()) {
-                                            Authentication.authentication!!.edit()
+                                            Preferences.authentication.edit()
                                                 .putString("lasttoken", accounts[s])
                                                 .remove("backedCreds")
                                                 .commit()
                                         } else {
                                             val tokens = ArrayList(
-                                                Authentication.authentication!!.getStringSet(
+                                                Preferences.authentication.getStringSet(
                                                     "tokens", HashSet()
                                                 )
                                             )
-                                            Authentication.authentication!!.edit()
+                                            Preferences.authentication.edit()
                                                 .putString("lasttoken", tokens[keys.indexOf(s)])
                                                 .remove("backedCreds")
                                                 .commit()
                                         }
                                         Authentication.name = s
                                         UserSubscriptions.switchAccounts()
-                                        Reddit.forceRestart(this@MainActivity, true)
+                                        App.forceRestart(this@MainActivity, true)
                                     }
                                 }
                                 if (!d) {
                                     Authentication.name = "LOGGEDOUT"
                                     Authentication.isLoggedIn = false
-                                    Authentication.authentication!!.edit()
+                                    Preferences.authentication.edit()
                                         .remove("lasttoken")
                                         .remove("backedCreds")
                                         .commit()
                                     UserSubscriptions.switchAccounts()
-                                    Reddit.forceRestart(this@MainActivity, true)
+                                    App.forceRestart(this@MainActivity, true)
                                 }
                             } else {
                                 accounts.remove(accName)
@@ -1685,15 +1683,15 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                     override fun onSingleClick(v: View) {
                         if (!accName.equals(Authentication.name, ignoreCase = true)) {
                             if (!accounts[accName]!!.isEmpty()) {
-                                Authentication.authentication!!.edit()
+                                Preferences.authentication.edit()
                                     .putString("lasttoken", accounts[accName])
                                     .remove("backedCreds")
                                     .commit()
                             } else {
                                 val tokens = ArrayList(
-                                    Authentication.authentication!!.getStringSet("tokens", HashSet())
+                                    Preferences.authentication.getStringSet("tokens", HashSet())
                                 )
-                                Authentication.authentication!!.edit()
+                                Preferences.authentication.edit()
                                     .putString("lasttoken", tokens[keys.indexOf(accName)])
                                     .remove("backedCreds")
                                     .commit()
@@ -1701,7 +1699,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                             Authentication.isLoggedIn = true
                             Authentication.name = accName
                             UserSubscriptions.switchAccounts()
-                            Reddit.forceRestart(this@MainActivity, true)
+                            App.forceRestart(this@MainActivity, true)
                         }
                     }
                 })
@@ -1717,8 +1715,8 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             header.findViewById<View>(R.id.offline)
                 .setOnClickListener(object : OnSingleClickListener() {
                     override fun onSingleClick(view: View) {
-                        Reddit.appRestart!!.edit().putBoolean("forceoffline", true).commit()
-                        Reddit.forceRestart(this@MainActivity, false)
+                        Preferences.appRestart.edit().putBoolean("forceoffline", true).commit()
+                        App.forceRestart(this@MainActivity, false)
                     }
                 })
             headerMain = header
@@ -1757,8 +1755,8 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             header.findViewById<View>(R.id.online)
                 .setOnClickListener(object : OnSingleClickListener() {
                     override fun onSingleClick(view: View) {
-                        Reddit.appRestart!!.edit().remove("forceoffline").commit()
-                        Reddit.forceRestart(this@MainActivity, false)
+                        Preferences.appRestart.edit().remove("forceoffline").commit()
+                        App.forceRestart(this@MainActivity, false)
                     }
                 })
         }
@@ -2001,7 +1999,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
     fun doPageSelectedComments(position: Int) {
         pager!!.setSwipeLeftOnly(false)
         header!!.animate().translationY(0f).setInterpolator(LinearInterpolator()).duration = 180
-        Reddit.currentPosition = position
+        App.currentPosition = position
         if (position + 1 != currentComment) {
             doSubSidebarNoLoad(usedArray!![position])
         }
@@ -2057,7 +2055,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
 
             //get all subs that have Notifications enabled
             val rawSubs =
-                StringUtil.stringToArray(Reddit.appRestart!!.getString(CheckForMail.SUBS_TO_GET, ""))
+                StringUtil.stringToArray(Preferences.appRestart.getString(CheckForMail.SUBS_TO_GET, ""))
             val subThresholds = HashMap<String, Int>()
             for (s in rawSubs) {
                 try {
@@ -2206,7 +2204,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                                         0
                                     ) { dialog, itemView, which, text ->
                                         val subs = StringUtil.stringToArray(
-                                            Reddit.appRestart!!
+                                            Preferences.appRestart
                                                 .getString(
                                                     CheckForMail.SUBS_TO_GET,
                                                     ""
@@ -2217,7 +2215,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                                                     + ":"
                                                     + text
                                         )
-                                        Reddit.appRestart!!
+                                        Preferences.appRestart
                                             .edit()
                                             .putString(
                                                 CheckForMail.SUBS_TO_GET,
@@ -2416,7 +2414,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                 .isEmpty()
         ) {
             findViewById(R.id.subimage).visibility = View.VISIBLE
-            (application as Reddit).imageLoader!!
+            (application as App).imageLoader!!
                 .displayImage(
                     subreddit.dataNode["icon_img"].asText(),
                     findViewById(R.id.subimage) as ImageView?
@@ -2427,7 +2425,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
         val bannerImage = subreddit.bannerImage
         if (bannerImage != null && !bannerImage.isEmpty()) {
             findViewById(R.id.sub_banner).visibility = View.VISIBLE
-            (application as Reddit).imageLoader!!
+            (application as App).imageLoader!!
                 .displayImage(
                     bannerImage,
                     findViewById(R.id.sub_banner) as ImageView?
@@ -3010,7 +3008,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             PostMatch.isSelftext(subreddit.lowercase()),
             PostMatch.isNsfw(subreddit.lowercase())
         )
-        val currentSubredditName = usedArray!![Reddit.currentPosition]
+        val currentSubredditName = usedArray!![App.currentPosition]
 
         //Title of the filter dialog
         val filterTitle: String
@@ -3548,8 +3546,8 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                 .cancelable(false)
                 .onNegative { dialog, which -> finish() }
                 .onPositive { dialog, which ->
-                    Reddit.appRestart!!.edit().remove("forceoffline").commit()
-                    Reddit.forceRestart(this@MainActivity, false)
+                    Preferences.appRestart.edit().remove("forceoffline").commit()
+                    App.forceRestart(this@MainActivity, false)
                 }
                 .show()
         } else {
@@ -4000,39 +3998,39 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                     me = Authentication.me!!
                     if (Authentication.name.equals("loggedout", ignoreCase = true)) {
                         Authentication.name = me.fullName
-                        Reddit.appRestart!!.edit().putString("name", Authentication.name).apply()
+                        Preferences.appRestart.edit().putString("name", Authentication.name).apply()
                         restart = true
                         return null
                     }
                     Authentication.mod = me.isMod
-                    Authentication.authentication!!.edit()
-                        .putBoolean(Reddit.SHARED_PREF_IS_MOD, Authentication.mod)
+                    Preferences.authentication.edit()
+                        .putBoolean(App.SHARED_PREF_IS_MOD, Authentication.mod)
                         .apply()
-                    if (Reddit.notificationTime != -1) {
-                        Reddit.notifications = NotificationJobScheduler(this@MainActivity)
-                        Reddit.notifications!!.start()
+                    if (App.notificationTime != -1) {
+                        App.notifications = NotificationJobScheduler(this@MainActivity)
+                        App.notifications!!.start()
                     }
-                    if (Reddit.cachedData!!.contains("toCache")) {
-                        Reddit.autoCache = AutoCacheScheduler(this@MainActivity)
-                        Reddit.autoCache!!.start()
+                    if (App.cachedData!!.contains("toCache")) {
+                        App.autoCache = AutoCacheScheduler(this@MainActivity)
+                        App.autoCache!!.start()
                     }
                     val name = me.fullName
                     Authentication.name = name
                     LogUtil.v("AUTHENTICATED")
                     if (Authentication.reddit!!.isAuthenticated) {
-                        val accounts = Authentication.authentication!!.getStringSet(
+                        val accounts = Preferences.authentication.getStringSet(
                             "accounts",
                             HashSet()
                         )
                         if (accounts!!.contains(name)) { //convert to new system
                             accounts.remove(name)
                             accounts.add(name + ":" + Authentication.refresh)
-                            Authentication.authentication!!.edit()
+                            Preferences.authentication.edit()
                                 .putStringSet("accounts", accounts)
                                 .commit() //force commit
                         }
                         Authentication.isLoggedIn = true
-                        Reddit.notFirst = true
+                        App.notFirst = true
                     }
                 } else {
                     me = Authentication.reddit!!.me()
@@ -4064,7 +4062,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                 })
             }
             if (count != -1) {
-                val oldCount = Reddit.appRestart!!.getInt("inbox", 0)
+                val oldCount = Preferences.appRestart.getInt("inbox", 0)
                 if (count > oldCount) {
                     val s = Snackbar.make(
                         mToolbar!!,
@@ -4082,7 +4080,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                         })
                     LayoutUtils.showSnackbar(s)
                 }
-                Reddit.appRestart!!.edit().putInt("inbox", count).apply()
+                Preferences.appRestart.edit().putInt("inbox", count).apply()
             }
             val badge = headerMain!!.findViewById<View>(R.id.count)
             if (count == 0) {
@@ -4136,7 +4134,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                 }
 
                 override fun onPageSelected(position: Int) {
-                    Reddit.currentPosition = position
+                    App.currentPosition = position
                     selectedSub = usedArray!![position]
                     val page = adapter!!.currentFragment as SubmissionsView?
                     if (hea != null) {

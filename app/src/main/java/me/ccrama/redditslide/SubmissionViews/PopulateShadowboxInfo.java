@@ -49,7 +49,7 @@ import me.ccrama.redditslide.Activities.SubredditView;
 import ltd.ucode.slide.Authentication;
 import me.ccrama.redditslide.HasSeen;
 import ltd.ucode.slide.R;
-import ltd.ucode.slide.Reddit;
+import ltd.ucode.slide.App;
 import me.ccrama.redditslide.SettingValues;
 import me.ccrama.redditslide.Views.RoundedBackgroundSpan;
 import me.ccrama.redditslide.Views.TitleTextView;
@@ -541,7 +541,7 @@ public class PopulateShadowboxInfo {
                                 LinkUtil.openExternally(submission.getUrl());
                                 break;
                             case 4:
-                                Reddit.defaultShareText(submission.getTitle(), submission.getUrl(), mContext);
+                                App.defaultShareText(submission.getTitle(), submission.getUrl(), mContext);
                                 break;
                             case 12:
                                 final MaterialDialog reportDialog = new MaterialDialog.Builder(mContext)
@@ -626,9 +626,9 @@ public class PopulateShadowboxInfo {
                                 break;
                             case 8:
                                 if(SettingValues.shareLongLink){
-                                    Reddit.defaultShareText(submission.getTitle(), "https://reddit.com" + submission.getPermalink(), mContext);
+                                    App.defaultShareText(submission.getTitle(), "https://reddit.com" + submission.getPermalink(), mContext);
                                 } else {
-                                    Reddit.defaultShareText(submission.getTitle(), "https://redd.it/" + submission.getId(), mContext);
+                                    App.defaultShareText(submission.getTitle(), "https://redd.it/" + submission.getId(), mContext);
                                 }
                                 break;
                             case 6: {

@@ -23,13 +23,14 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import ltd.ucode.slide.Preferences;
 import me.ccrama.redditslide.Adapters.RedditGalleryView;
 import me.ccrama.redditslide.Fragments.BlankFragment;
 import me.ccrama.redditslide.Fragments.FolderChooserDialogCreate;
 import me.ccrama.redditslide.Fragments.SubmissionsView;
 import me.ccrama.redditslide.Notifications.ImageDownloadNotificationService;
 import ltd.ucode.slide.R;
-import ltd.ucode.slide.Reddit;
+import ltd.ucode.slide.App;
 import me.ccrama.redditslide.SettingValues;
 import me.ccrama.redditslide.Views.PreCachingLayoutManager;
 import me.ccrama.redditslide.Views.ToolbarColorizeHelper;
@@ -49,7 +50,7 @@ public class RedditGallery extends FullScreenActivity implements FolderChooserDi
     @Override
     public void onFolderSelection(@NonNull FolderChooserDialogCreate dialog,
                                   @NonNull File folder, boolean isSaveToLocation) {
-        Reddit.appRestart.edit().putString("imagelocation", folder.getAbsolutePath()).apply();
+        Preferences.INSTANCE.getAppRestart().edit().putString("imagelocation", folder.getAbsolutePath()).apply();
         Toast.makeText(this,
                 getString(R.string.settings_set_image_location, folder.getAbsolutePath()),
                 Toast.LENGTH_LONG).show();
@@ -108,9 +109,9 @@ public class RedditGallery extends FullScreenActivity implements FolderChooserDi
 
     public void doImageSave(boolean isGif, String contentUrl, int index) {
         if (!isGif) {
-            if (Reddit.appRestart.getString("imagelocation", "").isEmpty()) {
+            if (Preferences.INSTANCE.getAppRestart().getString("imagelocation", "").isEmpty()) {
                 DialogUtil.showFirstDialog(RedditGallery.this);
-            } else if (!new File(Reddit.appRestart.getString("imagelocation", "")).exists()) {
+            } else if (!new File(Preferences.INSTANCE.getAppRestart().getString("imagelocation", "")).exists()) {
                 DialogUtil.showErrorDialog(RedditGallery.this);
             } else {
                 Intent i = new Intent(this, ImageDownloadNotificationService.class);
@@ -187,7 +188,7 @@ public class RedditGallery extends FullScreenActivity implements FolderChooserDi
 
         );
 
-        if (!Reddit.appRestart.contains("tutorialSwipe")) {
+        if (!Preferences.INSTANCE.getAppRestart().contains("tutorialSwipe")) {
             startActivityForResult(new Intent(this, SwipeTutorial.class), 3);
         }
     }
@@ -196,7 +197,7 @@ public class RedditGallery extends FullScreenActivity implements FolderChooserDi
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == 3) {
-            Reddit.appRestart.edit().putBoolean("tutorialSwipe", true).apply();
+            Preferences.INSTANCE.getAppRestart().edit().putBoolean("tutorialSwipe", true).apply();
 
         }
     }

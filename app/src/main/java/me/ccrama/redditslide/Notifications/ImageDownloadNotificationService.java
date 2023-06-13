@@ -33,9 +33,10 @@ import java.net.URL;
 import java.util.List;
 import java.util.Locale;
 
+import ltd.ucode.slide.Preferences;
 import me.ccrama.redditslide.Activities.DeleteFile;
 import ltd.ucode.slide.R;
-import ltd.ucode.slide.Reddit;
+import ltd.ucode.slide.App;
 import me.ccrama.redditslide.SettingValues;
 import me.ccrama.redditslide.util.FileUtil;
 import me.ccrama.redditslide.util.LogUtil;
@@ -95,7 +96,7 @@ public class ImageDownloadNotificationService extends Service {
             id = (int) (System.currentTimeMillis() / 1000);
             mNotifyManager = ContextCompat.getSystemService(
                     ImageDownloadNotificationService.this, NotificationManager.class);
-            mBuilder = new NotificationCompat.Builder(getApplicationContext(), Reddit.CHANNEL_IMG);
+            mBuilder = new NotificationCompat.Builder(getApplicationContext(), App.CHANNEL_IMG);
             mBuilder.setContentTitle(getString(R.string.mediaview_notif_title))
                     .setContentText(getString(R.string.mediaview_notif_text))
                     .setSmallIcon(R.drawable.ic_save);
@@ -121,7 +122,7 @@ public class ImageDownloadNotificationService extends Service {
         protected Void doInBackground(Void... params) {
             final String finalUrl = actuallyLoaded;
             try {
-                ((Reddit) getApplication()).getImageLoader()
+                ((App) getApplication()).getImageLoader()
                         .loadImage(finalUrl, null, new DisplayImageOptions.Builder().imageScaleType(
                                 ImageScaleType.NONE).cacheInMemory(false).cacheOnDisk(true).build(),
                                 new SimpleImageLoadingListener() {
@@ -129,7 +130,7 @@ public class ImageDownloadNotificationService extends Service {
                                     @Override
                                     public void onLoadingComplete(String imageUri, View view,
                                                                   final Bitmap loadedImage) {
-                                        File f = ((Reddit) getApplicationContext()).getImageLoader()
+                                        File f = ((App) getApplicationContext()).getImageLoader()
                                                 .getDiskCache()
                                                 .get(finalUrl);
                                         if (f != null && f.exists()) {
@@ -180,7 +181,7 @@ public class ImageDownloadNotificationService extends Service {
 
         private String getFolderPath() {
             if (saveToLocation != null) return saveToLocation;
-            else return Reddit.appRestart.getString("imagelocation", "");
+            else return Preferences.INSTANCE.getAppRestart().getString("imagelocation", "");
         }
 
         @NonNull
@@ -301,7 +302,7 @@ public class ImageDownloadNotificationService extends Service {
 
 
                             Notification notif = new NotificationCompat.Builder(
-                                    getApplicationContext(), Reddit.CHANNEL_IMG).setContentTitle(
+                                    getApplicationContext(), App.CHANNEL_IMG).setContentTitle(
                                     getString(R.string.info_photo_saved))
                                     .setSmallIcon(R.drawable.ic_save)
                                     .setLargeIcon(loadedImage)

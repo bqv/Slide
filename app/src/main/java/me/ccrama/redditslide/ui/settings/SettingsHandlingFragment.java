@@ -25,7 +25,7 @@ import java.util.Locale;
 import java.util.Map;
 
 import ltd.ucode.slide.R;
-import ltd.ucode.slide.Reddit;
+import ltd.ucode.slide.App;
 import me.ccrama.redditslide.SettingValues;
 import me.ccrama.redditslide.util.LinkUtil;
 
@@ -89,7 +89,7 @@ public class SettingsHandlingFragment implements CompoundButton.OnCheckedChangeL
         });
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        if (!Reddit.videoPlugin) {
+        if (!App.videoPlugin) {
             handlingVideoLayout.setOnClickListener(v ->
                     LinkUtil.launchMarketUri(context, R.string.youtube_plugin_package));
         } else {
@@ -125,7 +125,7 @@ public class SettingsHandlingFragment implements CompoundButton.OnCheckedChangeL
                     .apply();
         });
 
-        final HashMap<String, String> installedBrowsers = Reddit.getInstalledBrowsers();
+        final HashMap<String, String> installedBrowsers = App.getInstalledBrowsers();
         if (!installedBrowsers.containsKey(SettingValues.selectedBrowser)) {
             SettingValues.selectedBrowser = "";
             SettingValues.prefs.edit()
@@ -197,7 +197,7 @@ public class SettingsHandlingFragment implements CompoundButton.OnCheckedChangeL
     private void updateFilters() {
         domainListLayout.removeAllViews();
         for (String s : SettingValues.alwaysExternal) {
-            if (!s.isEmpty() && (!Reddit.videoPlugin || !s.contains("youtube.co") && !s.contains("youtu.be"))) {
+            if (!s.isEmpty() && (!App.videoPlugin || !s.contains("youtube.co") && !s.contains("youtu.be"))) {
                 final View t = context.getLayoutInflater().inflate(R.layout.account_textview,
                         domainListLayout, false);
                 final TextView accountTextViewName = t.findViewById(R.id.name);

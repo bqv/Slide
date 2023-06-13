@@ -68,6 +68,7 @@ import java.util.List;
 import java.util.Locale;
 
 import ltd.ucode.slide.Authentication;
+import ltd.ucode.slide.Preferences;
 import me.ccrama.redditslide.Constants;
 import me.ccrama.redditslide.Fragments.BlankFragment;
 import me.ccrama.redditslide.Fragments.CommentPage;
@@ -77,7 +78,7 @@ import me.ccrama.redditslide.Notifications.CheckForMail;
 import me.ccrama.redditslide.OfflineSubreddit;
 import me.ccrama.redditslide.PostMatch;
 import ltd.ucode.slide.R;
-import ltd.ucode.slide.Reddit;
+import ltd.ucode.slide.App;
 import me.ccrama.redditslide.SettingValues;
 import me.ccrama.redditslide.SpoilerRobotoTextView;
 import me.ccrama.redditslide.UserSubscriptions;
@@ -416,13 +417,13 @@ public class SubredditView extends BaseActivity {
         super.onDestroy();
         if (sub != null) {
             if (sub.isNsfw() && (!SettingValues.storeHistory || !SettingValues.storeNSFWHistory)) {
-                SharedPreferences.Editor e = Reddit.cachedData.edit();
+                SharedPreferences.Editor e = App.cachedData.edit();
                 for (String s : OfflineSubreddit.getAll(sub.getDisplayName())) {
                     e.remove(s);
                 }
                 e.apply();
             } else if (!SettingValues.storeHistory) {
-                SharedPreferences.Editor e = Reddit.cachedData.edit();
+                SharedPreferences.Editor e = App.cachedData.edit();
                 for (String s : OfflineSubreddit.getAll(sub.getDisplayName())) {
                     e.remove(s);
                 }
@@ -434,7 +435,7 @@ public class SubredditView extends BaseActivity {
     public void doPageSelectedComments(int position) {
         header.animate().translationY(0).setInterpolator(new LinearInterpolator()).setDuration(180);
         pager.setSwipeLeftOnly(false);
-        Reddit.currentPosition = position;
+        App.currentPosition = position;
         if (position == 1 && adapter != null && adapter.getCurrentFragment() != null) {
             ((SubmissionsView) adapter.getCurrentFragment()).adapter.refreshView();
         }
@@ -1185,7 +1186,7 @@ public class SubredditView extends BaseActivity {
 
                 //get all subs that have Notifications enabled
                 ArrayList<String> rawSubs = StringUtil.stringToArray(
-                        Reddit.appRestart.getString(CheckForMail.SUBS_TO_GET, ""));
+                        Preferences.INSTANCE.getAppRestart().getString(CheckForMail.SUBS_TO_GET, ""));
                 HashMap<String, Integer> subThresholds = new HashMap<>();
                 for (String s : rawSubs) {
                     try {
@@ -1485,14 +1486,14 @@ public class SubredditView extends BaseActivity {
                                                                                 ArrayList<String>
                                                                                         subs =
                                                                                         StringUtil.stringToArray(
-                                                                                                Reddit.appRestart
+                                                                                                Preferences.INSTANCE.getAppRestart()
                                                                                                         .getString(
                                                                                                                 CheckForMail.SUBS_TO_GET,
                                                                                                                 ""));
                                                                                 subs.add(sub
                                                                                         + ":"
                                                                                         + text);
-                                                                                Reddit.appRestart
+                                                                                Preferences.INSTANCE.getAppRestart()
                                                                                         .edit()
                                                                                         .putString(
                                                                                                 CheckForMail.SUBS_TO_GET,
@@ -1539,7 +1540,7 @@ public class SubredditView extends BaseActivity {
                     .get("icon_img")
                     .asText()
                     .isEmpty()) {
-                ((Reddit) getApplication()).getImageLoader()
+                ((App) getApplication()).getImageLoader()
                         .displayImage(subreddit.getDataNode().get("icon_img").asText(),
                                 (ImageView) findViewById(R.id.subimage));
             } else {
@@ -1548,7 +1549,7 @@ public class SubredditView extends BaseActivity {
             String bannerImage = subreddit.getBannerImage();
             if (bannerImage != null && !bannerImage.isEmpty()) {
                 findViewById(R.id.sub_banner).setVisibility(View.VISIBLE);
-                ((Reddit) getApplication()).getImageLoader()
+                ((App) getApplication()).getImageLoader()
                         .displayImage(bannerImage,
                                 (ImageView) findViewById(R.id.sub_banner));
             } else {

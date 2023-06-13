@@ -8,7 +8,7 @@ import android.content.Intent;
 import androidx.core.app.AlarmManagerCompat;
 import androidx.core.content.ContextCompat;
 
-import ltd.ucode.slide.Reddit;
+import ltd.ucode.slide.App;
 
 /**
  * Created by carlo_000 on 10/13/2015.
@@ -27,7 +27,7 @@ public class NotificationJobScheduler {
     }
 
     public void start() {
-        final int interval = 1000 * 60 * Reddit.notificationTime;
+        final int interval = 1000 * 60 * App.notificationTime;
         final long currentTime = System.currentTimeMillis();
         if (manager != null) {
             AlarmManagerCompat.setAndAllowWhileIdle(

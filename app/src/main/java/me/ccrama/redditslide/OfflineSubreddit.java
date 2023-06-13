@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import ltd.ucode.slide.Reddit;
+import ltd.ucode.slide.App;
 
 /**
  * Created by carlo_000 on 11/19/2015.
@@ -91,7 +91,7 @@ public class OfflineSubreddit {
             }
 
             if (fullNames.length() > 0) {
-                Reddit.cachedData.edit()
+                App.cachedData.edit()
                         .putString(title, fullNames.substring(0, fullNames.length() - 1))
                         .apply();
             }
@@ -109,7 +109,7 @@ public class OfflineSubreddit {
                 fullNames.append(sub.getFullName()).append(",");
             }
             if (fullNames.length() > 0) {
-                Reddit.cachedData.edit()
+                App.cachedData.edit()
                         .putString(title, fullNames.substring(0, fullNames.length() - 1))
                         .apply();
             }
@@ -126,7 +126,7 @@ public class OfflineSubreddit {
             }
             String fullNames = fullNamesBuilder.toString();
             if (subreddit.equals(CommentCacheAsync.SAVED_SUBMISSIONS)) {
-                Map<String, ?> offlineSubs = Reddit.cachedData.getAll();
+                Map<String, ?> offlineSubs = App.cachedData.getAll();
                 for (String offlineSub : offlineSubs.keySet()) {
                     if (offlineSub.contains(CommentCacheAsync.SAVED_SUBMISSIONS)) {
                         savedSubmissionsSubreddit = offlineSub;
@@ -134,9 +134,9 @@ public class OfflineSubreddit {
                     }
                 }
                 String savedSubmissions =
-                        Reddit.cachedData.getString(OfflineSubreddit.savedSubmissionsSubreddit,
+                        App.cachedData.getString(OfflineSubreddit.savedSubmissionsSubreddit,
                                 fullNames);
-                Reddit.cachedData.edit().remove(savedSubmissionsSubreddit).apply();
+                App.cachedData.edit().remove(savedSubmissionsSubreddit).apply();
                 if (!savedSubmissions.equals(fullNames)) {
                     savedSubmissions = fullNames + savedSubmissions;
                 }
@@ -151,7 +151,7 @@ public class OfflineSubreddit {
         if (subreddit != null) {
             String title = subreddit.toLowerCase(Locale.ENGLISH) + "," + (time);
             if (subreddit.equals(CommentCacheAsync.SAVED_SUBMISSIONS)) {
-                Map<String, ?> offlineSubs = Reddit.cachedData.getAll();
+                Map<String, ?> offlineSubs = App.cachedData.getAll();
                 for (String offlineSub : offlineSubs.keySet()) {
                     if (offlineSub.contains(CommentCacheAsync.SAVED_SUBMISSIONS)) {
                         savedSubmissionsSubreddit = offlineSub;
@@ -159,10 +159,10 @@ public class OfflineSubreddit {
                     }
                 }
                 String savedSubmissions =
-                        Reddit.cachedData.getString(OfflineSubreddit.savedSubmissionsSubreddit,
+                        App.cachedData.getString(OfflineSubreddit.savedSubmissionsSubreddit,
                                 name);
                 if (!savedSubmissions.equals(name)) {
-                    Reddit.cachedData.edit().remove(savedSubmissionsSubreddit).apply();
+                    App.cachedData.edit().remove(savedSubmissionsSubreddit).apply();
                     String modifiedSavedSubmissions = savedSubmissions.replace(name + ",", "");
                     saveToCache(title, modifiedSavedSubmissions);
                 }
@@ -171,7 +171,7 @@ public class OfflineSubreddit {
     }
 
     private void saveToCache(String title, String submissions) {
-        Reddit.cachedData.edit().putString(title, submissions).apply();
+        App.cachedData.edit().putString(title, submissions).apply();
     }
 
     public static OfflineSubreddit getSubreddit(String subreddit, boolean offline, Context c) {
@@ -215,7 +215,7 @@ public class OfflineSubreddit {
 
             o.time = time;
 
-            String[] split = Reddit.cachedData.getString(subreddit.toLowerCase(Locale.ENGLISH) + "," + time, "")
+            String[] split = App.cachedData.getString(subreddit.toLowerCase(Locale.ENGLISH) + "," + time, "")
                     .split(",");
             if (split.length > 0) {
                 o.time = time;
@@ -341,7 +341,7 @@ public class OfflineSubreddit {
     public static ArrayList<String> getAll(String subreddit) {
         subreddit = subreddit.toLowerCase(Locale.ENGLISH);
         ArrayList<String> base = new ArrayList<>();
-        for (String s : Reddit.cachedData.getAll().keySet()) {
+        for (String s : App.cachedData.getAll().keySet()) {
             if (s.startsWith(subreddit) && s.contains(",")) {
                 base.add(s);
             }
@@ -361,7 +361,7 @@ public class OfflineSubreddit {
 
     public static ArrayList<String> getAll() {
         ArrayList<String> keys = new ArrayList<>();
-        for (String s : Reddit.cachedData.getAll().keySet()) {
+        for (String s : App.cachedData.getAll().keySet()) {
             if (s.contains(",") && !s.startsWith("multi")) {
                 keys.add(s);
             }
@@ -371,7 +371,7 @@ public class OfflineSubreddit {
 
     public static ArrayList<String> getAllFormatted() {
         ArrayList<String> keys = new ArrayList<>();
-        for (String s : Reddit.cachedData.getAll().keySet()) {
+        for (String s : App.cachedData.getAll().keySet()) {
             if (s.contains(",") && !keys.contains(s.substring(0, s.indexOf(","))) && !s.startsWith(
                     "multi")) {
                 keys.add(s.substring(0, s.indexOf(",")));

@@ -11,7 +11,7 @@ import org.json.JSONObject;
 import java.io.File;
 import java.io.IOException;
 
-import ltd.ucode.slide.Reddit;
+import ltd.ucode.slide.App;
 import me.ccrama.redditslide.util.ImgurUtils;
 import me.ccrama.redditslide.util.LogUtil;
 import me.ccrama.redditslide.util.ProgressRequestBody;
@@ -30,7 +30,7 @@ public class UploadImgur extends AsyncTask<Uri, Integer, JSONObject> {
     protected JSONObject doInBackground(Uri... sub) {
         File bitmap = ImgurUtils.createFile(sub[0], c);
 
-        final OkHttpClient client = Reddit.client;
+        final OkHttpClient client = App.client;
 
         try {
             RequestBody formBody = new MultipartBody.Builder().setType(MultipartBody.FORM)

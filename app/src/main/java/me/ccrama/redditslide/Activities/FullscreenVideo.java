@@ -11,8 +11,9 @@ import android.webkit.WebView;
 
 import androidx.appcompat.app.AlertDialog;
 
+import ltd.ucode.slide.Preferences;
 import ltd.ucode.slide.R;
-import ltd.ucode.slide.Reddit;
+import ltd.ucode.slide.App;
 import me.ccrama.redditslide.util.LinkUtil;
 import me.ccrama.redditslide.util.LogUtil;
 
@@ -68,7 +69,7 @@ public class FullscreenVideo extends FullScreenActivity {
             LogUtil.v(dat);
             setShareUrl(dat);
             v.loadUrl(dat);
-            if ((dat.contains("youtube.co" ) || dat.contains("youtu.be")) && !Reddit.appRestart.contains("showYouTubePopup")) {
+            if ((dat.contains("youtube.co" ) || dat.contains("youtu.be")) && !Preferences.INSTANCE.getAppRestart().contains("showYouTubePopup")) {
                 new AlertDialog.Builder(FullscreenVideo.this)
                         .setTitle(R.string.load_videos_internally)
                         .setMessage(R.string.load_videos_internally_content)
@@ -77,7 +78,7 @@ public class FullscreenVideo extends FullScreenActivity {
                                         FullscreenVideo.this, R.string.youtube_plugin_package))
                         .setNegativeButton(R.string.btn_no, null)
                         .setNeutralButton(R.string.do_not_show_again, (dialog, which) ->
-                                Reddit.appRestart.edit().putBoolean("showYouTubePopup", false).apply())
+                                Preferences.INSTANCE.getAppRestart().edit().putBoolean("showYouTubePopup", false).apply())
                         .show();
             }
         } else {

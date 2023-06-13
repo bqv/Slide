@@ -23,7 +23,7 @@ import java.util.Locale;
 import me.ccrama.redditslide.Activities.BaseActivityAnim;
 import ltd.ucode.slide.Authentication;
 import ltd.ucode.slide.R;
-import ltd.ucode.slide.Reddit;
+import ltd.ucode.slide.App;
 import me.ccrama.redditslide.SettingValues;
 import me.ccrama.redditslide.UserSubscriptions;
 import me.ccrama.redditslide.Visuals.ColorPreferences;
@@ -81,7 +81,7 @@ public class SettingsSubreddit extends BaseActivityAnim {
                         .setPositiveButton(R.string.btn_yes, (dialog, which) -> {
                             for (String s : changedSubs) {
                                 Palette.removeColor(s);
-                                SettingValues.prefs.edit().remove(Reddit.PREF_LAYOUT + s).apply();
+                                SettingValues.prefs.edit().remove(App.PREF_LAYOUT + s).apply();
                                 new ColorPreferences(SettingsSubreddit.this).removeFontStyle(s);
                                 SettingValues.resetPicsEnabled(s);
                             }
@@ -189,7 +189,7 @@ public class SettingsSubreddit extends BaseActivityAnim {
 
         for (String s : allSubs) {
             if (Palette.getColor(s) != Palette.getDefaultColor()
-                    || SettingValues.prefs.contains(Reddit.PREF_LAYOUT + s)
+                    || SettingValues.prefs.contains(App.PREF_LAYOUT + s)
                     || colorPrefs.getFontStyleSubreddit(s).getColor() != defaultFont
                     || SettingValues.prefs.contains("picsenabled" + s.toLowerCase(Locale.ENGLISH))) {
                 changedSubs.add(s);

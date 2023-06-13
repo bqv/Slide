@@ -15,7 +15,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-import ltd.ucode.slide.Reddit;
+import ltd.ucode.slide.App;
 
 //Following methods sourced from https://github.com/Kennyc1012/Opengur, Code by Kenny Campagna
 public class ImgurUtils {
@@ -41,7 +41,7 @@ public class ImgurUtils {
 
         // Create files from a uri in our cache directory so they eventually get deleted
         String timeStamp = String.valueOf(System.currentTimeMillis());
-        File cacheDir = ((Reddit) context.getApplicationContext()).getImageLoader()
+        File cacheDir = ((App) context.getApplicationContext()).getImageLoader()
                 .getDiskCache()
                 .getDirectory();
         File tempFile = new File(cacheDir, timeStamp + extension);

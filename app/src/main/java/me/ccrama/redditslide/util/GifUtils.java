@@ -61,10 +61,11 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
+import ltd.ucode.slide.Preferences;
 import me.ccrama.redditslide.Activities.MediaView;
 import me.ccrama.redditslide.Activities.Website;
 import ltd.ucode.slide.R;
-import ltd.ucode.slide.Reddit;
+import ltd.ucode.slide.App;
 import me.ccrama.redditslide.SettingValues;
 import me.ccrama.redditslide.Views.ExoVideoView;
 import okhttp3.OkHttpClient;
@@ -92,7 +93,7 @@ public class GifUtils {
 
 
                         Notification notif =
-                                new NotificationCompat.Builder(c, Reddit.CHANNEL_IMG).setContentTitle(c.getString(R.string.gif_saved))
+                                new NotificationCompat.Builder(c, App.CHANNEL_IMG).setContentTitle(c.getString(R.string.gif_saved))
                                         .setSmallIcon(R.drawable.ic_save)
                                         .setContentIntent(contentIntent)
                                         .build();
@@ -131,9 +132,9 @@ public class GifUtils {
             }
         }
 
-        if (Reddit.appRestart.getString("imagelocation", "").isEmpty()) {
+        if (Preferences.INSTANCE.getAppRestart().getString("imagelocation", "").isEmpty()) {
             showFirstDialog(a);
-        } else if (!new File(Reddit.appRestart.getString("imagelocation", "")).exists()) {
+        } else if (!new File(Preferences.INSTANCE.getAppRestart().getString("imagelocation", "")).exists()) {
             showErrorDialog(a);
         } else {
             new AsyncTask<Void, Integer, Boolean>() {
@@ -144,7 +145,7 @@ public class GifUtils {
                 protected void onPreExecute() {
                     super.onPreExecute();
                     if (save) {
-                        Notification notif = new NotificationCompat.Builder(a, Reddit.CHANNEL_IMG)
+                        Notification notif = new NotificationCompat.Builder(a, App.CHANNEL_IMG)
                                 .setContentTitle(a.getString(R.string.mediaview_saving,
                                         uri.toString().replace("/DASHPlaylist.mpd", "")))
                                 .setSmallIcon(R.drawable.ic_download)
@@ -157,7 +158,7 @@ public class GifUtils {
 
                 @Override
                 protected Boolean doInBackground(Void... voids) {
-                    String folderPath = Reddit.appRestart.getString("imagelocation", "");
+                    String folderPath = Preferences.INSTANCE.getAppRestart().getString("imagelocation", "");
 
                     String subFolderPath = "";
                     if (SettingValues.imageSubfolders && !subreddit.isEmpty()) {
@@ -173,11 +174,11 @@ public class GifUtils {
 
                     try {
                         DataSource.Factory downloader =
-                                new OkHttpDataSource.Factory(Reddit.client)
+                                new OkHttpDataSource.Factory(App.client)
                                         .setUserAgent(a.getString(R.string.app_name));
                         DataSource.Factory cacheDataSourceFactory =
                                 new CacheDataSource.Factory()
-                                        .setCache(Reddit.videoCache)
+                                        .setCache(App.videoCache)
                                         .setUpstreamDataSourceFactory(downloader);
                         if (uri.getLastPathSegment().endsWith("DASHPlaylist.mpd")) {
                             InputStream dashManifestStream = new DataSourceInputStream(cacheDataSourceFactory.createDataSource(),
@@ -475,7 +476,7 @@ public class GifUtils {
         }
 
 
-        OkHttpClient client = Reddit.client;
+        OkHttpClient client = App.client;
 
         /**
          * Load the correct URL for a gfycat gif
@@ -904,11 +905,11 @@ public class GifUtils {
                 }
             } else {
                 DataSource.Factory downloader =
-                        new OkHttpDataSource.Factory(Reddit.client)
+                        new OkHttpDataSource.Factory(App.client)
                                 .setUserAgent(c.getString(R.string.app_name));
                 DataSource.Factory cacheDataSourceFactory =
                         new CacheDataSource.Factory()
-                                .setCache(Reddit.videoCache)
+                                .setCache(App.videoCache)
                                 .setUpstreamDataSourceFactory(downloader);
                 InputStream dashManifestStream = new DataSourceInputStream(cacheDataSourceFactory.createDataSource(),
                         new DataSpec(Uri.parse(url)));

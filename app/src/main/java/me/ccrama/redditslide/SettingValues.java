@@ -13,7 +13,7 @@ import java.util.Locale;
 import java.util.Set;
 
 import ltd.ucode.slide.Authentication;
-import ltd.ucode.slide.Reddit;
+import ltd.ucode.slide.App;
 import me.ccrama.redditslide.Views.CreateCardView;
 import me.ccrama.redditslide.Visuals.Palette;
 import me.ccrama.redditslide.ui.settings.SettingsHandlingFragment;
@@ -551,8 +551,8 @@ public class SettingValues {
         if (isPro && NightModeState.isEnabled()) {
             boolean night = false;
 
-            if (Reddit.canUseNightModeAuto && nightModeState == NightModeState.AUTOMATIC.ordinal()) {
-                night = (Reddit.getAppContext().getResources().getConfiguration().uiMode
+            if (App.canUseNightModeAuto && nightModeState == NightModeState.AUTOMATIC.ordinal()) {
+                night = (App.getAppContext().getResources().getConfiguration().uiMode
                         & Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES;
             } else if (nightModeState == NightModeState.MANUAL.ordinal()) {
                 int hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY);

@@ -38,7 +38,7 @@ import ltd.ucode.slide.Authentication;
 import me.ccrama.redditslide.ForceTouch.PeekViewActivity;
 import me.ccrama.redditslide.OpenRedditLink;
 import ltd.ucode.slide.R;
-import ltd.ucode.slide.Reddit;
+import ltd.ucode.slide.App;
 import me.ccrama.redditslide.SettingValues;
 import me.ccrama.redditslide.SpoilerRobotoTextView;
 import me.ccrama.redditslide.SubmissionViews.PopulateSubmissionViewHolder;
@@ -253,7 +253,7 @@ public class RedditItemView extends RelativeLayout {
                 .get("icon_img")
                 .asText()
                 .isEmpty()) {
-            ((Reddit) ((PeekViewActivity) getContext()).getApplication()).getImageLoader()
+            ((App) ((PeekViewActivity) getContext()).getApplication()).getImageLoader()
                     .displayImage(subreddit.getDataNode().get("icon_img").asText(),
                             (ImageView) content.findViewById(R.id.subimage));
         } else {
@@ -263,7 +263,7 @@ public class RedditItemView extends RelativeLayout {
             String bannerImage = subreddit.getBannerImage();
             if (bannerImage != null && !bannerImage.isEmpty()) {
                 findViewById(R.id.sub_banner).setVisibility(View.VISIBLE);
-                ((Reddit) ((PeekViewActivity) getContext()).getApplication()).getImageLoader()
+                ((App) ((PeekViewActivity) getContext()).getApplication()).getImageLoader()
                         .displayImage(bannerImage, (ImageView) findViewById(R.id.sub_banner));
             } else {
                 findViewById(R.id.sub_banner).setVisibility(View.GONE);

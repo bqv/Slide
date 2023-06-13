@@ -50,6 +50,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import ltd.ucode.slide.Preferences;
 import me.ccrama.redditslide.Adapters.ImageGridAdapter;
 import me.ccrama.redditslide.Fragments.BlankFragment;
 import me.ccrama.redditslide.Fragments.FolderChooserDialogCreate;
@@ -58,7 +59,7 @@ import me.ccrama.redditslide.ImgurAlbum.AlbumUtils;
 import me.ccrama.redditslide.ImgurAlbum.Image;
 import me.ccrama.redditslide.Notifications.ImageDownloadNotificationService;
 import ltd.ucode.slide.R;
-import ltd.ucode.slide.Reddit;
+import ltd.ucode.slide.App;
 import me.ccrama.redditslide.SettingValues;
 import me.ccrama.redditslide.SpoilerRobotoTextView;
 import me.ccrama.redditslide.Views.ExoVideoView;
@@ -145,7 +146,7 @@ public class AlbumPager extends FullScreenActivity
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == 3) {
-            Reddit.appRestart.edit().putBoolean("tutorialSwipe", true).apply();
+            Preferences.INSTANCE.getAppRestart().edit().putBoolean("tutorialSwipe", true).apply();
         }
     }
 
@@ -182,7 +183,7 @@ public class AlbumPager extends FullScreenActivity
         pagerLoad = new LoadIntoPager(url, this);
         pagerLoad.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
 
-        if (!Reddit.appRestart.contains("tutorialSwipe")) {
+        if (!Preferences.INSTANCE.getAppRestart().contains("tutorialSwipe")) {
             startActivityForResult(new Intent(this, SwipeTutorial.class), 3);
         }
 
@@ -449,7 +450,7 @@ public class AlbumPager extends FullScreenActivity
                     }
                     break;
                     case (5): {
-                        Reddit.defaultShareText("", contentUrl, AlbumPager.this);
+                        App.defaultShareText("", contentUrl, AlbumPager.this);
                     }
                     break;
                     case (4): {
@@ -466,9 +467,9 @@ public class AlbumPager extends FullScreenActivity
 
     public void doImageSave(boolean isGif, String contentUrl, int index) {
         if (!isGif) {
-            if (Reddit.appRestart.getString("imagelocation", "").isEmpty()) {
+            if (Preferences.INSTANCE.getAppRestart().getString("imagelocation", "").isEmpty()) {
                 showFirstDialog();
-            } else if (!new File(Reddit.appRestart.getString("imagelocation", "")).exists()) {
+            } else if (!new File(Preferences.INSTANCE.getAppRestart().getString("imagelocation", "")).exists()) {
                 showErrorDialog();
             } else {
                 Intent i = new Intent(this, ImageDownloadNotificationService.class);
@@ -642,7 +643,7 @@ public class AlbumPager extends FullScreenActivity
         fakeImage.setLayoutParams(
                 new LinearLayout.LayoutParams(image.getWidth(), image.getHeight()));
         fakeImage.setScaleType(ImageView.ScaleType.CENTER_CROP);
-        ((Reddit) f.getActivity().getApplication()).getImageLoader()
+        ((App) f.getActivity().getApplication()).getImageLoader()
                 .displayImage(url, new ImageViewAware(fakeImage),
                         new DisplayImageOptions.Builder().resetViewBeforeLoading(true)
                                 .cacheOnDisk(true)
@@ -700,7 +701,7 @@ public class AlbumPager extends FullScreenActivity
     @Override
     public void onFolderSelection(@NonNull FolderChooserDialogCreate dialog,
                                   @NonNull File folder, boolean isSaveToLocation) {
-        Reddit.appRestart.edit().putString("imagelocation", folder.getAbsolutePath()).apply();
+        Preferences.INSTANCE.getAppRestart().edit().putString("imagelocation", folder.getAbsolutePath()).apply();
         Toast.makeText(this,
                 getString(R.string.settings_set_image_location, folder.getAbsolutePath())
                         + folder.getAbsolutePath(), Toast.LENGTH_LONG).show();

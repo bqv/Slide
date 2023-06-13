@@ -10,7 +10,7 @@ import android.content.Intent;
 import android.os.AsyncTask;
 
 import me.ccrama.redditslide.CommentCacheAsync;
-import ltd.ucode.slide.Reddit;
+import ltd.ucode.slide.App;
 import me.ccrama.redditslide.util.NetworkUtil;
 
 public class CacheAll extends BroadcastReceiver {
@@ -18,9 +18,9 @@ public class CacheAll extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         if (NetworkUtil.isConnectedNoOverride(context)) {
-            if (Reddit.cachedData.getBoolean("wifiOnly", false) && !NetworkUtil.isConnectedWifi(context))
+            if (App.cachedData.getBoolean("wifiOnly", false) && !NetworkUtil.isConnectedWifi(context))
                 return;
-            new CommentCacheAsync(context, Reddit.cachedData.getString("toCache", "").split(",")).executeOnExecutor(
+            new CommentCacheAsync(context, App.cachedData.getString("toCache", "").split(",")).executeOnExecutor(
                     AsyncTask.THREAD_POOL_EXECUTOR);
 
         }

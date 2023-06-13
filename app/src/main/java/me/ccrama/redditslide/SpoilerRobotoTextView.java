@@ -55,7 +55,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import ltd.ucode.slide.Reddit;
+import ltd.ucode.slide.App;
 import me.ccrama.redditslide.Activities.Album;
 import me.ccrama.redditslide.Activities.AlbumPager;
 import me.ccrama.redditslide.Activities.MediaView;
@@ -547,14 +547,14 @@ public class SpoilerRobotoTextView extends RobotoTextView implements ClickableTe
                         peekView.addButton((R.id.share), new OnButtonUp() {
                             @Override
                             public void onButtonUp() {
-                                Reddit.defaultShareText("", url, rootView.getContext());
+                                App.defaultShareText("", url, rootView.getContext());
                             }
                         });
 
                         peekView.addButton((R.id.pop), new OnButtonUp() {
                             @Override
                             public void onButtonUp() {
-                                Reddit.defaultShareText("", url, rootView.getContext());
+                                App.defaultShareText("", url, rootView.getContext());
                             }
                         });
 
@@ -602,7 +602,7 @@ public class SpoilerRobotoTextView extends RobotoTextView implements ClickableTe
                                 LinkUtil.openExternally(url);
                                 break;
                             case R.id.share_link:
-                                Reddit.defaultShareText("", url, finalActivity);
+                                App.defaultShareText("", url, finalActivity);
                                 break;
                             case R.id.copy_link:
                                 LinkUtil.copyUrl(url, finalActivity);

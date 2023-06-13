@@ -13,7 +13,7 @@ import com.nostra13.universalimageloader.core.display.FadeInBitmapDisplayer;
 
 import java.util.List;
 
-import ltd.ucode.slide.Reddit;
+import ltd.ucode.slide.App;
 import me.ccrama.redditslide.SettingValues;
 import me.ccrama.redditslide.Tumblr.Photo;
 
@@ -63,7 +63,7 @@ public class ImageGridAdapterTumblr extends android.widget.BaseAdapter {
         imageView.setLayoutParams(new GridView.LayoutParams(size, size));
         imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
 
-        ((Reddit) mContext.getApplicationContext()).getImageLoader().displayImage(getItem(position), imageView, options);
+        ((App) mContext.getApplicationContext()).getImageLoader().displayImage(getItem(position), imageView, options);
         return imageView;
     }
 }

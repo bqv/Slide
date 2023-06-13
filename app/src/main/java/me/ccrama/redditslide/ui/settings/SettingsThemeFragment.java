@@ -33,10 +33,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import ltd.ucode.slide.Preferences;
 import me.ccrama.redditslide.Activities.BaseActivity;
 import ltd.ucode.slide.activity.Slide;
 import ltd.ucode.slide.R;
-import ltd.ucode.slide.Reddit;
+import ltd.ucode.slide.App;
 import me.ccrama.redditslide.SettingValues;
 import me.ccrama.redditslide.Visuals.ColorPreferences;
 import me.ccrama.redditslide.Visuals.Palette;
@@ -154,12 +155,12 @@ public class SettingsThemeFragment<ActivityType extends BaseActivity & RestartAc
 
                 setComponentState(
                         ColorPreferences.getIconName(context,
-                                Reddit.colours.getInt("DEFAULTCOLOR", 0)),
+                                Preferences.INSTANCE.getColours().getInt("DEFAULTCOLOR", 0)),
                         PackageManager.COMPONENT_ENABLED_STATE_ENABLED);
             } else {
                 setComponentState(
                         ColorPreferences.getIconName(context,
-                                Reddit.colours.getInt("DEFAULTCOLOR", 0)),
+                                Preferences.INSTANCE.getColours().getInt("DEFAULTCOLOR", 0)),
                         PackageManager.COMPONENT_ENABLED_STATE_DISABLED);
 
                 setComponentState(
@@ -219,14 +220,14 @@ public class SettingsThemeFragment<ActivityType extends BaseActivity & RestartAc
                 if (SettingValues.colorIcon) {
                     setComponentState(
                             ColorPreferences.getIconName(context,
-                                    Reddit.colours.getInt("DEFAULTCOLOR", 0)),
+                                    Preferences.INSTANCE.getColours().getInt("DEFAULTCOLOR", 0)),
                             PackageManager.COMPONENT_ENABLED_STATE_DISABLED);
 
                     setComponentState(
                             ColorPreferences.getIconName(context, colorPicker2.getColor()),
                             PackageManager.COMPONENT_ENABLED_STATE_ENABLED);
                 }
-                Reddit.colours.edit()
+                Preferences.INSTANCE.getColours().edit()
                         .putInt("DEFAULTCOLOR", colorPicker2.getColor())
                         .apply();
                 context.restartActivity();
@@ -506,7 +507,7 @@ public class SettingsThemeFragment<ActivityType extends BaseActivity & RestartAc
                                                                               @ArrayRes int textArrayResId,
                                                                               @LayoutRes int layoutTypeResId) {
             CharSequence[] strings = context.getResources().getTextArray(textArrayResId);
-            if (!Reddit.canUseNightModeAuto) {
+            if (!App.canUseNightModeAuto) {
                 strings = ArrayUtils.remove(strings, SettingValues.NightModeState.AUTOMATIC.ordinal());
             }
             return new ArrayAdapter<>(context, layoutTypeResId, Arrays.asList(strings));

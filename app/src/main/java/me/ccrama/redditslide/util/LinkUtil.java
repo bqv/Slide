@@ -36,7 +36,7 @@ import me.ccrama.redditslide.Activities.MakeExternal;
 import me.ccrama.redditslide.Activities.ReaderMode;
 import me.ccrama.redditslide.Activities.Website;
 import ltd.ucode.slide.R;
-import ltd.ucode.slide.Reddit;
+import ltd.ucode.slide.App;
 import me.ccrama.redditslide.SettingValues;
 import me.ccrama.redditslide.SpoilerRobotoTextView;
 import me.ccrama.redditslide.SubmissionViews.PopulateBase;
@@ -156,15 +156,15 @@ public class LinkUtil {
     }
 
     public static boolean tryOpenWithVideoPlugin(@NonNull String url) {
-        if (Reddit.videoPlugin) {
+        if (App.videoPlugin) {
             try {
                 Intent sharingIntent = new Intent(Intent.ACTION_SEND);
                 sharingIntent.setClassName(
-                        Reddit.getAppContext().getString(R.string.youtube_plugin_package),
-                        Reddit.getAppContext().getString(R.string.youtube_plugin_class));
+                        App.getAppContext().getString(R.string.youtube_plugin_package),
+                        App.getAppContext().getString(R.string.youtube_plugin_class));
                 sharingIntent.putExtra("url", removeUnusedParameters(url));
                 sharingIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                Reddit.getAppContext().startActivity(sharingIntent);
+                App.getAppContext().startActivity(sharingIntent);
                 return true;
 
             } catch (Exception ignored) {
@@ -200,7 +200,7 @@ public class LinkUtil {
         final Intent intent = new Intent(Intent.ACTION_VIEW, uri);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         overridePackage(intent);
-        Reddit.getAppContext().startActivity(intent);
+        App.getAppContext().startActivity(intent);
     }
 
     public static CustomTabsSession getSession() {
@@ -229,26 +229,26 @@ public class LinkUtil {
     }
 
     public static void overridePackage(Intent intent) {
-        String packageName = Reddit.getAppContext()
+        String packageName = App.getAppContext()
                 .getPackageManager()
                 .resolveActivity(intent, 0).activityInfo.packageName;
 
         // Gets the default app from a URL that is most likely never link handled by another app, hopefully guaranteeing a browser
-        String browserPackageName = Reddit.getAppContext()
+        String browserPackageName = App.getAppContext()
                 .getPackageManager()
                 .resolveActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("http://ccrama.me/")),
                         0).activityInfo.packageName;
 
         String packageToSet = packageName;
 
-        if (packageName.equals(Reddit.getAppContext().getPackageName())) {
+        if (packageName.equals(App.getAppContext().getPackageName())) {
             packageToSet = browserPackageName;
         }
 
         if (packageToSet.equals(browserPackageName) && (SettingValues.selectedBrowser != null
                 && !SettingValues.selectedBrowser.isEmpty())) {
             try {
-                Reddit.getAppContext()
+                App.getAppContext()
                         .getPackageManager()
                         .getPackageInfo(SettingValues.selectedBrowser,
                                 PackageManager.GET_ACTIVITIES);

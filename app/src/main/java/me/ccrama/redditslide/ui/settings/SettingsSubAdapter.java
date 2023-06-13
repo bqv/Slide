@@ -18,7 +18,7 @@ import java.util.ArrayList;
 import ltd.ucode.slide.activity.MainActivity;
 import me.ccrama.redditslide.Activities.SubredditView;
 import ltd.ucode.slide.R;
-import ltd.ucode.slide.Reddit;
+import ltd.ucode.slide.App;
 import me.ccrama.redditslide.SettingValues;
 import me.ccrama.redditslide.Visuals.ColorPreferences;
 import me.ccrama.redditslide.Visuals.Palette;
@@ -67,7 +67,7 @@ public class SettingsSubAdapter extends RecyclerView.Adapter<SettingsSubAdapter.
                         .setPositiveButton(R.string.btn_yes, (dialog, which) -> {
                             Palette.removeColor(subreddit);
                             // Remove layout settings
-                            SettingValues.prefs.edit().remove(Reddit.PREF_LAYOUT + subreddit).apply();
+                            SettingValues.prefs.edit().remove(App.PREF_LAYOUT + subreddit).apply();
                             // Remove accent / font color settings
                             new ColorPreferences(context).removeFontStyle(subreddit);
 
@@ -167,7 +167,7 @@ public class SettingsSubAdapter extends RecyclerView.Adapter<SettingsSubAdapter.
             }
         } else {  //Is only one selected sub
             currentColor = Palette.getColor(subreddit);
-            isAlternateLayout = SettingValues.prefs.contains(Reddit.PREF_LAYOUT + subreddit);
+            isAlternateLayout = SettingValues.prefs.contains(App.PREF_LAYOUT + subreddit);
             currentAccentColor = colorPrefs.getColor(subreddit);
             bigPics.setChecked(SettingValues.isPicsEnabled(subreddit));
             selftext.setChecked(SettingValues.isSelftextEnabled(subreddit));
@@ -347,7 +347,7 @@ public class SettingsSubAdapter extends RecyclerView.Adapter<SettingsSubAdapter.
                                     for (String sub : subreddits) {
                                         Palette.removeColor(sub);
                                         // Remove layout settings
-                                        SettingValues.prefs.edit().remove(Reddit.PREF_LAYOUT + sub).apply();
+                                        SettingValues.prefs.edit().remove(App.PREF_LAYOUT + sub).apply();
                                         // Remove accent / font color settings
                                         new ColorPreferences(context).removeFontStyle(sub);
 
@@ -411,7 +411,7 @@ public class SettingsSubAdapter extends RecyclerView.Adapter<SettingsSubAdapter.
                             }
 
                             // Set layout
-                            SettingValues.prefs.edit().putBoolean(Reddit.PREF_LAYOUT + sub, true).apply();
+                            SettingValues.prefs.edit().putBoolean(App.PREF_LAYOUT + sub, true).apply();
                         }
 
                         //Only refresh stuff if the user changed something

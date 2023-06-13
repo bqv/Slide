@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+import ltd.ucode.slide.Preferences;
 import me.ccrama.redditslide.Activities.Search;
 import me.ccrama.redditslide.Activities.Submit;
 import me.ccrama.redditslide.Adapters.MultiredditAdapter;
@@ -41,7 +42,7 @@ import me.ccrama.redditslide.HasSeen;
 import me.ccrama.redditslide.Hidden;
 import me.ccrama.redditslide.OfflineSubreddit;
 import ltd.ucode.slide.R;
-import ltd.ucode.slide.Reddit;
+import ltd.ucode.slide.App;
 import me.ccrama.redditslide.SettingValues;
 import me.ccrama.redditslide.UserSubscriptions;
 import me.ccrama.redditslide.Views.CatchStaggeredGridLayoutManager;
@@ -145,15 +146,15 @@ public class MultiredditView extends Fragment implements SubmissionDisplay {
                 fab.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        if (!Reddit.fabClear) {
+                        if (!App.fabClear) {
                             new AlertDialog.Builder(getActivity())
                                     .setTitle(R.string.settings_fabclear)
                                     .setMessage(R.string.settings_fabclear_msg)
                                     .setPositiveButton(R.string.btn_ok, (dialog, which) -> {
-                                        Reddit.colours.edit()
+                                        Preferences.INSTANCE.getColours().edit()
                                                 .putBoolean(SettingValues.PREF_FAB_CLEAR, true)
                                                 .apply();
-                                        Reddit.fabClear = true;
+                                        App.fabClear = true;
                                         clearSeenPosts(false);
                                     })
                                     .show();
@@ -165,15 +166,15 @@ public class MultiredditView extends Fragment implements SubmissionDisplay {
                 fab.setOnLongClickListener(new View.OnLongClickListener() {
                     @Override
                     public boolean onLongClick(View v) {
-                        if (!Reddit.fabClear) {
+                        if (!App.fabClear) {
                             new AlertDialog.Builder(getActivity())
                                     .setTitle(R.string.settings_fabclear)
                                     .setMessage(R.string.settings_fabclear_msg)
                                     .setPositiveButton(R.string.btn_ok, (dialog, which) -> {
-                                        Reddit.colours.edit()
+                                        Preferences.INSTANCE.getColours().edit()
                                                 .putBoolean(SettingValues.PREF_FAB_CLEAR, true)
                                                 .apply();
-                                        Reddit.fabClear = true;
+                                        App.fabClear = true;
                                         clearSeenPosts(true);
                                     })
                                     .show();

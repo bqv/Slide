@@ -38,7 +38,7 @@ import com.google.android.exoplayer2.util.MimeTypes;
 import com.google.android.exoplayer2.video.VideoSize;
 
 import ltd.ucode.slide.R;
-import ltd.ucode.slide.Reddit;
+import ltd.ucode.slide.App;
 import me.ccrama.redditslide.SettingValues;
 import me.ccrama.redditslide.util.BlendModeUtil;
 import me.ccrama.redditslide.util.GifUtils;
@@ -177,11 +177,11 @@ public class ExoVideoView extends RelativeLayout {
     public void setVideoURI(Uri uri, VideoType type, Player.Listener listener) {
         // Create the data sources used to retrieve and cache the video
         DataSource.Factory downloader =
-                new OkHttpDataSource.Factory(Reddit.client)
+                new OkHttpDataSource.Factory(App.client)
                         .setDefaultRequestProperties(GifUtils.AsyncLoadGif.makeHeaderMap(uri.getHost()));
         DataSource.Factory cacheDataSourceFactory =
                 new CacheDataSource.Factory()
-                        .setCache(Reddit.videoCache)
+                        .setCache(App.videoCache)
                         .setUpstreamDataSourceFactory(downloader);
 
         // Create an appropriate media source for the video type

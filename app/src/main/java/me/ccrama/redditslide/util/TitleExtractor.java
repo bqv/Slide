@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import ltd.ucode.slide.Reddit;
+import ltd.ucode.slide.App;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -30,7 +30,7 @@ public class TitleExtractor {
      * @throws IOException
      */
     public static String getPageTitle(String url) throws IOException {
-        OkHttpClient client = Reddit.client;
+        OkHttpClient client = App.client;
         Request request = new Request.Builder()
                 .url(LinkUtil.formatURL(url).toString())
                 .addHeader("Accept", "text/html")

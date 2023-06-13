@@ -34,7 +34,7 @@ import me.ccrama.redditslide.Fragments.SubmissionsView;
 import me.ccrama.redditslide.OpenRedditLink;
 import me.ccrama.redditslide.PostMatch;
 import ltd.ucode.slide.R;
-import ltd.ucode.slide.Reddit;
+import ltd.ucode.slide.App;
 import me.ccrama.redditslide.SettingValues;
 import me.ccrama.redditslide.Visuals.ColorPreferences;
 import me.ccrama.redditslide.Visuals.Palette;
@@ -148,7 +148,7 @@ public class Website extends BaseActivityAnim {
                 LinkUtil.openExternally(v.getUrl());
                 return true;
             case R.id.share:
-                Reddit.defaultShareText(v.getTitle(), v.getUrl(), Website.this);
+                App.defaultShareText(v.getTitle(), v.getUrl(), Website.this);
 
                 return true;
 

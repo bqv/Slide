@@ -32,7 +32,7 @@ import me.ccrama.redditslide.Activities.OpenContent;
 import me.ccrama.redditslide.Adapters.MarkAsReadService;
 import ltd.ucode.slide.Authentication;
 import ltd.ucode.slide.R;
-import ltd.ucode.slide.Reddit;
+import ltd.ucode.slide.App;
 import me.ccrama.redditslide.SettingValues;
 
 public class CheckForMailSingle extends BroadcastReceiver {
@@ -44,7 +44,7 @@ public class CheckForMailSingle extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         c = context;
         if (Authentication.reddit == null || !Authentication.reddit.isAuthenticated()) {
-            Reddit.authentication = new Authentication(context);
+            App.authentication = new Authentication(context);
         }
         new AsyncGetMailSingle().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
@@ -55,7 +55,7 @@ public class CheckForMailSingle extends BroadcastReceiver {
         public void onPostExecute(List<Message> messages) {
             Resources res = c.getResources();
             if (messages != null && !messages.isEmpty()) {
-                if (Reddit.isPackageInstalled("com.teslacoilsw.notifier")) {
+                if (App.isPackageInstalled("com.teslacoilsw.notifier")) {
                     try {
 
                         ContentValues cv = new ContentValues();
@@ -104,7 +104,7 @@ public class CheckForMailSingle extends BroadcastReceiver {
                     }
 
                     NotificationCompat.Builder builder =
-                            new NotificationCompat.Builder(c, Reddit.CHANNEL_MAIL).setContentIntent(
+                            new NotificationCompat.Builder(c, App.CHANNEL_MAIL).setContentIntent(
                                     intent)
                                     .setSmallIcon(R.drawable.notif)
                                     .setTicker(
@@ -173,7 +173,7 @@ public class CheckForMailSingle extends BroadcastReceiver {
                             new String[]{message.getFullName()});
 
                     NotificationCompat.Builder builder =
-                            new NotificationCompat.Builder(c, Reddit.CHANNEL_MAIL).setContentIntent(
+                            new NotificationCompat.Builder(c, App.CHANNEL_MAIL).setContentIntent(
                                     openPi)
                                     .setSmallIcon(R.drawable.notif)
                                     .setTicker(

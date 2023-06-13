@@ -11,7 +11,7 @@ import org.json.JSONObject;
 import java.io.File;
 import java.io.IOException;
 
-import ltd.ucode.slide.Reddit;
+import ltd.ucode.slide.App;
 import me.ccrama.redditslide.util.ImgurUtils;
 import me.ccrama.redditslide.util.ProgressRequestBody;
 import okhttp3.MediaType;
@@ -32,7 +32,7 @@ public class UploadImgurAlbum extends AsyncTask<Uri, Integer, String> {
     @Override
     protected String doInBackground(Uri... sub) {
         totalCount = sub.length;
-        final OkHttpClient client = Reddit.client;
+        final OkHttpClient client = App.client;
 
         String albumurl;
         {

@@ -14,7 +14,7 @@ import com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView;
 import com.nostra13.universalimageloader.core.listener.SimpleImageLoadingListener;
 
 import ltd.ucode.slide.R;
-import ltd.ucode.slide.Reddit;
+import ltd.ucode.slide.App;
 
 
 /**
@@ -38,7 +38,7 @@ public class Image extends Fragment {
         desc.setVisibility(View.GONE);
 
 
-        ((Reddit) getContext().getApplicationContext()).getImageLoader()
+        ((App) getContext().getApplicationContext()).getImageLoader()
                 .loadImage(url,
                         new SimpleImageLoadingListener() {
 

@@ -20,7 +20,7 @@ import org.jsoup.nodes.Document;
 
 import me.ccrama.redditslide.Constants;
 import ltd.ucode.slide.R;
-import ltd.ucode.slide.Reddit;
+import ltd.ucode.slide.App;
 import me.ccrama.redditslide.SpoilerRobotoTextView;
 import me.ccrama.redditslide.Visuals.Palette;
 import me.ccrama.redditslide.util.LinkUtil;
@@ -169,7 +169,7 @@ public class ReaderMode extends BaseActivityAnim {
                 finish();
                 return true;
             case R.id.share:
-                Reddit.defaultShareText(
+                App.defaultShareText(
                         ((Toolbar) findViewById(R.id.toolbar)).getTitle().toString(), url,
                         ReaderMode.this);
 

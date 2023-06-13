@@ -18,7 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import me.ccrama.redditslide.Constants;
-import ltd.ucode.slide.Reddit;
+import ltd.ucode.slide.App;
 import me.ccrama.redditslide.util.HttpUtil;
 import me.ccrama.redditslide.util.LogUtil;
 import okhttp3.OkHttpClient;
@@ -51,7 +51,7 @@ public class TumblrUtils {
             id = i.getPathSegments().get(1);
             blog = i.getHost().split("\\.")[0];
 
-            client = Reddit.client;
+            client = App.client;
             gson = new Gson();
         }
 

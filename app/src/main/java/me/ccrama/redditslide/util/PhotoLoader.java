@@ -8,7 +8,7 @@ import net.dean.jraw.models.Thumbnails;
 import java.util.List;
 
 import me.ccrama.redditslide.ContentType;
-import ltd.ucode.slide.Reddit;
+import ltd.ucode.slide.App;
 import me.ccrama.redditslide.SettingValues;
 
 /**
@@ -93,7 +93,7 @@ public class PhotoLoader {
     }
 
     private static void loadImage(final Context context, final String url) {
-        final Reddit appContext = (Reddit) context.getApplicationContext();
+        final App appContext = (App) context.getApplicationContext();
 
         appContext.getImageLoader()
                 .loadImage(url, null);

@@ -35,12 +35,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import ltd.ucode.slide.Preferences;
 import me.ccrama.redditslide.Activities.BaseActivity;
 import ltd.ucode.slide.Authentication;
 import ltd.ucode.slide.BuildConfig;
 import me.ccrama.redditslide.Fragments.FolderChooserDialogCreate;
 import ltd.ucode.slide.R;
-import ltd.ucode.slide.Reddit;
+import ltd.ucode.slide.App;
 import me.ccrama.redditslide.SettingValues;
 import me.ccrama.redditslide.Visuals.Palette;
 import me.ccrama.redditslide.ui.settings.dragSort.ReorderSubreddits;
@@ -471,7 +472,7 @@ public class SettingsActivity extends BaseActivity
                     final SeekBar landscape = dialoglayout.findViewById(R.id.landscape);
 
                     //todo  portrait.setBackgroundColor(Palette.getDefaultColor());
-                    landscape.setProgress(Reddit.dpWidth - 1);
+                    landscape.setProgress(App.dpWidth - 1);
 
                     ((TextView) dialoglayout.findViewById(R.id.progressnumber)).setText(
                             res.getQuantityString(R.plurals.landscape_columns,
@@ -505,8 +506,8 @@ public class SettingsActivity extends BaseActivity
                     dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
                         @Override
                         public void onDismiss(DialogInterface dialog) {
-                            Reddit.dpWidth = landscape.getProgress() + 1;
-                            Reddit.colours.edit()
+                            App.dpWidth = landscape.getProgress() + 1;
+                            Preferences.INSTANCE.getColours().edit()
                                     .putInt("tabletOVERRIDE", landscape.getProgress() + 1)
                                     .apply();
                         }

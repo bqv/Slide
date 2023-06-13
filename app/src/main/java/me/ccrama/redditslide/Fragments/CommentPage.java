@@ -64,6 +64,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 
+import ltd.ucode.slide.Preferences;
 import me.ccrama.redditslide.Activities.Album;
 import me.ccrama.redditslide.Activities.AlbumPager;
 import me.ccrama.redditslide.Activities.CommentSearch;
@@ -96,7 +97,7 @@ import me.ccrama.redditslide.ImageFlairs;
 import me.ccrama.redditslide.OfflineSubreddit;
 import me.ccrama.redditslide.PostMatch;
 import ltd.ucode.slide.R;
-import ltd.ucode.slide.Reddit;
+import ltd.ucode.slide.App;
 import me.ccrama.redditslide.SettingValues;
 import me.ccrama.redditslide.SpoilerRobotoTextView;
 import me.ccrama.redditslide.SubmissionViews.PopulateSubmissionViewHolder;
@@ -377,7 +378,7 @@ public class CommentPage extends Fragment implements Toolbar.OnMenuItemClickList
                         public void onClick(View v) {
                             final HashMap<String, String> accounts = new HashMap<>();
 
-                            for (String s : Authentication.authentication.getStringSet("accounts",
+                            for (String s : Preferences.INSTANCE.getAuthentication().getStringSet("accounts",
                                     new HashSet<String>())) {
                                 if (s.contains(":")) {
                                     accounts.put(s.split(":")[0], s.split(":")[1]);
@@ -725,8 +726,8 @@ public class CommentPage extends Fragment implements Toolbar.OnMenuItemClickList
                         }
                     })
                     .setPositiveButton(R.string.btn_offline, (dialog, which) -> {
-                        Reddit.appRestart.edit().putBoolean("forceoffline", true).commit();
-                        Reddit.forceRestart(getActivity(), false);
+                        Preferences.INSTANCE.getAppRestart().edit().putBoolean("forceoffline", true).commit();
+                        App.forceRestart(getActivity(), false);
                     })
                     .show();
         }
@@ -1501,7 +1502,7 @@ public class CommentPage extends Fragment implements Toolbar.OnMenuItemClickList
                                 .get("icon_img")
                                 .asText()
                                 .isEmpty()) {
-                            ((Reddit) getContext().getApplicationContext()).getImageLoader()
+                            ((App) getContext().getApplicationContext()).getImageLoader()
                                     .displayImage(baseSub.getDataNode().get("icon_img").asText(),
                                             (ImageView) sidebar.findViewById(R.id.subimage));
                         } else {
@@ -1510,7 +1511,7 @@ public class CommentPage extends Fragment implements Toolbar.OnMenuItemClickList
                         String bannerImage = baseSub.getBannerImage();
                         if (bannerImage != null && !bannerImage.isEmpty()) {
                             sidebar.findViewById(R.id.sub_banner).setVisibility(View.VISIBLE);
-                            ((Reddit) getContext().getApplicationContext()).getImageLoader()
+                            ((App) getContext().getApplicationContext()).getImageLoader()
                                     .displayImage(bannerImage,
                                             (ImageView) sidebar.findViewById(R.id.sub_banner));
                         } else {
@@ -1671,7 +1672,7 @@ public class CommentPage extends Fragment implements Toolbar.OnMenuItemClickList
                     rv.setAdapter(adapter);
                 }
             } else {
-                if (context.equals(Reddit.EMPTY_STRING)) {
+                if (context.equals(App.EMPTY_STRING)) {
                     comments = new SubmissionComments(fullname, this, mSwipeRefreshLayout);
                 } else {
                     comments = new SubmissionComments(fullname, this, mSwipeRefreshLayout, context,
@@ -1731,7 +1732,7 @@ public class CommentPage extends Fragment implements Toolbar.OnMenuItemClickList
         locked = bundle.getBoolean("locked", false);
         contest = bundle.getBoolean("contest", false);
 
-        loadMore = (!context.isEmpty() && !context.equals(Reddit.EMPTY_STRING));
+        loadMore = (!context.isEmpty() && !context.equals(App.EMPTY_STRING));
         if (!single) loadMore = false;
         int subredditStyle = new ColorPreferences(getActivity()).getThemeSubreddit(subreddit);
         contextThemeWrapper = new ContextThemeWrapper(getActivity(), subredditStyle);

@@ -3,7 +3,7 @@ package me.ccrama.redditslide.Activities;
 import android.os.Bundle;
 
 import ltd.ucode.slide.R;
-import ltd.ucode.slide.Reddit;
+import ltd.ucode.slide.App;
 import me.ccrama.redditslide.SwipeLayout.app.SwipeBackActivityBase;
 
 
@@ -22,7 +22,7 @@ public class BaseActivityAnim extends BaseActivity implements SwipeBackActivityB
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (Reddit.peek) {
+        if (App.peek) {
             overridePendingTransition(R.anim.pop_in, 0);
         } else {
             overridePendingTransition(R.anim.slide_in, 0);

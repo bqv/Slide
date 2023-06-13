@@ -30,8 +30,9 @@ import java.util.Map;
 import java.util.Set;
 
 import ltd.ucode.slide.Authentication;
+import ltd.ucode.slide.Preferences;
 import ltd.ucode.slide.R;
-import ltd.ucode.slide.Reddit;
+import ltd.ucode.slide.App;
 import me.ccrama.redditslide.util.GifUtils;
 import me.ccrama.redditslide.util.LogUtil;
 import me.ccrama.redditslide.util.PhotoLoader;
@@ -84,8 +85,8 @@ public class CommentCacheAsync extends AsyncTask {
                     Authentication.me = Authentication.reddit.me();
                     Authentication.mod = Authentication.me.isMod();
 
-                    Authentication.authentication.edit()
-                            .putBoolean(Reddit.SHARED_PREF_IS_MOD, Authentication.mod)
+                    Preferences.INSTANCE.getAuthentication().edit()
+                            .putBoolean(App.SHARED_PREF_IS_MOD, Authentication.mod)
                             .apply();
                     final String name = Authentication.me.getFullName();
                     Authentication.name = name;
@@ -93,14 +94,14 @@ public class CommentCacheAsync extends AsyncTask {
 
                     if (Authentication.reddit.isAuthenticated()) {
                         final Set<String> accounts =
-                                Authentication.authentication.getStringSet("accounts", new HashSet<String>());
+                                Preferences.INSTANCE.getAuthentication().getStringSet("accounts", new HashSet<String>());
                         if (accounts.contains(name)) { //convert to new system
                             accounts.remove(name);
                             accounts.add(name + ":" + Authentication.refresh);
-                            Authentication.authentication.edit().putStringSet("accounts", accounts).apply(); //force commit
+                            Preferences.INSTANCE.getAuthentication().edit().putStringSet("accounts", accounts).apply(); //force commit
                         }
                         Authentication.isLoggedIn = true;
-                        Reddit.notFirst = true;
+                        App.notFirst = true;
                     }
                 } catch(Exception e){
                     new Authentication(context);
@@ -109,7 +110,7 @@ public class CommentCacheAsync extends AsyncTask {
         }
 
         Map<String, String> multiNameToSubsMap = UserSubscriptions.getMultiNameToSubs(true);
-        if (Authentication.reddit == null) Reddit.authentication = new Authentication(context);
+        if (Authentication.reddit == null) App.authentication = new Authentication(context);
 
         ArrayList<String> success = new ArrayList<>();
 
@@ -126,7 +127,7 @@ public class CommentCacheAsync extends AsyncTask {
             if (!sub.isEmpty()) {
                 if (!sub.equals(SAVED_SUBMISSIONS)) {
                     mNotifyManager = ContextCompat.getSystemService(context, NotificationManager.class);
-                    mBuilder = new NotificationCompat.Builder(context, Reddit.CHANNEL_COMMENT_CACHE);
+                    mBuilder = new NotificationCompat.Builder(context, App.CHANNEL_COMMENT_CACHE);
                     mBuilder.setOngoing(true);
                     mBuilder.setContentTitle(context.getString(R.string.offline_caching_title,
                             sub.equalsIgnoreCase("frontpage") ? fSub

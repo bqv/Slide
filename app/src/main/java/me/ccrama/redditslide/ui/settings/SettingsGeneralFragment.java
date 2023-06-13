@@ -39,6 +39,7 @@ import java.util.List;
 import java.util.Locale;
 
 import ltd.ucode.slide.Authentication;
+import ltd.ucode.slide.Preferences;
 import me.ccrama.redditslide.CaseInsensitiveArrayList;
 import me.ccrama.redditslide.Fragments.DrawerItemsDialog;
 import me.ccrama.redditslide.Fragments.FolderChooserDialogCreate;
@@ -46,7 +47,7 @@ import me.ccrama.redditslide.Fragments.FolderChooserDialogCreate.FolderCallback;
 import me.ccrama.redditslide.Notifications.CheckForMail;
 import me.ccrama.redditslide.Notifications.NotificationJobScheduler;
 import ltd.ucode.slide.R;
-import ltd.ucode.slide.Reddit;
+import ltd.ucode.slide.App;
 import me.ccrama.redditslide.SettingValues;
 import me.ccrama.redditslide.UserSubscriptions;
 import me.ccrama.redditslide.Visuals.Palette;
@@ -96,14 +97,14 @@ public class SettingsGeneralFragment<ActivityType extends AppCompatActivity & Fo
             }
         });
 
-        if (Reddit.notificationTime == -1) {
+        if (App.notificationTime == -1) {
             checkBox.setChecked(false);
             checkBox.setText(context.getString(R.string.settings_mail_check));
         } else {
             checkBox.setChecked(true);
-            landscape.setValue(Reddit.notificationTime / 15.0f, false);
+            landscape.setValue(App.notificationTime / 15.0f, false);
             checkBox.setText(context.getString(R.string.settings_notification_newline,
-                    TimeUtils.getTimeInHoursAndMins(Reddit.notificationTime,
+                    TimeUtils.getTimeInHoursAndMins(App.notificationTime,
                             context.getBaseContext())));
         }
         landscape.setOnPositionChangeListener(new Slider.OnPositionChangeListener() {
@@ -121,18 +122,18 @@ public class SettingsGeneralFragment<ActivityType extends AppCompatActivity & Fo
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (!isChecked) {
-                    Reddit.notificationTime = -1;
-                    Reddit.colours.edit().putInt("notificationOverride", -1).apply();
+                    App.notificationTime = -1;
+                    Preferences.INSTANCE.getColours().edit().putInt("notificationOverride", -1).apply();
                     checkBox.setText(context.getString(R.string.settings_mail_check));
                     landscape.setValue(0, true);
-                    if (Reddit.notifications != null) {
-                        Reddit.notifications.cancel();
+                    if (App.notifications != null) {
+                        App.notifications.cancel();
                     }
                 } else {
-                    Reddit.notificationTime = 60;
+                    App.notificationTime = 60;
                     landscape.setValue(4, true);
                     checkBox.setText(context.getString(R.string.settings_notification,
-                            TimeUtils.getTimeInHoursAndMins(Reddit.notificationTime,
+                            TimeUtils.getTimeInHoursAndMins(App.notificationTime,
                                     context.getBaseContext())));
                 }
             }
@@ -151,16 +152,16 @@ public class SettingsGeneralFragment<ActivityType extends AppCompatActivity & Fo
             @Override
             public void onDismiss(DialogInterface dialog) {
                 if (checkBox.isChecked()) {
-                    Reddit.notificationTime = landscape.getValue() * 15;
-                    Reddit.colours.edit()
+                    App.notificationTime = landscape.getValue() * 15;
+                    Preferences.INSTANCE.getColours().edit()
                             .putInt("notificationOverride", landscape.getValue() * 15)
                             .apply();
-                    if (Reddit.notifications == null) {
-                        Reddit.notifications =
+                    if (App.notifications == null) {
+                        App.notifications =
                                 new NotificationJobScheduler(context.getApplication());
                     }
-                    Reddit.notifications.cancel();
-                    Reddit.notifications.start();
+                    App.notifications.cancel();
+                    App.notifications.start();
                 }
             }
         });
@@ -170,30 +171,30 @@ public class SettingsGeneralFragment<ActivityType extends AppCompatActivity & Fo
             @Override
             public void onClick(View d) {
                 if (checkBox.isChecked()) {
-                    Reddit.notificationTime = landscape.getValue() * 15;
-                    Reddit.colours.edit()
+                    App.notificationTime = landscape.getValue() * 15;
+                    Preferences.INSTANCE.getColours().edit()
                             .putInt("notificationOverride", landscape.getValue() * 15)
                             .apply();
-                    if (Reddit.notifications == null) {
-                        Reddit.notifications =
+                    if (App.notifications == null) {
+                        App.notifications =
                                 new NotificationJobScheduler(context.getApplication());
                     }
-                    Reddit.notifications.cancel();
-                    Reddit.notifications.start();
+                    App.notifications.cancel();
+                    App.notifications.start();
                     dialog.dismiss();
                     if (context instanceof SettingsGeneral) {
                         notifCurrentView.setText(context.getString(R.string.settings_notification_short,
-                                TimeUtils.getTimeInHoursAndMins(Reddit.notificationTime,
+                                TimeUtils.getTimeInHoursAndMins(App.notificationTime,
                                         context.getBaseContext())));
                     }
                 } else {
-                    Reddit.notificationTime = -1;
-                    Reddit.colours.edit().putInt("notificationOverride", -1).apply();
-                    if (Reddit.notifications == null) {
-                        Reddit.notifications =
+                    App.notificationTime = -1;
+                    Preferences.INSTANCE.getColours().edit().putInt("notificationOverride", -1).apply();
+                    if (App.notifications == null) {
+                        App.notifications =
                                 new NotificationJobScheduler(context.getApplication());
                     }
-                    Reddit.notifications.cancel();
+                    App.notifications.cancel();
                     dialog.dismiss();
                     if (context instanceof SettingsGeneral) {
                         notifCurrentView.setText(R.string.settings_notifdisabled);
@@ -208,14 +209,14 @@ public class SettingsGeneralFragment<ActivityType extends AppCompatActivity & Fo
         {
             View notifs = context.findViewById(R.id.settings_general_redditnotifs);
             if (notifs != null) {
-                if (!Reddit.isPackageInstalled("com.reddit.frontpage") ||
+                if (!App.isPackageInstalled("com.reddit.frontpage") ||
                         Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR2) {
                     notifs.setVisibility(View.GONE);
                     if (context.findViewById(R.id.settings_general_installreddit) != null) {
                         context.findViewById(R.id.settings_general_installreddit).setVisibility(View.VISIBLE);
                     }
                 } else {
-                    if (((Reddit) context.getApplication()).isNotificationAccessEnabled()) {
+                    if (((App) context.getApplication()).isNotificationAccessEnabled()) {
                         SwitchCompat single = context.findViewById(R.id.settings_general_piggyback);
                         if (single != null) {
                             single.setChecked(true);
@@ -280,7 +281,7 @@ public class SettingsGeneralFragment<ActivityType extends AppCompatActivity & Fo
                     SettingsThemeFragment.changed = true;
                     SettingValues.highColorspaceImages = isChecked;
 
-                    Reddit application = (Reddit) context.getApplication();
+                    App application = (App) context.getApplication();
                     ImageLoaderUtils.initImageLoader(application.getApplicationContext());
                     application.defaultImageLoader = ImageLoaderUtils.imageLoader;
 
@@ -372,7 +373,7 @@ public class SettingsGeneralFragment<ActivityType extends AppCompatActivity & Fo
 
         TextView setSaveLocationView = context.findViewById(R.id.settings_general_set_save_location_view);
         if (setSaveLocationView != null) {
-            String loc = Reddit.appRestart.getString("imagelocation",
+            String loc = Preferences.INSTANCE.getAppRestart().getString("imagelocation",
                     context.getString(R.string.settings_image_location_unset));
             setSaveLocationView.setText(loc);
         }
@@ -623,9 +624,9 @@ public class SettingsGeneralFragment<ActivityType extends AppCompatActivity & Fo
 
         if (notifCurrentView != null &&
                 context.findViewById(R.id.settings_general_sub_notifs_current) != null) {
-            if (Reddit.notificationTime > 0) {
+            if (App.notificationTime > 0) {
                 notifCurrentView.setText(context.getString(R.string.settings_notification_short,
-                        TimeUtils.getTimeInHoursAndMins(Reddit.notificationTime,
+                        TimeUtils.getTimeInHoursAndMins(App.notificationTime,
                                 context.getBaseContext())));
                 setSubText();
             } else {
@@ -844,7 +845,7 @@ public class SettingsGeneralFragment<ActivityType extends AppCompatActivity & Fo
 
     private void setSubText() {
         ArrayList<String> rawSubs =
-                StringUtil.stringToArray(Reddit.appRestart.getString(CheckForMail.SUBS_TO_GET, ""));
+                StringUtil.stringToArray(Preferences.INSTANCE.getAppRestart().getString(CheckForMail.SUBS_TO_GET, ""));
         String subText = context.getString(R.string.sub_post_notifs_settings_none);
         StringBuilder subs = new StringBuilder();
         for (String s : rawSubs) {
@@ -867,7 +868,7 @@ public class SettingsGeneralFragment<ActivityType extends AppCompatActivity & Fo
 
     private void showSelectDialog() {
         ArrayList<String> rawSubs =
-                StringUtil.stringToArray(Reddit.appRestart.getString(CheckForMail.SUBS_TO_GET, ""));
+                StringUtil.stringToArray(Preferences.INSTANCE.getAppRestart().getString(CheckForMail.SUBS_TO_GET, ""));
         HashMap<String, Integer> subThresholds = new HashMap<>();
         for (String s : rawSubs) {
             try {
@@ -967,7 +968,7 @@ public class SettingsGeneralFragment<ActivityType extends AppCompatActivity & Fo
 
     private void showThresholdDialog(ArrayList<String> strings, boolean search) {
         final ArrayList<String> subsRaw =
-                StringUtil.stringToArray(Reddit.appRestart.getString(CheckForMail.SUBS_TO_GET, ""));
+                StringUtil.stringToArray(Preferences.INSTANCE.getAppRestart().getString(CheckForMail.SUBS_TO_GET, ""));
 
         if (!search) {
             //NOT a sub searched for, was instead a list of all subs
@@ -1017,7 +1018,7 @@ public class SettingsGeneralFragment<ActivityType extends AppCompatActivity & Fo
     }
 
     private void saveAndUpdateSubs(ArrayList<String> subs) {
-        Reddit.appRestart.edit()
+        Preferences.INSTANCE.getAppRestart().edit()
                 .putString(CheckForMail.SUBS_TO_GET, StringUtil.arrayToString(subs))
                 .commit();
         setSubText();
@@ -1026,7 +1027,7 @@ public class SettingsGeneralFragment<ActivityType extends AppCompatActivity & Fo
     @Override
     public void onFolderSelection(@NonNull FolderChooserDialogCreate dialog,
                                   @NonNull File folder, boolean isSaveToLocation) {
-        Reddit.appRestart.edit().putString("imagelocation", folder.getAbsolutePath()).apply();
+        Preferences.INSTANCE.getAppRestart().edit().putString("imagelocation", folder.getAbsolutePath()).apply();
         Toast.makeText(context,
                 context.getString(R.string.settings_set_image_location, folder.getAbsolutePath()),
                 Toast.LENGTH_LONG).show();

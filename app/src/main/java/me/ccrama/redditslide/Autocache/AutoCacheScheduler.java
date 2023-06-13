@@ -9,7 +9,7 @@ import androidx.core.content.ContextCompat;
 
 import java.util.Calendar;
 
-import ltd.ucode.slide.Reddit;
+import ltd.ucode.slide.App;
 
 /**
  * Created by carlo_000 on 10/13/2015.
@@ -29,8 +29,8 @@ public class AutoCacheScheduler {
 
     public void start() {
         final Calendar cal = Calendar.getInstance();
-        cal.set(Calendar.HOUR_OF_DAY, Reddit.cachedData.getInt("hour", 0));
-        cal.set(Calendar.MINUTE, Reddit.cachedData.getInt("minute", 0));
+        cal.set(Calendar.HOUR_OF_DAY, App.cachedData.getInt("hour", 0));
+        cal.set(Calendar.MINUTE, App.cachedData.getInt("minute", 0));
 
         if (cal.getTimeInMillis() < System.currentTimeMillis()) {
             cal.set(Calendar.DAY_OF_YEAR, cal.get(Calendar.DAY_OF_YEAR) + 1);

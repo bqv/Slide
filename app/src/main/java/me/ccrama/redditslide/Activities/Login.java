@@ -33,9 +33,10 @@ import java.util.Locale;
 import java.util.Set;
 
 import ltd.ucode.slide.Authentication;
+import ltd.ucode.slide.Preferences;
 import me.ccrama.redditslide.CaseInsensitiveArrayList;
 import ltd.ucode.slide.R;
-import ltd.ucode.slide.Reddit;
+import ltd.ucode.slide.App;
 import me.ccrama.redditslide.UserSubscriptions;
 import me.ccrama.redditslide.Visuals.GetClosestColor;
 import me.ccrama.redditslide.Visuals.Palette;
@@ -139,17 +140,17 @@ public class Login extends BaseActivityAnim {
                     .setPositiveButton(R.string.btn_yes, (dialog, which) -> {
                         subNames.add(2, "slideforreddit");
                         UserSubscriptions.setSubscriptions(subNames);
-                        Reddit.forceRestart(Login.this, true);
+                        App.forceRestart(Login.this, true);
                     })
                     .setNegativeButton(R.string.btn_no, (dialog, which) -> {
                         UserSubscriptions.setSubscriptions(subNames);
-                        Reddit.forceRestart(Login.this, true);
+                        App.forceRestart(Login.this, true);
                     })
                     .setCancelable(false)
                     .show();
         } else {
             UserSubscriptions.setSubscriptions(subNames);
-            Reddit.forceRestart(Login.this, true);
+            App.forceRestart(Login.this, true);
         }
 
     }
@@ -218,20 +219,20 @@ public class Login extends BaseActivityAnim {
                     Authentication.reddit.authenticate(oAuthData);
                     Authentication.isLoggedIn = true;
                     String refreshToken = Authentication.reddit.getOAuthData().getRefreshToken();
-                    SharedPreferences.Editor editor = Authentication.authentication.edit();
-                    Set<String> accounts = Authentication.authentication.getStringSet("accounts",
+                    SharedPreferences.Editor editor = Preferences.INSTANCE.getAuthentication().edit();
+                    Set<String> accounts = Preferences.INSTANCE.getAuthentication().getStringSet("accounts",
                             new HashSet<String>());
                     LoggedInAccount me = Authentication.reddit.me();
                     accounts.add(me.getFullName() + ":" + refreshToken);
                     Authentication.name = me.getFullName();
                     editor.putStringSet("accounts", accounts);
-                    Set<String> tokens = Authentication.authentication.getStringSet("tokens",
+                    Set<String> tokens = Preferences.INSTANCE.getAuthentication().getStringSet("tokens",
                             new HashSet<String>());
                     tokens.add(refreshToken);
                     editor.putStringSet("tokens", tokens);
                     editor.putString("lasttoken", refreshToken);
                     editor.remove("backedCreds");
-                    Reddit.appRestart.edit().remove("back").commit();
+                    Preferences.INSTANCE.getAppRestart().edit().remove("back").commit();
                     editor.commit();
                 } else {
                     Log.e(LogUtil.getTag(), "Passed in OAuthData was null");
@@ -251,7 +252,7 @@ public class Login extends BaseActivityAnim {
             mMaterialDialog.dismiss();
 
             if (oAuthData != null) {
-                Reddit.appRestart.edit().putBoolean("firststarting", true).apply();
+                Preferences.INSTANCE.getAppRestart().edit().putBoolean("firststarting", true).apply();
 
                 UserSubscriptions.switchAccounts();
                 d = new MaterialDialog.Builder(Login.this).cancelable(false)
@@ -268,7 +269,7 @@ public class Login extends BaseActivityAnim {
                         .setTitle(R.string.err_authentication)
                         .setMessage(R.string.login_failed_err_decline)
                         .setNeutralButton(android.R.string.ok, (dialog, which) -> {
-                            Reddit.forceRestart(Login.this, true);
+                            App.forceRestart(Login.this, true);
                             finish();
                         })
                         .show();

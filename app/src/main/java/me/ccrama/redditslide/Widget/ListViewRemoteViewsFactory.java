@@ -22,13 +22,14 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
+import ltd.ucode.slide.Preferences;
 import me.ccrama.redditslide.Activities.OpenContent;
 import ltd.ucode.slide.Authentication;
 import me.ccrama.redditslide.Autocache.AutoCacheScheduler;
 import me.ccrama.redditslide.Notifications.NotificationJobScheduler;
 import me.ccrama.redditslide.PostMatch;
 import ltd.ucode.slide.R;
-import ltd.ucode.slide.Reddit;
+import ltd.ucode.slide.App;
 import me.ccrama.redditslide.Visuals.Palette;
 import me.ccrama.redditslide.util.CompatUtil;
 import me.ccrama.redditslide.util.LogUtil;
@@ -62,18 +63,18 @@ public class ListViewRemoteViewsFactory implements RemoteViewsService.RemoteView
                         Authentication.me = Authentication.reddit.me();
                         Authentication.mod = Authentication.me.isMod();
 
-                        Authentication.authentication.edit()
-                                .putBoolean(Reddit.SHARED_PREF_IS_MOD, Authentication.mod)
+                        Preferences.INSTANCE.getAuthentication().edit()
+                                .putBoolean(App.SHARED_PREF_IS_MOD, Authentication.mod)
                                 .apply();
 
-                        if (Reddit.notificationTime != -1) {
-                            Reddit.notifications = new NotificationJobScheduler(mContext);
-                            Reddit.notifications.start();
+                        if (App.notificationTime != -1) {
+                            App.notifications = new NotificationJobScheduler(mContext);
+                            App.notifications.start();
                         }
 
-                        if (Reddit.cachedData.contains("toCache")) {
-                            Reddit.autoCache = new AutoCacheScheduler(mContext);
-                            Reddit.autoCache.start();
+                        if (App.cachedData.contains("toCache")) {
+                            App.autoCache = new AutoCacheScheduler(mContext);
+                            App.autoCache.start();
                         }
 
                         final String name = Authentication.me.getFullName();
@@ -82,17 +83,17 @@ public class ListViewRemoteViewsFactory implements RemoteViewsService.RemoteView
 
                         if (Authentication.reddit.isAuthenticated()) {
                             final Set<String> accounts =
-                                    Authentication.authentication.getStringSet("accounts",
+                                    Preferences.INSTANCE.getAuthentication().getStringSet("accounts",
                                             new HashSet<String>());
                             if (accounts.contains(name)) { //convert to new system
                                 accounts.remove(name);
                                 accounts.add(name + ":" + Authentication.refresh);
-                                Authentication.authentication.edit()
+                                Preferences.INSTANCE.getAuthentication().edit()
                                         .putStringSet("accounts", accounts)
                                         .apply(); //force commit
                             }
                             Authentication.isLoggedIn = true;
-                            Reddit.notFirst = true;
+                            App.notFirst = true;
                         }
                     }
                     String sub = SubredditWidgetProvider.getSubFromId(id, mContext);
@@ -220,7 +221,7 @@ public class ListViewRemoteViewsFactory implements RemoteViewsService.RemoteView
                 rv.setViewVisibility(R.id.thumbimage2, View.GONE);
                 if (s != null && s.getVariations() != null && s.getSource() != null) {
                     rv.setImageViewBitmap(R.id.bigpic,
-                            ((Reddit) mContext.getApplicationContext()).getImageLoader()
+                            ((App) mContext.getApplicationContext()).getImageLoader()
                                     .loadImageSync(
                                             CompatUtil.fromHtml(
                                                     data.getThumbnails().getSource().getUrl()).toString()));
@@ -234,7 +235,7 @@ public class ListViewRemoteViewsFactory implements RemoteViewsService.RemoteView
                 }
                 if (data.getThumbnailType() == Submission.ThumbnailType.URL) {
                     rv.setImageViewBitmap(R.id.thumbimage2,
-                            ((Reddit) mContext.getApplicationContext()).getImageLoader()
+                            ((App) mContext.getApplicationContext()).getImageLoader()
                                     .loadImageSync(data.getThumbnail()));
                     rv.setViewVisibility(R.id.thumbimage2, View.VISIBLE);
                 } else {

@@ -52,7 +52,7 @@ import me.ccrama.redditslide.ImgurAlbum.UploadImgur;
 import me.ccrama.redditslide.ImgurAlbum.UploadImgurAlbum;
 import me.ccrama.redditslide.OpenRedditLink;
 import ltd.ucode.slide.R;
-import ltd.ucode.slide.Reddit;
+import ltd.ucode.slide.App;
 import me.ccrama.redditslide.SpoilerRobotoTextView;
 import me.ccrama.redditslide.UserSubscriptions;
 import me.ccrama.redditslide.Views.CommentOverflow;
@@ -345,14 +345,14 @@ public class Submit extends BaseActivity {
             @Override
             public void run() {
                 findViewById(R.id.imagepost).setVisibility(View.VISIBLE);
-                ((Reddit) getApplication()).getImageLoader()
+                ((App) getApplication()).getImageLoader()
                         .displayImage(URL, ((ImageView) findViewById(R.id.imagepost)));
             }
         });
     }
 
     private void showFlairChooser() {
-        client = Reddit.client;
+        client = App.client;
         gson = new Gson();
 
         String subreddit = ((EditText) findViewById(R.id.subreddittext)).getText().toString();

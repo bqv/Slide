@@ -16,7 +16,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import ltd.ucode.slide.Reddit;
+import ltd.ucode.slide.App;
 import me.ccrama.redditslide.SecretConstants;
 import me.ccrama.redditslide.util.HttpUtil;
 import me.ccrama.redditslide.util.LogUtil;
@@ -89,7 +89,7 @@ public class AlbumUtils {
             }
 
             hash = getHash(rawDat);
-            client = Reddit.client;
+            client = App.client;
             gson = new Gson();
             mashapeKey = SecretConstants.getImgurApiKey(baseActivity);
         }

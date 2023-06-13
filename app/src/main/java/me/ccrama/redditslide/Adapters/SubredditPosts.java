@@ -32,7 +32,7 @@ import me.ccrama.redditslide.OfflineSubreddit;
 import me.ccrama.redditslide.PostLoader;
 import me.ccrama.redditslide.PostMatch;
 import ltd.ucode.slide.R;
-import ltd.ucode.slide.Reddit;
+import ltd.ucode.slide.App;
 import me.ccrama.redditslide.SettingValues;
 import me.ccrama.redditslide.SubmissionCache;
 import me.ccrama.redditslide.Synccit.MySynccitReadTask;
@@ -135,11 +135,11 @@ public class SubredditPosts implements PostLoader {
                 if (error instanceof NetworkException) {
                     NetworkException e = (NetworkException) error;
                     if (e.getResponse().getStatusCode() == 403 && !authedOnce) {
-                        if (Reddit.authentication != null && Authentication.didOnline) {
-                            Reddit.authentication.updateToken(context);
+                        if (App.authentication != null && Authentication.didOnline) {
+                            App.authentication.updateToken(context);
                         } else if (NetworkUtil.isConnected(context)
-                                && Reddit.authentication == null) {
-                            Reddit.authentication = new Authentication(context);
+                                && App.authentication == null) {
+                            App.authentication = new Authentication(context);
                         }
                         authedOnce = true;
                         loadMore(context, displayer, reset, subreddit);
@@ -325,7 +325,7 @@ public class SubredditPosts implements PostLoader {
                 e.printStackTrace();
                 error = e;
                 if (e.getMessage() != null && e.getMessage().contains("Forbidden")) {
-                    Reddit.authentication.updateToken(context);
+                    App.authentication.updateToken(context);
                 }
 
             }

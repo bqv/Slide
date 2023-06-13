@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import java.util.ArrayList;
 
 import ltd.ucode.slide.Authentication;
+import ltd.ucode.slide.Preferences;
 import me.ccrama.redditslide.util.StringUtil;
 
 
@@ -15,7 +16,7 @@ public class Drafts  {
 
     public static ArrayList<String> getDrafts(){
         ArrayList<String> drafts = new ArrayList<>();
-        for(String s : Authentication.authentication.getString(SettingValues.PREF_DRAFTS, "").split("</newdraft>")){
+        for(String s : Preferences.INSTANCE.getAuthentication().getString(SettingValues.PREF_DRAFTS, "").split("</newdraft>")){
             if(!s.trim().isEmpty()){
                 drafts.add(s);
             }
@@ -38,7 +39,7 @@ public class Drafts  {
 
 
     public static void save(ArrayList<String> drafts) {
-        SharedPreferences.Editor e = Authentication.authentication.edit();
+        SharedPreferences.Editor e = Preferences.INSTANCE.getAuthentication().edit();
         e.putString(SettingValues.PREF_DRAFTS, StringUtil.arrayToString(drafts, "</newdraft>"));
         e.commit();
     }

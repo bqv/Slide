@@ -16,7 +16,7 @@ import java.util.List;
 
 import me.ccrama.redditslide.Activities.GalleryImage;
 import me.ccrama.redditslide.ImgurAlbum.Image;
-import ltd.ucode.slide.Reddit;
+import ltd.ucode.slide.App;
 import me.ccrama.redditslide.SettingValues;
 import me.ccrama.redditslide.Tumblr.Photo;
 
@@ -87,7 +87,7 @@ public class ImageGridAdapter extends android.widget.BaseAdapter {
         imageView.setLayoutParams(new GridView.LayoutParams(size, size));
         imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
 
-        ((Reddit) mContext.getApplicationContext()).getImageLoader()
+        ((App) mContext.getApplicationContext()).getImageLoader()
                 .displayImage(getItem(position), imageView, options);
         return imageView;
     }

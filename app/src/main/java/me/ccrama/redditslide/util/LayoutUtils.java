@@ -11,7 +11,7 @@ import android.widget.TextView;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.tabs.TabLayout;
 
-import ltd.ucode.slide.Reddit;
+import ltd.ucode.slide.App;
 import me.ccrama.redditslide.SettingValues;
 
 /**
@@ -58,7 +58,7 @@ public class LayoutUtils {
             singleColumnMultiWindow = activity.isInMultiWindowMode() && SettingValues.singleColumnMultiWindow;
         }
         if (orientation == Configuration.ORIENTATION_LANDSCAPE && SettingValues.isPro && !singleColumnMultiWindow) {
-            numColumns = Reddit.dpWidth;
+            numColumns = App.dpWidth;
         } else if (orientation == Configuration.ORIENTATION_PORTRAIT && SettingValues.dualPortrait) {
             numColumns = 2;
         } else {

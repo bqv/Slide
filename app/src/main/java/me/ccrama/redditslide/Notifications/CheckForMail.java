@@ -35,6 +35,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 
+import ltd.ucode.slide.Preferences;
 import me.ccrama.redditslide.Activities.CancelSubNotifs;
 import me.ccrama.redditslide.Activities.Inbox;
 import me.ccrama.redditslide.Activities.ModQueue;
@@ -43,7 +44,7 @@ import me.ccrama.redditslide.Adapters.MarkAsReadService;
 import ltd.ucode.slide.Authentication;
 import me.ccrama.redditslide.HasSeen;
 import ltd.ucode.slide.R;
-import ltd.ucode.slide.Reddit;
+import ltd.ucode.slide.App;
 import me.ccrama.redditslide.SettingValues;
 import me.ccrama.redditslide.Visuals.Palette;
 import me.ccrama.redditslide.util.StringUtil;
@@ -58,20 +59,20 @@ public class CheckForMail extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         c = context;
         if (Authentication.reddit == null || !Authentication.reddit.isAuthenticated()) {
-            Reddit.authentication = new Authentication(context);
+            App.authentication = new Authentication(context);
         }
 
-        if (!((Reddit) c.getApplicationContext()).isNotificationAccessEnabled()) {
+        if (!((App) c.getApplicationContext()).isNotificationAccessEnabled()) {
             new AsyncGetMail().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
         }
         if (Authentication.mod) {
             new AsyncGetModmail().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
         }
-        if (!Reddit.appRestart.getString(SUBS_TO_GET, "").isEmpty()) {
+        if (!Preferences.INSTANCE.getAppRestart().getString(SUBS_TO_GET, "").isEmpty()) {
             new AsyncGetSubs(c).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
         }
 
-        if (Reddit.notificationTime != -1) new NotificationJobScheduler(context).start();
+        if (App.notificationTime != -1) new NotificationJobScheduler(context).start();
     }
 
 
@@ -82,7 +83,7 @@ public class CheckForMail extends BroadcastReceiver {
             Resources res = c.getResources();
             if (messages != null && !messages.isEmpty()) {
                 Collections.reverse(messages);
-                if (Reddit.isPackageInstalled("com.teslacoilsw.notifier")) {
+                if (App.isPackageInstalled("com.teslacoilsw.notifier")) {
                     try {
 
                         ContentValues cv = new ContentValues();
@@ -134,7 +135,7 @@ public class CheckForMail extends BroadcastReceiver {
                     }
 
                     NotificationCompat.Builder builder =
-                            new NotificationCompat.Builder(c, Reddit.CHANNEL_MAIL).setContentIntent(
+                            new NotificationCompat.Builder(c, App.CHANNEL_MAIL).setContentIntent(
                                     intent)
                                     .setSmallIcon(R.drawable.notif)
                                     .setTicker(
@@ -207,7 +208,7 @@ public class CheckForMail extends BroadcastReceiver {
                                 new String[]{m.getFullName()});
 
                         NotificationCompat.Builder builder = new NotificationCompat.Builder(c,
-                                Reddit.CHANNEL_MAIL).setContentIntent(openPi)
+                                App.CHANNEL_MAIL).setContentIntent(openPi)
                                         .setSmallIcon(R.drawable.notif)
                                         .setTicker(res.getQuantityString(
                                                 R.plurals.mail_notification_title, 1, 1))
@@ -281,7 +282,7 @@ public class CheckForMail extends BroadcastReceiver {
                     }
 
                     NotificationCompat.Builder builder = new NotificationCompat.Builder(c,
-                            Reddit.CHANNEL_MODMAIL).setContentIntent(intent)
+                            App.CHANNEL_MODMAIL).setContentIntent(intent)
                                     .setSmallIcon(R.drawable.ic_verified_user)
                                     .setTicker(res.getQuantityString(
                                             R.plurals.mod_mail_notification_title, amount, amount))
@@ -314,7 +315,7 @@ public class CheckForMail extends BroadcastReceiver {
                         notiStyle.bigText(Html.fromHtml(unescape, Html.FROM_HTML_MODE_LEGACY));
 
                         NotificationCompat.Builder builder = new NotificationCompat.Builder(c,
-                                Reddit.CHANNEL_MODMAIL).setContentIntent(intent)
+                                App.CHANNEL_MODMAIL).setContentIntent(intent)
                                         .setSmallIcon(R.drawable.ic_verified_user)
                                         .setTicker(res.getQuantityString(
                                                 R.plurals.mod_mail_notification_title, 1, 1))
@@ -400,7 +401,7 @@ public class CheckForMail extends BroadcastReceiver {
 
 
                         Notification notification =
-                                new NotificationCompat.Builder(c, Reddit.CHANNEL_SUBCHECKING).setContentIntent(readPI)
+                                new NotificationCompat.Builder(c, App.CHANNEL_SUBCHECKING).setContentIntent(readPI)
                                         .setSmallIcon(R.drawable.notif)
                                         .setTicker(c.getString(
                                                 R.string.sub_post_notifs_notification_title,
@@ -428,7 +429,7 @@ public class CheckForMail extends BroadcastReceiver {
                     }
                 }
             }
-            if (Reddit.notificationTime != -1) new NotificationJobScheduler(c).start();
+            if (App.notificationTime != -1) new NotificationJobScheduler(c).start();
         }
 
         HashMap<String, Integer> subThresholds;
@@ -436,10 +437,10 @@ public class CheckForMail extends BroadcastReceiver {
         @Override
         protected List<Submission> doInBackground(Void... params) {
             try {
-                long lastTime = (System.currentTimeMillis() - (60000L * Reddit.notificationTime));
+                long lastTime = (System.currentTimeMillis() - (60000L * App.notificationTime));
                 ArrayList<Submission> toReturn = new ArrayList<>();
                 ArrayList<String> rawSubs =
-                        StringUtil.stringToArray(Reddit.appRestart.getString(SUBS_TO_GET, ""));
+                        StringUtil.stringToArray(Preferences.INSTANCE.getAppRestart().getString(SUBS_TO_GET, ""));
                 subThresholds = new HashMap<>();
                 for (String s : rawSubs) {
                     try {

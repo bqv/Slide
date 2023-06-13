@@ -55,7 +55,7 @@ import me.ccrama.redditslide.Activities.TumblrPager;
 import me.ccrama.redditslide.Activities.Website;
 import me.ccrama.redditslide.ContentType;
 import ltd.ucode.slide.R;
-import ltd.ucode.slide.Reddit;
+import ltd.ucode.slide.App;
 import me.ccrama.redditslide.SecretConstants;
 import me.ccrama.redditslide.SettingValues;
 import me.ccrama.redditslide.SubmissionViews.PopulateShadowboxInfo;
@@ -187,7 +187,7 @@ public class MediaFragment extends Fragment {
                         R.drawable.nsfw);
             } else {
                 if (Strings.isNullOrEmpty(firstUrl) && !Strings.isNullOrEmpty(s.getThumbnail())) {
-                    ((Reddit) getContext().getApplicationContext()).getImageLoader()
+                    ((App) getContext().getApplicationContext()).getImageLoader()
                             .displayImage(s.getThumbnail(),
                                     ((ImageView) thumbnailView));
                 }
@@ -298,7 +298,7 @@ public class MediaFragment extends Fragment {
         }
         contentUrl = bundle.getString("contentUrl");
 
-        client = Reddit.client;
+        client = App.client;
         gson = new Gson();
         mashapeKey = SecretConstants.getImgurApiKey(getContext());
     }
@@ -848,7 +848,7 @@ public class MediaFragment extends Fragment {
             fakeImage.setLayoutParams(new LinearLayout.LayoutParams(i.getWidth(), i.getHeight()));
             fakeImage.setScaleType(ImageView.ScaleType.CENTER_CROP);
 
-            File f = ((Reddit) getActivity().getApplicationContext()).getImageLoader()
+            File f = ((App) getActivity().getApplicationContext()).getImageLoader()
                     .getDiskCache()
                     .get(url);
             if (f != null && f.exists()) {
@@ -902,7 +902,7 @@ public class MediaFragment extends Fragment {
                     }
                 });
             } else {
-                ((Reddit) getActivity().getApplicationContext()).getImageLoader()
+                ((App) getActivity().getApplicationContext()).getImageLoader()
                         .displayImage(url, new ImageViewAware(fakeImage),
                                 new DisplayImageOptions.Builder().resetViewBeforeLoading(true)
                                         .cacheOnDisk(true)
@@ -929,7 +929,7 @@ public class MediaFragment extends Fragment {
                                         File f = null;
                                         if (getActivity() != null) {
                                             f =
-                                                    ((Reddit) getActivity().getApplicationContext())
+                                                    ((App) getActivity().getApplicationContext())
                                                             .getImageLoader()
                                                             .getDiskCache()
                                                             .get(url);

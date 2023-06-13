@@ -24,12 +24,13 @@ import java.util.HashSet;
 import java.util.Set;
 
 import ltd.ucode.slide.Authentication;
+import ltd.ucode.slide.Preferences;
 import me.ccrama.redditslide.Autocache.AutoCacheScheduler;
 import me.ccrama.redditslide.ContentGrabber;
 import me.ccrama.redditslide.Fragments.InboxPage;
 import me.ccrama.redditslide.Notifications.NotificationJobScheduler;
 import ltd.ucode.slide.R;
-import ltd.ucode.slide.Reddit;
+import ltd.ucode.slide.App;
 import me.ccrama.redditslide.SettingValues;
 import me.ccrama.redditslide.UserSubscriptions;
 import me.ccrama.redditslide.Visuals.ColorPreferences;
@@ -133,18 +134,18 @@ public class Inbox extends BaseActivityAnim {
                         Authentication.me = Authentication.reddit.me();
                         Authentication.mod = Authentication.me.isMod();
 
-                        Authentication.authentication.edit()
-                                .putBoolean(Reddit.SHARED_PREF_IS_MOD, Authentication.mod)
+                        Preferences.INSTANCE.getAuthentication().edit()
+                                .putBoolean(App.SHARED_PREF_IS_MOD, Authentication.mod)
                                 .apply();
 
-                        if (Reddit.notificationTime != -1) {
-                            Reddit.notifications = new NotificationJobScheduler(Inbox.this);
-                            Reddit.notifications.start();
+                        if (App.notificationTime != -1) {
+                            App.notifications = new NotificationJobScheduler(Inbox.this);
+                            App.notifications.start();
                         }
 
-                        if (Reddit.cachedData.contains("toCache")) {
-                            Reddit.autoCache = new AutoCacheScheduler(Inbox.this);
-                            Reddit.autoCache.start();
+                        if (App.cachedData.contains("toCache")) {
+                            App.autoCache = new AutoCacheScheduler(Inbox.this);
+                            App.autoCache.start();
                         }
 
                         final String name = Authentication.me.getFullName();
@@ -154,16 +155,16 @@ public class Inbox extends BaseActivityAnim {
 
                         if (Authentication.reddit.isAuthenticated()) {
                             final Set<String> accounts =
-                                    Authentication.authentication.getStringSet("accounts", new HashSet<String>());
+                                    Preferences.INSTANCE.getAuthentication().getStringSet("accounts", new HashSet<String>());
                             if (accounts.contains(name)) { //convert to new system
                                 accounts.remove(name);
                                 accounts.add(name + ":" + Authentication.refresh);
-                                Authentication.authentication.edit()
+                                Preferences.INSTANCE.getAuthentication().edit()
                                         .putStringSet("accounts", accounts)
                                         .apply(); //force commit
                             }
                             Authentication.isLoggedIn = true;
-                            Reddit.notFirst = true;
+                            App.notFirst = true;
                         }
 
                     } catch (Exception ignored){

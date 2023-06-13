@@ -27,7 +27,7 @@ import me.ccrama.redditslide.Activities.MediaView;
 import me.ccrama.redditslide.Activities.Tumblr;
 import me.ccrama.redditslide.ContentType;
 import ltd.ucode.slide.R;
-import ltd.ucode.slide.Reddit;
+import ltd.ucode.slide.App;
 import me.ccrama.redditslide.SettingValues;
 import me.ccrama.redditslide.SpoilerRobotoTextView;
 import me.ccrama.redditslide.Tumblr.Photo;
@@ -117,7 +117,7 @@ public class TumblrView extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             AlbumViewHolder holder = (AlbumViewHolder) holder2;
 
             final Photo user = users.get(position);
-            ((Reddit) main.getApplicationContext()).getImageLoader().displayImage(user.getOriginalSize().getUrl(), holder.image, ImageGridAdapter.options);
+            ((App) main.getApplicationContext()).getImageLoader().displayImage(user.getOriginalSize().getUrl(), holder.image, ImageGridAdapter.options);
             holder.body.setVisibility(View.VISIBLE);
             holder.text.setVisibility(View.VISIBLE);
             View imageView = holder.image;

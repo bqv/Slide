@@ -47,7 +47,7 @@ import me.ccrama.redditslide.ForceTouch.PeekViewActivity;
 import me.ccrama.redditslide.ImgurAlbum.AlbumUtils;
 import me.ccrama.redditslide.ImgurAlbum.Image;
 import ltd.ucode.slide.R;
-import ltd.ucode.slide.Reddit;
+import ltd.ucode.slide.App;
 import me.ccrama.redditslide.SecretConstants;
 import me.ccrama.redditslide.SettingValues;
 import me.ccrama.redditslide.Tumblr.Photo;
@@ -249,7 +249,7 @@ public class PeekMediaView extends RelativeLayout {
             new AsyncTask<Void, Void, JsonObject>() {
                 @Override
                 protected JsonObject doInBackground(Void... params) {
-                    return HttpUtil.getJsonObject(Reddit.client, new Gson(), apiUrl);
+                    return HttpUtil.getJsonObject(App.client, new Gson(), apiUrl);
                 }
 
                 @Override
@@ -330,7 +330,7 @@ public class PeekMediaView extends RelativeLayout {
         new AsyncTask<Void, Void, JsonObject>() {
             @Override
             protected JsonObject doInBackground(Void... params) {
-                return HttpUtil.getJsonObject(Reddit.client, new Gson(), apiUrl);
+                return HttpUtil.getJsonObject(App.client, new Gson(), apiUrl);
             }
 
             @Override
@@ -367,7 +367,7 @@ public class PeekMediaView extends RelativeLayout {
             new AsyncTask<Void, Void, JsonObject>() {
                 @Override
                 protected JsonObject doInBackground(Void... params) {
-                    return HttpUtil.getImgurMashapeJsonObject(Reddit.client, new Gson(), apiUrl,
+                    return HttpUtil.getImgurMashapeJsonObject(App.client, new Gson(), apiUrl,
                             SecretConstants.getImgurApiKey(getContext()));
                 }
 
@@ -545,7 +545,7 @@ public class PeekMediaView extends RelativeLayout {
             fakeImage.setLayoutParams(new LinearLayout.LayoutParams(i.getWidth(), i.getHeight()));
             fakeImage.setScaleType(ImageView.ScaleType.CENTER_CROP);
 
-            File f = ((Reddit) getContext().getApplicationContext()).getImageLoader()
+            File f = ((App) getContext().getApplicationContext()).getImageLoader()
                     .getDiskCache()
                     .get(url);
             if (f != null && f.exists()) {
@@ -569,7 +569,7 @@ public class PeekMediaView extends RelativeLayout {
                 handler.removeCallbacks(progressBarDelayRunner);
 
             } else {
-                ((Reddit) getContext().getApplicationContext()).getImageLoader()
+                ((App) getContext().getApplicationContext()).getImageLoader()
                         .displayImage(url, new ImageViewAware(fakeImage),
                                 new DisplayImageOptions.Builder().resetViewBeforeLoading(true)
                                         .cacheOnDisk(true)
@@ -595,7 +595,7 @@ public class PeekMediaView extends RelativeLayout {
                                         imageShown = true;
 
                                         File f =
-                                                ((Reddit) getContext().getApplicationContext()).getImageLoader()
+                                                ((App) getContext().getApplicationContext()).getImageLoader()
                                                         .getDiskCache()
                                                         .get(url);
                                         if (f != null && f.exists()) {

@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+import ltd.ucode.slide.Preferences;
 import me.ccrama.redditslide.Adapters.MultiredditPosts;
 import me.ccrama.redditslide.Adapters.SubmissionDisplay;
 import me.ccrama.redditslide.Adapters.SubredditPosts;
@@ -32,7 +33,7 @@ import me.ccrama.redditslide.LastComments;
 import me.ccrama.redditslide.OfflineSubreddit;
 import me.ccrama.redditslide.PostLoader;
 import ltd.ucode.slide.R;
-import ltd.ucode.slide.Reddit;
+import ltd.ucode.slide.App;
 import me.ccrama.redditslide.SettingValues;
 import me.ccrama.redditslide.Visuals.Palette;
 import me.ccrama.redditslide.util.KeyboardUtil;
@@ -93,10 +94,10 @@ public class CommentsScreen extends BaseActivityAnim implements SubmissionDispla
     public void onDestroy() {
         super.onDestroy();
 
-        if (!Reddit.appRestart.contains("tutorialSwipeComment")) {
-            Reddit.appRestart.edit().putBoolean("tutorialSwipeComment", true).apply();
-        } else if (!Reddit.appRestart.contains("tutorial_comm")) {
-            Reddit.appRestart.edit().putBoolean("tutorial_comm", true).apply();
+        if (!Preferences.INSTANCE.getAppRestart().contains("tutorialSwipeComment")) {
+            Preferences.INSTANCE.getAppRestart().edit().putBoolean("tutorialSwipeComment", true).apply();
+        } else if (!Preferences.INSTANCE.getAppRestart().contains("tutorial_comm")) {
+            Preferences.INSTANCE.getAppRestart().edit().putBoolean("tutorial_comm", true).apply();
 
         }
 
@@ -110,7 +111,7 @@ public class CommentsScreen extends BaseActivityAnim implements SubmissionDispla
             //todo make this work
         }
         if (requestCode == 333) {
-            Reddit.appRestart.edit().putBoolean("tutorialSwipeComments", true).apply();
+            Preferences.INSTANCE.getAppRestart().edit().putBoolean("tutorialSwipeComments", true).apply();
 
         }
     }
@@ -144,7 +145,7 @@ public class CommentsScreen extends BaseActivityAnim implements SubmissionDispla
             setContentView(R.layout.activity_slide);
         }
 
-        Reddit.setDefaultErrorHandler(this);
+        App.setDefaultErrorHandler(this);
 
         firstPage = getIntent().getExtras().getInt(EXTRA_PAGE, -1);
         baseSubreddit = getIntent().getExtras().getString(EXTRA_SUBREDDIT);
@@ -243,7 +244,7 @@ public class CommentsScreen extends BaseActivityAnim implements SubmissionDispla
             );
 
         }
-        if (!Reddit.appRestart.contains("tutorialSwipeComments")) {
+        if (!Preferences.INSTANCE.getAppRestart().contains("tutorialSwipeComments")) {
             Intent i = new Intent(this, SwipeTutorial.class);
             i.putExtra("subtitle",
                     "Swipe from the left edge to exit comments.\n\nYou can swipe in the middle to get to the previous/next submission.");

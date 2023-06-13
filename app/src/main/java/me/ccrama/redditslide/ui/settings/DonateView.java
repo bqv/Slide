@@ -16,7 +16,7 @@ import com.rey.material.widget.Slider;
 import me.ccrama.redditslide.Activities.BaseActivityAnim;
 import ltd.ucode.slide.Authentication;
 import ltd.ucode.slide.R;
-import ltd.ucode.slide.Reddit;
+import ltd.ucode.slide.App;
 import me.ccrama.redditslide.SettingValues;
 import me.ccrama.redditslide.Visuals.Palette;
 import me.ccrama.redditslide.util.LogUtil;
@@ -88,10 +88,10 @@ public class DonateView extends BaseActivityAnim {
                 if (Authentication.isLoggedIn) {
                     name = Authentication.name;
                 }
-                if (Reddit.mHelper != null) {
-                    Reddit.mHelper.flagEndAsync();
+                if (App.mHelper != null) {
+                    App.mHelper.flagEndAsync();
                 }
-                Reddit.mHelper.queryInventoryAsync(new IabHelper.QueryInventoryFinishedListener() {
+                App.mHelper.queryInventoryAsync(new IabHelper.QueryInventoryFinishedListener() {
                     @Override
                     public void onQueryInventoryFinished(IabResult result, Inventory inv) {
                         if(inv != null) {
@@ -99,7 +99,7 @@ public class DonateView extends BaseActivityAnim {
                             LogUtil.v("Trying to get donation_" + slider.getValue());
                             if (donation != null) {
                                 LogUtil.v("Not null");
-                                Reddit.mHelper.launchPurchaseFlow(DonateView.this, donation.getSku(),
+                                App.mHelper.launchPurchaseFlow(DonateView.this, donation.getSku(),
                                         4000, new IabHelper.OnIabPurchaseFinishedListener() {
                                             @Override
                                             public void onIabPurchaseFinished(IabResult result,

@@ -26,7 +26,7 @@ import me.ccrama.redditslide.Autocache.AutoCacheScheduler;
 import me.ccrama.redditslide.CommentCacheAsync;
 import me.ccrama.redditslide.OfflineSubreddit;
 import ltd.ucode.slide.R;
-import ltd.ucode.slide.Reddit;
+import ltd.ucode.slide.App;
 import me.ccrama.redditslide.SettingValues;
 import me.ccrama.redditslide.UserSubscriptions;
 import me.ccrama.redditslide.Visuals.ColorPreferences;
@@ -47,12 +47,12 @@ public class ManageOfflineContentFragment {
         context.findViewById(R.id.manage_history_clear_all).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                boolean wifi = Reddit.cachedData.getBoolean("wifiOnly", false);
-                String sync = Reddit.cachedData.getString("toCache", "");
-                int hour = (Reddit.cachedData.getInt("hour", 0));
-                int minute = (Reddit.cachedData.getInt("minute", 0));
-                Reddit.cachedData.edit().clear().apply();
-                Reddit.cachedData.edit().putBoolean("wifiOnly", wifi).putString(
+                boolean wifi = App.cachedData.getBoolean("wifiOnly", false);
+                String sync = App.cachedData.getString("toCache", "");
+                int hour = (App.cachedData.getInt("hour", 0));
+                int minute = (App.cachedData.getInt("minute", 0));
+                App.cachedData.edit().clear().apply();
+                App.cachedData.edit().putBoolean("wifiOnly", wifi).putString(
                         "toCache", sync).putInt("hour", hour).putInt("minute", minute).apply();
                 context.finish();
             }
@@ -61,7 +61,7 @@ public class ManageOfflineContentFragment {
             context.findViewById(R.id.manage_history_sync_now).setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    new CommentCacheAsync(context, Reddit.cachedData.getString(
+                    new CommentCacheAsync(context, App.cachedData.getString(
                             "toCache", "").split(",")).execute();
                 }
             });
@@ -71,11 +71,11 @@ public class ManageOfflineContentFragment {
         {
             SwitchCompat single = context.findViewById(R.id.manage_history_wifi);
 
-            single.setChecked(Reddit.cachedData.getBoolean("wifiOnly", false));
+            single.setChecked(App.cachedData.getBoolean("wifiOnly", false));
             single.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override
                 public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                    Reddit.cachedData.edit().putBoolean("wifiOnly", isChecked).apply();
+                    App.cachedData.edit().putBoolean("wifiOnly", isChecked).apply();
                 }
             });
         }
@@ -132,7 +132,7 @@ public class ManageOfflineContentFragment {
 
                 int i = 0;
                 List<String> s2 = new ArrayList<>();
-                Collections.addAll(s2, Reddit.cachedData.getString("toCache", "").split(","));
+                Collections.addAll(s2, App.cachedData.getString("toCache", "").split(","));
 
                 for (String s : sorted) {
                     all[i] = s;
@@ -153,7 +153,7 @@ public class ManageOfflineContentFragment {
                         })
                         .setTitle(R.string.multireddit_selector)
                         .setPositiveButton(context.getString(R.string.btn_add).toUpperCase(), (dialog, which) -> {
-                            Reddit.cachedData.edit().putString("toCache", StringUtil.arrayToString(toCheck)).apply();
+                            App.cachedData.edit().putString("toCache", StringUtil.arrayToString(toCheck)).apply();
                             updateBackup();
                         })
                         .show();
@@ -167,8 +167,8 @@ public class ManageOfflineContentFragment {
             public void onClick(View v) {
 
                 final TimePickerDialog d = new TimePickerDialog(context);
-                d.hour(Reddit.cachedData.getInt("hour", 0));
-                d.minute(Reddit.cachedData.getInt("minute", 0));
+                d.hour(App.cachedData.getInt("hour", 0));
+                d.minute(App.cachedData.getInt("minute", 0));
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
                     d.applyStyle(new ColorPreferences(context).getFontStyle().getBaseId());
                 d.positiveAction("SET");
@@ -182,12 +182,12 @@ public class ManageOfflineContentFragment {
                 d.positiveActionClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        Reddit.cachedData.edit()
+                        App.cachedData.edit()
                                 .putInt("hour", d.getHour())
                                 .putInt("minute", d.getMinute())
                                 .commit();
-                        Reddit.autoCache = new AutoCacheScheduler(context);
-                        Reddit.autoCache.start();
+                        App.autoCache = new AutoCacheScheduler(context);
+                        App.autoCache.start();
                         updateTime();
                         d.dismiss();
                     }
@@ -206,8 +206,8 @@ public class ManageOfflineContentFragment {
     public void updateTime() {
         TextView text = context.findViewById(R.id.manage_history_autocache_time);
         Calendar cal = Calendar.getInstance();
-        cal.set(Calendar.HOUR_OF_DAY, Reddit.cachedData.getInt("hour", 0));
-        cal.set(Calendar.MINUTE, Reddit.cachedData.getInt("minute", 0));
+        cal.set(Calendar.HOUR_OF_DAY, App.cachedData.getInt("hour", 0));
+        cal.set(Calendar.MINUTE, App.cachedData.getInt("minute", 0));
         if (text != null) {
             text.setText(context.getString(
                     R.string.settings_backup_occurs, new SimpleDateFormat("hh:mm a").format(cal.getTime())));
@@ -216,9 +216,9 @@ public class ManageOfflineContentFragment {
 
     public void updateBackup() {
         subsToBack = new ArrayList<>();
-        Collections.addAll(subsToBack, Reddit.cachedData.getString("toCache", "").split(","));
+        Collections.addAll(subsToBack, App.cachedData.getString("toCache", "").split(","));
         TextView text = context.findViewById(R.id.manage_history_autocache_text);
-        if (!Reddit.cachedData.getString("toCache", "").contains(",") || subsToBack.isEmpty()) {
+        if (!App.cachedData.getString("toCache", "").contains(",") || subsToBack.isEmpty()) {
             text.setText(R.string.settings_backup_none);
         } else {
             StringBuilder toSayBuilder = new StringBuilder();
@@ -263,7 +263,7 @@ public class ManageOfflineContentFragment {
                         @Override
                         public void onClick(View v) {
                             domains.remove(name);
-                            Reddit.cachedData.edit().remove(s).apply();
+                            App.cachedData.edit().remove(s).apply();
                             updateFilters();
                         }
                     });

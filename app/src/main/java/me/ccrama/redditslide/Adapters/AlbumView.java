@@ -25,7 +25,7 @@ import me.ccrama.redditslide.Activities.Album;
 import me.ccrama.redditslide.Activities.MediaView;
 import me.ccrama.redditslide.ImgurAlbum.Image;
 import ltd.ucode.slide.R;
-import ltd.ucode.slide.Reddit;
+import ltd.ucode.slide.App;
 import me.ccrama.redditslide.SettingValues;
 import me.ccrama.redditslide.SpoilerRobotoTextView;
 import me.ccrama.redditslide.Visuals.FontPreferences;
@@ -120,7 +120,7 @@ public class AlbumView extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             AlbumViewHolder holder = (AlbumViewHolder) holder2;
 
             final Image user = users.get(position);
-            ((Reddit) main.getApplicationContext()).getImageLoader().displayImage(user.getImageUrl(), holder.image, ImageGridAdapter.options);
+            ((App) main.getApplicationContext()).getImageLoader().displayImage(user.getImageUrl(), holder.image, ImageGridAdapter.options);
             holder.body.setVisibility(View.VISIBLE);
             holder.text.setVisibility(View.VISIBLE);
             View imageView = holder.image;

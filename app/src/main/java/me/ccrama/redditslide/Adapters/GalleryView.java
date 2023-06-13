@@ -39,7 +39,7 @@ import me.ccrama.redditslide.Activities.TumblrPager;
 import me.ccrama.redditslide.ContentType;
 import me.ccrama.redditslide.PostMatch;
 import ltd.ucode.slide.R;
-import ltd.ucode.slide.Reddit;
+import ltd.ucode.slide.App;
 import me.ccrama.redditslide.SettingValues;
 import me.ccrama.redditslide.SubmissionViews.PopulateSubmissionViewHolder;
 import me.ccrama.redditslide.Visuals.Palette;
@@ -82,9 +82,9 @@ public class GalleryView extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             final Submission submission = posts.get(i);
 
             if (submission.getThumbnails() != null && submission.getThumbnails().getSource() != null) {
-                ((Reddit) main.getApplicationContext()).getImageLoader().displayImage(submission.getThumbnails().getSource().getUrl(), holder.image, ImageGridAdapter.options);
+                ((App) main.getApplicationContext()).getImageLoader().displayImage(submission.getThumbnails().getSource().getUrl(), holder.image, ImageGridAdapter.options);
             } else {
-                ((Reddit) main.getApplicationContext()).getImageLoader().displayImage(submission.getUrl(), holder.image, ImageGridAdapter.options);
+                ((App) main.getApplicationContext()).getImageLoader().displayImage(submission.getUrl(), holder.image, ImageGridAdapter.options);
 
             }
             double h = 0;
@@ -180,7 +180,7 @@ public class GalleryView extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                                         LinkUtil.openExternally(submission.getUrl());
                                         break;
                                     case R.id.share_link:
-                                        Reddit.defaultShareText("", submission.getUrl(), main);
+                                        App.defaultShareText("", submission.getUrl(), main);
                                         break;
                                     case R.id.copy_link:
                                         LinkUtil.copyUrl(submission.getUrl(), main);

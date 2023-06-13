@@ -48,7 +48,7 @@ import java.util.Locale;
 import ltd.ucode.slide.Authentication;
 import me.ccrama.redditslide.ContentType;
 import ltd.ucode.slide.R;
-import ltd.ucode.slide.Reddit;
+import ltd.ucode.slide.App;
 import me.ccrama.redditslide.SpoilerRobotoTextView;
 import me.ccrama.redditslide.Views.CommentOverflow;
 import me.ccrama.redditslide.Views.SidebarLayout;
@@ -306,7 +306,7 @@ public class LiveThread extends BaseActivityAnim {
                             holder.go.callOnClick();
                         }
                     });
-                    ((Reddit) getApplicationContext()).getImageLoader().displayImage(url, holder.imageArea);
+                    ((App) getApplicationContext()).getImageLoader().displayImage(url, holder.imageArea);
                 } else if (ContentType.hostContains(host, "twitter.com")) {
                     LogUtil.v("Twitter");
 
@@ -328,7 +328,7 @@ public class LiveThread extends BaseActivityAnim {
             public LoadTwitter(@NonNull WebView view, @NonNull String url) {
                 this.view = view;
                 this.url = url;
-                client = Reddit.client;
+                client = App.client;
                 gson = new Gson();
             }
 

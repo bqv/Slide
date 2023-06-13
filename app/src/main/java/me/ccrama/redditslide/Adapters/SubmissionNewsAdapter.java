@@ -23,13 +23,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+import ltd.ucode.slide.Preferences;
 import me.ccrama.redditslide.Activities.CommentsScreen;
 import ltd.ucode.slide.activity.MainActivity;
 import me.ccrama.redditslide.Activities.SubredditView;
 import ltd.ucode.slide.Authentication;
 import me.ccrama.redditslide.Fragments.SubmissionsView;
 import ltd.ucode.slide.R;
-import ltd.ucode.slide.Reddit;
+import ltd.ucode.slide.App;
 import me.ccrama.redditslide.SettingValues;
 import me.ccrama.redditslide.SubmissionViews.PopulateNewsViewHolder;
 import me.ccrama.redditslide.Views.CatchStaggeredGridLayoutManager;
@@ -59,7 +60,7 @@ public class SubmissionNewsAdapter extends RecyclerView.Adapter<RecyclerView.Vie
         this.context = context;
         this.seen = new ArrayList<>();
         custom = SettingValues.prefs.contains(
-                Reddit.PREF_LAYOUT + subreddit.toLowerCase(Locale.ENGLISH));
+                App.PREF_LAYOUT + subreddit.toLowerCase(Locale.ENGLISH));
         this.displayer = displayer;
         MainActivity.randomoverride = "";
     }
@@ -240,13 +241,13 @@ public class SubmissionNewsAdapter extends RecyclerView.Adapter<RecyclerView.Vie
                             }
                         }
                     } else {
-                        if (!Reddit.appRestart.contains("offlinepopup")) {
+                        if (!Preferences.INSTANCE.getAppRestart().contains("offlinepopup")) {
                             new AlertDialog.Builder(context)
                                     .setTitle(R.string.cache_no_comments_found)
                                     .setMessage(R.string.cache_no_comments_found_message)
                                     .setCancelable(false)
                                     .setPositiveButton(R.string.btn_ok, (dialog, which) ->
-                                            Reddit.appRestart.edit()
+                                            Preferences.INSTANCE.getAppRestart().edit()
                                                     .putString("offlinepopup", "")
                                                     .apply())
                                     .show();
@@ -262,7 +263,7 @@ public class SubmissionNewsAdapter extends RecyclerView.Adapter<RecyclerView.Vie
                                             .setMessage(R.string.cache_no_comments_found_message)
                                             .setCancelable(false)
                                             .setPositiveButton(R.string.btn_ok, (dialog, which) ->
-                                                    Reddit.appRestart.edit()
+                                                    Preferences.INSTANCE.getAppRestart().edit()
                                                             .putString("offlinepopup", "")
                                                             .apply())
                                             .show();

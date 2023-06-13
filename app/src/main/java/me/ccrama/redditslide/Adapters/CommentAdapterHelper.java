@@ -70,7 +70,7 @@ import me.ccrama.redditslide.Activities.Website;
 import ltd.ucode.slide.Authentication;
 import me.ccrama.redditslide.OpenRedditLink;
 import ltd.ucode.slide.R;
-import ltd.ucode.slide.Reddit;
+import ltd.ucode.slide.App;
 import me.ccrama.redditslide.SettingValues;
 import me.ccrama.redditslide.Toolbox.ToolboxUI;
 import me.ccrama.redditslide.UserSubscriptions;
@@ -301,7 +301,7 @@ public class CommentAdapterHelper {
                         break;
                     case 4:
                         //Share comment
-                        Reddit.defaultShareText(adapter.submission.getTitle(), "https://reddit.com"
+                        App.defaultShareText(adapter.submission.getTitle(), "https://reddit.com"
                                 + adapter.submission.getPermalink()
                                 + n.getFullName().substring(3)
                                 + "?context=3", mContext);

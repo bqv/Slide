@@ -11,7 +11,8 @@ import android.os.Build;
 import androidx.annotation.RequiresApi;
 import androidx.core.content.ContextCompat;
 
-import ltd.ucode.slide.Reddit;
+import ltd.ucode.slide.App;
+import ltd.ucode.slide.Preferences;
 
 /**
  * Collection of various network utility methods.
@@ -115,7 +116,7 @@ public class NetworkUtil {
      * @return true if the application is connected, false if otherwise.
      */
     public static boolean isConnected(final Context context) {
-        return !Reddit.appRestart.contains("forceoffline")
+        return !Preferences.INSTANCE.getAppRestart().contains("forceoffline")
                 && isConnectedNoOverride(context);
     }
 

@@ -18,7 +18,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import ltd.ucode.slide.Authentication;
-import ltd.ucode.slide.Reddit;
+import ltd.ucode.slide.App;
 
 /**
  * Main class for /r/toolbox functionality
@@ -31,7 +31,7 @@ public class Toolbox {
 
     private static Map<String, Usernotes> notes = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
     private static Map<String, ToolboxConfig> toolboxConfigs = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
-    private static SharedPreferences cache = Reddit.getAppContext().getSharedPreferences("toolbox_cache", 0);
+    private static SharedPreferences cache = App.getAppContext().getSharedPreferences("toolbox_cache", 0);
 
     static { // Set the default usernote types. Yes this is ugly but java sucks for stuff like this.
         Map<String, String> goodUser = new HashMap<>();

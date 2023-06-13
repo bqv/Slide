@@ -56,12 +56,13 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
+import ltd.ucode.slide.Preferences;
 import me.ccrama.redditslide.ContentType;
 import me.ccrama.redditslide.Fragments.FolderChooserDialogCreate;
 import me.ccrama.redditslide.Fragments.SubmissionsView;
 import me.ccrama.redditslide.Notifications.ImageDownloadNotificationService;
 import ltd.ucode.slide.R;
-import ltd.ucode.slide.Reddit;
+import ltd.ucode.slide.App;
 import me.ccrama.redditslide.SecretConstants;
 import me.ccrama.redditslide.SettingValues;
 import me.ccrama.redditslide.SubmissionViews.OpenVRedditTask;
@@ -203,7 +204,7 @@ public class MediaView extends FullScreenActivity
                         break;
                     }
                     case (5): {
-                        Reddit.defaultShareText("", StringEscapeUtils.unescapeHtml4(contentUrl), MediaView.this);
+                        App.defaultShareText("", StringEscapeUtils.unescapeHtml4(contentUrl), MediaView.this);
                         break;
                     }
                     case (6): {
@@ -235,9 +236,9 @@ public class MediaView extends FullScreenActivity
 
     public void doImageSave() {
         if (!isGif) {
-            if (Reddit.appRestart.getString("imagelocation", "").isEmpty()) {
+            if (Preferences.INSTANCE.getAppRestart().getString("imagelocation", "").isEmpty()) {
                 showFirstDialog();
-            } else if (!new File(Reddit.appRestart.getString("imagelocation", "")).exists()) {
+            } else if (!new File(Preferences.INSTANCE.getAppRestart().getString("imagelocation", "")).exists()) {
                 showErrorDialog();
             } else {
                 Intent i = new Intent(this, ImageDownloadNotificationService.class);
@@ -269,18 +270,18 @@ public class MediaView extends FullScreenActivity
         new AsyncTask<Void, Void, Void>() {
             @Override
             protected Void doInBackground(Void... params) {
-                if (Reddit.appRestart.getString("imagelocation", "").isEmpty()) {
+                if (Preferences.INSTANCE.getAppRestart().getString("imagelocation", "").isEmpty()) {
                     showFirstDialog();
-                } else if (!new File(Reddit.appRestart.getString("imagelocation", "")).exists()) {
+                } else if (!new File(Preferences.INSTANCE.getAppRestart().getString("imagelocation", "")).exists()) {
                     showErrorDialog();
                 } else {
                     final File f = new File(
-                            Reddit.appRestart.getString("imagelocation", "") + File.separator + UUID
+                            Preferences.INSTANCE.getAppRestart().getString("imagelocation", "") + File.separator + UUID
                                     .randomUUID()
                                     .toString() + baseUrl.substring(baseUrl.lastIndexOf(".")));
                     mNotifyManager =
                             ContextCompat.getSystemService(MediaView.this, NotificationManager.class);
-                    mBuilder = new NotificationCompat.Builder(MediaView.this, Reddit.CHANNEL_IMG);
+                    mBuilder = new NotificationCompat.Builder(MediaView.this, App.CHANNEL_IMG);
                     mBuilder.setContentTitle(getString(R.string.mediaview_saving, baseUrl))
                             .setSmallIcon(R.drawable.ic_download);
                     try {
@@ -328,7 +329,7 @@ public class MediaView extends FullScreenActivity
 
 
                                         Notification notif = new NotificationCompat.Builder(
-                                                MediaView.this, Reddit.CHANNEL_IMG)
+                                                MediaView.this, App.CHANNEL_IMG)
                                                 .setContentTitle(getString(R.string.gif_saved))
                                                 .setSmallIcon(R.drawable.ic_save)
                                                 .setContentIntent(contentIntent)
@@ -355,18 +356,18 @@ public class MediaView extends FullScreenActivity
         new AsyncTask<Void, Void, Void>() {
             @Override
             protected Void doInBackground(Void... params) {
-                if (Reddit.appRestart.getString("imagelocation", "").isEmpty()) {
+                if (Preferences.INSTANCE.getAppRestart().getString("imagelocation", "").isEmpty()) {
                     showFirstDialog();
-                } else if (!new File(Reddit.appRestart.getString("imagelocation", "")).exists()) {
+                } else if (!new File(Preferences.INSTANCE.getAppRestart().getString("imagelocation", "")).exists()) {
                     showErrorDialog();
                 } else {
                     final File f = new File(
-                            Reddit.appRestart.getString("imagelocation", "") + File.separator + UUID
+                            Preferences.INSTANCE.getAppRestart().getString("imagelocation", "") + File.separator + UUID
                                     .randomUUID()
                                     .toString() + baseUrl.substring(baseUrl.lastIndexOf(".")));
                     mNotifyManager =
                             ContextCompat.getSystemService(MediaView.this, NotificationManager.class);
-                    mBuilder = new NotificationCompat.Builder(MediaView.this, Reddit.CHANNEL_IMG);
+                    mBuilder = new NotificationCompat.Builder(MediaView.this, App.CHANNEL_IMG);
                     mBuilder.setContentTitle(getString(R.string.mediaview_saving, baseUrl))
                             .setSmallIcon(R.drawable.ic_download);
                     try {
@@ -636,7 +637,7 @@ public class MediaView extends FullScreenActivity
             doLoad(contentUrl);
         }
 
-        if (!Reddit.appRestart.contains("tutorialSwipe")) {
+        if (!Preferences.INSTANCE.getAppRestart().contains("tutorialSwipe")) {
             startActivityForResult(new Intent(this, SwipeTutorial.class), 3);
         }
         findViewById(R.id.more).setOnClickListener(new View.OnClickListener() {
@@ -728,7 +729,7 @@ public class MediaView extends FullScreenActivity
             new AsyncTask<Void, Void, JsonObject>() {
                 @Override
                 protected JsonObject doInBackground(Void... params) {
-                    return HttpUtil.getImgurMashapeJsonObject(Reddit.client, gson, apiUrl,
+                    return HttpUtil.getImgurMashapeJsonObject(App.client, gson, apiUrl,
                             mashapeKey);
                 }
 
@@ -810,7 +811,7 @@ public class MediaView extends FullScreenActivity
             new AsyncTask<Void, Void, JsonObject>() {
                 @Override
                 protected JsonObject doInBackground(Void... params) {
-                    return HttpUtil.getJsonObject(Reddit.client, gson, apiUrl);
+                    return HttpUtil.getJsonObject(App.client, gson, apiUrl);
                 }
 
                 @Override
@@ -863,7 +864,7 @@ public class MediaView extends FullScreenActivity
         new AsyncTask<Void, Void, JsonObject>() {
             @Override
             protected JsonObject doInBackground(Void... params) {
-                return HttpUtil.getJsonObject(Reddit.client, gson, apiUrl);
+                return HttpUtil.getJsonObject(App.client, gson, apiUrl);
             }
 
             @Override
@@ -969,7 +970,7 @@ public class MediaView extends FullScreenActivity
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == 3) {
-            Reddit.appRestart.edit().putBoolean("tutorialSwipe", true).apply();
+            Preferences.INSTANCE.getAppRestart().edit().putBoolean("tutorialSwipe", true).apply();
         }
     }
 
@@ -1000,7 +1001,7 @@ public class MediaView extends FullScreenActivity
             fakeImage.setLayoutParams(new LinearLayout.LayoutParams(i.getWidth(), i.getHeight()));
             fakeImage.setScaleType(ImageView.ScaleType.CENTER_CROP);
 
-            File f = ((Reddit) getApplicationContext()).getImageLoader().getDiskCache().get(url);
+            File f = ((App) getApplicationContext()).getImageLoader().getDiskCache().get(url);
             if (f != null && f.exists()) {
                 imageShown = true;
 
@@ -1075,7 +1076,7 @@ public class MediaView extends FullScreenActivity
             } else {
                 final TextView size = (TextView) findViewById(R.id.size);
 
-                ((Reddit) getApplication()).getImageLoader()
+                ((App) getApplication()).getImageLoader()
                         .displayImage(url, new ImageViewAware(fakeImage),
                                 new DisplayImageOptions.Builder().resetViewBeforeLoading(true)
                                         .cacheOnDisk(true)
@@ -1102,7 +1103,7 @@ public class MediaView extends FullScreenActivity
                                         imageShown = true;
                                         size.setVisibility(View.GONE);
 
-                                        File f = ((Reddit) getApplicationContext()).getImageLoader()
+                                        File f = ((App) getApplicationContext()).getImageLoader()
                                                 .getDiskCache()
                                                 .get(url);
                                         if (f != null && f.exists()) {
@@ -1213,7 +1214,7 @@ public class MediaView extends FullScreenActivity
             i.putExtra("index", index);
             startService(i);
         } else {
-            Reddit.appRestart.edit().putString("imagelocation", folder.getAbsolutePath()).apply();
+            Preferences.INSTANCE.getAppRestart().edit().putString("imagelocation", folder.getAbsolutePath()).apply();
             Toast.makeText(this,
                     getString(R.string.settings_set_image_location, folder.getAbsolutePath()),
                     Toast.LENGTH_LONG).show();

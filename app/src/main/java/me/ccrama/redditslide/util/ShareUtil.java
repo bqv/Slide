@@ -14,14 +14,14 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 
 import ltd.ucode.slide.R;
-import ltd.ucode.slide.Reddit;
+import ltd.ucode.slide.App;
 
 public class ShareUtil {
     private ShareUtil() {
     }
 
     public static void shareImage(final String finalUrl, final Context context) {
-        ((Reddit) context.getApplicationContext()).getImageLoader()
+        ((App) context.getApplicationContext()).getImageLoader()
                 .loadImage(finalUrl, new SimpleImageLoadingListener() {
                     @Override
                     public void onLoadingComplete(String imageUri, View view, Bitmap loadedImage) {

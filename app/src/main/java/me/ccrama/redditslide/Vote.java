@@ -14,7 +14,7 @@ import net.dean.jraw.models.VoteDirection;
 
 import ltd.ucode.slide.Authentication;
 import ltd.ucode.slide.R;
-import ltd.ucode.slide.Reddit;
+import ltd.ucode.slide.App;
 import me.ccrama.redditslide.util.LayoutUtils;
 
 /**
@@ -30,7 +30,7 @@ public class Vote extends AsyncTask<PublicContribution, Void, Void> {
         direction = b ? VoteDirection.UPVOTE : VoteDirection.DOWNVOTE;
         this.v = v;
         this.c = c;
-        Reddit.setDefaultErrorHandler(c);
+        App.setDefaultErrorHandler(c);
     }
 
     public Vote(View v, Context c) {

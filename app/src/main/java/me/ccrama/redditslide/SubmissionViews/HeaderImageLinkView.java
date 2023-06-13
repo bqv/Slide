@@ -42,7 +42,7 @@ import me.ccrama.redditslide.ForceTouch.callback.OnRemove;
 import me.ccrama.redditslide.ForceTouch.callback.SimpleOnPeek;
 import me.ccrama.redditslide.HasSeen;
 import ltd.ucode.slide.R;
-import ltd.ucode.slide.Reddit;
+import ltd.ucode.slide.App;
 import me.ccrama.redditslide.SettingValues;
 import me.ccrama.redditslide.Views.PeekMediaView;
 import me.ccrama.redditslide.Views.TransparentTagTextView;
@@ -333,10 +333,10 @@ public class HeaderImageLinkView extends RelativeLayout {
 
                         loadedUrl = url;
                         if (!full) {
-                            ((Reddit) getContext().getApplicationContext()).getImageLoader()
+                            ((App) getContext().getApplicationContext()).getImageLoader()
                                     .displayImage(url, thumbImage2);
                         } else {
-                            ((Reddit) getContext().getApplicationContext()).getImageLoader()
+                            ((App) getContext().getApplicationContext()).getImageLoader()
                                     .displayImage(url, thumbImage2, bigOptions);
                         }
                     } else {
@@ -347,10 +347,10 @@ public class HeaderImageLinkView extends RelativeLayout {
                 } else {
                     loadedUrl = url;
                     if (!full) {
-                        ((Reddit) getContext().getApplicationContext()).getImageLoader()
+                        ((App) getContext().getApplicationContext()).getImageLoader()
                                 .displayImage(url, backdrop);
                     } else {
-                        ((Reddit) getContext().getApplicationContext()).getImageLoader()
+                        ((App) getContext().getApplicationContext()).getImageLoader()
                                 .displayImage(url, backdrop, bigOptions);
                     }
                     setVisibility(View.VISIBLE);
@@ -402,7 +402,7 @@ public class HeaderImageLinkView extends RelativeLayout {
                         wrapArea.setVisibility(View.VISIBLE);
                     }
                     loadedUrl = url;
-                    ((Reddit) getContext().getApplicationContext()).getImageLoader()
+                    ((App) getContext().getApplicationContext()).getImageLoader()
                             .displayImage(url, thumbImage2);
                     setVisibility(View.GONE);
 
@@ -410,10 +410,10 @@ public class HeaderImageLinkView extends RelativeLayout {
                     loadedUrl = url;
 
                     if (!full) {
-                        ((Reddit) getContext().getApplicationContext()).getImageLoader()
+                        ((App) getContext().getApplicationContext()).getImageLoader()
                                 .displayImage(url, backdrop);
                     } else {
-                        ((Reddit) getContext().getApplicationContext()).getImageLoader()
+                        ((App) getContext().getApplicationContext()).getImageLoader()
                                 .displayImage(url, backdrop, bigOptions);
                     }
                     setVisibility(View.VISIBLE);
@@ -436,7 +436,7 @@ public class HeaderImageLinkView extends RelativeLayout {
                 }
                 loadedUrl = url;
 
-                ((Reddit) getContext().getApplicationContext()).getImageLoader()
+                ((App) getContext().getApplicationContext()).getImageLoader()
                         .displayImage(url, thumbImage2);
                 setVisibility(View.GONE);
 
@@ -557,7 +557,7 @@ public class HeaderImageLinkView extends RelativeLayout {
                         peekView.addButton((R.id.share), new OnButtonUp() {
                             @Override
                             public void onButtonUp() {
-                                Reddit.defaultShareText("", url, rootView.getContext());
+                                App.defaultShareText("", url, rootView.getContext());
                             }
                         });
 
@@ -622,7 +622,7 @@ public class HeaderImageLinkView extends RelativeLayout {
                                 LinkUtil.openExternally(url);
                                 break;
                             case R.id.share_link:
-                                Reddit.defaultShareText("", url, finalActivity);
+                                App.defaultShareText("", url, finalActivity);
                                 break;
                             case R.id.copy_link:
                                 LinkUtil.copyUrl(url, finalActivity);

@@ -38,7 +38,7 @@ import ltd.ucode.slide.Authentication;
 import me.ccrama.redditslide.CaseInsensitiveArrayList;
 import me.ccrama.redditslide.Fragments.NewsView;
 import ltd.ucode.slide.R;
-import ltd.ucode.slide.Reddit;
+import ltd.ucode.slide.App;
 import me.ccrama.redditslide.SettingValues;
 import me.ccrama.redditslide.Synccit.MySynccitUpdateTask;
 import me.ccrama.redditslide.Synccit.SynccitRead;
@@ -197,7 +197,7 @@ public class NewsActivity extends BaseActivity
             restartTheme();
         }
 
-        Reddit.setDefaultErrorHandler(this);
+        App.setDefaultErrorHandler(this);
     }
 
     @Override
@@ -355,7 +355,7 @@ public class NewsActivity extends BaseActivity
 
                 @Override
                 public void onPageSelected(final int position) {
-                    Reddit.currentPosition = position;
+                    App.currentPosition = position;
                     selectedSub = usedArray.get(position);
                     NewsView page = (NewsView) adapter.getCurrentFragment();
 

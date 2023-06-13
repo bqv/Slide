@@ -99,7 +99,7 @@ import me.ccrama.redditslide.OfflineSubreddit;
 import me.ccrama.redditslide.OpenRedditLink;
 import me.ccrama.redditslide.PostMatch;
 import ltd.ucode.slide.R;
-import ltd.ucode.slide.Reddit;
+import ltd.ucode.slide.App;
 import me.ccrama.redditslide.SettingValues;
 import me.ccrama.redditslide.SubmissionCache;
 import me.ccrama.redditslide.Toolbox.ToolboxUI;
@@ -874,7 +874,7 @@ public class PopulateSubmissionViewHolder {
                         }
                         break;
                     case 4:
-                        Reddit.defaultShareText(CompatUtil.fromHtml(submission.getTitle()).toString(),
+                        App.defaultShareText(CompatUtil.fromHtml(submission.getTitle()).toString(),
                                 StringEscapeUtils.escapeHtml4(submission.getUrl()), mContext);
                         break;
                     case 12:
@@ -959,9 +959,9 @@ public class PopulateSubmissionViewHolder {
                         break;
                     case 8:
                         if(SettingValues.shareLongLink){
-                            Reddit.defaultShareText(submission.getTitle(), "https://reddit.com" + submission.getPermalink(), mContext);
+                            App.defaultShareText(submission.getTitle(), "https://reddit.com" + submission.getPermalink(), mContext);
                         } else {
-                            Reddit.defaultShareText(submission.getTitle(), "https://redd.it/" + submission.getId(), mContext);
+                            App.defaultShareText(submission.getTitle(), "https://redd.it/" + submission.getId(), mContext);
                         }
                         break;
                     case 6: {
@@ -2614,7 +2614,7 @@ public class PopulateSubmissionViewHolder {
                 && submission.getDataNode().get("crosspost_parent_list").get(0) != null)) {
             holder.itemView.findViewById(R.id.crosspost).setVisibility(View.VISIBLE);
             ((TextView)holder.itemView.findViewById(R.id.crossinfo)).setText(SubmissionCache.getCrosspostLine(submission, mContext));
-            ((Reddit) mContext.getApplicationContext()).getImageLoader()
+            ((App) mContext.getApplicationContext()).getImageLoader()
                     .displayImage(submission.getDataNode().get("crosspost_parent_list").get(0).get("thumbnail").asText(), ((ImageView)holder.itemView.findViewById(R.id.crossthumb)));
             holder.itemView.findViewById(R.id.crosspost).setOnClickListener(new View.OnClickListener() {
                 @Override

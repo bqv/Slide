@@ -8,6 +8,7 @@ import android.os.AsyncTask;
 import android.widget.Toast;
 
 import ltd.ucode.slide.Authentication;
+import ltd.ucode.slide.Preferences;
 import ltd.ucode.slide.R;
 
 import net.dean.jraw.ApiException;
@@ -29,7 +30,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import ltd.ucode.slide.Reddit;
+import ltd.ucode.slide.App;
 import me.ccrama.redditslide.Activities.Login;
 import ltd.ucode.slide.activity.MainActivity;
 import me.ccrama.redditslide.Activities.MultiredditOverview;
@@ -382,10 +383,10 @@ public class UserSubscriptions {
     }
 
     public static void switchAccounts() {
-        SharedPreferences.Editor editor = Reddit.appRestart.edit();
+        SharedPreferences.Editor editor = Preferences.INSTANCE.getAppRestart().edit();
         editor.putBoolean("back", true);
         editor.putString("subs", "");
-        Authentication.authentication.edit().remove("backedCreds").remove("expires").commit();
+        Preferences.INSTANCE.getAuthentication().edit().remove("backedCreds").remove("expires").commit();
         editor.putBoolean("loggedin", Authentication.isLoggedIn);
         editor.putString("name", Authentication.name);
         editor.commit();

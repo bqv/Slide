@@ -23,6 +23,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import ltd.ucode.slide.Authentication;
+import ltd.ucode.slide.Preferences;
 import me.ccrama.redditslide.Autocache.AutoCacheScheduler;
 import me.ccrama.redditslide.Fragments.BlankFragment;
 import me.ccrama.redditslide.Fragments.CommentPage;
@@ -30,7 +31,7 @@ import me.ccrama.redditslide.HasSeen;
 import me.ccrama.redditslide.LastComments;
 import me.ccrama.redditslide.Notifications.NotificationJobScheduler;
 import ltd.ucode.slide.R;
-import ltd.ucode.slide.Reddit;
+import ltd.ucode.slide.App;
 import me.ccrama.redditslide.SettingValues;
 import me.ccrama.redditslide.SwipeLayout.Utils;
 import me.ccrama.redditslide.UserSubscriptions;
@@ -101,7 +102,7 @@ public class CommentsScreenSingle extends BaseActivityAnim {
 
         contextNumber = getIntent().getExtras().getInt(EXTRA_CONTEXT_NUMBER, 5);
 
-        if (subreddit.equals(Reddit.EMPTY_STRING)) {
+        if (subreddit.equals(App.EMPTY_STRING)) {
             new AsyncGetSubredditName().execute(name);
             TypedValue typedValue = new TypedValue();
             getTheme().resolveAttribute(R.attr.activity_background, typedValue, true);
@@ -122,18 +123,18 @@ public class CommentsScreenSingle extends BaseActivityAnim {
                             Authentication.me = Authentication.reddit.me();
                             Authentication.mod = Authentication.me.isMod();
 
-                            Authentication.authentication.edit()
-                                    .putBoolean(Reddit.SHARED_PREF_IS_MOD, Authentication.mod)
+                            Preferences.INSTANCE.getAuthentication().edit()
+                                    .putBoolean(App.SHARED_PREF_IS_MOD, Authentication.mod)
                                     .apply();
 
-                            if (Reddit.notificationTime != -1) {
-                                Reddit.notifications = new NotificationJobScheduler(CommentsScreenSingle.this);
-                                Reddit.notifications.start();
+                            if (App.notificationTime != -1) {
+                                App.notifications = new NotificationJobScheduler(CommentsScreenSingle.this);
+                                App.notifications.start();
                             }
 
-                            if (Reddit.cachedData.contains("toCache")) {
-                                Reddit.autoCache = new AutoCacheScheduler(CommentsScreenSingle.this);
-                                Reddit.autoCache.start();
+                            if (App.cachedData.contains("toCache")) {
+                                App.autoCache = new AutoCacheScheduler(CommentsScreenSingle.this);
+                                App.autoCache.start();
                             }
 
                             final String name = Authentication.me.getFullName();
@@ -143,16 +144,16 @@ public class CommentsScreenSingle extends BaseActivityAnim {
 
                             if (Authentication.reddit.isAuthenticated()) {
                                 final Set<String> accounts =
-                                        Authentication.authentication.getStringSet("accounts", new HashSet<String>());
+                                        Preferences.INSTANCE.getAuthentication().getStringSet("accounts", new HashSet<String>());
                                 if (accounts.contains(name)) { //convert to new system
                                     accounts.remove(name);
                                     accounts.add(name + ":" + Authentication.refresh);
-                                    Authentication.authentication.edit()
+                                    Preferences.INSTANCE.getAuthentication().edit()
                                             .putStringSet("accounts", accounts)
                                             .apply(); //force commit
                                 }
                                 Authentication.isLoggedIn = true;
-                                Reddit.notFirst = true;
+                                App.notFirst = true;
                             }
                         } catch (Exception e){
                             new Authentication(getApplicationContext());
@@ -292,7 +293,7 @@ public class CommentsScreenSingle extends BaseActivityAnim {
                 args.putString("context", context);
                 if (SettingValues.storeHistory) {
                     if (context != null && !context.isEmpty() && !context.equals(
-                            Reddit.EMPTY_STRING)) {
+                            App.EMPTY_STRING)) {
                         HasSeen.addSeen("t1_" + context);
                     } else {
                         HasSeen.addSeen(name);

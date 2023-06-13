@@ -9,7 +9,7 @@ import android.widget.ImageView;
 
 import me.ccrama.redditslide.ContentType;
 import ltd.ucode.slide.R;
-import ltd.ucode.slide.Reddit;
+import ltd.ucode.slide.App;
 import me.ccrama.redditslide.Views.ExoVideoView;
 import me.ccrama.redditslide.util.GifUtils;
 
@@ -56,7 +56,7 @@ public class ForceTouchLink extends BaseActivityAnim {
             case VIDEO:
                 break;
             case IMAGE:
-                ((Reddit)getApplication()).getImageLoader().displayImage(url, mainImage);
+                ((App)getApplication()).getImageLoader().displayImage(url, mainImage);
 
                 break;
             case GIF:
@@ -78,7 +78,7 @@ public class ForceTouchLink extends BaseActivityAnim {
 
                     @Override
                     protected void onPostExecute(Void aVoid) {
-                        ((Reddit)getApplication()).getImageLoader().displayImage(urlGotten, mainImage);
+                        ((App)getApplication()).getImageLoader().displayImage(urlGotten, mainImage);
                     }
                 }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
                 break;

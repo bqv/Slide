@@ -19,7 +19,7 @@ import me.ccrama.redditslide.LastComments;
 import me.ccrama.redditslide.OfflineSubreddit;
 import me.ccrama.redditslide.PostLoader;
 import me.ccrama.redditslide.PostMatch;
-import ltd.ucode.slide.Reddit;
+import ltd.ucode.slide.App;
 import me.ccrama.redditslide.SettingValues;
 import me.ccrama.redditslide.SubmissionCache;
 import me.ccrama.redditslide.Synccit.MySynccitReadTask;
@@ -197,7 +197,7 @@ public class MultiredditPosts implements PostLoader {
             } catch (Exception e) {
                 e.printStackTrace();
                 if (e.getMessage().contains("Forbidden")) {
-                    Reddit.authentication.updateToken(context);
+                    App.authentication.updateToken(context);
                 }
 
             }

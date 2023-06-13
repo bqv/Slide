@@ -67,6 +67,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
 
+import ltd.ucode.slide.Preferences;
 import me.ccrama.redditslide.ActionStates;
 import me.ccrama.redditslide.Activities.BaseActivity;
 import ltd.ucode.slide.Authentication;
@@ -79,7 +80,7 @@ import me.ccrama.redditslide.ImageFlairs;
 import me.ccrama.redditslide.LastComments;
 import me.ccrama.redditslide.OpenRedditLink;
 import ltd.ucode.slide.R;
-import ltd.ucode.slide.Reddit;
+import ltd.ucode.slide.App;
 import me.ccrama.redditslide.SettingValues;
 import me.ccrama.redditslide.SpoilerRobotoTextView;
 import me.ccrama.redditslide.SubmissionViews.PopulateSubmissionViewHolder;
@@ -691,7 +692,7 @@ public class CommentAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                 public void onClick(View v) {
                     final HashMap<String, String> accounts = new HashMap<>();
 
-                    for (String s : Authentication.authentication.getStringSet("accounts",
+                    for (String s : Preferences.INSTANCE.getAuthentication().getStringSet("accounts",
                             new HashSet<String>())) {
                         if (s.contains(":")) {
                             accounts.put(s.split(":")[0], s.split(":")[1]);
@@ -1226,7 +1227,7 @@ public class CommentAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                         public void onClick(View v) {
                             final HashMap<String, String> accounts = new HashMap<>();
 
-                            for (String s : Authentication.authentication.getStringSet("accounts",
+                            for (String s : Preferences.INSTANCE.getAuthentication().getStringSet("accounts",
                                     new HashSet<String>())) {
                                 if (s.contains(":")) {
                                     accounts.put(s.split(":")[0], s.split(":")[1]);
@@ -1316,7 +1317,7 @@ public class CommentAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                             public void onClick(View v) {
                                 final HashMap<String, String> accounts = new HashMap<>();
 
-                                for (String s : Authentication.authentication.getStringSet(
+                                for (String s : Preferences.INSTANCE.getAuthentication().getStringSet(
                                         "accounts", new HashSet<String>())) {
                                     if (s.contains(":")) {
                                         accounts.put(s.split(":")[0], s.split(":")[1]);
@@ -2123,7 +2124,7 @@ public class CommentAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                                             .setMessage(R.string.err_refused_request_msg)
                                             .setNegativeButton(R.string.btn_no, null)
                                             .setPositiveButton(R.string.btn_yes, (dialog, which) ->
-                                                    Reddit.authentication.updateToken(mContext))
+                                                    App.authentication.updateToken(mContext))
                                             .show();
                                 } catch (Exception ignored) {
 
@@ -2343,10 +2344,10 @@ public class CommentAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     private RedditClient getAuthenticatedClient(String profileName) {
         String token;
         RedditClient reddit = new RedditClient(
-                UserAgent.of("android:me.ccrama.RedditSlide:v" + BuildConfig.VERSION_NAME));
+                UserAgent.of("android:ltd.ucode.slide:v" + BuildConfig.VERSION_NAME));
         final HashMap<String, String> accounts = new HashMap<>();
 
-        for (String s : Authentication.authentication.getStringSet("accounts",
+        for (String s : Preferences.INSTANCE.getAuthentication().getStringSet("accounts",
                 new HashSet<String>())) {
             if (s.contains(":")) {
                 accounts.put(s.split(":")[0], s.split(":")[1]);
@@ -2359,7 +2360,7 @@ public class CommentAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             token = accounts.get(profileName);
         } else {
             ArrayList<String> tokens = new ArrayList<>(
-                    Authentication.authentication.getStringSet("tokens", new HashSet<String>()));
+                    Preferences.INSTANCE.getAuthentication().getStringSet("tokens", new HashSet<String>()));
             int index = keys.indexOf(profileName);
             if (keys.indexOf(profileName) > tokens.size()) {
                 index -= 1;

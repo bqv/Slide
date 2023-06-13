@@ -57,7 +57,7 @@ import ltd.ucode.slide.Authentication;
 import me.ccrama.redditslide.Fragments.ContributionsView;
 import me.ccrama.redditslide.Fragments.HistoryView;
 import ltd.ucode.slide.R;
-import ltd.ucode.slide.Reddit;
+import ltd.ucode.slide.App;
 import me.ccrama.redditslide.UserTags;
 import me.ccrama.redditslide.Visuals.ColorPreferences;
 import me.ccrama.redditslide.Visuals.Palette;
@@ -526,7 +526,7 @@ public class Profile extends BaseActivityAnim {
                     dialoglayout.findViewById(R.id.share).setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
-                            Reddit.defaultShareText(getString(R.string.profile_share, name),
+                            App.defaultShareText(getString(R.string.profile_share, name),
                                     "https://www.reddit.com/u/" + name, Profile.this);
                         }
                     });
@@ -600,7 +600,7 @@ public class Profile extends BaseActivityAnim {
                     } else {
                         for (final Trophy t : trophyCase) {
                             View view = getLayoutInflater().inflate(R.layout.trophy, null);
-                            ((Reddit) getApplicationContext()).getImageLoader().displayImage(t.getIcon(), ((ImageView) view.findViewById(R.id.image)));
+                            ((App) getApplicationContext()).getImageLoader().displayImage(t.getIcon(), ((ImageView) view.findViewById(R.id.image)));
                             ((TextView) view.findViewById(R.id.trophyTitle)).setText(t.getFullName());
                             if (t.getAboutUrl() != null && !t.getAboutUrl().equalsIgnoreCase("null")) {
                                 view.setOnClickListener(new View.OnClickListener() {

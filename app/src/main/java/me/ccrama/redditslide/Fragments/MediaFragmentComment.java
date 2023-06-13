@@ -43,7 +43,7 @@ import me.ccrama.redditslide.Adapters.CommentUrlObject;
 import me.ccrama.redditslide.ContentType;
 import me.ccrama.redditslide.OpenRedditLink;
 import ltd.ucode.slide.R;
-import ltd.ucode.slide.Reddit;
+import ltd.ucode.slide.App;
 import me.ccrama.redditslide.SecretConstants;
 import me.ccrama.redditslide.SettingValues;
 import me.ccrama.redditslide.SubmissionViews.PopulateShadowboxInfo;
@@ -199,7 +199,7 @@ public class MediaFragmentComment extends Fragment {
         s = ShadowboxComments.comments.get(i);
         sub = s.comment.getComment().getSubredditName();
         contentUrl = bundle.getString("contentUrl");
-        client = Reddit.client;
+        client = App.client;
         gson = new Gson();
         mashapeKey = SecretConstants.getImgurApiKey(getContext());
     }
@@ -540,7 +540,7 @@ public class MediaFragmentComment extends Fragment {
             fakeImage.setLayoutParams(new LinearLayout.LayoutParams(i.getWidth(), i.getHeight()));
             fakeImage.setScaleType(ImageView.ScaleType.CENTER_CROP);
 
-            File f = ((Reddit) getActivity().getApplicationContext()).getImageLoader()
+            File f = ((App) getActivity().getApplicationContext()).getImageLoader()
                     .getDiskCache()
                     .get(url);
             if (f != null && f.exists()) {
@@ -594,7 +594,7 @@ public class MediaFragmentComment extends Fragment {
                     }
                 });
             } else {
-                ((Reddit) getActivity().getApplicationContext()).getImageLoader()
+                ((App) getActivity().getApplicationContext()).getImageLoader()
                         .displayImage(url, new ImageViewAware(fakeImage),
                                 new DisplayImageOptions.Builder().resetViewBeforeLoading(true)
                                         .cacheOnDisk(true)
@@ -621,7 +621,7 @@ public class MediaFragmentComment extends Fragment {
                                         File f = null;
                                         if (getActivity() != null) {
                                             f =
-                                                    ((Reddit) getActivity().getApplicationContext())
+                                                    ((App) getActivity().getApplicationContext())
                                                             .getImageLoader()
                                                             .getDiskCache()
                                                             .get(url);
