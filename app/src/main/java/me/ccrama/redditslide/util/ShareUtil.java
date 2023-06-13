@@ -13,7 +13,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
-import me.ccrama.redditslide.R;
+import ltd.ucode.slide.R;
 import me.ccrama.redditslide.Reddit;
 
 public class ShareUtil {

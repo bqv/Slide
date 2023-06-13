@@ -10,7 +10,7 @@ android {
     buildToolsVersion "30.0.3"
 
     defaultConfig {
-        applicationId "me.ccrama.redditslide"
+        applicationId "ltd.ucode.slide"
         minSdk 16
         targetSdk 34
         versionCode 337
@@ -79,7 +79,7 @@ android {
         aidl true
     }
 
-    namespace 'me.ccrama.redditslide'
+    namespace 'ltd.ucode.slide'
 }
 
 dependencies {

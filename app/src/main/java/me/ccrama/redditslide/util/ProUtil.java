@@ -5,7 +5,7 @@ import android.content.Context;
 import androidx.annotation.StringRes;
 import androidx.appcompat.app.AlertDialog;
 
-import me.ccrama.redditslide.R;
+import ltd.ucode.slide.R;
 
 /**
  * Created by TacoTheDank on 04/04/2021.

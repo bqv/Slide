@@ -7,7 +7,7 @@ import android.widget.RelativeLayout;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import me.ccrama.redditslide.R;
+import ltd.ucode.slide.R;
 import me.ccrama.redditslide.Reddit;
 import me.ccrama.redditslide.util.DisplayUtil;
 

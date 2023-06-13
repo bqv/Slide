@@ -11,7 +11,7 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import java.util.ArrayList;
 import java.util.List;
 
-import me.ccrama.redditslide.R;
+import ltd.ucode.slide.R;
 
 /**
  * Drawer that allows for horizontal scrolling views.

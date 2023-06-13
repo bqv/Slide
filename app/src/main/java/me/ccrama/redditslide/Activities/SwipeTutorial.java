@@ -3,7 +3,7 @@ package me.ccrama.redditslide.Activities;
 import android.os.Bundle;
 import android.widget.TextView;
 
-import me.ccrama.redditslide.R;
+import ltd.ucode.slide.R;
 
 
 /**

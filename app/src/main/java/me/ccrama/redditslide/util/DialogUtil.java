@@ -7,7 +7,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import me.ccrama.redditslide.Fragments.FolderChooserDialogCreate;
-import me.ccrama.redditslide.R;
+import ltd.ucode.slide.R;
 
 /**
  * Created by TacoTheDank on 07/14/2021.

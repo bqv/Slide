@@ -8,7 +8,7 @@ import android.widget.RelativeLayout;
 
 import androidx.fragment.app.Fragment;
 
-import me.ccrama.redditslide.R;
+import ltd.ucode.slide.R;
 
 public class BlankFragment extends Fragment {
     public View v2;

@@ -34,7 +34,7 @@ import java.util.List;
 import java.util.Locale;
 
 import me.ccrama.redditslide.Activities.DeleteFile;
-import me.ccrama.redditslide.R;
+import ltd.ucode.slide.R;
 import me.ccrama.redditslide.Reddit;
 import me.ccrama.redditslide.SettingValues;
 import me.ccrama.redditslide.util.FileUtil;

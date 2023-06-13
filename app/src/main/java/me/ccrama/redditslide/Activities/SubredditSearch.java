@@ -16,7 +16,7 @@ import com.afollestad.materialdialogs.DialogAction;
 import com.afollestad.materialdialogs.MaterialDialog;
 
 import me.ccrama.redditslide.Fragments.SubredditListView;
-import me.ccrama.redditslide.R;
+import ltd.ucode.slide.R;
 
 /**
  * Created by ccrama on 9/17/2015.

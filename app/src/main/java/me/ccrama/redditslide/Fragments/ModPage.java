@@ -13,7 +13,7 @@ import me.ccrama.redditslide.Activities.ModQueue;
 import me.ccrama.redditslide.Adapters.ModeratorAdapter;
 import me.ccrama.redditslide.Adapters.ModeratorPosts;
 import me.ccrama.redditslide.Constants;
-import me.ccrama.redditslide.R;
+import ltd.ucode.slide.R;
 import me.ccrama.redditslide.Views.PreCachingLayoutManager;
 import me.ccrama.redditslide.Visuals.Palette;
 import me.ccrama.redditslide.handler.ToolbarScrollHideHandler;

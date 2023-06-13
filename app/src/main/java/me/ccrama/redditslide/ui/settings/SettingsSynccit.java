@@ -13,7 +13,7 @@ import com.afollestad.materialdialogs.MaterialDialog;
 import java.util.Collections;
 
 import me.ccrama.redditslide.Activities.BaseActivityAnim;
-import me.ccrama.redditslide.R;
+import ltd.ucode.slide.R;
 import me.ccrama.redditslide.SettingValues;
 import me.ccrama.redditslide.Synccit.MySynccitReadTask;
 import me.ccrama.redditslide.Synccit.MySynccitUpdateTask;

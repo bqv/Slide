@@ -15,7 +15,7 @@ import me.ccrama.redditslide.Adapters.CommentAdapterSearch;
 import me.ccrama.redditslide.Adapters.CommentItem;
 import me.ccrama.redditslide.Adapters.CommentObject;
 import me.ccrama.redditslide.DataShare;
-import me.ccrama.redditslide.R;
+import ltd.ucode.slide.R;
 import me.ccrama.redditslide.Views.PreCachingLayoutManager;
 import me.ccrama.redditslide.util.stubs.SimpleTextWatcher;
 

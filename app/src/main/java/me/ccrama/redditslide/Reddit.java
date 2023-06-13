@@ -58,6 +58,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 
+import ltd.ucode.slide.BuildConfig;
+import ltd.ucode.slide.R;
 import me.ccrama.redditslide.Activities.MainActivity;
 import me.ccrama.redditslide.Autocache.AutoCacheScheduler;
 import me.ccrama.redditslide.ImgurAlbum.AlbumUtils;
@@ -448,10 +450,6 @@ public class Reddit extends MultiDexApplication implements Application.ActivityL
         KVStore.init(this, "SEEN");
         doLanguages();
         lastPosition = new ArrayList<>();
-
-        if (BuildConfig.FLAVOR == "withGPlay") {
-            new SetupIAB().execute();
-        }
 
         if (!appRestart.contains("startScreen")) {
             Authentication.isLoggedIn = appRestart.getBoolean("loggedin", false);

@@ -11,7 +11,7 @@ import android.view.animation.AccelerateDecelerateInterpolator;
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator;
 
 import io.codetail.animation.ViewAnimationUtils;
-import me.ccrama.redditslide.R;
+import ltd.ucode.slide.R;
 
 /**
  * Created by TacoTheDank on 03/15/2021.

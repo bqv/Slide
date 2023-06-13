@@ -6,6 +6,8 @@ import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.net.Uri;
 
+import ltd.ucode.slide.R;
+
 import net.dean.jraw.models.Submission;
 
 import java.net.URI;

@@ -13,7 +13,7 @@ import net.dean.jraw.models.Submission;
 import me.ccrama.redditslide.Activities.MediaView;
 import me.ccrama.redditslide.Authentication;
 import me.ccrama.redditslide.Fragments.SubmissionsView;
-import me.ccrama.redditslide.R;
+import ltd.ucode.slide.R;
 import me.ccrama.redditslide.util.LayoutUtils;
 
 /**

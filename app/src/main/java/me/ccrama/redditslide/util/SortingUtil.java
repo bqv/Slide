@@ -17,7 +17,7 @@ import java.util.Locale;
 import java.util.Map;
 
 import me.ccrama.redditslide.Activities.Search;
-import me.ccrama.redditslide.R;
+import ltd.ucode.slide.R;
 import me.ccrama.redditslide.Reddit;
 import me.ccrama.redditslide.Visuals.ColorPreferences;
 

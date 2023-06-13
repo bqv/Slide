@@ -5,7 +5,7 @@ import android.content.res.Resources;
 
 import net.dean.jraw.paginators.TimePeriod;
 
-import me.ccrama.redditslide.R;
+import ltd.ucode.slide.R;
 
 /**
  * Created by ccrama on 3/1/2015.

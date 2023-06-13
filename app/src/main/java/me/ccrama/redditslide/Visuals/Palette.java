@@ -6,7 +6,7 @@ import android.util.TypedValue;
 
 import java.util.Locale;
 
-import me.ccrama.redditslide.R;
+import ltd.ucode.slide.R;
 import me.ccrama.redditslide.Reddit;
 
 public class Palette {

@@ -21,7 +21,7 @@ import java.util.Locale;
 
 import me.ccrama.redditslide.Activities.SubredditView;
 import me.ccrama.redditslide.Fragments.SubredditListView;
-import me.ccrama.redditslide.R;
+import ltd.ucode.slide.R;
 import me.ccrama.redditslide.SpoilerRobotoTextView;
 import me.ccrama.redditslide.Views.CatchStaggeredGridLayoutManager;
 import me.ccrama.redditslide.Views.CommentOverflow;

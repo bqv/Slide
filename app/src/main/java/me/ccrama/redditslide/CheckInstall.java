@@ -7,6 +7,7 @@ package me.ccrama.redditslide;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import ltd.ucode.slide.R;
 
 import com.jakewharton.processphoenix.ProcessPhoenix;
 

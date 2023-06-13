@@ -1,5 +1,6 @@
 package me.ccrama.redditslide;
 
+import ltd.ucode.slide.R;
 import java.util.Locale;
 
 /**

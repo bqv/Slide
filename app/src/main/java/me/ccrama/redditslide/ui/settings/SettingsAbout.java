@@ -9,9 +9,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import me.ccrama.redditslide.Activities.BaseActivityAnim;
-import me.ccrama.redditslide.BuildConfig;
+import ltd.ucode.slide.BuildConfig;
 import me.ccrama.redditslide.OpenRedditLink;
-import me.ccrama.redditslide.R;
+import ltd.ucode.slide.R;
 import me.ccrama.redditslide.util.ClipboardUtil;
 import me.ccrama.redditslide.util.LinkUtil;
 

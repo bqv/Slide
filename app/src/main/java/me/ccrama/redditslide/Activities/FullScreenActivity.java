@@ -4,7 +4,7 @@ import android.os.Bundle;
 import android.view.ViewTreeObserver;
 import android.view.Window;
 
-import me.ccrama.redditslide.R;
+import ltd.ucode.slide.R;
 import me.ccrama.redditslide.Reddit;
 import me.ccrama.redditslide.Visuals.Palette;
 

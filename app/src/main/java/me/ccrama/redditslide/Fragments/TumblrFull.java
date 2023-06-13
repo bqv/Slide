@@ -24,7 +24,7 @@ import java.util.List;
 import me.ccrama.redditslide.Activities.CommentsScreen;
 import me.ccrama.redditslide.Activities.Shadowbox;
 import me.ccrama.redditslide.Adapters.TumblrView;
-import me.ccrama.redditslide.R;
+import ltd.ucode.slide.R;
 import me.ccrama.redditslide.SubmissionViews.PopulateShadowboxInfo;
 import me.ccrama.redditslide.Tumblr.Photo;
 import me.ccrama.redditslide.Tumblr.TumblrUtils;

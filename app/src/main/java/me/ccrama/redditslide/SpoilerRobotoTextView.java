@@ -43,6 +43,8 @@ import androidx.core.content.ContextCompat;
 import com.cocosw.bottomsheet.BottomSheet;
 import com.devspark.robototextview.widget.RobotoTextView;
 
+import ltd.ucode.slide.R;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringEscapeUtils;
 

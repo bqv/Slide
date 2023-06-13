@@ -16,7 +16,7 @@ import me.ccrama.redditslide.Adapters.CommentUrlObject;
 import me.ccrama.redditslide.ContentType;
 import me.ccrama.redditslide.Fragments.AlbumFullComments;
 import me.ccrama.redditslide.Fragments.MediaFragmentComment;
-import me.ccrama.redditslide.R;
+import ltd.ucode.slide.R;
 
 /**
  * Created by ccrama on 9/17/2015.

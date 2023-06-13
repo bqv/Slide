@@ -5,7 +5,7 @@ import android.widget.TextView;
 
 import androidx.appcompat.widget.SwitchCompat;
 
-import me.ccrama.redditslide.R;
+import ltd.ucode.slide.R;
 import me.ccrama.redditslide.SettingValues;
 
 public class SettingsCommentsFragment {

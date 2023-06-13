@@ -36,7 +36,7 @@ import android.view.View;
 import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.RecyclerView;
 
-import me.ccrama.redditslide.R;
+import ltd.ucode.slide.R;
 
 
 class DragSortRecycler extends RecyclerView.ItemDecoration implements RecyclerView.OnItemTouchListener {

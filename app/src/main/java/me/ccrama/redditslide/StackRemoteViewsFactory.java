@@ -13,6 +13,7 @@ import net.dean.jraw.models.Submission;
 import java.util.ArrayList;
 import java.util.List;
 
+import ltd.ucode.slide.R;
 import me.ccrama.redditslide.Adapters.SubredditPosts;
 import me.ccrama.redditslide.util.CompatUtil;
 import me.ccrama.redditslide.util.LogUtil;

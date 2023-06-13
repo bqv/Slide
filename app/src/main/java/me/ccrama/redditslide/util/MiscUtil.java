@@ -11,7 +11,7 @@ import android.widget.TextView;
 
 import me.ccrama.redditslide.Adapters.ProfileCommentViewHolder;
 import me.ccrama.redditslide.Authentication;
-import me.ccrama.redditslide.R;
+import ltd.ucode.slide.R;
 
 /**
  * Created by TacoTheDank on 03/15/2021.

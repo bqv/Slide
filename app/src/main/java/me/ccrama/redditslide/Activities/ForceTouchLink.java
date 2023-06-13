@@ -8,7 +8,7 @@ import android.view.Window;
 import android.widget.ImageView;
 
 import me.ccrama.redditslide.ContentType;
-import me.ccrama.redditslide.R;
+import ltd.ucode.slide.R;
 import me.ccrama.redditslide.Reddit;
 import me.ccrama.redditslide.Views.ExoVideoView;
 import me.ccrama.redditslide.util.GifUtils;

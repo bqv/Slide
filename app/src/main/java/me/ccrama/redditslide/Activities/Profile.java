@@ -56,7 +56,7 @@ import java.util.Map;
 import me.ccrama.redditslide.Authentication;
 import me.ccrama.redditslide.Fragments.ContributionsView;
 import me.ccrama.redditslide.Fragments.HistoryView;
-import me.ccrama.redditslide.R;
+import ltd.ucode.slide.R;
 import me.ccrama.redditslide.Reddit;
 import me.ccrama.redditslide.UserTags;
 import me.ccrama.redditslide.Visuals.ColorPreferences;

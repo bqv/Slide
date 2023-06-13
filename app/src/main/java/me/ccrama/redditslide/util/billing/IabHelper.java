@@ -38,7 +38,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import me.ccrama.redditslide.BuildConfig;
+import ltd.ucode.slide.BuildConfig;
 
 
 /**

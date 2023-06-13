@@ -9,7 +9,7 @@ import androidx.core.content.ContextCompat;
 import java.util.Map;
 import java.util.TreeMap;
 
-import me.ccrama.redditslide.R;
+import ltd.ucode.slide.R;
 
 /**
  * Created by carlo_000 on 2/8/2016.

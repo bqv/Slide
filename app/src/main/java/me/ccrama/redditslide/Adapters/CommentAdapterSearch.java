@@ -42,7 +42,7 @@ import java.util.List;
 import java.util.Locale;
 
 import me.ccrama.redditslide.Authentication;
-import me.ccrama.redditslide.R;
+import ltd.ucode.slide.R;
 import me.ccrama.redditslide.SettingValues;
 import me.ccrama.redditslide.UserSubscriptions;
 import me.ccrama.redditslide.UserTags;

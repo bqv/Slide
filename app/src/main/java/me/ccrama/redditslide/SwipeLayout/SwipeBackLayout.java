@@ -15,7 +15,7 @@ import android.widget.FrameLayout;
 import java.util.ArrayList;
 import java.util.List;
 
-import me.ccrama.redditslide.R;
+import ltd.ucode.slide.R;
 
 public class SwipeBackLayout extends FrameLayout {
     /**

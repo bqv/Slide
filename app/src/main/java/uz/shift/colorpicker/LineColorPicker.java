@@ -13,7 +13,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.LinearLayout;
 
-import me.ccrama.redditslide.R;
+import ltd.ucode.slide.R;
 
 public class LineColorPicker extends View {
 

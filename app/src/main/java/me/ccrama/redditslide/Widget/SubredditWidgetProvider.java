@@ -16,7 +16,7 @@ import android.widget.RemoteViews;
 import me.ccrama.redditslide.Activities.OpenContent;
 import me.ccrama.redditslide.Activities.SetupWidget;
 import me.ccrama.redditslide.Activities.SubredditView;
-import me.ccrama.redditslide.R;
+import ltd.ucode.slide.R;
 import me.ccrama.redditslide.Visuals.Palette;
 
 public class SubredditWidgetProvider extends AppWidgetProvider {

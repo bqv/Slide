@@ -21,10 +21,10 @@ import org.apache.commons.text.StringEscapeUtils;
 import java.lang.ref.WeakReference;
 
 import me.ccrama.redditslide.Activities.Wiki;
-import me.ccrama.redditslide.BuildConfig;
+import ltd.ucode.slide.BuildConfig;
 import me.ccrama.redditslide.Constants;
 import me.ccrama.redditslide.OpenRedditLink;
-import me.ccrama.redditslide.R;
+import ltd.ucode.slide.R;
 import me.ccrama.redditslide.Visuals.Palette;
 
 

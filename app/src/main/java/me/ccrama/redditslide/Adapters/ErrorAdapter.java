@@ -10,7 +10,7 @@ import android.view.ViewGroup;
 
 import androidx.recyclerview.widget.RecyclerView;
 
-import me.ccrama.redditslide.R;
+import ltd.ucode.slide.R;
 
 
 public class ErrorAdapter extends RecyclerView.Adapter<ErrorAdapter.ViewHolder> {

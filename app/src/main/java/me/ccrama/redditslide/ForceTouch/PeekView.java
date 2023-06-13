@@ -35,7 +35,7 @@ import me.ccrama.redditslide.ForceTouch.callback.OnPop;
 import me.ccrama.redditslide.ForceTouch.callback.OnRemove;
 import me.ccrama.redditslide.ForceTouch.util.DensityUtils;
 import me.ccrama.redditslide.ForceTouch.util.NavigationUtils;
-import me.ccrama.redditslide.R;
+import ltd.ucode.slide.R;
 import me.ccrama.redditslide.Views.PeekMediaView;
 import me.ccrama.redditslide.util.DisplayUtil;
 

@@ -42,7 +42,7 @@ import me.ccrama.redditslide.Activities.Website;
 import me.ccrama.redditslide.Adapters.CommentUrlObject;
 import me.ccrama.redditslide.ContentType;
 import me.ccrama.redditslide.OpenRedditLink;
-import me.ccrama.redditslide.R;
+import ltd.ucode.slide.R;
 import me.ccrama.redditslide.Reddit;
 import me.ccrama.redditslide.SecretConstants;
 import me.ccrama.redditslide.SettingValues;

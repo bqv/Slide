@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.WeakHashMap;
 
+import ltd.ucode.slide.R;
 import me.ccrama.redditslide.Adapters.CommentAdapterHelper;
 import me.ccrama.redditslide.Toolbox.ToolboxUI;
 import me.ccrama.redditslide.Views.RoundedBackgroundSpan;

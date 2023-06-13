@@ -8,7 +8,7 @@ import androidx.appcompat.widget.SwitchCompat;
 
 import com.lusfold.androidkeyvaluestore.KVStore;
 
-import me.ccrama.redditslide.R;
+import ltd.ucode.slide.R;
 import me.ccrama.redditslide.SettingValues;
 import me.ccrama.redditslide.UserSubscriptions;
 

@@ -24,12 +24,12 @@ import me.ccrama.redditslide.Reddit;
 import me.ccrama.redditslide.Visuals.ColorPreferences;
 import me.ccrama.redditslide.Visuals.FontPreferences;
 import me.ccrama.redditslide.Visuals.Palette;
-import me.ccrama.redditslide.databinding.ActivityTutorialBinding;
-import me.ccrama.redditslide.databinding.ChooseaccentBinding;
-import me.ccrama.redditslide.databinding.ChoosemainBinding;
-import me.ccrama.redditslide.databinding.ChoosethemesmallBinding;
-import me.ccrama.redditslide.databinding.FragmentPersonalizeBinding;
-import me.ccrama.redditslide.databinding.FragmentWelcomeBinding;
+import ltd.ucode.slide.databinding.ActivityTutorialBinding;
+import ltd.ucode.slide.databinding.ChooseaccentBinding;
+import ltd.ucode.slide.databinding.ChoosemainBinding;
+import ltd.ucode.slide.databinding.ChoosethemesmallBinding;
+import ltd.ucode.slide.databinding.FragmentPersonalizeBinding;
+import ltd.ucode.slide.databinding.FragmentWelcomeBinding;
 import me.ccrama.redditslide.util.BlendModeUtil;
 
 /**

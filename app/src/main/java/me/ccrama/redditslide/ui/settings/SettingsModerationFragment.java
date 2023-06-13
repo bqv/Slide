@@ -13,7 +13,7 @@ import com.afollestad.materialdialogs.MaterialDialog;
 
 import net.dean.jraw.http.NetworkException;
 
-import me.ccrama.redditslide.R;
+import ltd.ucode.slide.R;
 import me.ccrama.redditslide.SettingValues;
 import me.ccrama.redditslide.SettingValues.RemovalReasonType;
 import me.ccrama.redditslide.SettingValues.ToolboxRemovalMessageType;

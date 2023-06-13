@@ -5,7 +5,7 @@ import android.content.SharedPreferences;
 
 import com.devspark.robototextview.RobotoTypefaces;
 
-import me.ccrama.redditslide.R;
+import ltd.ucode.slide.R;
 
 /**
  * Created by ccrama on 7/9/2015.

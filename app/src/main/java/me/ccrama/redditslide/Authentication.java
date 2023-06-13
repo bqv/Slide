@@ -9,6 +9,8 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
 
+import ltd.ucode.slide.R;
+
 import net.dean.jraw.RedditClient;
 import net.dean.jraw.http.LoggingMode;
 import net.dean.jraw.http.NetworkException;
@@ -23,6 +25,7 @@ import java.util.Calendar;
 import java.util.HashSet;
 import java.util.UUID;
 
+import ltd.ucode.slide.BuildConfig;
 import me.ccrama.redditslide.util.LogUtil;
 import me.ccrama.redditslide.util.NetworkUtil;
 import okhttp3.Protocol;

@@ -23,7 +23,7 @@ import java.util.Locale;
 import me.ccrama.redditslide.Activities.OpenContent;
 import me.ccrama.redditslide.Activities.SetupWidget;
 import me.ccrama.redditslide.Activities.Shortcut;
-import me.ccrama.redditslide.R;
+import ltd.ucode.slide.R;
 import me.ccrama.redditslide.Visuals.Palette;
 import me.ccrama.redditslide.Widget.SubredditWidgetProvider;
 import me.ccrama.redditslide.util.BlendModeUtil;

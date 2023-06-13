@@ -27,7 +27,7 @@ import androidx.appcompat.widget.Toolbar;
 
 import java.util.ArrayList;
 
-import me.ccrama.redditslide.R;
+import ltd.ucode.slide.R;
 import me.ccrama.redditslide.util.BlendModeUtil;
 
 
