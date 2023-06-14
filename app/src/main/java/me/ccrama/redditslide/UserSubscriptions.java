@@ -30,7 +30,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import ltd.ucode.slide.App;
+import ltd.ucode.slide.SettingValues;
 import me.ccrama.redditslide.Activities.Login;
 import ltd.ucode.slide.activity.MainActivity;
 import me.ccrama.redditslide.Activities.MultiredditOverview;

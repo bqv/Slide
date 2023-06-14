@@ -48,7 +48,7 @@ import me.ccrama.redditslide.Drafts;
 import me.ccrama.redditslide.ImgurAlbum.UploadImgur;
 import me.ccrama.redditslide.ImgurAlbum.UploadImgurAlbum;
 import ltd.ucode.slide.R;
-import me.ccrama.redditslide.SettingValues;
+import ltd.ucode.slide.SettingValues;
 import me.ccrama.redditslide.SpoilerRobotoTextView;
 import me.ccrama.redditslide.Visuals.ColorPreferences;
 import me.ccrama.redditslide.util.DisplayUtil;

@@ -8,7 +8,7 @@ import java.util.HashSet;
 
 import me.ccrama.redditslide.Adapters.SubmissionDisplay;
 import me.ccrama.redditslide.HasSeen;
-import me.ccrama.redditslide.SettingValues;
+import ltd.ucode.slide.SettingValues;
 
 public class MySynccitReadTask extends SynccitReadTask {
 

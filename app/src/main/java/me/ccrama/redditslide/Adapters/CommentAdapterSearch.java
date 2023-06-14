@@ -43,7 +43,7 @@ import java.util.Locale;
 
 import ltd.ucode.slide.Authentication;
 import ltd.ucode.slide.R;
-import me.ccrama.redditslide.SettingValues;
+import ltd.ucode.slide.SettingValues;
 import me.ccrama.redditslide.UserSubscriptions;
 import me.ccrama.redditslide.UserTags;
 import me.ccrama.redditslide.Views.RoundedBackgroundSpan;

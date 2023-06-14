@@ -60,7 +60,7 @@ import me.ccrama.redditslide.Activities.BaseActivityAnim;
 import ltd.ucode.slide.Authentication;
 import me.ccrama.redditslide.CaseInsensitiveArrayList;
 import ltd.ucode.slide.R;
-import me.ccrama.redditslide.SettingValues;
+import ltd.ucode.slide.SettingValues;
 import me.ccrama.redditslide.UserSubscriptions;
 import me.ccrama.redditslide.Visuals.ColorPreferences;
 import me.ccrama.redditslide.Visuals.Palette;

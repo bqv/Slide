@@ -43,7 +43,7 @@ import me.ccrama.redditslide.ForceTouch.callback.SimpleOnPeek;
 import me.ccrama.redditslide.HasSeen;
 import ltd.ucode.slide.R;
 import ltd.ucode.slide.App;
-import me.ccrama.redditslide.SettingValues;
+import ltd.ucode.slide.SettingValues;
 import me.ccrama.redditslide.Views.PeekMediaView;
 import me.ccrama.redditslide.Views.TransparentTagTextView;
 import me.ccrama.redditslide.util.BlendModeUtil;

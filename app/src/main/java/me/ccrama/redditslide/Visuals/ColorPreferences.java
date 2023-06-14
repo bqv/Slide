@@ -17,7 +17,7 @@ import java.util.Locale;
 import ltd.ucode.slide.activity.Slide;
 import ltd.ucode.slide.Authentication;
 import ltd.ucode.slide.R;
-import me.ccrama.redditslide.SettingValues;
+import ltd.ucode.slide.SettingValues;
 
 /**
  * Created by ccrama on 7/9/2015.

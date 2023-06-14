@@ -18,7 +18,7 @@ import me.ccrama.redditslide.Constants;
 import me.ccrama.redditslide.Fragments.SubredditListView;
 import me.ccrama.redditslide.PostMatch;
 import ltd.ucode.slide.App;
-import me.ccrama.redditslide.SettingValues;
+import ltd.ucode.slide.SettingValues;
 
 /**
  * This class is reponsible for loading a list of subreddits from an endpoint

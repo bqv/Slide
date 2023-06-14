@@ -9,6 +9,8 @@ import java.net.URL;
 import java.util.Locale;
 import java.util.Set;
 
+import ltd.ucode.slide.SettingValues;
+
 /**
  * Created by carlo_000 on 1/13/2016.
  */

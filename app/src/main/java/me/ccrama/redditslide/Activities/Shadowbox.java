@@ -27,7 +27,7 @@ import me.ccrama.redditslide.LastComments;
 import me.ccrama.redditslide.OfflineSubreddit;
 import me.ccrama.redditslide.PostLoader;
 import ltd.ucode.slide.R;
-import me.ccrama.redditslide.SettingValues;
+import ltd.ucode.slide.SettingValues;
 
 /**
  * Created by ccrama on 9/17/2015.

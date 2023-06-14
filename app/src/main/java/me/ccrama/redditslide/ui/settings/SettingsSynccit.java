@@ -14,7 +14,7 @@ import java.util.Collections;
 
 import me.ccrama.redditslide.Activities.BaseActivityAnim;
 import ltd.ucode.slide.R;
-import me.ccrama.redditslide.SettingValues;
+import ltd.ucode.slide.SettingValues;
 import me.ccrama.redditslide.Synccit.MySynccitReadTask;
 import me.ccrama.redditslide.Synccit.MySynccitUpdateTask;
 import me.ccrama.redditslide.Synccit.SynccitRead;

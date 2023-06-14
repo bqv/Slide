@@ -39,7 +39,7 @@ import com.google.android.exoplayer2.video.VideoSize;
 
 import ltd.ucode.slide.R;
 import ltd.ucode.slide.App;
-import me.ccrama.redditslide.SettingValues;
+import ltd.ucode.slide.SettingValues;
 import me.ccrama.redditslide.util.BlendModeUtil;
 import me.ccrama.redditslide.util.GifUtils;
 import me.ccrama.redditslide.util.LogUtil;

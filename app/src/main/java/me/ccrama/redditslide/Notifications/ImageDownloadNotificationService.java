@@ -37,7 +37,7 @@ import ltd.ucode.slide.Preferences;
 import me.ccrama.redditslide.Activities.DeleteFile;
 import ltd.ucode.slide.R;
 import ltd.ucode.slide.App;
-import me.ccrama.redditslide.SettingValues;
+import ltd.ucode.slide.SettingValues;
 import me.ccrama.redditslide.util.FileUtil;
 import me.ccrama.redditslide.util.LogUtil;
 

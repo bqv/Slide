@@ -4,8 +4,8 @@ import android.content.SharedPreferences;
 
 import java.util.ArrayList;
 
-import ltd.ucode.slide.Authentication;
 import ltd.ucode.slide.Preferences;
+import ltd.ucode.slide.SettingValues;
 import me.ccrama.redditslide.util.StringUtil;
 
 

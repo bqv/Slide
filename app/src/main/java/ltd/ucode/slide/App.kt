@@ -44,7 +44,6 @@ import me.ccrama.redditslide.ImgurAlbum.AlbumUtils
 import me.ccrama.redditslide.Notifications.NotificationJobScheduler
 import me.ccrama.redditslide.Notifications.NotificationPiggyback
 import me.ccrama.redditslide.PostMatch
-import me.ccrama.redditslide.SettingValues
 import me.ccrama.redditslide.Tumblr.TumblrUtils
 import me.ccrama.redditslide.UserSubscriptions
 import me.ccrama.redditslide.Visuals.Palette

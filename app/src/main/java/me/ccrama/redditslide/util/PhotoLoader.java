@@ -9,7 +9,7 @@ import java.util.List;
 
 import me.ccrama.redditslide.ContentType;
 import ltd.ucode.slide.App;
-import me.ccrama.redditslide.SettingValues;
+import ltd.ucode.slide.SettingValues;
 
 /**
  * Created by TacoTheDank on 12/11/2020.

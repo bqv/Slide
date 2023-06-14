@@ -17,7 +17,6 @@ class Slide : Activity() {
     }
 
     companion object {
-        @JvmField
-        var hasStarted = false
+        @JvmField var hasStarted = false
     }
 }

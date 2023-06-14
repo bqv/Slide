@@ -1,6 +1,6 @@
 package me.ccrama.redditslide.Synccit;
 
-import me.ccrama.redditslide.SettingValues;
+import ltd.ucode.slide.SettingValues;
 
 /**
  * Created by carlo_000 on 2/16/2016.

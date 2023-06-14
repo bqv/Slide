@@ -49,7 +49,7 @@ import me.ccrama.redditslide.ImgurAlbum.Image;
 import ltd.ucode.slide.R;
 import ltd.ucode.slide.App;
 import me.ccrama.redditslide.SecretConstants;
-import me.ccrama.redditslide.SettingValues;
+import ltd.ucode.slide.SettingValues;
 import me.ccrama.redditslide.Tumblr.Photo;
 import me.ccrama.redditslide.Tumblr.TumblrUtils;
 import me.ccrama.redditslide.util.AdBlocker;

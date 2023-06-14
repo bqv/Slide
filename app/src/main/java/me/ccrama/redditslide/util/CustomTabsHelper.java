@@ -26,7 +26,7 @@ import android.util.Log;
 import java.util.ArrayList;
 import java.util.List;
 
-import me.ccrama.redditslide.SettingValues;
+import ltd.ucode.slide.SettingValues;
 
 import static me.ccrama.redditslide.ui.settings.SettingsHandlingFragment.LinkHandlingMode;
 

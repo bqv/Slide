@@ -55,7 +55,7 @@ import me.ccrama.redditslide.Activities.Reauthenticate;
 import ltd.ucode.slide.Authentication;
 import me.ccrama.redditslide.OpenRedditLink;
 import ltd.ucode.slide.R;
-import me.ccrama.redditslide.SettingValues;
+import ltd.ucode.slide.SettingValues;
 import me.ccrama.redditslide.Views.RoundedBackgroundSpan;
 
 /**

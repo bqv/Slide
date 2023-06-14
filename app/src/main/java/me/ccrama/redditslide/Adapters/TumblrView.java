@@ -28,7 +28,7 @@ import me.ccrama.redditslide.Activities.Tumblr;
 import me.ccrama.redditslide.ContentType;
 import ltd.ucode.slide.R;
 import ltd.ucode.slide.App;
-import me.ccrama.redditslide.SettingValues;
+import ltd.ucode.slide.SettingValues;
 import me.ccrama.redditslide.SpoilerRobotoTextView;
 import me.ccrama.redditslide.Tumblr.Photo;
 import me.ccrama.redditslide.Visuals.FontPreferences;

@@ -17,7 +17,7 @@ import me.ccrama.redditslide.Activities.BaseActivityAnim;
 import ltd.ucode.slide.Authentication;
 import ltd.ucode.slide.R;
 import ltd.ucode.slide.App;
-import me.ccrama.redditslide.SettingValues;
+import ltd.ucode.slide.SettingValues;
 import me.ccrama.redditslide.Visuals.Palette;
 import me.ccrama.redditslide.util.LogUtil;
 import me.ccrama.redditslide.util.billing.IabHelper;

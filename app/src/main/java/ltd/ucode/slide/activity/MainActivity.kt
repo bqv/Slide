@@ -120,7 +120,7 @@ import me.ccrama.redditslide.Notifications.NotificationJobScheduler
 import me.ccrama.redditslide.OpenRedditLink
 import me.ccrama.redditslide.PostMatch
 import ltd.ucode.slide.App
-import me.ccrama.redditslide.SettingValues
+import ltd.ucode.slide.SettingValues
 import me.ccrama.redditslide.SpoilerRobotoTextView
 import me.ccrama.redditslide.Synccit.MySynccitUpdateTask
 import me.ccrama.redditslide.Synccit.SynccitRead
@@ -360,7 +360,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
     override fun onPause() {
         super.onPause()
         changed = false
-        if (!SettingValues.synccitName.isEmpty()) {
+        if (!SettingValues.synccitName.isNullOrEmpty()) {
             MySynccitUpdateTask().execute(
                 *SynccitRead.newVisited.toTypedArray()
             )
@@ -560,7 +560,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                         .setView(dialoglayout)
                     val d: Dialog = builder.show()
                     back = ColorPreferences(this@MainActivity).fontStyle.themeType
-                    if (SettingValues.isNight()) {
+                    if (SettingValues.isNight) {
                         dialoglayout.findViewById<View>(R.id.nightmsg).visibility = View.VISIBLE
                     }
                     for (pair in ColorPreferences.themePairList) {
@@ -711,15 +711,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                         b.setNeutralButton(
                             getString(R.string.pro_previews, SettingValues.previews)
                         ) { dialog: DialogInterface?, which: Int ->
-                            SettingValues.prefs.edit()
-                                .putInt(
-                                    SettingValues.PREVIEWS_LEFT,
-                                    SettingValues.previews - 1
-                                )
-                                .apply()
-                            SettingValues.previews = SettingValues.prefs.getInt(
-                                SettingValues.PREVIEWS_LEFT, 10
-                            )
+                            SettingValues.decreasePreviewsLeft()
                             val posts =
                                 (adapter!!.currentFragment as SubmissionsView?)!!.posts.posts
                             if (posts != null && !posts.isEmpty()) {
@@ -768,15 +760,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                         b.setNeutralButton(
                             "Preview (" + SettingValues.previews + ")"
                         ) { dialog: DialogInterface?, which: Int ->
-                            SettingValues.prefs.edit()
-                                .putInt(
-                                    SettingValues.PREVIEWS_LEFT,
-                                    SettingValues.previews - 1
-                                )
-                                .apply()
-                            SettingValues.previews = SettingValues.prefs.getInt(
-                                SettingValues.PREVIEWS_LEFT, 10
-                            )
+                            SettingValues.decreasePreviewsLeft()
                             val posts =
                                 (adapter!!.currentFragment as SubmissionsView?)!!.posts.posts
                             if (posts != null && !posts.isEmpty()) {
@@ -806,7 +790,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        inNightMode = SettingValues.isNight()
+        inNightMode = SettingValues.isNight
         disableSwipeBackLayout()
         super.onCreate(savedInstanceState)
         if (intent.flags and Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT != 0) {
@@ -1176,9 +1160,9 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
         ) {
             restartTheme() //force a restart because we should not be here
         }
-        if (inNightMode != SettingValues.isNight()) {
+        if (inNightMode != SettingValues.isNight) {
             (drawerLayout!!.findViewById<View>(R.id.toggle_night_mode) as SwitchCompat?)!!.isChecked =
-                SettingValues.isNight()
+                SettingValues.isNight
             restartTheme()
         }
         checkClipboard()
@@ -1790,8 +1774,6 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             toggleImmersiveMode.isChecked = SettingValues.immersiveMode
             toggleImmersiveMode.setOnCheckedChangeListener { buttonView, isChecked ->
                 SettingValues.immersiveMode = isChecked
-                SettingValues.prefs.edit().putBoolean(SettingValues.PREF_IMMERSIVE_MODE, isChecked)
-                    .apply()
                 if (isChecked) {
                     hideDecor()
                 } else {
@@ -1802,8 +1784,6 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             toggleNSFW.isChecked = SettingValues.showNSFWContent
             toggleNSFW.setOnCheckedChangeListener { buttonView, isChecked ->
                 SettingValues.showNSFWContent = isChecked
-                SettingValues.prefs.edit()
-                    .putBoolean(SettingValues.PREF_SHOW_NSFW_CONTENT, isChecked).apply()
                 reloadSubs()
             }
             val toggleRightThumbnails =
@@ -1811,8 +1791,6 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             toggleRightThumbnails.isChecked = SettingValues.switchThumb
             toggleRightThumbnails.setOnCheckedChangeListener { buttonView, isChecked ->
                 SettingValues.switchThumb = isChecked
-                SettingValues.prefs.edit().putBoolean(SettingValues.PREF_SWITCH_THUMB, isChecked)
-                    .apply()
                 reloadSubs()
             }
             val toggleReaderMode =
@@ -1820,8 +1798,6 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             toggleReaderMode.isChecked = SettingValues.readerMode
             toggleReaderMode.setOnCheckedChangeListener { buttonView, isChecked ->
                 SettingValues.readerMode = isChecked
-                SettingValues.prefs.edit().putBoolean(SettingValues.PREF_READER_MODE, isChecked)
-                    .apply()
             }
         }
         header.findViewById<View>(R.id.manage).setOnClickListener(object : OnSingleClickListener() {
@@ -1947,7 +1923,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
 
     fun doForcePrefs() {
         val domains = HashSet<String>()
-        for (s in SettingValues.alwaysExternal) {
+        for (s in SettingValues.alwaysExternal.orEmpty()) {
             if (!s.isEmpty()) {
                 if (!s.contains("youtu")) domains.add(s.trim { it <= ' ' })
             }
@@ -1957,9 +1933,6 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
         domains.add("youtube.com")
         domains.add("youtu.be")
         domains.add("play.google.com")
-        SettingValues.prefs.edit()
-            .putStringSet(SettingValues.PREF_ALWAYS_EXTERNAL, domains)
-            .apply()
         SettingValues.alwaysExternal = domains
     }
 
@@ -2526,7 +2499,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                             return@OnClickListener
                         }
                     }
-                    SettingValues.setSubSorting(sorts, time, subreddit)
+                    SettingValues.setSubSorting(sorts!!, time, subreddit)
                     val sortingis = SettingValues.getBaseSubmissionSort(subreddit)
                     sort.text = (sortingis.name
                             + if (sortingis == Sorting.CONTROVERSIAL || sortingis == Sorting.TOP) " of "
@@ -2537,10 +2510,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                     .setTitle(R.string.sorting_choose)
                     .setSingleChoiceItems(SortingUtil.getSortingStrings(), sortid, l2)
                     .setNegativeButton("Reset default sorting") { dialog: DialogInterface?, which: Int ->
-                        SettingValues.prefs.edit().remove("defaultSort" + subreddit.lowercase())
-                            .apply()
-                        SettingValues.prefs.edit().remove("defaultTime" + subreddit.lowercase())
-                            .apply()
+                        SettingValues.clearSort(subreddit)
                         val sort1 = dialoglayout.findViewById<TextView>(R.id.sort)
                         if (SettingValues.hasSort(subreddit)) {
                             val sortingis1 = SettingValues.getBaseSubmissionSort(subreddit)

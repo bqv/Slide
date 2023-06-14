@@ -11,7 +11,7 @@ import androidx.appcompat.widget.SwitchCompat;
 import com.devspark.robototextview.widget.RobotoRadioButton;
 
 import ltd.ucode.slide.R;
-import me.ccrama.redditslide.SettingValues;
+import ltd.ucode.slide.SettingValues;
 import me.ccrama.redditslide.Visuals.FontPreferences;
 import me.ccrama.redditslide.Visuals.FontPreferences.FontTypeComment;
 import me.ccrama.redditslide.Visuals.FontPreferences.FontTypeTitle;

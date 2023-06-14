@@ -10,7 +10,7 @@ import android.view.MotionEvent;
 import android.widget.TextView;
 
 import me.ccrama.redditslide.ClickableText;
-import me.ccrama.redditslide.SettingValues;
+import ltd.ucode.slide.SettingValues;
 import me.ccrama.redditslide.SpoilerRobotoTextView;
 
 public class TextViewLinkHandler extends BaseMovementMethod {

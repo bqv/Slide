@@ -38,7 +38,7 @@ import me.ccrama.redditslide.Activities.BaseActivity;
 import ltd.ucode.slide.activity.Slide;
 import ltd.ucode.slide.R;
 import ltd.ucode.slide.App;
-import me.ccrama.redditslide.SettingValues;
+import ltd.ucode.slide.SettingValues;
 import me.ccrama.redditslide.Visuals.ColorPreferences;
 import me.ccrama.redditslide.Visuals.Palette;
 import ltd.ucode.slide.databinding.ChooseaccentBinding;

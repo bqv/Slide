@@ -8,7 +8,7 @@ import androidx.appcompat.widget.SwitchCompat;
 
 import ltd.ucode.slide.Authentication;
 import ltd.ucode.slide.R;
-import me.ccrama.redditslide.SettingValues;
+import ltd.ucode.slide.SettingValues;
 import me.ccrama.redditslide.Visuals.Palette;
 import me.ccrama.redditslide.util.LinkUtil;
 

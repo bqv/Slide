@@ -7,7 +7,7 @@ import android.os.Bundle;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-import me.ccrama.redditslide.SettingValues;
+import ltd.ucode.slide.SettingValues;
 
 /**
  * Created by ccrama on 9/28/2015.

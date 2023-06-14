@@ -33,6 +33,7 @@ import ltd.ucode.slide.Authentication;
 import ltd.ucode.slide.Preferences;
 import ltd.ucode.slide.R;
 import ltd.ucode.slide.App;
+import ltd.ucode.slide.SettingValues;
 import me.ccrama.redditslide.util.GifUtils;
 import me.ccrama.redditslide.util.LogUtil;
 import me.ccrama.redditslide.util.PhotoLoader;

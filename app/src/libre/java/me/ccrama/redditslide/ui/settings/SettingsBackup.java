@@ -29,7 +29,7 @@ import java.util.Calendar;
 
 import me.ccrama.redditslide.Activities.BaseActivityAnim;
 import ltd.ucode.slide.R;
-import me.ccrama.redditslide.SettingValues;
+import ltd.ucode.slide.SettingValues;
 import me.ccrama.redditslide.util.FileUtil;
 import me.ccrama.redditslide.util.LayoutUtils;
 import me.ccrama.redditslide.util.LogUtil;

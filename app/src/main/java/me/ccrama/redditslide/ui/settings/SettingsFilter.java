@@ -21,7 +21,7 @@ import java.util.Set;
 
 import me.ccrama.redditslide.Activities.BaseActivityAnim;
 import ltd.ucode.slide.R;
-import me.ccrama.redditslide.SettingValues;
+import ltd.ucode.slide.SettingValues;
 import me.ccrama.redditslide.Visuals.Palette;
 
 /**

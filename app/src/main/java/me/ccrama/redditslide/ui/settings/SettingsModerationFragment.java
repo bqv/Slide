@@ -14,9 +14,9 @@ import com.afollestad.materialdialogs.MaterialDialog;
 import net.dean.jraw.http.NetworkException;
 
 import ltd.ucode.slide.R;
-import me.ccrama.redditslide.SettingValues;
-import me.ccrama.redditslide.SettingValues.RemovalReasonType;
-import me.ccrama.redditslide.SettingValues.ToolboxRemovalMessageType;
+import ltd.ucode.slide.SettingValues;
+import ltd.ucode.slide.SettingValues.RemovalReasonType;
+import ltd.ucode.slide.SettingValues.ToolboxRemovalMessageType;
 import me.ccrama.redditslide.Toolbox.Toolbox;
 import me.ccrama.redditslide.UserSubscriptions;
 

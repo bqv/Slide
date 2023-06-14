@@ -34,7 +34,7 @@ import me.ccrama.redditslide.PostLoader;
 import me.ccrama.redditslide.PostMatch;
 import ltd.ucode.slide.R;
 import ltd.ucode.slide.App;
-import me.ccrama.redditslide.SettingValues;
+import ltd.ucode.slide.SettingValues;
 import me.ccrama.redditslide.SubmissionCache;
 import me.ccrama.redditslide.Synccit.MySynccitReadTask;
 import me.ccrama.redditslide.util.LogUtil;

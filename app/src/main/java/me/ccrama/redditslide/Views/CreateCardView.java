@@ -15,7 +15,7 @@ import androidx.cardview.widget.CardView;
 import java.util.ArrayList;
 
 import ltd.ucode.slide.R;
-import me.ccrama.redditslide.SettingValues;
+import ltd.ucode.slide.SettingValues;
 import me.ccrama.redditslide.Visuals.Palette;
 import me.ccrama.redditslide.util.AnimatorUtil;
 import me.ccrama.redditslide.util.BlendModeUtil;

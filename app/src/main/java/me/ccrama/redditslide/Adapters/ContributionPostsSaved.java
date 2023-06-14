@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import ltd.ucode.slide.Authentication;
 import me.ccrama.redditslide.HasSeen;
 import me.ccrama.redditslide.PostMatch;
-import me.ccrama.redditslide.SettingValues;
+import ltd.ucode.slide.SettingValues;
 
 /**
  * Created by ccrama on 9/17/2015.

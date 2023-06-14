@@ -24,7 +24,7 @@ import me.ccrama.redditslide.Activities.BaseActivityAnim;
 import ltd.ucode.slide.Authentication;
 import ltd.ucode.slide.R;
 import ltd.ucode.slide.App;
-import me.ccrama.redditslide.SettingValues;
+import ltd.ucode.slide.SettingValues;
 import me.ccrama.redditslide.UserSubscriptions;
 import me.ccrama.redditslide.Visuals.ColorPreferences;
 import me.ccrama.redditslide.Visuals.GetClosestColor;

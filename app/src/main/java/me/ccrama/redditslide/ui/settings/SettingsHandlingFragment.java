@@ -26,7 +26,7 @@ import java.util.Map;
 
 import ltd.ucode.slide.R;
 import ltd.ucode.slide.App;
-import me.ccrama.redditslide.SettingValues;
+import ltd.ucode.slide.SettingValues;
 import me.ccrama.redditslide.util.LinkUtil;
 
 public class SettingsHandlingFragment implements CompoundButton.OnCheckedChangeListener {

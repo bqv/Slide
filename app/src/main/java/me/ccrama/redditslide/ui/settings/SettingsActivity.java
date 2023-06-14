@@ -42,7 +42,7 @@ import ltd.ucode.slide.BuildConfig;
 import me.ccrama.redditslide.Fragments.FolderChooserDialogCreate;
 import ltd.ucode.slide.R;
 import ltd.ucode.slide.App;
-import me.ccrama.redditslide.SettingValues;
+import ltd.ucode.slide.SettingValues;
 import me.ccrama.redditslide.Visuals.Palette;
 import me.ccrama.redditslide.ui.settings.dragSort.ReorderSubreddits;
 import me.ccrama.redditslide.util.NetworkUtil;

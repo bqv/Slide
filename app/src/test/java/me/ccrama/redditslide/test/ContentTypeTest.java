@@ -9,7 +9,7 @@ import java.util.HashSet;
 import me.ccrama.redditslide.ContentType;
 import me.ccrama.redditslide.ContentType.Type;
 import ltd.ucode.slide.App;
-import me.ccrama.redditslide.SettingValues;
+import ltd.ucode.slide.SettingValues;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;

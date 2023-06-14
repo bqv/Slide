@@ -9,7 +9,7 @@ import androidx.appcompat.widget.SwitchCompat;
 import com.lusfold.androidkeyvaluestore.KVStore;
 
 import ltd.ucode.slide.R;
-import me.ccrama.redditslide.SettingValues;
+import ltd.ucode.slide.SettingValues;
 import me.ccrama.redditslide.UserSubscriptions;
 
 public class SettingsHistoryFragment {

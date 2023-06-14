@@ -17,7 +17,7 @@ import java.util.List;
 import me.ccrama.redditslide.Activities.GalleryImage;
 import me.ccrama.redditslide.ImgurAlbum.Image;
 import ltd.ucode.slide.App;
-import me.ccrama.redditslide.SettingValues;
+import ltd.ucode.slide.SettingValues;
 import me.ccrama.redditslide.Tumblr.Photo;
 
 /**

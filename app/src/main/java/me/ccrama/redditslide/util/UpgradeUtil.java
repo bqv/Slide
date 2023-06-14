@@ -26,7 +26,7 @@ import java.util.Locale;
 import java.util.Set;
 
 import ltd.ucode.slide.Preferences;
-import me.ccrama.redditslide.SettingValues;
+import ltd.ucode.slide.SettingValues;
 
 public class UpgradeUtil {
     // Increment for each needed change

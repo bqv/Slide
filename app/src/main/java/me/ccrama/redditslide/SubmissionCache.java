@@ -22,6 +22,7 @@ import java.util.WeakHashMap;
 
 import ltd.ucode.slide.Authentication;
 import ltd.ucode.slide.R;
+import ltd.ucode.slide.SettingValues;
 import me.ccrama.redditslide.Adapters.CommentAdapterHelper;
 import me.ccrama.redditslide.Toolbox.ToolboxUI;
 import me.ccrama.redditslide.Views.RoundedBackgroundSpan;

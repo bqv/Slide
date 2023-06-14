@@ -16,7 +16,7 @@ import java.util.Map;
 
 import me.ccrama.redditslide.Activities.BaseActivityAnim;
 import ltd.ucode.slide.R;
-import me.ccrama.redditslide.SettingValues;
+import ltd.ucode.slide.SettingValues;
 import me.ccrama.redditslide.SubmissionCache;
 import me.ccrama.redditslide.Views.CreateCardView;
 
