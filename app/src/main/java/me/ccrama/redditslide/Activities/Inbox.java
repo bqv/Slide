@@ -176,9 +176,7 @@ public class Inbox extends BaseActivityAnim {
         }
 
         super.onCreate(savedInstance);
-        last = SettingValues.prefs.getLong("lastInbox",
-                System.currentTimeMillis() - (60 * 1000 * 60));
-        SettingValues.prefs.edit().putLong("lastInbox", System.currentTimeMillis()).apply();
+        last = SettingValues.getLastInbox();
         applyColorTheme("");
         setContentView(R.layout.activity_inbox);
         setupAppBar(R.id.toolbar, R.string.title_inbox, true, true);

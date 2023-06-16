@@ -55,11 +55,13 @@ public class SettingsSynccit extends BaseActivityAnim {
                             .setPositiveButton(R.string.btn_yes, (dialog, which) -> {
                                 SettingValues.synccitName = "";
                                 SettingValues.synccitAuth = "";
+                                /* dontcare
                                 SharedPreferences.Editor e = SettingValues.prefs.edit();
 
                                 e.putString(SettingValues.SYNCCIT_NAME, SettingValues.synccitName);
                                 e.putString(SettingValues.SYNCCIT_AUTH, SettingValues.synccitAuth);
                                 e.apply();
+                                 */
                                 name.setText(SettingValues.synccitName);
                                 auth.setText(SettingValues.synccitAuth);
                                 SynccitRead.visitedIds.removeAll(Collections.singleton("16noez"));
@@ -87,11 +89,13 @@ public class SettingsSynccit extends BaseActivityAnim {
                     if (SynccitRead.visitedIds.contains("16noez")) {
                                 //success
                                 d.dismiss();
+                                /* dontcare
                                 SharedPreferences.Editor e = SettingValues.prefs.edit();
 
                                 e.putString(SettingValues.SYNCCIT_NAME, SettingValues.synccitName);
                                 e.putString(SettingValues.SYNCCIT_AUTH, SettingValues.synccitAuth);
                                 e.apply();
+                                 */
                                 (findViewById(R.id.remove)).setEnabled(true);
 
                                 new AlertDialog.Builder(SettingsSynccit.this)

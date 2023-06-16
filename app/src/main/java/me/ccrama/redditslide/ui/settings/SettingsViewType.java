@@ -27,7 +27,12 @@ public class SettingsViewType extends BaseActivityAnim {
 
 
         //View type multi choice
-        ((TextView) findViewById(R.id.currentViewType)).setText(SettingValues.single ? (SettingValues.commentPager ? getString(R.string.view_type_comments) : getString(R.string.view_type_none)) : getString(R.string.view_type_tabs));
+        ((TextView) findViewById(R.id.currentViewType)).setText(
+                SettingValues.INSTANCE.getSingle()
+                        ? (SettingValues.INSTANCE.getCommentPager()
+                                ? getString(R.string.view_type_comments)
+                                : getString(R.string.view_type_none))
+                        : getString(R.string.view_type_tabs));
 
         findViewById(R.id.viewtype).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -39,23 +44,23 @@ public class SettingsViewType extends BaseActivityAnim {
                     public boolean onMenuItemClick(MenuItem item) {
                         switch (item.getItemId()) {
                             case R.id.tabs:
-                                SettingValues.single = false;
-                                SettingValues.prefs.edit().putBoolean(SettingValues.PREF_SINGLE, false).apply();
+                                SettingValues.INSTANCE.setSingle(false);
                                 break;
                             case R.id.notabs:
-                                SettingValues.single = true;
-                                SettingValues.commentPager = false;
-                                SettingValues.prefs.edit().putBoolean(SettingValues.PREF_SINGLE, true).apply();
-                                SettingValues.prefs.edit().putBoolean(SettingValues.PREF_COMMENT_PAGER, false).apply();
+                                SettingValues.INSTANCE.setSingle(true);
+                                SettingValues.INSTANCE.setCommentPager(false);
                                 break;
                             case R.id.comments:
-                                SettingValues.single = true;
-                                SettingValues.commentPager = true;
-                                SettingValues.prefs.edit().putBoolean(SettingValues.PREF_SINGLE, true).apply();
-                                SettingValues.prefs.edit().putBoolean(SettingValues.PREF_COMMENT_PAGER, true).apply();
+                                SettingValues.INSTANCE.setSingle(true);
+                                SettingValues.INSTANCE.setCommentPager(true);
                                 break;
                         }
-                        ((TextView) findViewById(R.id.currentViewType)).setText(SettingValues.single ? (SettingValues.commentPager ? getString(R.string.view_type_comments) : getString(R.string.view_type_none)) : getString(R.string.view_type_tabs));
+                        ((TextView) findViewById(R.id.currentViewType)).setText(
+                                SettingValues.INSTANCE.getSingle()
+                                        ? (SettingValues.INSTANCE.getCommentPager()
+                                                ? getString(R.string.view_type_comments)
+                                                : getString(R.string.view_type_none))
+                                        : getString(R.string.view_type_tabs));
                         SettingsThemeFragment.changed = true;
                         return true;
                     }

@@ -1,112 +1,97 @@
-package me.ccrama.redditslide.Fragments;
+package me.ccrama.redditslide.Fragments
 
-import android.os.Bundle;
-import android.view.View;
-import android.widget.CheckBox;
+import android.os.Bundle
+import android.widget.CheckBox
+import androidx.annotation.IdRes
+import com.afollestad.materialdialogs.MaterialDialog
+import ltd.ucode.slide.R
+import ltd.ucode.slide.SettingValues
+import me.ccrama.redditslide.ui.settings.SettingsThemeFragment
 
-import androidx.annotation.IdRes;
-import androidx.annotation.NonNull;
+// TODO: Replace all this $#!^ with a bitset...
+private var selectedDrawerItems: Long = 0
 
-import com.afollestad.materialdialogs.DialogAction;
-import com.afollestad.materialdialogs.MaterialDialog;
-
-import ltd.ucode.slide.R;
-import ltd.ucode.slide.SettingValues;
-import me.ccrama.redditslide.ui.settings.SettingsThemeFragment;
-
-public class DrawerItemsDialog extends MaterialDialog {
-    public DrawerItemsDialog(final Builder builder) {
-        super(builder.customView(R.layout.dialog_drawer_items, false)
-                .title(R.string.settings_general_title_drawer_items)
-                .positiveText(android.R.string.ok)
-                .canceledOnTouchOutside(false)
-                .onPositive(new SingleButtonCallback() {
-                    @Override
-                    public void onClick(@NonNull MaterialDialog dialog,
-                            @NonNull DialogAction which) {
-                        if (SettingsThemeFragment.changed) {
-                            SettingValues.prefs.edit()
-                                    .putLong(SettingValues.PREF_SELECTED_DRAWER_ITEMS,
-                                            SettingValues.selectedDrawerItems)
-                                    .apply();
-                        }
-                    }
-                }));
-
-    }
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
-        if (SettingValues.selectedDrawerItems == -1) {
-            SettingValues.selectedDrawerItems = 0;
-            for (final SettingsDrawerEnum settingDrawerItem : SettingsDrawerEnum.values()) {
-                SettingValues.selectedDrawerItems += settingDrawerItem.value;
+class DrawerItemsDialog(builder: Builder) :
+    MaterialDialog(builder.customView(R.layout.dialog_drawer_items, false)
+        .title(R.string.settings_general_title_drawer_items)
+        .positiveText(android.R.string.ok)
+        .canceledOnTouchOutside(false)
+        .onPositive { dialog, which ->
+            if (SettingsThemeFragment.changed) {
+                SettingValues.selectedDrawerItems = selectedDrawerItems
             }
-            SettingValues.prefs.edit()
-                    .putLong(SettingValues.PREF_SELECTED_DRAWER_ITEMS,
-                            SettingValues.selectedDrawerItems)
-                    .apply();
+        }) {
+
+    public override fun onCreate(savedInstanceState: Bundle) {
+        super.onCreate(savedInstanceState)
+        selectedDrawerItems = SettingValues.selectedDrawerItems
+        if (selectedDrawerItems == -1L) {
+            selectedDrawerItems = 0
+            for (settingDrawerItem in SettingsDrawerEnum.values()) {
+                selectedDrawerItems += settingDrawerItem.value
+            }
+            SettingValues.selectedDrawerItems = selectedDrawerItems
         }
-
-        setupViews();
+        setupViews()
     }
 
-    @Override
-    public void onStop() {
-        super.onStop();
-        SettingValues.prefs.edit()
-                .putLong(SettingValues.PREF_SELECTED_DRAWER_ITEMS,
-                        SettingValues.selectedDrawerItems)
-                .apply();
+    public override fun onStop() {
+        super.onStop()
+        SettingValues.selectedDrawerItems = selectedDrawerItems
     }
 
-    private void setupViews() {
-        for (final SettingsDrawerEnum settingDrawerItem : SettingsDrawerEnum.values()) {
-            findViewById(settingDrawerItem.layoutId).setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    CheckBox checkBox = (CheckBox) findViewById(settingDrawerItem.checkboxId);
-                    if (checkBox.isChecked()) {
-                        SettingValues.selectedDrawerItems -= settingDrawerItem.value;
-                    } else {
-                        SettingValues.selectedDrawerItems += settingDrawerItem.value;
-                    }
-                    checkBox.setChecked(!checkBox.isChecked());
+    private fun setupViews() {
+        for (settingDrawerItem in SettingsDrawerEnum.values()) {
+            findViewById(settingDrawerItem.layoutId).setOnClickListener {
+                val checkBox = findViewById(settingDrawerItem.checkboxId) as CheckBox
+                if (checkBox.isChecked) {
+                    selectedDrawerItems -= settingDrawerItem.value
+                } else {
+                    selectedDrawerItems += settingDrawerItem.value
                 }
-            });
-            SettingsThemeFragment.changed = true;
-            ((CheckBox) findViewById(settingDrawerItem.checkboxId)).setChecked(
-                    (SettingValues.selectedDrawerItems & settingDrawerItem.value) != 0);
+                checkBox.isChecked = !checkBox.isChecked
+            }
+            SettingsThemeFragment.changed = true
+            (findViewById(settingDrawerItem.checkboxId) as CheckBox).isChecked =
+                selectedDrawerItems and settingDrawerItem.value != 0L
         }
     }
 
-    public enum SettingsDrawerEnum {
-        PROFILE(1, R.id.settings_drawer_profile, R.id.settings_drawer_profile_checkbox,
-                R.id.prof_click),
-        INBOX(1 << 1, R.id.settings_drawer_inbox, R.id.settings_drawer_inbox_checkbox, R.id.inbox),
-        MULTIREDDITS(1 << 2, R.id.settings_drawer_multireddits,
-                R.id.settings_drawer_multireddits_checkbox, R.id.multi),
-        GOTO_PROFILE(1 << 3, R.id.settings_drawer_goto_profile,
-                R.id.settings_drawer_goto_profile_checkbox, R.id.prof),
-        DISCOVER(1 << 4, R.id.settings_drawer_discover, R.id.settings_drawer_discover_checkbox,
-                R.id.discover);
-
-        public long value;
-        @IdRes
-        public int  layoutId;
-        @IdRes
-        public int  checkboxId;
-        @IdRes
-        public int  drawerId;
-
-        SettingsDrawerEnum(long value, @IdRes int layoutId, @IdRes int checkboxId,
-                @IdRes int drawerId) {
-            this.value = value;
-            this.layoutId = layoutId;
-            this.checkboxId = checkboxId;
-            this.drawerId = drawerId;
-        }
+    enum class SettingsDrawerEnum(
+        var value: Long,
+        @field:IdRes @param:IdRes var layoutId: Int,
+        @field:IdRes @param:IdRes var checkboxId: Int,
+        @field:IdRes @param:IdRes var drawerId: Int
+    ) {
+        PROFILE(
+            1 shl 0,
+            R.id.settings_drawer_profile,
+            R.id.settings_drawer_profile_checkbox,
+            R.id.prof_click
+        ),
+        INBOX(
+            1 shl 1,
+            R.id.settings_drawer_inbox,
+            R.id.settings_drawer_inbox_checkbox,
+            R.id.inbox
+        ),
+        MULTIREDDITS(
+            1 shl 2,
+            R.id.settings_drawer_multireddits,
+            R.id.settings_drawer_multireddits_checkbox,
+            R.id.multi
+        ),
+        GOTO_PROFILE(
+            1 shl 3,
+            R.id.settings_drawer_goto_profile,
+            R.id.settings_drawer_goto_profile_checkbox,
+            R.id.prof
+        ),
+        DISCOVER(
+            1 shl 4,
+            R.id.settings_drawer_discover,
+            R.id.settings_drawer_discover_checkbox,
+            R.id.discover
+        );
     }
 }

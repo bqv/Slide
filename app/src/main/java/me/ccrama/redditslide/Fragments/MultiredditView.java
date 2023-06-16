@@ -82,10 +82,10 @@ public class MultiredditView extends Fragment implements SubmissionDisplay {
                 createLayoutManager(LayoutUtils.getNumColumns(getResources().getConfiguration().orientation, getActivity()));
 
         rv.setLayoutManager(mLayoutManager);
-        if (SettingValues.fab) {
+        if (SettingValues.INSTANCE.getFab()) {
             fab = v.findViewById(R.id.post_floating_action_button);
 
-            if (SettingValues.fabType == Constants.FAB_POST) {
+            if (SettingValues.INSTANCE.getFabType() == Constants.FAB_POST) {
                 fab.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
@@ -106,7 +106,7 @@ public class MultiredditView extends Fragment implements SubmissionDisplay {
                                 }).show();
                     }
                 });
-            } else if (SettingValues.fabType == Constants.FAB_SEARCH) {
+            } else if (SettingValues.INSTANCE.getFabType() == Constants.FAB_SEARCH) {
                 fab.setImageResource(R.drawable.ic_search);
                 fab.setOnClickListener(new View.OnClickListener() {
                     String term;
@@ -212,7 +212,7 @@ public class MultiredditView extends Fragment implements SubmissionDisplay {
          * change the scrollbar style to "insideOverlay" when list view is enabled.
          * To recap: this removes the margins from the start/end so list view is full-width.
          */
-        if (SettingValues.defaultCardView == CreateCardView.CardEnum.LIST) {
+        if (SettingValues.INSTANCE.getDefaultCardView() == CreateCardView.CardEnum.LIST) {
             RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
             MarginLayoutParamsCompat.setMarginStart(params, 0);
             rv.setScrollBarStyle(View.SCROLLBARS_INSIDE_OVERLAY);
@@ -297,7 +297,7 @@ public class MultiredditView extends Fragment implements SubmissionDisplay {
                         diff = 0;
                     }
                     if (fab != null) {
-                        if (dy <= 0 && fab.getId() != 0 && SettingValues.fab) {
+                        if (dy <= 0 && fab.getId() != 0 && SettingValues.INSTANCE.getFab()) {
                             if (recyclerView.getScrollState() != RecyclerView.SCROLL_STATE_DRAGGING || diff < -fab.getHeight() * 2)
                                 fab.show();
                         } else {

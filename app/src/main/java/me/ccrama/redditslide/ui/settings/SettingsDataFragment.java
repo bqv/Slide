@@ -116,15 +116,15 @@ public class SettingsDataFragment {
         datasavingVideoQualitySwitch.setEnabled(SettingValues.lowResMobile || SettingValues.lowResAlways);
         datasavingVideoQualitySwitch.setOnCheckedChangeListener((v, checked) -> {
             SettingValues.lqVideos = checked;
-            editSharedBooleanPreference(SettingValues.PREF_LQ_VIDEOS, checked);
+            SettingValues.editBoolean(SettingValues.PREF_LQ_VIDEOS, checked);
         });
     }
 
     private void setImageQualitySettings(boolean mobile, boolean always) {
         SettingValues.lowResMobile = mobile;
         SettingValues.lowResAlways = always;
-        editSharedBooleanPreference(SettingValues.PREF_LOW_RES_MOBILE, mobile);
-        editSharedBooleanPreference(SettingValues.PREF_LOW_RES_ALWAYS, always);
+        SettingValues.editBoolean(SettingValues.PREF_LOW_RES_MOBILE, mobile);
+        SettingValues.editBoolean(SettingValues.PREF_LOW_RES_ALWAYS, always);
     }
 
     private void setImageQualityMode(boolean noImages, boolean loadImageLq, boolean lqLow, boolean lqMid, boolean lqHigh) {
@@ -133,14 +133,10 @@ public class SettingsDataFragment {
         SettingValues.lqLow = lqLow;
         SettingValues.lqMid = lqMid;
         SettingValues.lqHigh = lqHigh;
-        editSharedBooleanPreference(SettingValues.PREF_NO_IMAGES, noImages);
-        editSharedBooleanPreference(SettingValues.PREF_IMAGE_LQ, loadImageLq);
-        editSharedBooleanPreference(SettingValues.PREF_LQ_LOW, lqLow);
-        editSharedBooleanPreference(SettingValues.PREF_LQ_MID, lqMid);
-        editSharedBooleanPreference(SettingValues.PREF_LQ_HIGH, lqHigh);
-    }
-
-    private void editSharedBooleanPreference(final String settingValueString, final boolean isChecked) {
-        SettingValues.prefs.edit().putBoolean(settingValueString, isChecked).apply();
+        SettingValues.editBoolean(SettingValues.PREF_NO_IMAGES, noImages);
+        SettingValues.editBoolean(SettingValues.PREF_IMAGE_LQ, loadImageLq);
+        SettingValues.editBoolean(SettingValues.PREF_LQ_LOW, lqLow);
+        SettingValues.editBoolean(SettingValues.PREF_LQ_MID, lqMid);
+        SettingValues.editBoolean(SettingValues.PREF_LQ_HIGH, lqHigh);
     }
 }

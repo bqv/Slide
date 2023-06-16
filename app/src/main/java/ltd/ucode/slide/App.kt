@@ -330,7 +330,6 @@ class App : MultiDexApplication(), ActivityLifecycleCallbacks {
 
         const val EMPTY_STRING = "NOTHING"
         const val enter_animation_time_original: Long = 600
-        const val PREF_LAYOUT = "PRESET"
         const val SHARED_PREF_IS_MOD = "is_mod"
         @JvmField
         var videoCache: Cache? = null

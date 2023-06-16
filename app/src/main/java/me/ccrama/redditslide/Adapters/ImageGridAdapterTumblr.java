@@ -26,7 +26,7 @@ public class ImageGridAdapterTumblr extends android.widget.BaseAdapter {
     public static final DisplayImageOptions options = new DisplayImageOptions.Builder()
             .cacheOnDisk(true)
             .resetViewBeforeLoading(true)
-            .bitmapConfig(SettingValues.highColorspaceImages ? Bitmap.Config.ARGB_8888 : Bitmap.Config.RGB_565)
+            .bitmapConfig(SettingValues.INSTANCE.getHighColorspaceImages() ? Bitmap.Config.ARGB_8888 : Bitmap.Config.RGB_565)
             .imageScaleType(ImageScaleType.EXACTLY)
             .cacheInMemory(false)
             .displayer(new FadeInBitmapDisplayer(250))

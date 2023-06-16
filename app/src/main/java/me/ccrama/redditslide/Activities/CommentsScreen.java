@@ -126,7 +126,7 @@ public class CommentsScreen extends BaseActivityAnim implements SubmissionDispla
         popup = SettingValues.isPro
                 && getResources().getConfiguration().orientation
                 == Configuration.ORIENTATION_LANDSCAPE
-                && !SettingValues.fullCommentOverride;
+                && !SettingValues.INSTANCE.getFullCommentOverride();
         seen = new ArrayList<>();
         if (popup) {
             disableSwipeBackLayout();

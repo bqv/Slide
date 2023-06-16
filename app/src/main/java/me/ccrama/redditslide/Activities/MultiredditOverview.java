@@ -236,12 +236,7 @@ public class MultiredditOverview extends BaseActivityAnim {
                     if (SettingValues.previews > 0) {
                         b.setNeutralButton(getString(R.string.pro_previews, SettingValues.previews),
                                 (dialog, which) -> {
-                                    SettingValues.prefs.edit()
-                                            .putInt(SettingValues.PREVIEWS_LEFT,
-                                                    SettingValues.previews - 1)
-                                            .apply();
-                                    SettingValues.previews = SettingValues.prefs.getInt(
-                                            SettingValues.PREVIEWS_LEFT, 10);
+                                    SettingValues.decreasePreviewsLeft();
                                     List<Submission> posts =
                                             ((MultiredditView) adapter.getCurrentFragment()).posts.posts;
                                     if (posts != null && !posts.isEmpty()) {
@@ -282,12 +277,7 @@ public class MultiredditOverview extends BaseActivityAnim {
                             && !((MultiredditView) adapter.getCurrentFragment()).posts.posts.isEmpty()) {
                         b.setNeutralButton(getString(R.string.pro_previews, SettingValues.previews),
                                 (dialog, which) -> {
-                                    SettingValues.prefs.edit()
-                                            .putInt(SettingValues.PREVIEWS_LEFT,
-                                                    SettingValues.previews - 1)
-                                            .apply();
-                                    SettingValues.previews = SettingValues.prefs.getInt(
-                                            SettingValues.PREVIEWS_LEFT, 10);
+                                    SettingValues.decreasePreviewsLeft();
                                     List<Submission> posts =
                                             ((MultiredditView) adapter.getCurrentFragment()).posts.posts;
                                     if (posts != null && !posts.isEmpty()) {

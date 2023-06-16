@@ -31,10 +31,6 @@ public class SettingsHandling extends BaseActivityAnim {
     @Override
     public void onPause() {
         super.onPause();
-        SharedPreferences.Editor e = SettingValues.prefs.edit();
-
-        e.putStringSet(SettingValues.PREF_ALWAYS_EXTERNAL, SettingValues.alwaysExternal);
-        e.apply();
     }
 
 }

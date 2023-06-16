@@ -84,9 +84,9 @@ public class SideArrayAdapter extends ArrayAdapter<String> {
     private void hideSearchbarUI() {
         try {
             //Hide the toolbar search UI without an animation because we're starting a new activity
-            if ((SettingValues.subredditSearchMethod
+            if ((SettingValues.INSTANCE.getSubredditSearchMethod()
                     == Constants.SUBREDDIT_SEARCH_METHOD_TOOLBAR
-                    || SettingValues.subredditSearchMethod
+                    || SettingValues.INSTANCE.getSubredditSearchMethod()
                     == Constants.SUBREDDIT_SEARCH_METHOD_BOTH)
                     && ((MainActivity) getContext()).findViewById(R.id.toolbar_search)
                     .getVisibility() == View.VISIBLE) {
@@ -106,7 +106,7 @@ public class SideArrayAdapter extends ArrayAdapter<String> {
                                 R.id.toolbar_search)),
                         ((ImageView) ((MainActivity) getContext()).findViewById(
                                 R.id.close_search_toolbar)));
-                if (SettingValues.single) {
+                if (SettingValues.INSTANCE.getSingle()) {
                     ((MainActivity) getContext()).getSupportActionBar()
                             .setTitle(((MainActivity) getContext()).selectedSub);
                 } else {
@@ -181,9 +181,9 @@ public class SideArrayAdapter extends ArrayAdapter<String> {
                         }
                         try {
                             //Hide the toolbar search UI with an animation because we're just changing tabs
-                            if ((SettingValues.subredditSearchMethod
+                            if ((SettingValues.INSTANCE.getSubredditSearchMethod()
                                     == Constants.SUBREDDIT_SEARCH_METHOD_TOOLBAR
-                                    || SettingValues.subredditSearchMethod
+                                    || SettingValues.INSTANCE.getSubredditSearchMethod()
                                     == Constants.SUBREDDIT_SEARCH_METHOD_BOTH)
                                     && ((MainActivity) getContext()).findViewById(
                                     R.id.toolbar_search).getVisibility() == View.VISIBLE) {
@@ -222,9 +222,9 @@ public class SideArrayAdapter extends ArrayAdapter<String> {
             ViewGroup.LayoutParams params =
                     convertView.findViewById(R.id.height).getLayoutParams();
             if ((fitems.size() * height) < parentL.getHeight()
-                    && (SettingValues.subredditSearchMethod
+                    && (SettingValues.INSTANCE.getSubredditSearchMethod()
                     == Constants.SUBREDDIT_SEARCH_METHOD_DRAWER
-                    || SettingValues.subredditSearchMethod
+                    || SettingValues.INSTANCE.getSubredditSearchMethod()
                     == Constants.SUBREDDIT_SEARCH_METHOD_BOTH)) {
                 params.height = (parentL.getHeight() - (getCount() - 1) * height);
             } else {

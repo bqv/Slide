@@ -126,7 +126,7 @@ public class SubmissionsView extends Fragment implements SubmissionDisplay {
          * change the scrollbar style to "insideOverlay" when list view is enabled.
          * To recap: this removes the margins from the start/end so list view is full-width.
          */
-        if (SettingValues.defaultCardView == CreateCardView.CardEnum.LIST) {
+        if (SettingValues.INSTANCE.getDefaultCardView() == CreateCardView.CardEnum.LIST) {
             RelativeLayout.LayoutParams params =
                     new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                             ViewGroup.LayoutParams.MATCH_PARENT);
@@ -140,16 +140,16 @@ public class SubmissionsView extends Fragment implements SubmissionDisplay {
          * So, we estimate the height of the header in dp.
          * If the view type is "single" (and therefore "commentPager"), we need a different offset
          */
-        final int HEADER_OFFSET = (SettingValues.single || getActivity() instanceof SubredditView)
+        final int HEADER_OFFSET = (SettingValues.INSTANCE.getSingle() || getActivity() instanceof SubredditView)
                 ? Constants.SINGLE_HEADER_VIEW_OFFSET : Constants.TAB_HEADER_VIEW_OFFSET;
 
         mSwipeRefreshLayout.setProgressViewOffset(false, HEADER_OFFSET - Constants.PTR_OFFSET_TOP,
                 HEADER_OFFSET + Constants.PTR_OFFSET_BOTTOM);
 
-        if (SettingValues.fab) {
+        if (SettingValues.INSTANCE.getFab()) {
             fab = v.findViewById(R.id.post_floating_action_button);
 
-            if (SettingValues.fabType == Constants.FAB_POST) {
+            if (SettingValues.INSTANCE.getFabType() == Constants.FAB_POST) {
                 fab.setImageResource(R.drawable.ic_add);
                 fab.setContentDescription(getString(R.string.btn_fab_post));
                 fab.setOnClickListener(new View.OnClickListener() {
@@ -160,7 +160,7 @@ public class SubmissionsView extends Fragment implements SubmissionDisplay {
                         getActivity().startActivity(inte);
                     }
                 });
-            } else if (SettingValues.fabType == Constants.FAB_SEARCH) {
+            } else if (SettingValues.INSTANCE.getFabType() == Constants.FAB_SEARCH) {
                 fab.setImageResource(R.drawable.ic_search);
                 fab.setContentDescription(getString(R.string.btn_fab_search));
                 fab.setOnClickListener(new View.OnClickListener() {
@@ -605,14 +605,14 @@ public class SubmissionsView extends Fragment implements SubmissionDisplay {
                                 diff = 0;
                             }
                             if (fab != null) {
-                                if (dy <= 0 && fab.getId() != 0 && SettingValues.fab) {
+                                if (dy <= 0 && fab.getId() != 0 && SettingValues.INSTANCE.getFab()) {
                                     if (recyclerView.getScrollState()
                                             != RecyclerView.SCROLL_STATE_DRAGGING
                                             || diff < -fab.getHeight() * 2) {
                                         fab.show();
                                     }
                                 } else {
-                                    if(!SettingValues.alwaysShowFAB)
+                                    if(!SettingValues.INSTANCE.getAlwaysShowFAB())
                                     {
                                         fab.hide();
                                     }
@@ -637,9 +637,9 @@ public class SubmissionsView extends Fragment implements SubmissionDisplay {
                             super.onScrollStateChanged(recyclerView, newState);
                             //If the toolbar search is open, and the user scrolls in the Main view--close the search UI
                             if (getActivity() instanceof MainActivity
-                                    && (SettingValues.subredditSearchMethod
+                                    && (SettingValues.INSTANCE.getSubredditSearchMethod()
                                     == Constants.SUBREDDIT_SEARCH_METHOD_TOOLBAR
-                                    || SettingValues.subredditSearchMethod
+                                    || SettingValues.INSTANCE.getSubredditSearchMethod()
                                     == Constants.SUBREDDIT_SEARCH_METHOD_BOTH)
                                     && ((MainActivity) getContext()).findViewById(
                                     R.id.toolbar_search).getVisibility() == View.VISIBLE) {

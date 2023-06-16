@@ -355,12 +355,12 @@ public class SubmissionCache {
                 titleString.append(pinned);
             }
         }*/
-        if (SettingValues.showDomain) {
+        if (SettingValues.INSTANCE.getShowDomain()) {
             titleString.append(spacer);
             titleString.append(submission.getDomain());
         }
 
-        if (SettingValues.typeInfoLine) {
+        if (SettingValues.INSTANCE.getTypeInfoLine()) {
             titleString.append(spacer);
             SpannableStringBuilder s = new SpannableStringBuilder(
                     ContentType.getContentDescription(submission, mContext));
@@ -368,7 +368,7 @@ public class SubmissionCache {
                     Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             titleString.append(s);
         }
-        if (SettingValues.votesInfoLine) {
+        if (SettingValues.INSTANCE.getVotesInfoLine()) {
             titleString.append("\n ");
             SpannableStringBuilder s = new SpannableStringBuilder(
                     submission.getScore()
@@ -381,7 +381,7 @@ public class SubmissionCache {
             s.setSpan(new StyleSpan(Typeface.BOLD), 0, s.length(),
                     Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
 
-            if (SettingValues.commentLastVisit) {
+            if (SettingValues.INSTANCE.getCommentLastVisit()) {
                 final int more = LastComments.commentsSince(submission);
                 s.append(more > 0 ? "(+" + more + ")" : "");
 
@@ -419,7 +419,7 @@ public class SubmissionCache {
             titleString.append(pinned);
         }
 
-        if (!SettingValues.hidePostAwards &&
+        if (!SettingValues.INSTANCE.getHidePostAwards() &&
                 (submission.getTimesSilvered() > 0 || submission.getTimesGilded() > 0 || submission.getTimesPlatinized() > 0)) {
             TypedArray a = mContext.obtainStyledAttributes(
                     new FontPreferences(mContext).getPostFontStyle().getResId(),

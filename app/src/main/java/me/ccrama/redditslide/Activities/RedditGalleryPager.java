@@ -70,8 +70,7 @@ public class RedditGalleryPager extends FullScreenActivity
             onBackPressed();
         }
         if (id == R.id.vertical) {
-            SettingValues.albumSwipe = false;
-            SettingValues.prefs.edit().putBoolean(SettingValues.PREF_ALBUM_SWIPE, false).apply();
+            SettingValues.INSTANCE.setAlbumSwipe(false);
             Intent i = new Intent(RedditGalleryPager.this, RedditGallery.class);
             if (getIntent().hasExtra(MediaView.SUBMISSION_URL)) {
                 i.putExtra(MediaView.SUBMISSION_URL,
@@ -373,7 +372,7 @@ public class RedditGalleryPager extends FullScreenActivity
                         }
 
                     });
-                    if (!SettingValues.imageDownloadButton) {
+                    if (!SettingValues.INSTANCE.getImageDownloadButton()) {
                         rootView.findViewById(R.id.save).setVisibility(View.INVISIBLE);
                     }
                 }

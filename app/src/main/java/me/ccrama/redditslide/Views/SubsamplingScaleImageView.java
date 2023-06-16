@@ -269,8 +269,8 @@ public class SubsamplingScaleImageView extends View {
     private ImageRegionDecoder decoder;
     private final ReadWriteLock decoderLock = new ReentrantReadWriteLock(true);
     private DecoderFactory<? extends ImageDecoder> bitmapDecoderFactory = new CompatDecoderFactory<ImageDecoder>(SkiaImageDecoder.class,
-            SettingValues.highColorspaceImages ? Bitmap.Config.ARGB_8888 : Bitmap.Config.RGB_565);
-    private DecoderFactory<? extends ImageRegionDecoder> regionDecoderFactory = new CompatDecoderFactory<ImageRegionDecoder>(SkiaImageRegionDecoder.class, SettingValues.highColorspaceImages ? Bitmap.Config.ARGB_8888 : Bitmap.Config.RGB_565);
+            SettingValues.INSTANCE.getHighColorspaceImages() ? Bitmap.Config.ARGB_8888 : Bitmap.Config.RGB_565);
+    private DecoderFactory<? extends ImageRegionDecoder> regionDecoderFactory = new CompatDecoderFactory<ImageRegionDecoder>(SkiaImageRegionDecoder.class, SettingValues.INSTANCE.getHighColorspaceImages() ? Bitmap.Config.ARGB_8888 : Bitmap.Config.RGB_565);
 
     // Debug values
     private PointF vCenterStart;

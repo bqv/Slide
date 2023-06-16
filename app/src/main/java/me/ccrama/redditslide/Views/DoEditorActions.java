@@ -257,12 +257,7 @@ public class DoEditorActions {
                         b.setNeutralButton(
                                 a.getString(R.string.pro_previews, SettingValues.previews),
                                 (dialog, which) -> {
-                                    SettingValues.prefs.edit()
-                                            .putInt(SettingValues.PREVIEWS_LEFT,
-                                                    SettingValues.previews - 1)
-                                            .apply();
-                                    SettingValues.previews = SettingValues.prefs.getInt(
-                                            SettingValues.PREVIEWS_LEFT, 10);
+                                    SettingValues.decreasePreviewsLeft();
                                     doDraw(a, editText, fm);
                                 });
                     }

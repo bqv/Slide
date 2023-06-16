@@ -436,7 +436,7 @@ public class SpoilerRobotoTextView extends RobotoTextView implements ClickableTe
                 case ALBUM:
                     if (SettingValues.album) {
                         Intent i;
-                        if (SettingValues.albumSwipe) {
+                        if (SettingValues.INSTANCE.getAlbumSwipe()) {
                             i = new Intent(activity, AlbumPager.class);
                             i.putExtra(Album.EXTRA_URL, url);
                             i.putExtra(AlbumPager.SUBREDDIT, subreddit);

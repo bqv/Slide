@@ -15,6 +15,9 @@ import java.util.Calendar
 import java.util.Locale
 
 object SettingValues {
+    private var prefs: SharedPreferences? = null
+    private var prefsListener: SharedPreferences.OnSharedPreferenceChangeListener? = null
+
     const val PREF_SINGLE = "Single"
     const val PREF_FAB = "Fab"
     const val PREF_UPVOTE_PERCENTAGE = "upvotePercentage"
@@ -133,21 +136,76 @@ object SettingValues {
     const val PREF_MOD_TOOLBOX_MODMAIL = "toolboxModmail"
     const val PREF_ALWAYS_SHOW_FAB = "alwaysShowFAB"
     const val PREF_HIGH_COLORSPACE_IMAGES = "highMemoryImages"
-    @JvmField var defaultCardView: CardEnum? = null
-    @JvmField var defaultSorting: Sorting? = null
-    @JvmField var timePeriod: TimePeriod? = null
-    @JvmField var defaultCommentSorting: CommentSort? = null
-    @JvmField var middleImage = false
-    @JvmField var bigPicEnabled = false
-    @JvmField var bigPicCropped = false
+    const val PREF_LAST_INBOX = "lastInbox"
+    const val PREF_LAYOUT = "PRESET"
+    const val PREF_MIDDLE_IMAGE = "middleCard"
+    var defaultCardView: CardEnum = CardEnum.LARGE
+        set(value) {
+            field = value
+            prefs!!.edit()
+                .putString("defaultCardViewNew", value.name)
+                .apply()
+        }
+    var defaultSorting: Sorting = Sorting.HOT
+        set(value) {
+            field = value
+            prefs!!.edit()
+                .putString("defaultSorting", value.name)
+                .apply()
+        }
+    var timePeriod: TimePeriod = TimePeriod.DAY
+        set(value) {
+            field = value
+            prefs!!.edit()
+                .putString("timePeriod", value.name)
+                .apply()
+        }
+    var defaultCommentSorting: CommentSort = CommentSort.CONFIDENCE
+        set(value) {
+            field = value
+            prefs!!.edit()
+                .putString("defaultCommentSortingNew", value.name)
+                .apply()
+        }
+    var middleImage = false
+        set(value) {
+            field = value
+            prefs!!.edit()
+                .putBoolean(PREF_MIDDLE_IMAGE, value)
+                .apply()
+        }
+    var bigPicEnabled = false
+        set(value) {
+            field = value
+            prefs!!.edit()
+                .putBoolean("bigPicEnabled", value)
+                .apply()
+        }
+    var bigPicCropped = false
+        set(value) {
+            field = value
+            prefs!!.edit()
+                .putBoolean("bigPicCropped", value)
+                .apply()
+        }
     var colorMatchingMode: ColorMatchingMode? = null
     var colorIndicator: ColorIndicator? = null
     var theme: ThemeEnum? = null
 
-    private var prefs: SharedPreferences? = null
-
-    @JvmField var expandedToolbar = false
-    @JvmField var single = false
+    var expandedToolbar = false
+        set(value) {
+            field = value
+            prefs!!.edit()
+                .putBoolean(PREF_EXPANDED_TOOLBAR, value)
+                .apply()
+        }
+    var single = false
+        set(value) {
+            field = value
+            prefs!!.edit()
+                .putBoolean(PREF_SINGLE, value)
+                .apply()
+        }
     @JvmField var swap = false
     @JvmField var album = false
     @JvmField var cache = false
@@ -160,18 +218,41 @@ object SettingValues {
     @JvmField var upvotePercentage = false
     @JvmField var colorBack = false
     @JvmField var colorNavBar = false
-    @JvmField var actionbarVisible = false
-    @JvmField var actionbarTap = false
+    var actionbarVisible = false
+        set(value) {
+            field = value
+            prefs!!.edit()
+                .putBoolean(PREF_ACTIONBAR_VISIBLE, value)
+                .apply()
+        }
+    var actionbarTap = false
+        set(value) {
+            field = value
+            prefs!!.edit()
+                .putBoolean(PREF_ACTIONBAR_TAP, value)
+                .apply()
+        }
     @JvmField var commentAutoHide = false
     @JvmField var showCollapseExpand = false
-    @JvmField var fullCommentOverride = false
+    var fullCommentOverride = false
+        set(value) {
+            field = value
+            prefs!!.edit()
+                .putBoolean(PREF_FULL_COMMENT_OVERRIDE, value)
+                .apply()
+        }
     @JvmField var lowResAlways = false
     @JvmField var noImages = false
     @JvmField var lowResMobile = false
     var blurCheck = false
     @JvmField var readerNight = false
     @JvmField var swipeAnywhere = false
-    @JvmField var commentLastVisit = false
+    var commentLastVisit = false
+        set(value) {
+            field = value
+            prefs!!.edit().putBoolean(PREF_COMMENT_LAST_VISIT, value)
+                .apply()
+        }
     @JvmField var storeHistory = false
     var showNSFWContent = false
         set(value) {
@@ -181,7 +262,13 @@ object SettingValues {
         }
     @JvmField var storeNSFWHistory = false
     @JvmField var scrollSeen = false
-    @JvmField var saveButton = false
+    var saveButton = false
+        set(value) {
+            field = value
+            prefs!!.edit()
+                .putBoolean(PREF_SAVE_BUTTON, value)
+                .apply()
+        }
     @JvmField var voteGestures = false
     @JvmField var colorEverywhere = false
     @JvmField var gif = false
@@ -190,9 +277,25 @@ object SettingValues {
     @JvmField var commentVolumeNav = false
     var postNav = false
     @JvmField var cropImage = false
-    @JvmField var smallTag = false
-    @JvmField var typeInfoLine = false
-    @JvmField var votesInfoLine = false
+    var smallTag = false
+        set(value) {
+            field = value
+            prefs!!.edit()
+                .putBoolean(PREF_SMALL_TAG, value)
+                .apply()
+        }
+    var typeInfoLine = false
+        set(value) {
+            field = value
+            prefs!!.edit().putBoolean(PREF_TYPE_INFO_LINE, value)
+                .apply()
+        }
+    var votesInfoLine = false
+        set(value) {
+            field = value
+            prefs!!.edit().putBoolean(PREF_VOTES_INFO_LINE, value)
+                .apply()
+        }
     var readerMode = false
         set(value) {
             field = value
@@ -203,88 +306,304 @@ object SettingValues {
     @JvmField var collapseCommentsDefault = false
     @JvmField var collapseDeletedComments = false
     @JvmField var rightHandedCommentMenu = false
-    @JvmField var abbreviateScores = false
-    @JvmField var hidePostAwards = false
+    var abbreviateScores = false
+        set(value) {
+            field = value
+            prefs!!.edit().putBoolean(PREF_ABBREVIATE_SCORES, value)
+                .apply()
+        }
+    var hidePostAwards = false
+        set(value) {
+            field = value
+            prefs!!.edit().putBoolean(PREF_HIDE_POST_AWARDS, value)
+                .apply()
+        }
     @JvmField var hideCommentAwards = false
     @JvmField var shareLongLink = false
-    @JvmField var isMuted = false
-    @JvmField var subredditSearchMethod = 0
-    @JvmField var backButtonBehavior = 0
-    @JvmField var nightStart = 0
-    @JvmField var nightEnd = 0
-    @JvmField var linkHandlingMode = 0
+    var isMuted = false
+        set(value) {
+            field = value
+            prefs!!.edit()
+                .putBoolean(PREF_MUTE, value)
+                .apply()
+        }
+    var subredditSearchMethod = 0
+        set(value) {
+            field = value
+            prefs!!.edit()
+                .putInt(PREF_SUBREDDIT_SEARCH_METHOD, value)
+                .apply()
+        }
+    var backButtonBehavior = 0
+        set(value) {
+            field = value
+            prefs!!.edit()
+                .putInt(PREF_BACK_BUTTON_BEHAVIOR, value)
+                .apply()
+        }
+    var nightStart = 0
+        set(value) {
+            field = value
+            prefs!!.edit()
+                .putInt(PREF_NIGHT_START, value)
+                .apply()
+        }
+    var nightEnd = 0
+        set(value) {
+            field = value
+            prefs!!.edit()
+                .putInt(PREF_NIGHT_END, value)
+                .apply()
+        }
+    var linkHandlingMode = 0
+        set(value) {
+            field = value
+            prefs!!.edit()
+                .putInt(PREF_LINK_HANDLING_MODE, value)
+                .apply()
+        }
     @JvmField var previews = 0
     @JvmField var synccitName: String? = null
     @JvmField var synccitAuth: String? = null
-    @JvmField var titleFilters: Set<String>? = null
-    @JvmField var textFilters: Set<String>? = null
-    @JvmField var domainFilters: Set<String>? = null
-    @JvmField var subredditFilters: Set<String>? = null
-    @JvmField var flairFilters: Set<String>? = null
-    var alwaysExternal: Set<String>? = null
+    var titleFilters: Set<String> = emptySet()
+        set(value) {
+            field = value
+            prefs!!.edit()
+                .putStringSet(PREF_TITLE_FILTERS, value)
+                .apply()
+        }
+    var textFilters: Set<String> = emptySet()
+        set(value) {
+            field = value
+            prefs!!.edit()
+                .putStringSet(PREF_TEXT_FILTERS, value)
+                .apply()
+        }
+    var domainFilters: Set<String> = emptySet()
+        set(value) {
+            field = value
+            prefs!!.edit()
+                .putStringSet(PREF_DOMAIN_FILTERS, value)
+                .apply()
+        }
+    var subredditFilters: Set<String> = emptySet()
+        set(value) {
+            field = value
+            prefs!!.edit()
+                .putStringSet(PREF_SUBREDDIT_FILTERS, value)
+                .apply()
+        }
+    var flairFilters: Set<String> = emptySet()
+        set(value) {
+            field = value
+            prefs!!.edit()
+                .putStringSet(PREF_FLAIR_FILTERS, value)
+                .apply()
+        }
+    var alwaysExternal: Set<String> = emptySet()
         set(value) {
             field = value
             prefs!!.edit()
                 .putStringSet(PREF_ALWAYS_EXTERNAL, value)
                 .apply()
         }
-    @JvmField var userFilters: Set<String>? = null
+    var userFilters: Set<String> = emptySet()
+        set(value) {
+            field = value
+            prefs!!.edit()
+                .putStringSet(PREF_USER_FILTERS, value)
+                .apply()
+        }
     @JvmField var loadImageLq = false
     @JvmField var ignoreSubSetting = false
     @JvmField var hideNSFWCollection = false
-    @JvmField var highColorspaceImages = false
+    var highColorspaceImages = false
+        set(value) {
+            field = value
+            prefs!!.edit()
+                .putBoolean(PREF_HIGH_COLORSPACE_IMAGES, value)
+                .apply()
+        }
     @JvmField var fastscroll = false
-    @JvmField var fab = true
-    @JvmField var fabType = Constants.FAB_POST
-    @JvmField var hideButton = false
+    var fab = true
+        set(value) {
+            field = value
+            prefs!!.edit()
+                .putBoolean(PREF_FAB, value)
+                .apply()
+        }
+    var fabType = Constants.FAB_POST
+        set(value) {
+            field = value
+            prefs!!.edit()
+                .putInt(PREF_FAB_TYPE, value)
+                .apply()
+        }
+    var hideButton = false
+        set(value) {
+            field = value
+            prefs!!.edit()
+                .putBoolean(PREF_HIDEBUTTON, value)
+                .apply()
+        }
     @JvmField var isPro = false
     var customtabs = false
-    @JvmField var titleTop = false
-    @JvmField var dualPortrait = false
-    @JvmField var singleColumnMultiWindow = false
-    @JvmField var nightModeState = 0
-    @JvmField var imageSubfolders = false
-    @JvmField var imageDownloadButton = false
+    var titleTop = false
+        set(value) {
+            field = value
+            prefs!!.edit().putBoolean(PREF_TITLE_TOP, value)
+                .apply()
+        }
+    var dualPortrait = false
+        set(value) {
+            field = value
+            prefs!!.edit().putBoolean(PREF_DUAL_PORTRAIT, value)
+                .apply()
+        }
+    var singleColumnMultiWindow = false
+        set(value) {
+            field = value
+            prefs!!.edit()
+                .putBoolean(PREF_SINGLE_COLUMN_MULTI, value)
+                .apply()
+        }
+    var nightModeState = 0
+        set(value) {
+            field = value
+            prefs!!.edit().putInt(PREF_NIGHT_MODE_STATE, value)
+                .apply()
+        }
+    var imageSubfolders = false
+        set(value) {
+            field = value
+            prefs!!.edit().putBoolean(PREF_IMAGE_SUBFOLDERS, value)
+                .apply()
+        }
+    var imageDownloadButton = false
+        set(value) {
+            field = value
+            prefs!!.edit().putBoolean(PREF_IMAGE_DOWNLOAD_BUTTON, value)
+                .apply()
+        }
     var autoTime = false
-    @JvmField var albumSwipe = false
+    var albumSwipe = false
+        set(value) {
+            field = value
+            prefs!!.edit().putBoolean(PREF_ALBUM_SWIPE, value)
+                .apply()
+        }
     var switchThumb = false
         set(value) {
             field = value
             prefs!!.edit().putBoolean(PREF_SWITCH_THUMB, value)
                 .apply()
         }
-    @JvmField var bigThumbnails = false
-    @JvmField var noThumbnails = false
-    @JvmField var commentPager = false
-    @JvmField var alphabetizeOnSubscribe = false
+    var bigThumbnails = false
+        set(value) {
+            field = value
+            prefs!!.edit()
+                .putBoolean("bigThumbnails", value)
+                .apply()
+        }
+    var noThumbnails = false
+        set(value) {
+            field = value
+            prefs!!.edit()
+                .putBoolean("noThumbnails", value)
+                .apply()
+        }
+    var commentPager = false
+        set(value) {
+            field = value
+            prefs!!.edit()
+                .putBoolean(PREF_COMMENT_PAGER, value)
+                .apply()
+        }
+    var alphabetizeOnSubscribe = false
+        set(value) {
+            field = value
+            prefs!!.edit()
+                .putBoolean(PREF_ALPHABETIZE_SUBSCRIBE, value)
+                .apply()
+        }
     @JvmField var colorSubName = false
-    @JvmField var hideSelftextLeadImage = false
-    @JvmField var overrideLanguage = false
+    var hideSelftextLeadImage = false
+        set(value) {
+            field = value
+            prefs!!.edit().putBoolean(PREF_SELFTEXT_IMAGE_COMMENT, value)
+                .apply()
+        }
+    var overrideLanguage = false
+        set(value) {
+            field = value
+            prefs!!.edit().putBoolean(PREF_OVERRIDE_LANGUAGE, value)
+                .apply()
+        }
     var immersiveMode = false
         set(value) {
             field = value
             prefs!!.edit().putBoolean(PREF_IMMERSIVE_MODE, value)
                 .apply()
         }
-    @JvmField var showDomain = false
-    @JvmField var cardText = false
+    var showDomain = false
+        set(value) {
+            field = value
+            prefs!!.edit().putBoolean(PREF_SHOW_DOMAIN, value)
+                .apply()
+        }
+    var cardText = false
+        set(value) {
+            field = value
+            prefs!!.edit().putBoolean(PREF_CARD_TEXT, value)
+                .apply()
+        }
     var alwaysZoom = false
     @JvmField var lqLow = false
     @JvmField var lqMid = true
     @JvmField var lqHigh = false
     @JvmField var lqVideos = false
     @JvmField var currentTheme = 0 //current base theme (Light, Dark, Dark blue, etc.)
-    @JvmField var nightTheme = 0
+    var nightTheme = 0
+        set(value) {
+            field = value
+            prefs!!.edit()
+                .putInt(PREF_NIGHT_THEME, value)
+                .apply()
+        }
     @JvmField var typeInText = false
-    @JvmField var notifSound = false
-    @JvmField var cookies = false
+    var notifSound = false
+        set(value) {
+            field = value
+            prefs!!.edit()
+                .putBoolean(PREF_SOUND_NOTIFS, value)
+                .apply()
+        }
+    var cookies = false
+        set(value) {
+            field = value
+            prefs!!.edit()
+                .putBoolean(PREF_COOKIES, value)
+                .apply()
+        }
     @JvmField var colorIcon = false
     @JvmField var peek = false
     @JvmField var largeLinks = false
     @JvmField var highlightCommentOP = false
     @JvmField var highlightTime = false
-    @JvmField var selectedBrowser: String? = null
-    @JvmField var selectedDrawerItems: Long = 0
+    var selectedBrowser: String = ""
+        set(value) {
+            field = value
+            prefs!!.edit()
+                .putString(PREF_SELECTED_BROWSER, value)
+                .apply()
+        }
+    var selectedDrawerItems: Long = 0
+        set(value) {
+            field = value
+            prefs!!.edit()
+                .putLong(PREF_COOKIES, value)
+                .apply()
+        }
     var forcedNightModeState = ForcedState.NOT_FORCED
     @JvmField var toolboxEnabled = false
     @JvmField var removalReasonType = 0
@@ -292,7 +611,13 @@ object SettingValues {
     @JvmField var toolboxSticky = false
     @JvmField var toolboxLock = false
     @JvmField var toolboxModmail = false
-    @JvmField var alwaysShowFAB = false
+    var alwaysShowFAB = false
+        set(value) {
+            field = value
+            prefs!!.edit()
+                .putBoolean(PREF_ALWAYS_SHOW_FAB, value)
+                .apply()
+        }
 
     fun setAllValues(settings: SharedPreferences) {
         prefs = settings
@@ -447,7 +772,7 @@ object SettingValues {
         actionbarTap = prefs!!.getBoolean(PREF_ACTIONBAR_TAP, false)
         colorIcon = prefs!!.getBoolean(PREF_COLOR_ICON, false)
         peek = prefs!!.getBoolean(PREF_PEEK, false)
-        selectedBrowser = prefs!!.getString(PREF_SELECTED_BROWSER, "")
+        selectedBrowser = prefs!!.getString(PREF_SELECTED_BROWSER, "") ?: ""
         selectedDrawerItems = prefs!!.getLong(PREF_SELECTED_DRAWER_ITEMS, -1)
         toolboxEnabled = prefs!!.getBoolean(PREF_MOD_TOOLBOX_ENABLED, false)
         removalReasonType = prefs!!.getInt(PREF_MOD_REMOVAL_TYPE, RemovalReasonType.SLIDE.ordinal)
@@ -458,12 +783,26 @@ object SettingValues {
         toolboxModmail = prefs!!.getBoolean(PREF_MOD_TOOLBOX_MODMAIL, false)
     }
 
+    @JvmStatic fun hasPicsEnabled(sub: String): Boolean {
+        return prefs!!.contains("picsenabled" + sub.toLowerCase(Locale.ENGLISH))
+    }
+
     @JvmStatic fun setPicsEnabled(sub: String, checked: Boolean) {
         prefs!!.edit().putBoolean("picsenabled" + sub.lowercase(), checked).apply()
     }
 
     @JvmStatic fun resetPicsEnabled(sub: String) {
         prefs!!.edit().remove("picsenabled" + sub.lowercase()).apply()
+    }
+
+    @JvmStatic fun resetPicsEnabledAll() {
+        val e = prefs!!.edit()
+        for ((key) in prefs!!.all) {
+            if (key.startsWith("picsenabled")) {
+                e.remove(key) //reset all overridden values
+            }
+        }
+        e.apply()
     }
 
     @JvmStatic fun isPicsEnabled(subreddit: String?): Boolean {
@@ -551,6 +890,40 @@ object SettingValues {
         }
     }// unset forced state if forcing is now unnecessary - allows for normal night mode on/off transitions
 
+    @JvmStatic val lastInbox: Long
+        get() {
+            val value = prefs!!.getLong(PREF_LAST_INBOX,
+                System.currentTimeMillis() - (60 * 1000 * 60))
+            prefs!!.edit().putLong(PREF_LAST_INBOX, System.currentTimeMillis()).apply()
+            return value
+        }
+
+    @JvmStatic var commentDepth: Int?
+        get() {
+            val value = prefs!!.getString(COMMENT_DEPTH, "")!!
+            return when (value.isBlank()) {
+                true -> null
+                false -> Integer.parseInt(value)
+            }
+        }
+        set(value) {
+            if (value != null)
+                prefs!!.edit().putString(COMMENT_DEPTH, value.toString()).apply()
+        }
+
+    @JvmStatic var commentCount: Int?
+        get() {
+            val value = prefs!!.getString(COMMENT_COUNT, "")!!
+            return when (value.isBlank()) {
+                true -> null
+                false -> Integer.parseInt(value)
+            }
+        }
+        set(value) {
+            if (value != null)
+                prefs!!.edit().putString(COMMENT_COUNT, value.toString()).apply()
+        }
+
     /* Logic for the now rather complicated night mode:
        *
        * Normal       | Forced            | Actual state
@@ -564,7 +937,7 @@ object SettingValues {
        *
        * Forced night mode state is intentionally not persisted between app runs and defaults to unset
        */
-    val isNight: Boolean
+    @JvmStatic val isNight: Boolean
         get() =/* Logic for the now rather complicated night mode:
               *
               * Normal       | Forced            | Actual state
@@ -641,6 +1014,42 @@ object SettingValues {
             .apply()
         prefs!!.edit().remove("defaultTime" + subreddit.lowercase())
             .apply()
+    }
+
+    @JvmStatic fun getLayoutSettings(subreddit: String): Boolean? {
+        return prefs!!.contains(PREF_LAYOUT + subreddit.lowercase(Locale.ENGLISH))
+    }
+
+    @JvmStatic fun setLayoutSettings(subreddit: String, state: Boolean) {
+        if (state) {
+            prefs!!.edit().remove(PREF_LAYOUT + subreddit.lowercase(Locale.ENGLISH))
+                .apply()
+        } else {
+            prefs!!.edit().putBoolean(PREF_LAYOUT + subreddit.lowercase(Locale.ENGLISH), true)
+                .apply()
+        }
+    }
+
+    @JvmStatic fun setListener(listener: SharedPreferences.OnSharedPreferenceChangeListener) {
+        clearListener()
+
+        prefsListener = listener
+        prefs!!.registerOnSharedPreferenceChangeListener(prefsListener)
+    }
+
+    @JvmStatic fun clearListener() {
+        prefs!!.registerOnSharedPreferenceChangeListener(prefsListener)
+        prefsListener = null
+    }
+
+    @Deprecated("use properties")
+    @JvmStatic fun editInt(settingValueString: String, value: Int) {
+        prefs!!.edit().putInt(settingValueString, value).apply()
+    }
+
+    @Deprecated("use properties")
+    @JvmStatic fun editBoolean(settingValueString: String, value: Boolean) {
+        prefs!!.edit().putBoolean(settingValueString, value).apply()
     }
 
     enum class RemovalReasonType {

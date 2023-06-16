@@ -85,7 +85,7 @@ public class ReorderSubreddits extends BaseActivityAnim {
         inflater.inflate(R.menu.reorder_subs, menu);
 
         subscribe = menu.findItem(R.id.alphabetize_subscribe);
-        subscribe.setChecked(SettingValues.alphabetizeOnSubscribe);
+        subscribe.setChecked(SettingValues.INSTANCE.getAlphabetizeOnSubscribe());
 
         return true;
     }
@@ -149,12 +149,9 @@ public class ReorderSubreddits extends BaseActivityAnim {
                 recyclerView.setAdapter(adapter);
                 return true;
             case R.id.alphabetize_subscribe:
-                SettingValues.prefs.edit()
-                        .putBoolean(SettingValues.PREF_ALPHABETIZE_SUBSCRIBE, !SettingValues.alphabetizeOnSubscribe)
-                        .apply();
-                SettingValues.alphabetizeOnSubscribe = !SettingValues.alphabetizeOnSubscribe;
+                SettingValues.INSTANCE.setAlphabetizeOnSubscribe(!SettingValues.INSTANCE.getAlphabetizeOnSubscribe());
                 if(subscribe != null)
-                subscribe.setChecked(SettingValues.alphabetizeOnSubscribe);
+                subscribe.setChecked(SettingValues.INSTANCE.getAlphabetizeOnSubscribe());
                 return true;
             case R.id.info:
                 new AlertDialog.Builder(ReorderSubreddits.this)

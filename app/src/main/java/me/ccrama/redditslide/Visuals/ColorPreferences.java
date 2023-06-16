@@ -521,7 +521,7 @@ public class ColorPreferences {
     public Theme getFontStyle() {
         try {
             if (SettingValues.isNight()) {
-                return getColoredTheme(SettingValues.nightTheme,
+                return getColoredTheme(SettingValues.INSTANCE.getNightTheme(),
                         getUserThemeName(FONT_STYLE, Theme.dark_amber.name()),
                         Theme.valueOf(open().getString(FONT_STYLE, Theme.dark_amber.name())));
             }

@@ -1,255 +1,221 @@
-package me.ccrama.redditslide.ui.settings;
+package me.ccrama.redditslide.ui.settings
 
-import android.app.Activity;
-import android.os.Build;
-import android.view.MenuItem;
-import android.view.View;
-import android.view.inputmethod.EditorInfo;
-import android.widget.CompoundButton;
-import android.widget.EditText;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.RadioGroup;
-import android.widget.RelativeLayout;
-import android.widget.TextView;
+import android.app.Activity
+import android.os.Build
+import android.view.KeyEvent
+import android.view.MenuItem
+import android.view.View
+import android.view.inputmethod.EditorInfo
+import android.widget.CompoundButton
+import android.widget.EditText
+import android.widget.ImageView
+import android.widget.LinearLayout
+import android.widget.RadioGroup
+import android.widget.RelativeLayout
+import android.widget.TextView
+import androidx.annotation.IdRes
+import androidx.appcompat.widget.PopupMenu
+import androidx.appcompat.widget.SwitchCompat
+import com.google.common.collect.BiMap
+import com.google.common.collect.HashBiMap
+import ltd.ucode.slide.App
+import ltd.ucode.slide.R
+import ltd.ucode.slide.SettingValues
+import me.ccrama.redditslide.util.LinkUtil
 
-import androidx.annotation.IdRes;
-import androidx.appcompat.widget.PopupMenu;
-import androidx.appcompat.widget.SwitchCompat;
-
-import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
-
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
-
-import ltd.ucode.slide.R;
-import ltd.ucode.slide.App;
-import ltd.ucode.slide.SettingValues;
-import me.ccrama.redditslide.util.LinkUtil;
-
-public class SettingsHandlingFragment implements CompoundButton.OnCheckedChangeListener {
-
-    private final Activity context;
-    LinearLayout domainListLayout;
-
-    public SettingsHandlingFragment(Activity context) {
-        this.context = context;
-    }
-
-    public void Bind() {
+class SettingsHandlingFragment(private val context: Activity) :
+    CompoundButton.OnCheckedChangeListener {
+    var domainListLayout: LinearLayout? = null
+    fun Bind() {
         //todo web stuff
-        SwitchCompat shortlink = context.findViewById(R.id.settings_handling_shortlink);
-        SwitchCompat gif = context.findViewById(R.id.settings_handling_gif);
-        SwitchCompat hqgif = context.findViewById(R.id.settings_handling_hqgif);
-        SwitchCompat image = context.findViewById(R.id.settings_handling_image);
-        SwitchCompat album = context.findViewById(R.id.settings_handling_album);
-        SwitchCompat peek = context.findViewById(R.id.settings_handling_peek);
-
-        shortlink.setChecked(!SettingValues.shareLongLink);
-        gif.setChecked(SettingValues.gif);
-        hqgif.setChecked(SettingValues.hqgif);
-        image.setChecked(SettingValues.image);
-        album.setChecked(SettingValues.album);
-        peek.setChecked(SettingValues.peek);
-
-        shortlink.setOnCheckedChangeListener(this);
-        gif.setOnCheckedChangeListener(this);
-        hqgif.setOnCheckedChangeListener(this);
-        image.setOnCheckedChangeListener(this);
-        album.setOnCheckedChangeListener(this);
-        peek.setOnCheckedChangeListener(this);
-
-        final SwitchCompat readerMode = context.findViewById(R.id.settings_handling_reader_mode);
-        final SwitchCompat readernight = context.findViewById(R.id.settings_handling_readernight);
-
-        final RelativeLayout handlingVideoLayout = context.findViewById(R.id.settings_handling_video);
-        domainListLayout = context.findViewById(R.id.settings_handling_domainlist);
-        final EditText domainListEditText = context.findViewById(R.id.settings_handling_domain_edit);
+        val shortlink = context.findViewById<SwitchCompat>(R.id.settings_handling_shortlink)
+        val gif = context.findViewById<SwitchCompat>(R.id.settings_handling_gif)
+        val hqgif = context.findViewById<SwitchCompat>(R.id.settings_handling_hqgif)
+        val image = context.findViewById<SwitchCompat>(R.id.settings_handling_image)
+        val album = context.findViewById<SwitchCompat>(R.id.settings_handling_album)
+        val peek = context.findViewById<SwitchCompat>(R.id.settings_handling_peek)
+        shortlink.isChecked = !SettingValues.shareLongLink
+        gif.isChecked = SettingValues.gif
+        hqgif.isChecked = SettingValues.hqgif
+        image.isChecked = SettingValues.image
+        album.isChecked = SettingValues.album
+        peek.isChecked = SettingValues.peek
+        shortlink.setOnCheckedChangeListener(this)
+        gif.setOnCheckedChangeListener(this)
+        hqgif.setOnCheckedChangeListener(this)
+        image.setOnCheckedChangeListener(this)
+        album.setOnCheckedChangeListener(this)
+        peek.setOnCheckedChangeListener(this)
+        val readerMode = context.findViewById<SwitchCompat>(R.id.settings_handling_reader_mode)
+        val readernight = context.findViewById<SwitchCompat>(R.id.settings_handling_readernight)
+        val handlingVideoLayout = context.findViewById<RelativeLayout>(R.id.settings_handling_video)
+        domainListLayout = context.findViewById(R.id.settings_handling_domainlist)
+        val domainListEditText = context.findViewById<EditText>(R.id.settings_handling_domain_edit)
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //* Browser */
-        setUpBrowserLinkHandling();
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-        readerMode.setChecked(SettingValues.readerMode);
-        readerMode.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            SettingValues.readerMode = isChecked;
-            editSharedBooleanPreference(SettingValues.PREF_READER_MODE, SettingValues.readerMode);
-            readernight.setEnabled(SettingValues.NightModeState.isEnabled() && SettingValues.readerMode);
-        });
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-        readernight.setEnabled(SettingValues.NightModeState.isEnabled() && SettingValues.readerMode);
-        readernight.setChecked(SettingValues.readerNight);
-        readernight.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            SettingValues.readerNight = isChecked;
-            editSharedBooleanPreference(SettingValues.PREF_READER_NIGHT, isChecked);
-        });
+        setUpBrowserLinkHandling()
+        //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        readerMode.isChecked = SettingValues.readerMode
+        readerMode.setOnCheckedChangeListener { buttonView: CompoundButton?, isChecked: Boolean ->
+            SettingValues.readerMode = isChecked
+            SettingValues.editBoolean(SettingValues.PREF_READER_MODE, SettingValues.readerMode)
+            readernight.isEnabled =
+                SettingValues.NightModeState.isEnabled && SettingValues.readerMode
+        }
+        //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        readernight.isEnabled = SettingValues.NightModeState.isEnabled && SettingValues.readerMode
+        readernight.isChecked = SettingValues.readerNight
+        readernight.setOnCheckedChangeListener { buttonView: CompoundButton?, isChecked: Boolean ->
+            SettingValues.readerNight = isChecked
+            SettingValues.editBoolean(SettingValues.PREF_READER_NIGHT, isChecked)
+        }
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         if (!App.videoPlugin) {
-            handlingVideoLayout.setOnClickListener(v ->
-                    LinkUtil.launchMarketUri(context, R.string.youtube_plugin_package));
+            handlingVideoLayout.setOnClickListener { v: View? ->
+                LinkUtil.launchMarketUri(
+                    context, R.string.youtube_plugin_package
+                )
+            }
         } else {
-            handlingVideoLayout.setVisibility(View.GONE);
+            handlingVideoLayout.visibility = View.GONE
         }
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        /* activity_settings_handling_child.xml does not load these elements so we need to null check */
-        if (domainListEditText != null & domainListLayout != null) {
-            domainListEditText.setOnEditorActionListener((v, actionId, event) -> {
+        /* activity_settings_handling_child.xml does not load these elements so we need to null check */if ((domainListEditText != null) and (domainListLayout != null)) {
+            domainListEditText!!.setOnEditorActionListener { v: TextView?, actionId: Int, event: KeyEvent? ->
                 if (actionId == EditorInfo.IME_ACTION_DONE) {
-                    SettingValues.alwaysExternal.add(
-                            domainListEditText.getText().toString().toLowerCase(Locale.ENGLISH).trim());
-                    domainListEditText.setText("");
-                    updateFilters();
+                    SettingValues.alwaysExternal +=
+                        domainListEditText.text.toString().lowercase().trim { it <= ' ' }
+                    domainListEditText.setText("")
+                    updateFilters()
                 }
-                return false;
-            });
-            updateFilters();
+                false
+            }
+            updateFilters()
         }
     }
 
-    private void setUpBrowserLinkHandling() {
-        final RadioGroup browserTypeRadioGroup = context.findViewById(R.id.settings_handling_select_browser_type);
-        final RelativeLayout selectBrowserLayout = context.findViewById(R.id.settings_handling_select_browser_layout);
-        final TextView webBrowserView = context.findViewById(R.id.settings_handling_browser);
-
-        browserTypeRadioGroup.check(LinkHandlingMode.idResFromValue(SettingValues.linkHandlingMode));
-        browserTypeRadioGroup.setOnCheckedChangeListener((group, checkedId) -> {
-            SettingValues.linkHandlingMode = LinkHandlingMode.valueFromIdRes(checkedId);
-            SettingValues.prefs.edit()
-                    .putInt(SettingValues.PREF_LINK_HANDLING_MODE, SettingValues.linkHandlingMode)
-                    .apply();
-        });
-
-        final HashMap<String, String> installedBrowsers = App.getInstalledBrowsers();
+    private fun setUpBrowserLinkHandling() {
+        val browserTypeRadioGroup =
+            context.findViewById<RadioGroup>(R.id.settings_handling_select_browser_type)
+        val selectBrowserLayout =
+            context.findViewById<RelativeLayout>(R.id.settings_handling_select_browser_layout)
+        val webBrowserView = context.findViewById<TextView>(R.id.settings_handling_browser)
+        browserTypeRadioGroup.check(LinkHandlingMode.idResFromValue(SettingValues.linkHandlingMode))
+        browserTypeRadioGroup.setOnCheckedChangeListener { group: RadioGroup?, checkedId: Int ->
+            SettingValues.linkHandlingMode = LinkHandlingMode.valueFromIdRes(checkedId)
+        }
+        val installedBrowsers: HashMap<String, String> = App.Companion.installedBrowsers
         if (!installedBrowsers.containsKey(SettingValues.selectedBrowser)) {
-            SettingValues.selectedBrowser = "";
-            SettingValues.prefs.edit()
-                    .putString(SettingValues.PREF_SELECTED_BROWSER, SettingValues.selectedBrowser)
-                    .apply();
+            SettingValues.selectedBrowser = ""
         }
-        webBrowserView.setText(installedBrowsers.get(SettingValues.selectedBrowser));
-        if (installedBrowsers.size() <= 1) {
-            selectBrowserLayout.setVisibility(View.GONE);
+        webBrowserView.text = installedBrowsers[SettingValues.selectedBrowser]
+        if (installedBrowsers.size <= 1) {
+            selectBrowserLayout.visibility = View.GONE
         } else {
-            selectBrowserLayout.setVisibility(View.VISIBLE);
-            selectBrowserLayout.setOnClickListener(v -> {
-                final PopupMenu popupMenu = new PopupMenu(context, v);
-                final HashMap<MenuItem, String> packageNames = new HashMap<>();
-
-                for (Map.Entry<String, String> entry : installedBrowsers.entrySet()) {
-                    final MenuItem menuItem = popupMenu.getMenu().add(entry.getValue());
+            selectBrowserLayout.visibility = View.VISIBLE
+            selectBrowserLayout.setOnClickListener { v: View? ->
+                val popupMenu = PopupMenu(
+                    context, v!!
+                )
+                val packageNames = HashMap<MenuItem, String?>()
+                for ((key, value) in installedBrowsers) {
+                    val menuItem = popupMenu.menu.add(value)
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                        menuItem.setTooltipText(entry.getKey());
+                        menuItem.tooltipText = key
                     }
-
-                    packageNames.put(menuItem, entry.getKey());
+                    packageNames[menuItem] = key
                 }
-
-                popupMenu.setOnMenuItemClickListener(item -> {
-                    SettingValues.selectedBrowser = packageNames.get(item);
-                    SettingValues.prefs.edit()
-                            .putString(SettingValues.PREF_SELECTED_BROWSER,
-                                    SettingValues.selectedBrowser)
-                            .apply();
-                    webBrowserView.setText(item.getTitle());
-                    return true;
-                });
-                popupMenu.show();
-            });
-        }
-    }
-
-    @Override
-    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-        switch (buttonView.getId()) {
-            case R.id.settings_handling_shortlink:
-                SettingValues.shareLongLink = !isChecked;
-                editSharedBooleanPreference(SettingValues.PREF_LONG_LINK, !isChecked);
-                break;
-            case R.id.settings_handling_gif:
-                SettingValues.gif = isChecked;
-                editSharedBooleanPreference(SettingValues.PREF_GIF, isChecked);
-                break;
-            case R.id.settings_handling_hqgif:
-                SettingValues.hqgif = isChecked;
-                editSharedBooleanPreference(SettingValues.PREF_HQGIF, isChecked);
-                break;
-            case R.id.settings_handling_image:
-                SettingValues.image = isChecked;
-                editSharedBooleanPreference(SettingValues.PREF_IMAGE, isChecked);
-                break;
-            case R.id.settings_handling_album:
-                SettingValues.album = isChecked;
-                editSharedBooleanPreference(SettingValues.PREF_ALBUM, isChecked);
-                break;
-            case R.id.settings_handling_peek:
-                SettingValues.peek = isChecked;
-                editSharedBooleanPreference(SettingValues.PREF_PEEK, isChecked);
-                break;
-        }
-    }
-
-    private void updateFilters() {
-        domainListLayout.removeAllViews();
-        for (String s : SettingValues.alwaysExternal) {
-            if (!s.isEmpty() && (!App.videoPlugin || !s.contains("youtube.co") && !s.contains("youtu.be"))) {
-                final View t = context.getLayoutInflater().inflate(R.layout.account_textview,
-                        domainListLayout, false);
-                final TextView accountTextViewName = t.findViewById(R.id.name);
-                final ImageView accountTextViewRemove = t.findViewById(R.id.remove);
-                accountTextViewName.setText(s);
-                accountTextViewRemove.setOnClickListener(v -> {
-                    SettingValues.alwaysExternal.remove(s);
-                    updateFilters();
-                });
-                domainListLayout.addView(t);
+                popupMenu.setOnMenuItemClickListener { item: MenuItem ->
+                    SettingValues.selectedBrowser = packageNames[item]!!
+                    webBrowserView.text = item.title
+                    true
+                }
+                popupMenu.show()
             }
         }
     }
 
-    private void editSharedBooleanPreference(final String settingValueString, final boolean isChecked) {
-        SettingValues.prefs.edit().putBoolean(settingValueString, isChecked).apply();
+    override fun onCheckedChanged(buttonView: CompoundButton, isChecked: Boolean) {
+        when (buttonView.id) {
+            R.id.settings_handling_shortlink -> {
+                SettingValues.shareLongLink = !isChecked
+                SettingValues.editBoolean(SettingValues.PREF_LONG_LINK, !isChecked)
+            }
+
+            R.id.settings_handling_gif -> {
+                SettingValues.gif = isChecked
+                SettingValues.editBoolean(SettingValues.PREF_GIF, isChecked)
+            }
+
+            R.id.settings_handling_hqgif -> {
+                SettingValues.hqgif = isChecked
+                SettingValues.editBoolean(SettingValues.PREF_HQGIF, isChecked)
+            }
+
+            R.id.settings_handling_image -> {
+                SettingValues.image = isChecked
+                SettingValues.editBoolean(SettingValues.PREF_IMAGE, isChecked)
+            }
+
+            R.id.settings_handling_album -> {
+                SettingValues.album = isChecked
+                SettingValues.editBoolean(SettingValues.PREF_ALBUM, isChecked)
+            }
+
+            R.id.settings_handling_peek -> {
+                SettingValues.peek = isChecked
+                SettingValues.editBoolean(SettingValues.PREF_PEEK, isChecked)
+            }
+        }
     }
 
-    public enum LinkHandlingMode {
-        EXTERNAL(0, R.id.settings_handling_browser_type_external_browser),
-        INTERNAL(1, R.id.settings_handling_browser_type_internal_browser),
+    private fun updateFilters() {
+        domainListLayout!!.removeAllViews()
+        for (s in SettingValues.alwaysExternal) {
+            if (!s.isEmpty() && (!App.videoPlugin || !s.contains("youtube.co") && !s.contains("youtu.be"))) {
+                val t = context.layoutInflater.inflate(
+                    R.layout.account_textview,
+                    domainListLayout, false
+                )
+                val accountTextViewName = t.findViewById<TextView>(R.id.name)
+                val accountTextViewRemove = t.findViewById<ImageView>(R.id.remove)
+                accountTextViewName.text = s
+                accountTextViewRemove.setOnClickListener { v: View? ->
+                    SettingValues.alwaysExternal -= s
+                    updateFilters()
+                }
+                domainListLayout!!.addView(t)
+            }
+        }
+    }
+
+    enum class LinkHandlingMode(val value: Int, @field:IdRes @param:IdRes val idRes: Int) {
+        EXTERNAL(0, R.id.settings_handling_browser_type_external_browser), INTERNAL(
+            1,
+            R.id.settings_handling_browser_type_internal_browser
+        ),
         CUSTOM_TABS(2, R.id.settings_handling_browser_type_custom_tabs);
 
-        private static final BiMap<Integer, Integer> sBiMap =
-                HashBiMap.create(new HashMap<Integer, Integer>() {{
-                    put(EXTERNAL.getValue(), EXTERNAL.getIdRes());
-                    put(INTERNAL.getValue(), INTERNAL.getIdRes());
-                    put(CUSTOM_TABS.getValue(), CUSTOM_TABS.getIdRes());
-                }});
-        private final int mValue;
-        @IdRes
-        private final int mIdRes;
+        companion object {
+            private val sBiMap: BiMap<Int, Int> =
+                HashBiMap.create<Int, Int>(object : HashMap<Int, Int>() {
+                    init {
+                        put(EXTERNAL.value, EXTERNAL.idRes)
+                        put(INTERNAL.value, INTERNAL.idRes)
+                        put(CUSTOM_TABS.value, CUSTOM_TABS.idRes)
+                    }
+                })
 
-        LinkHandlingMode(int value, @IdRes int stringRes) {
-            mValue = value;
-            mIdRes = stringRes;
-        }
+            fun idResFromValue(value: Int): Int {
+                return sBiMap[value]!!
+            }
 
-        public static int idResFromValue(int value) {
-            return sBiMap.get(value);
-        }
-
-        public static int valueFromIdRes(@IdRes int idRes) {
-            return sBiMap.inverse().get(idRes);
-        }
-
-        public int getValue() {
-            return mValue;
-        }
-
-        public int getIdRes() {
-            return mIdRes;
+            fun valueFromIdRes(@IdRes idRes: Int): Int {
+                return sBiMap.inverse()[idRes]!!
+            }
         }
     }
 }

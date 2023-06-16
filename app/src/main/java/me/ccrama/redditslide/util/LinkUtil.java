@@ -100,18 +100,18 @@ public class LinkUtil {
 
     public static void openUrl(@NonNull String url, int color, @NonNull Activity contextActivity,
             @Nullable Integer adapterPosition, @Nullable Submission submission) {
-        if (!(contextActivity instanceof ReaderMode) && ((SettingValues.readerMode
+        if (!(contextActivity instanceof ReaderMode) && ((SettingValues.INSTANCE.getReaderMode()
                 && !SettingValues.readerNight)
-                || SettingValues.readerMode
+                || SettingValues.INSTANCE.getReaderMode()
                 && SettingValues.readerNight
                 && SettingValues.isNight())) {
             Intent i = new Intent(contextActivity, ReaderMode.class);
             openIntentThemed(i, url, color, contextActivity, adapterPosition, submission);
-        } else if (SettingValues.linkHandlingMode == LinkHandlingMode.EXTERNAL.getValue()) {
+        } else if (SettingValues.INSTANCE.getLinkHandlingMode() == LinkHandlingMode.EXTERNAL.getValue()) {
             openExternally(url);
         } else {
             String packageName = CustomTabsHelper.getPackageNameToUse(contextActivity);
-            if (SettingValues.linkHandlingMode == LinkHandlingMode.CUSTOM_TABS.getValue()
+            if (SettingValues.INSTANCE.getLinkHandlingMode() == LinkHandlingMode.CUSTOM_TABS.getValue()
                     && packageName != null) {
                 openCustomTab(url, color, contextActivity, packageName);
             } else {
@@ -245,14 +245,14 @@ public class LinkUtil {
             packageToSet = browserPackageName;
         }
 
-        if (packageToSet.equals(browserPackageName) && (SettingValues.selectedBrowser != null
-                && !SettingValues.selectedBrowser.isEmpty())) {
+        if (packageToSet.equals(browserPackageName) && (SettingValues.INSTANCE.getSelectedBrowser() != null
+                && !SettingValues.INSTANCE.getSelectedBrowser().isEmpty())) {
             try {
                 App.getAppContext()
                         .getPackageManager()
-                        .getPackageInfo(SettingValues.selectedBrowser,
+                        .getPackageInfo(SettingValues.INSTANCE.getSelectedBrowser(),
                                 PackageManager.GET_ACTIVITIES);
-                packageToSet = SettingValues.selectedBrowser;
+                packageToSet = SettingValues.INSTANCE.getSelectedBrowser();
             } catch (PackageManager.NameNotFoundException ignored) {
             }
         }

@@ -74,7 +74,7 @@ public class Website extends BaseActivityAnim {
         //   if (mShowInfoButton) menu.findItem(R.id.action_info).setVisible(true);
         //   else menu.findItem(R.id.action_info).setVisible(false);
         MenuItem item = menu.findItem(R.id.store_cookies);
-        item.setChecked(SettingValues.cookies);
+        item.setChecked(SettingValues.INSTANCE.getCookies());
 
         if (!getIntent().hasExtra(LinkUtil.ADAPTER_POSITION)) {
             menu.findItem(R.id.comments).setVisible(false);
@@ -115,10 +115,7 @@ public class Website extends BaseActivityAnim {
                 startActivity(inte);
                 return true;
             case R.id.store_cookies:
-                SettingValues.prefs.edit()
-                        .putBoolean(SettingValues.PREF_COOKIES, !SettingValues.cookies)
-                        .apply();
-                SettingValues.cookies = !SettingValues.cookies;
+                SettingValues.INSTANCE.setCookies(!SettingValues.INSTANCE.getCookies());
                 finish();
                 overridePendingTransition(0, 0);
                 startActivity(getIntent());
@@ -183,7 +180,7 @@ public class Website extends BaseActivityAnim {
         client = new MyWebViewClient();
         webClient = new AdBlockWebViewClient();
 
-        if (!SettingValues.cookies) {
+        if (!SettingValues.INSTANCE.getCookies()) {
             final CookieManager cookieManager = CookieManager.getInstance();
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                 cookieManager.removeAllCookies(null);
@@ -413,7 +410,7 @@ public class Website extends BaseActivityAnim {
                     case ALBUM:
                         if (SettingValues.album) {
                             Intent i;
-                            if (SettingValues.albumSwipe) {
+                            if (SettingValues.INSTANCE.getAlbumSwipe()) {
                                 i = new Intent(view.getContext(), AlbumPager.class);
                             } else {
                                 i = new Intent(view.getContext(), Album.class);

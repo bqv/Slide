@@ -161,7 +161,7 @@ public class GifUtils {
                     String folderPath = Preferences.INSTANCE.getAppRestart().getString("imagelocation", "");
 
                     String subFolderPath = "";
-                    if (SettingValues.imageSubfolders && !subreddit.isEmpty()) {
+                    if (SettingValues.INSTANCE.getImageSubfolders() && !subreddit.isEmpty()) {
                         subFolderPath = File.separator + subreddit;
                     }
 

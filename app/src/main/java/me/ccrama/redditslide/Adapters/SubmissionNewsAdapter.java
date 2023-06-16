@@ -59,8 +59,7 @@ public class SubmissionNewsAdapter extends RecyclerView.Adapter<RecyclerView.Vie
         this.dataSet = dataSet;
         this.context = context;
         this.seen = new ArrayList<>();
-        custom = SettingValues.prefs.contains(
-                App.PREF_LAYOUT + subreddit.toLowerCase(Locale.ENGLISH));
+        custom = SettingValues.getLayoutSettings(subreddit);
         this.displayer = displayer;
         MainActivity.randomoverride = "";
     }

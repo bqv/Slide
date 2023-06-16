@@ -1,406 +1,311 @@
-package me.ccrama.redditslide.ui.settings;
+package me.ccrama.redditslide.ui.settings
 
-import android.content.SharedPreferences;
-import android.os.Bundle;
-import android.view.MenuItem;
-import android.view.View;
-import android.widget.CompoundButton;
-import android.widget.LinearLayout;
-import android.widget.TextView;
-
-import androidx.appcompat.widget.AppCompatCheckBox;
-import androidx.appcompat.widget.PopupMenu;
-import androidx.appcompat.widget.SwitchCompat;
-
-import java.util.Map;
-
-import me.ccrama.redditslide.Activities.BaseActivityAnim;
-import ltd.ucode.slide.R;
-import ltd.ucode.slide.SettingValues;
-import me.ccrama.redditslide.SubmissionCache;
-import me.ccrama.redditslide.Views.CreateCardView;
+import android.os.Bundle
+import android.view.MenuItem
+import android.view.View
+import android.widget.CompoundButton
+import android.widget.LinearLayout
+import android.widget.TextView
+import androidx.appcompat.widget.AppCompatCheckBox
+import androidx.appcompat.widget.PopupMenu
+import androidx.appcompat.widget.SwitchCompat
+import ltd.ucode.slide.R
+import ltd.ucode.slide.SettingValues
+import me.ccrama.redditslide.Activities.BaseActivityAnim
+import me.ccrama.redditslide.SubmissionCache
+import me.ccrama.redditslide.Views.CreateCardView
+import me.ccrama.redditslide.Views.CreateCardView.CreateView
+import me.ccrama.redditslide.Views.CreateCardView.isCard
+import me.ccrama.redditslide.Views.CreateCardView.isDesktop
+import me.ccrama.redditslide.Views.CreateCardView.isMiddle
+import me.ccrama.redditslide.Views.CreateCardView.setActionbarVisible
+import me.ccrama.redditslide.Views.CreateCardView.setBigPicCropped
+import me.ccrama.redditslide.Views.CreateCardView.setBigPicEnabled
+import me.ccrama.redditslide.Views.CreateCardView.setCardViewType
+import me.ccrama.redditslide.Views.CreateCardView.setMiddleCard
+import me.ccrama.redditslide.Views.CreateCardView.setNoThumbnails
+import me.ccrama.redditslide.Views.CreateCardView.setSmallTag
+import me.ccrama.redditslide.Views.CreateCardView.setSwitchThumb
 
 /**
  * Created by ccrama on 9/17/2015.
  */
-public class EditCardsLayout extends BaseActivityAnim {
-    @Override
-    public void onCreate(Bundle savedInstance) {
-        overrideRedditSwipeAnywhere();
-        overrideSwipeFromAnywhere();
-
-        super.onCreate(savedInstance);
-
-        applyColorTheme();
-        setContentView(R.layout.activity_settings_theme_card);
-
-        setupAppBar(R.id.toolbar, R.string.settings_layout_default, true, true);
-
-        final LinearLayout layout = (LinearLayout) findViewById(R.id.card);
-        layout.removeAllViews();
-        layout.addView(CreateCardView.CreateView(layout));
+class EditCardsLayout : BaseActivityAnim() {
+    public override fun onCreate(savedInstance: Bundle?) {
+        overrideRedditSwipeAnywhere()
+        overrideSwipeFromAnywhere()
+        super.onCreate(savedInstance)
+        applyColorTheme()
+        setContentView(R.layout.activity_settings_theme_card)
+        setupAppBar(R.id.toolbar, R.string.settings_layout_default, true, true)
+        val layout = findViewById<View>(R.id.card) as LinearLayout
+        layout.removeAllViews()
+        layout.addView(CreateView(layout))
 
         //View type//
         //Cards or List//
-        ((TextView) findViewById(R.id.view_current)).setText(CreateCardView.isCard() ? (CreateCardView.isMiddle() ? getString(R.string.mode_centered) : getString(R.string.mode_card)) : CreateCardView.isDesktop() ? getString(R.string.mode_desktop_compact) : getString(R.string.mode_list));
-
-        findViewById(R.id.view).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                PopupMenu popup = new PopupMenu(EditCardsLayout.this, v);
-                popup.getMenuInflater().inflate(R.menu.card_mode_settings, popup.getMenu());
-
-                popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
-                    public boolean onMenuItemClick(MenuItem item) {
-                        switch (item.getItemId()) {
-                            case R.id.center:
-                                layout.removeAllViews();
-                                layout.addView(CreateCardView.setMiddleCard(true, layout));
-                                break;
-                            case R.id.card:
-                                layout.removeAllViews();
-                                layout.addView(CreateCardView.setCardViewType(CreateCardView.CardEnum.LARGE, layout));
-                                break;
-                            case R.id.list:
-                                layout.removeAllViews();
-                                layout.addView(CreateCardView.setCardViewType(CreateCardView.CardEnum.LIST, layout));
-                                break;
-                            case R.id.desktop:
-                                layout.removeAllViews();
-                                layout.addView(CreateCardView.setCardViewType(CreateCardView.CardEnum.DESKTOP, layout));
-                                break;
-
-                        }
-                        ((TextView) findViewById(R.id.view_current)).setText(CreateCardView.isCard() ? (CreateCardView.isMiddle() ? getString(R.string.mode_centered) : getString(R.string.mode_card)) : CreateCardView.isDesktop() ? getString(R.string.mode_desktop_compact) : getString(R.string.mode_list));
-                        return true;
+        (findViewById<View>(R.id.view_current) as TextView).text =
+            if (isCard) (if (isMiddle) getString(R.string.mode_centered) else getString(R.string.mode_card)) else if (isDesktop) getString(
+                R.string.mode_desktop_compact
+            ) else getString(R.string.mode_list)
+        findViewById<View>(R.id.view).setOnClickListener { v ->
+            val popup = PopupMenu(this@EditCardsLayout, v)
+            popup.menuInflater.inflate(R.menu.card_mode_settings, popup.menu)
+            popup.setOnMenuItemClickListener { item ->
+                when (item.itemId) {
+                    R.id.center -> {
+                        layout.removeAllViews()
+                        layout.addView(setMiddleCard(true, layout))
                     }
-                });
 
-                popup.show();
+                    R.id.card -> {
+                        layout.removeAllViews()
+                        layout.addView(setCardViewType(CreateCardView.CardEnum.LARGE, layout))
+                    }
+
+                    R.id.list -> {
+                        layout.removeAllViews()
+                        layout.addView(setCardViewType(CreateCardView.CardEnum.LIST, layout))
+                    }
+
+                    R.id.desktop -> {
+                        layout.removeAllViews()
+                        layout.addView(setCardViewType(CreateCardView.CardEnum.DESKTOP, layout))
+                    }
+                }
+                (findViewById<View>(R.id.view_current) as TextView).text =
+                    if (isCard) (if (isMiddle) getString(R.string.mode_centered) else getString(R.string.mode_card)) else if (isDesktop) getString(
+                        R.string.mode_desktop_compact
+                    ) else getString(R.string.mode_list)
+                true
             }
-        });
-
-
-        {
-            SwitchCompat single = (SwitchCompat) findViewById(R.id.commentlast);
-
-            single.setChecked(SettingValues.commentLastVisit);
-            single.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                @Override
-                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                    SettingValues.commentLastVisit = isChecked;
-                    SettingValues.prefs.edit().putBoolean(SettingValues.PREF_COMMENT_LAST_VISIT, isChecked).apply();
-
-                }
-            });
+            popup.show()
         }
-
-        {
-            SwitchCompat single = (SwitchCompat) findViewById(R.id.domain);
-
-            single.setChecked(SettingValues.showDomain);
-            single.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                @Override
-                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                    SettingValues.showDomain = isChecked;
-                    SettingValues.prefs.edit().putBoolean(SettingValues.PREF_SHOW_DOMAIN, isChecked).apply();
-
-                }
-            });
+        run {
+            val single = findViewById<View>(R.id.commentlast) as SwitchCompat
+            single.isChecked = SettingValues.commentLastVisit
+            single.setOnCheckedChangeListener { buttonView, isChecked ->
+                SettingValues.commentLastVisit = isChecked
+            }
         }
-        {
-            SwitchCompat single2 = (SwitchCompat) findViewById(R.id.selftextcomment);
-            single2.setChecked(SettingValues.hideSelftextLeadImage);
-            single2.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                @Override
-                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                    SettingValues.hideSelftextLeadImage = isChecked;
-                    SettingValues.prefs.edit().putBoolean(SettingValues.PREF_SELFTEXT_IMAGE_COMMENT, isChecked).apply();
-                }
-            });
+        run {
+            val single = findViewById<View>(R.id.domain) as SwitchCompat
+            single.isChecked = SettingValues.showDomain
+            single.setOnCheckedChangeListener { buttonView, isChecked ->
+                SettingValues.showDomain = isChecked
+            }
         }
-        {
-            SwitchCompat single2 = (SwitchCompat) findViewById(R.id.abbreviateScores);
-            single2.setChecked(SettingValues.abbreviateScores);
-            single2.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                @Override
-                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                    SettingValues.abbreviateScores = isChecked;
-                    SettingValues.prefs.edit().putBoolean(SettingValues.PREF_ABBREVIATE_SCORES, isChecked).apply();
-                }
-            });
+        run {
+            val single2 = findViewById<View>(R.id.selftextcomment) as SwitchCompat
+            single2.isChecked = SettingValues.hideSelftextLeadImage
+            single2.setOnCheckedChangeListener { buttonView, isChecked ->
+                SettingValues.hideSelftextLeadImage = isChecked
+            }
         }
-        {
-            SwitchCompat single2 = (SwitchCompat) findViewById(R.id.hidePostAwards);
-            single2.setChecked(SettingValues.hidePostAwards);
-            single2.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                @Override
-                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                    SettingValues.hidePostAwards = isChecked;
-                    SettingValues.prefs.edit().putBoolean(SettingValues.PREF_HIDE_POST_AWARDS, isChecked).apply();
-                }
-            });
+        run {
+            val single2 = findViewById<View>(R.id.abbreviateScores) as SwitchCompat
+            single2.isChecked = SettingValues.abbreviateScores
+            single2.setOnCheckedChangeListener { buttonView, isChecked ->
+                SettingValues.abbreviateScores = isChecked
+            }
         }
-        {
-            SwitchCompat single2 = (SwitchCompat) findViewById(R.id.titleTop);
-            single2.setChecked(SettingValues.titleTop);
-            single2.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                @Override
-                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                    SettingValues.titleTop = isChecked;
-                    SettingValues.prefs.edit().putBoolean(SettingValues.PREF_TITLE_TOP, isChecked).apply();
-                }
-            });
+        run {
+            val single2 = findViewById<View>(R.id.hidePostAwards) as SwitchCompat
+            single2.isChecked = SettingValues.hidePostAwards
+            single2.setOnCheckedChangeListener { buttonView, isChecked ->
+                SettingValues.hidePostAwards = isChecked
+            }
         }
-        {
-            SwitchCompat single = (SwitchCompat) findViewById(R.id.votes);
-            single.setChecked(SettingValues.votesInfoLine);
-            single.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                @Override
-                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                    SettingValues.votesInfoLine = isChecked;
-                    SettingValues.prefs.edit().putBoolean(SettingValues.PREF_VOTES_INFO_LINE, isChecked).apply();
-                    SubmissionCache.evictAll();
-                }
-            });
+        run {
+            val single2 = findViewById<View>(R.id.titleTop) as SwitchCompat
+            single2.isChecked = SettingValues.titleTop
+            single2.setOnCheckedChangeListener { buttonView, isChecked ->
+                SettingValues.titleTop = isChecked
+            }
         }
-        {
-            SwitchCompat single = (SwitchCompat) findViewById(R.id.contenttype);
-            single.setChecked(SettingValues.typeInfoLine);
-            single.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                @Override
-                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                    SettingValues.typeInfoLine = isChecked;
-                    SettingValues.prefs.edit().putBoolean(SettingValues.PREF_TYPE_INFO_LINE, isChecked).apply();
-                    SubmissionCache.evictAll();
-
-                }
-            });
+        run {
+            val single = findViewById<View>(R.id.votes) as SwitchCompat
+            single.isChecked = SettingValues.votesInfoLine
+            single.setOnCheckedChangeListener { buttonView, isChecked ->
+                SettingValues.votesInfoLine = isChecked
+                SubmissionCache.evictAll()
+            }
         }
-
-        {
-            SwitchCompat single = (SwitchCompat) findViewById(R.id.selftext);
-
-            single.setChecked(SettingValues.cardText);
-            single.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                @Override
-                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                    SettingValues.cardText = isChecked;
-                    SettingValues.prefs.edit().putBoolean(SettingValues.PREF_CARD_TEXT, isChecked).apply();
-
-                }
-            });
+        run {
+            val single = findViewById<View>(R.id.contenttype) as SwitchCompat
+            single.isChecked = SettingValues.typeInfoLine
+            single.setOnCheckedChangeListener { buttonView, isChecked ->
+                SettingValues.typeInfoLine = isChecked
+                SubmissionCache.evictAll()
+            }
+        }
+        run {
+            val single = findViewById<View>(R.id.selftext) as SwitchCompat
+            single.isChecked = SettingValues.cardText
+            single.setOnCheckedChangeListener { buttonView, isChecked ->
+                SettingValues.cardText = isChecked
+            }
         }
         //Pic modes//
-        final TextView CURRENT_PICTURE = (TextView) findViewById(R.id.picture_current);
-        assert CURRENT_PICTURE != null; //it won't be
-
+        //it won't be
+        val CURRENT_PICTURE = (findViewById<View>(R.id.picture_current) as TextView)
         if (SettingValues.bigPicCropped) {
-            CURRENT_PICTURE.setText(R.string.mode_cropped);
+            CURRENT_PICTURE.setText(R.string.mode_cropped)
         } else if (SettingValues.bigPicEnabled) {
-            CURRENT_PICTURE.setText(R.string.mode_bigpic);
+            CURRENT_PICTURE.setText(R.string.mode_bigpic)
         } else if (SettingValues.noThumbnails) {
-            CURRENT_PICTURE.setText(R.string.mode_no_thumbnails);
+            CURRENT_PICTURE.setText(R.string.mode_no_thumbnails)
         } else {
-            CURRENT_PICTURE.setText(R.string.mode_thumbnail);
+            CURRENT_PICTURE.setText(R.string.mode_thumbnail)
         }
-
-        findViewById(R.id.picture).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                PopupMenu popup = new PopupMenu(EditCardsLayout.this, v);
-                popup.getMenuInflater().inflate(R.menu.pic_mode_settings, popup.getMenu());
-
-                popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
-                    public boolean onMenuItemClick(MenuItem item) {
-                        switch (item.getItemId()) {
-                            case R.id.bigpic:
-                                layout.removeAllViews();
-                                layout.addView(CreateCardView.setBigPicEnabled(true, layout));
-                            {
-                                SharedPreferences.Editor e = SettingValues.prefs.edit();
-                                for (Map.Entry<String, ?> map : SettingValues.prefs.getAll().entrySet()) {
-                                    if (map.getKey().startsWith("picsenabled")) {
-                                        e.remove(map.getKey()); //reset all overridden values
-                                    }
-                                }
-                                e.apply();
+        findViewById<View>(R.id.picture).setOnClickListener { v ->
+            val popup = PopupMenu(this@EditCardsLayout, v)
+            popup.menuInflater.inflate(R.menu.pic_mode_settings, popup.menu)
+            popup.setOnMenuItemClickListener(object : PopupMenu.OnMenuItemClickListener {
+                override fun onMenuItemClick(item: MenuItem): Boolean {
+                    when (item.itemId) {
+                        R.id.bigpic -> {
+                            layout.removeAllViews()
+                            layout.addView(setBigPicEnabled(true, layout))
+                            run {
+                                SettingValues.resetPicsEnabledAll()
                             }
-                            break;
-                            case R.id.cropped:
-                                layout.removeAllViews();
-                                layout.addView(CreateCardView.setBigPicCropped(true, layout));
-                                break;
-                            case R.id.thumbnail:
-                                layout.removeAllViews();
-                                layout.addView(CreateCardView.setBigPicEnabled(false, layout));
-                            {
-                                SharedPreferences.Editor e = SettingValues.prefs.edit();
-                                for (Map.Entry<String, ?> map : SettingValues.prefs.getAll().entrySet()) {
-                                    if (map.getKey().startsWith("picsenabled")) {
-                                        e.remove(map.getKey()); //reset all overridden values
-                                    }
-                                }
-                                e.apply();
-                            }
-                            break;
-                            case R.id.noThumbnails:
-                                layout.removeAllViews();
-                                layout.addView(CreateCardView.setNoThumbnails(true, layout));
-                            {
-                                SharedPreferences.Editor e = SettingValues.prefs.edit();
-                                for (Map.Entry<String, ?> map : SettingValues.prefs.getAll().entrySet()) {
-                                    if (map.getKey().startsWith("picsenabled")) {
-                                        e.remove(map.getKey()); //reset all overridden values
-                                    }
-                                }
-                                e.apply();
-                            }
-                            break;
                         }
 
-                        if (SettingValues.bigPicCropped) {
-                            CURRENT_PICTURE.setText(R.string.mode_cropped);
-                        } else if (SettingValues.bigPicEnabled) {
-                            CURRENT_PICTURE.setText(R.string.mode_bigpic);
-                        } else if (SettingValues.noThumbnails) {
-                            CURRENT_PICTURE.setText(R.string.mode_no_thumbnails);
-                        } else {
-                            CURRENT_PICTURE.setText(R.string.mode_thumbnail);
+                        R.id.cropped -> {
+                            layout.removeAllViews()
+                            layout.addView(setBigPicCropped(true, layout))
                         }
-                        return true;
+
+                        R.id.thumbnail -> {
+                            layout.removeAllViews()
+                            layout.addView(setBigPicEnabled(false, layout))
+                            run {
+                                SettingValues.resetPicsEnabledAll()
+                            }
+                        }
+
+                        R.id.noThumbnails -> {
+                            layout.removeAllViews()
+                            layout.addView(setNoThumbnails(true, layout))
+                            run {
+                                SettingValues.resetPicsEnabledAll()
+                            }
+                        }
                     }
-                });
-                popup.show();
-            }
-        });
-
+                    if (SettingValues.bigPicCropped) {
+                        CURRENT_PICTURE.setText(R.string.mode_cropped)
+                    } else if (SettingValues.bigPicEnabled) {
+                        CURRENT_PICTURE.setText(R.string.mode_bigpic)
+                    } else if (SettingValues.noThumbnails) {
+                        CURRENT_PICTURE.setText(R.string.mode_no_thumbnails)
+                    } else {
+                        CURRENT_PICTURE.setText(R.string.mode_thumbnail)
+                    }
+                    return true
+                }
+            })
+            popup.show()
+        }
         if (!SettingValues.noThumbnails) {
-            final SwitchCompat bigThumbnails = (SwitchCompat) findViewById(R.id.bigThumbnails);
-            assert bigThumbnails != null; //def won't be null
-
-            bigThumbnails.setChecked(SettingValues.bigThumbnails);
-            bigThumbnails.setOnCheckedChangeListener(new SwitchCompat.OnCheckedChangeListener() {
-                @Override
-                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                    SettingValues.prefs.edit().putBoolean("bigThumbnails", isChecked).apply();
-                    SettingValues.bigThumbnails = isChecked;
-
+            //def won't be null
+            val bigThumbnails = (findViewById<View>(R.id.bigThumbnails) as SwitchCompat)
+            bigThumbnails.isChecked = SettingValues.bigThumbnails
+            bigThumbnails.setOnCheckedChangeListener(object :
+                CompoundButton.OnCheckedChangeListener {
+                override fun onCheckedChanged(buttonView: CompoundButton, isChecked: Boolean) {
+                    SettingValues.bigThumbnails = isChecked
                     if (!SettingValues.bigPicCropped) {
-                        layout.removeAllViews();
-
-                        layout.addView(CreateCardView.setBigPicEnabled(false, layout));
-                        {
-                            SharedPreferences.Editor e = SettingValues.prefs.edit();
-                            for (Map.Entry<String, ?> map : SettingValues.prefs.getAll().entrySet()) {
-                                if (map.getKey().startsWith("picsenabled")) {
-                                    e.remove(map.getKey()); //reset all overridden values
-                                }
-                            }
-                            e.apply();
+                        layout.removeAllViews()
+                        layout.addView(setBigPicEnabled(false, layout))
+                        run {
+                            SettingValues.resetPicsEnabledAll()
                         }
                     }
                 }
-            });
+            })
         }
 
         //Actionbar//
-        ((TextView) findViewById(R.id.actionbar_current)).setText(!SettingValues.actionbarVisible ? (SettingValues.actionbarTap ? getString(R.string.tap_actionbar) : getString(R.string.press_actionbar)) : getString(R.string.always_actionbar));
-
-        findViewById(R.id.actionbar).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                PopupMenu popup = new PopupMenu(EditCardsLayout.this, v);
-                popup.getMenuInflater().inflate(R.menu.actionbar_mode, popup.getMenu());
-
-                popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
-                    public boolean onMenuItemClick(MenuItem item) {
-                        switch (item.getItemId()) {
-                            case R.id.always:
-                                SettingValues.actionbarTap = false;
-                                SettingValues.prefs.edit().putBoolean(SettingValues.PREF_ACTIONBAR_TAP, false).apply();
-                                layout.removeAllViews();
-                                layout.addView(CreateCardView.setActionbarVisible(true, layout));
-                                break;
-                            case R.id.tap:
-                                SettingValues.actionbarTap = true;
-                                SettingValues.prefs.edit().putBoolean(SettingValues.PREF_ACTIONBAR_TAP, true).apply();
-                                layout.removeAllViews();
-                                layout.addView(CreateCardView.setActionbarVisible(false, layout));
-                                break;
-                            case R.id.button:
-                                SettingValues.actionbarTap = false;
-                                SettingValues.prefs.edit().putBoolean(SettingValues.PREF_ACTIONBAR_TAP, false).apply();
-                                layout.removeAllViews();
-                                layout.addView(CreateCardView.setActionbarVisible(false, layout));
-                                break;
-                        }
-                        ((TextView) findViewById(R.id.actionbar_current)).setText(!SettingValues.actionbarVisible ? (SettingValues.actionbarTap ? getString(R.string.tap_actionbar) : getString(R.string.press_actionbar)) : getString(R.string.always_actionbar));
-                        return true;
+        (findViewById<View>(R.id.actionbar_current) as TextView).text =
+            if (!SettingValues.actionbarVisible) (if (SettingValues.actionbarTap) getString(R.string.tap_actionbar) else getString(
+                R.string.press_actionbar
+            )) else getString(R.string.always_actionbar)
+        findViewById<View>(R.id.actionbar).setOnClickListener { v ->
+            val popup = PopupMenu(this@EditCardsLayout, v)
+            popup.menuInflater.inflate(R.menu.actionbar_mode, popup.menu)
+            popup.setOnMenuItemClickListener { item ->
+                when (item.itemId) {
+                    R.id.always -> {
+                        SettingValues.actionbarTap = false
+                        layout.removeAllViews()
+                        layout.addView(setActionbarVisible(true, layout))
                     }
-                });
 
-                popup.show();
+                    R.id.tap -> {
+                        SettingValues.actionbarTap = true
+                        layout.removeAllViews()
+                        layout.addView(setActionbarVisible(false, layout))
+                    }
+
+                    R.id.button -> {
+                        SettingValues.actionbarTap = false
+                        layout.removeAllViews()
+                        layout.addView(setActionbarVisible(false, layout))
+                    }
+                }
+                (findViewById<View>(R.id.actionbar_current) as TextView).text =
+                    if (!SettingValues.actionbarVisible) (if (SettingValues.actionbarTap) getString(
+                        R.string.tap_actionbar
+                    ) else getString(R.string.press_actionbar)) else getString(R.string.always_actionbar)
+                true
             }
-        });
+            popup.show()
+        }
 
 
         //Other buttons//
-        final AppCompatCheckBox hidebutton = (AppCompatCheckBox) findViewById(R.id.hidebutton);
-        layout.findViewById(R.id.hide).setVisibility(SettingValues.hideButton && SettingValues.actionbarVisible ? View.VISIBLE : View.GONE);
-        layout.findViewById(R.id.save).setVisibility(SettingValues.saveButton && SettingValues.actionbarVisible ? View.VISIBLE : View.GONE);
-
-        hidebutton.setChecked(SettingValues.hideButton);
-        hidebutton.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                SettingValues.hideButton = isChecked;
-                layout.findViewById(R.id.hide).setVisibility(SettingValues.hideButton && SettingValues.actionbarVisible ? View.VISIBLE : View.GONE);
-                layout.findViewById(R.id.save).setVisibility(SettingValues.saveButton && SettingValues.actionbarVisible ? View.VISIBLE : View.GONE);
-                SettingValues.prefs.edit().putBoolean(SettingValues.PREF_HIDEBUTTON, isChecked).apply();
-
-            }
-        });
-        final AppCompatCheckBox savebutton = (AppCompatCheckBox) findViewById(R.id.savebutton);
-        layout.findViewById(R.id.save).setVisibility(SettingValues.saveButton && SettingValues.actionbarVisible ? View.VISIBLE : View.GONE);
-
-        savebutton.setChecked(SettingValues.saveButton);
-        savebutton.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                SettingValues.saveButton = isChecked;
-                layout.findViewById(R.id.hide).setVisibility(SettingValues.hideButton && SettingValues.actionbarVisible ? View.VISIBLE : View.GONE);
-                layout.findViewById(R.id.save).setVisibility(SettingValues.saveButton && SettingValues.actionbarVisible ? View.VISIBLE : View.GONE);
-                SettingValues.prefs.edit().putBoolean(SettingValues.PREF_SAVE_BUTTON, isChecked).apply();
-
-            }
-        });
+        val hidebutton = findViewById<View>(R.id.hidebutton) as AppCompatCheckBox
+        layout.findViewById<View>(R.id.hide).visibility =
+            if (SettingValues.hideButton && SettingValues.actionbarVisible) View.VISIBLE else View.GONE
+        layout.findViewById<View>(R.id.save).visibility =
+            if (SettingValues.saveButton && SettingValues.actionbarVisible) View.VISIBLE else View.GONE
+        hidebutton.isChecked = SettingValues.hideButton
+        hidebutton.setOnCheckedChangeListener { buttonView, isChecked ->
+            SettingValues.hideButton = isChecked
+            layout.findViewById<View>(R.id.hide).visibility =
+                if (SettingValues.hideButton && SettingValues.actionbarVisible) View.VISIBLE else View.GONE
+            layout.findViewById<View>(R.id.save).visibility =
+                if (SettingValues.saveButton && SettingValues.actionbarVisible) View.VISIBLE else View.GONE
+        }
+        val savebutton = findViewById<View>(R.id.savebutton) as AppCompatCheckBox
+        layout.findViewById<View>(R.id.save).visibility =
+            if (SettingValues.saveButton && SettingValues.actionbarVisible) View.VISIBLE else View.GONE
+        savebutton.isChecked = SettingValues.saveButton
+        savebutton.setOnCheckedChangeListener { buttonView, isChecked ->
+            SettingValues.saveButton = isChecked
+            layout.findViewById<View>(R.id.hide).visibility =
+                if (SettingValues.hideButton && SettingValues.actionbarVisible) View.VISIBLE else View.GONE
+            layout.findViewById<View>(R.id.save).visibility =
+                if (SettingValues.saveButton && SettingValues.actionbarVisible) View.VISIBLE else View.GONE
+        }
 
         //Smaller tags//
-        final SwitchCompat smallTag = (SwitchCompat) findViewById(R.id.tagsetting);
-
-        smallTag.setChecked(SettingValues.smallTag);
-        smallTag.setOnCheckedChangeListener(new SwitchCompat.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                layout.removeAllViews();
-                layout.addView(CreateCardView.setSmallTag(isChecked, layout));
-            }
-        });
+        val smallTag = findViewById<View>(R.id.tagsetting) as SwitchCompat
+        smallTag.isChecked = SettingValues.smallTag
+        smallTag.setOnCheckedChangeListener { buttonView, isChecked ->
+            layout.removeAllViews()
+            layout.addView(setSmallTag(isChecked, layout))
+        }
 
 
         //Actionbar//
         //Enable, collapse//
-        final SwitchCompat switchThumb = (SwitchCompat) findViewById(R.id.action);
-        switchThumb.setChecked(SettingValues.switchThumb);
-        switchThumb.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                layout.removeAllViews();
-                layout.addView(CreateCardView.setSwitchThumb(isChecked, layout));
-            }
-        });
-
-
+        val switchThumb = findViewById<View>(R.id.action) as SwitchCompat
+        switchThumb.isChecked = SettingValues.switchThumb
+        switchThumb.setOnCheckedChangeListener { buttonView, isChecked ->
+            layout.removeAllViews()
+            layout.addView(setSwitchThumb(isChecked, layout))
+        }
     }
 }

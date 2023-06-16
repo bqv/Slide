@@ -1,3363 +1,3383 @@
-package me.ccrama.redditslide.SubmissionViews;
+package me.ccrama.redditslide.SubmissionViews
 
+import android.app.Activity
+import android.app.Dialog
+import android.content.Context
+import android.content.DialogInterface
+import android.content.Intent
+import android.content.SharedPreferences
+import android.graphics.Color
+import android.graphics.Typeface
+import android.os.AsyncTask
+import android.os.Bundle
+import android.text.InputType
+import android.text.SpannableStringBuilder
+import android.text.style.AbsoluteSizeSpan
+import android.view.View
+import android.view.WindowManager
+import android.widget.EditText
+import android.widget.ImageView
+import android.widget.LinearLayout
+import android.widget.RadioButton
+import android.widget.RadioGroup
+import android.widget.TextView
+import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
+import androidx.core.content.res.ResourcesCompat
+import androidx.recyclerview.widget.RecyclerView
+import com.afollestad.materialdialogs.DialogAction
+import com.afollestad.materialdialogs.MaterialDialog
+import com.afollestad.materialdialogs.MaterialDialog.InputCallback
+import com.afollestad.materialdialogs.MaterialDialog.ListCallback
+import com.afollestad.materialdialogs.MaterialDialog.SingleButtonCallback
+import com.cocosw.bottomsheet.BottomSheet
+import com.devspark.robototextview.RobotoTypefaces
+import com.google.android.material.snackbar.Snackbar
+import ltd.ucode.slide.App
+import ltd.ucode.slide.App.Companion.defaultShareText
+import ltd.ucode.slide.Authentication
+import ltd.ucode.slide.R
+import ltd.ucode.slide.SettingValues
+import ltd.ucode.slide.SettingValues.isSelftextEnabled
+import ltd.ucode.slide.activity.MainActivity
+import me.ccrama.redditslide.ActionStates
+import me.ccrama.redditslide.Activities.Album
+import me.ccrama.redditslide.Activities.AlbumPager
+import me.ccrama.redditslide.Activities.FullscreenVideo
+import me.ccrama.redditslide.Activities.GalleryImage
+import me.ccrama.redditslide.Activities.MediaView
+import me.ccrama.redditslide.Activities.ModQueue
+import me.ccrama.redditslide.Activities.MultiredditOverview
+import me.ccrama.redditslide.Activities.PostReadLater
+import me.ccrama.redditslide.Activities.Profile
+import me.ccrama.redditslide.Activities.Reauthenticate
+import me.ccrama.redditslide.Activities.RedditGallery
+import me.ccrama.redditslide.Activities.RedditGalleryPager
+import me.ccrama.redditslide.Activities.Search
+import me.ccrama.redditslide.Activities.SubredditView
+import me.ccrama.redditslide.Activities.Tumblr
+import me.ccrama.redditslide.Activities.TumblrPager
+import me.ccrama.redditslide.Adapters.CommentAdapter
+import me.ccrama.redditslide.Adapters.SubmissionViewHolder
+import me.ccrama.redditslide.CommentCacheAsync
+import me.ccrama.redditslide.ContentType
+import me.ccrama.redditslide.DataShare
+import me.ccrama.redditslide.ForceTouch.PeekViewActivity
+import me.ccrama.redditslide.HasSeen
+import me.ccrama.redditslide.Hidden
+import me.ccrama.redditslide.LastComments
+import me.ccrama.redditslide.Notifications.ImageDownloadNotificationService
+import me.ccrama.redditslide.OfflineSubreddit
+import me.ccrama.redditslide.OpenRedditLink
+import me.ccrama.redditslide.PostMatch
+import me.ccrama.redditslide.SubmissionCache
+import me.ccrama.redditslide.Toolbox.ToolboxUI
+import me.ccrama.redditslide.Toolbox.ToolboxUI.CompletedRemovalCallback
+import me.ccrama.redditslide.UserSubscriptions
+import me.ccrama.redditslide.Views.CreateCardView
+import me.ccrama.redditslide.Views.DoEditorActions
+import me.ccrama.redditslide.Visuals.FontPreferences
+import me.ccrama.redditslide.Visuals.Palette
+import me.ccrama.redditslide.Vote
+import me.ccrama.redditslide.util.AnimatorUtil
+import me.ccrama.redditslide.util.BlendModeUtil
+import me.ccrama.redditslide.util.ClipboardUtil
+import me.ccrama.redditslide.util.CompatUtil
+import me.ccrama.redditslide.util.DisplayUtil
+import me.ccrama.redditslide.util.GifUtils.AsyncLoadGif
+import me.ccrama.redditslide.util.JsonUtil
+import me.ccrama.redditslide.util.LayoutUtils
+import me.ccrama.redditslide.util.LinkUtil
+import me.ccrama.redditslide.util.NetworkUtil
+import me.ccrama.redditslide.util.OnSingleClickListener
+import me.ccrama.redditslide.util.SubmissionParser
+import net.dean.jraw.ApiException
+import net.dean.jraw.fluent.FluentRedditClient
+import net.dean.jraw.http.NetworkException
+import net.dean.jraw.http.oauth.InvalidScopeException
+import net.dean.jraw.managers.AccountManager
+import net.dean.jraw.managers.ModerationManager
+import net.dean.jraw.models.Contribution
+import net.dean.jraw.models.DistinguishedStatus
+import net.dean.jraw.models.FlairTemplate
+import net.dean.jraw.models.Ruleset
+import net.dean.jraw.models.Submission
+import net.dean.jraw.models.SubredditRule
+import net.dean.jraw.models.Thing
+import net.dean.jraw.models.VoteDirection
+import org.apache.commons.text.StringEscapeUtils
+import java.util.Arrays
+import java.util.Locale
 
-import android.app.Activity;
-import android.app.Dialog;
-import android.content.Context;
-import android.content.DialogInterface;
-import android.content.Intent;
-import android.content.SharedPreferences;
-import android.content.res.Resources;
-import android.content.res.TypedArray;
-import android.graphics.Color;
-import android.graphics.Typeface;
-import android.graphics.drawable.Drawable;
-import android.os.AsyncTask;
-import android.os.Bundle;
-import android.text.InputType;
-import android.text.SpannableStringBuilder;
-import android.text.style.AbsoluteSizeSpan;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.WindowManager;
-import android.widget.EditText;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.RadioButton;
-import android.widget.RadioGroup;
-import android.widget.TextView;
-import android.widget.Toast;
-
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.ContextCompat;
-import androidx.core.content.res.ResourcesCompat;
-import androidx.recyclerview.widget.RecyclerView;
-
-import com.afollestad.materialdialogs.DialogAction;
-import com.afollestad.materialdialogs.MaterialDialog;
-import com.cocosw.bottomsheet.BottomSheet;
-import com.devspark.robototextview.RobotoTypefaces;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.google.android.material.snackbar.Snackbar;
-
-import net.dean.jraw.ApiException;
-import net.dean.jraw.fluent.FlairReference;
-import net.dean.jraw.fluent.FluentRedditClient;
-import net.dean.jraw.http.NetworkException;
-import net.dean.jraw.http.oauth.InvalidScopeException;
-import net.dean.jraw.managers.AccountManager;
-import net.dean.jraw.managers.ModerationManager;
-import net.dean.jraw.models.Contribution;
-import net.dean.jraw.models.DistinguishedStatus;
-import net.dean.jraw.models.FlairTemplate;
-import net.dean.jraw.models.Ruleset;
-import net.dean.jraw.models.Submission;
-import net.dean.jraw.models.SubredditRule;
-import net.dean.jraw.models.Thing;
-import net.dean.jraw.models.VoteDirection;
-
-import org.apache.commons.text.StringEscapeUtils;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-
-import me.ccrama.redditslide.ActionStates;
-import me.ccrama.redditslide.Activities.Album;
-import me.ccrama.redditslide.Activities.AlbumPager;
-import me.ccrama.redditslide.Activities.FullscreenVideo;
-import me.ccrama.redditslide.Activities.GalleryImage;
-import ltd.ucode.slide.activity.MainActivity;
-import me.ccrama.redditslide.Activities.MediaView;
-import me.ccrama.redditslide.Activities.ModQueue;
-import me.ccrama.redditslide.Activities.MultiredditOverview;
-import me.ccrama.redditslide.Activities.PostReadLater;
-import me.ccrama.redditslide.Activities.Profile;
-import me.ccrama.redditslide.Activities.Reauthenticate;
-import me.ccrama.redditslide.Activities.RedditGallery;
-import me.ccrama.redditslide.Activities.RedditGalleryPager;
-import me.ccrama.redditslide.Activities.Search;
-import me.ccrama.redditslide.Activities.SubredditView;
-import me.ccrama.redditslide.Activities.Tumblr;
-import me.ccrama.redditslide.Activities.TumblrPager;
-import me.ccrama.redditslide.Adapters.CommentAdapter;
-import me.ccrama.redditslide.Adapters.SubmissionViewHolder;
-import ltd.ucode.slide.Authentication;
-import me.ccrama.redditslide.CommentCacheAsync;
-import me.ccrama.redditslide.ContentType;
-import me.ccrama.redditslide.DataShare;
-import me.ccrama.redditslide.ForceTouch.PeekViewActivity;
-import me.ccrama.redditslide.HasSeen;
-import me.ccrama.redditslide.Hidden;
-import me.ccrama.redditslide.LastComments;
-import me.ccrama.redditslide.OfflineSubreddit;
-import me.ccrama.redditslide.OpenRedditLink;
-import me.ccrama.redditslide.PostMatch;
-import ltd.ucode.slide.R;
-import ltd.ucode.slide.App;
-import ltd.ucode.slide.SettingValues;
-import me.ccrama.redditslide.SubmissionCache;
-import me.ccrama.redditslide.Toolbox.ToolboxUI;
-import me.ccrama.redditslide.UserSubscriptions;
-import me.ccrama.redditslide.Views.CreateCardView;
-import me.ccrama.redditslide.Views.DoEditorActions;
-import me.ccrama.redditslide.Visuals.FontPreferences;
-import me.ccrama.redditslide.Visuals.Palette;
-import me.ccrama.redditslide.Vote;
-import me.ccrama.redditslide.util.AnimatorUtil;
-import me.ccrama.redditslide.util.BlendModeUtil;
-import me.ccrama.redditslide.util.ClipboardUtil;
-import me.ccrama.redditslide.util.CompatUtil;
-import me.ccrama.redditslide.util.DisplayUtil;
-import me.ccrama.redditslide.util.GifUtils;
-import me.ccrama.redditslide.util.JsonUtil;
-import me.ccrama.redditslide.util.LayoutUtils;
-import me.ccrama.redditslide.util.LinkUtil;
-import me.ccrama.redditslide.util.NetworkUtil;
-import me.ccrama.redditslide.util.OnSingleClickListener;
-import me.ccrama.redditslide.util.SubmissionParser;
-
-import static me.ccrama.redditslide.Notifications.ImageDownloadNotificationService.EXTRA_SUBMISSION_TITLE;
-
-/**
- * Created by ccrama on 9/19/2015.
- */
-public class PopulateSubmissionViewHolder {
-
-    public PopulateSubmissionViewHolder() {
-    }
-
-    private static void addClickFunctions(final View base, final ContentType.Type type,
-            final Activity contextActivity, final Submission submission,
-            final SubmissionViewHolder holder, final boolean full) {
-        base.setOnClickListener(new OnSingleClickListener() {
-            @Override
-            public void onSingleClick(View v) {
-                if (NetworkUtil.isConnected(contextActivity) || (!NetworkUtil.isConnected(
-                        contextActivity) && ContentType.fullImage(type))) {
-                    if (SettingValues.storeHistory && !full) {
-                        if (!submission.isNsfw() || SettingValues.storeNSFWHistory) {
-                            HasSeen.addSeen(submission.getFullName());
-                            if (contextActivity instanceof MainActivity
-                                    || contextActivity instanceof MultiredditOverview
-                                    || contextActivity instanceof SubredditView
-                                    || contextActivity instanceof Search
-                                    || contextActivity instanceof Profile) {
-                                holder.title.setAlpha(0.54f);
-                                holder.body.setAlpha(0.54f);
-                            }
-                        }
-                    }
-                    if (!(contextActivity instanceof PeekViewActivity)
-                            || !((PeekViewActivity) contextActivity).isPeeking()
-                            || (base instanceof HeaderImageLinkView
-                            && ((HeaderImageLinkView) base).popped)) {
-                        if (!PostMatch.openExternal(submission.getUrl())
-                                || type == ContentType.Type.VIDEO) {
-                            switch (type) {
-                                case STREAMABLE:
-                                    if (SettingValues.video) {
-                                        Intent myIntent =
-                                                new Intent(contextActivity, MediaView.class);
-                                        myIntent.putExtra(MediaView.SUBREDDIT,
-                                                submission.getSubredditName());
-                                        myIntent.putExtra(MediaView.EXTRA_URL, submission.getUrl());
-                                        myIntent.putExtra(EXTRA_SUBMISSION_TITLE, submission.getTitle());
-                                        PopulateBase.addAdaptorPosition(myIntent, submission,
-                                                holder.getBindingAdapterPosition());
-                                        contextActivity.startActivity(myIntent);
-                                    } else {
-                                        LinkUtil.openExternally(submission.getUrl());
-                                    }
-                                    break;
-                                case IMGUR:
-                                case DEVIANTART:
-                                case XKCD:
-                                case IMAGE:
-                                    openImage(type, contextActivity, submission, holder.leadImage,
-                                            holder.getBindingAdapterPosition());
-                                    break;
-                                case EMBEDDED:
-                                    if (SettingValues.video) {
-                                        String data = CompatUtil.fromHtml(submission.getDataNode()
-                                                .get("media_embed")
-                                                .get("content")
-                                                .asText()).toString();
-                                        {
-                                            Intent i = new Intent(contextActivity,
-                                                    FullscreenVideo.class);
-                                            i.putExtra(FullscreenVideo.EXTRA_HTML, data);
-                                            contextActivity.startActivity(i);
-                                        }
-                                    } else {
-                                        LinkUtil.openExternally(submission.getUrl());
-                                    }
-                                    break;
-                                case REDDIT:
-                                    openRedditContent(submission.getUrl(), contextActivity);
-                                    break;
-                                case REDDIT_GALLERY:
-                                    if (SettingValues.album) {
-                                        Intent i;
-                                        if (SettingValues.albumSwipe) {
-                                            i = new Intent(contextActivity, RedditGalleryPager.class);
-                                            i.putExtra(AlbumPager.SUBREDDIT,
-                                                    submission.getSubredditName());
-                                        } else {
-                                            i = new Intent(contextActivity, RedditGallery.class);
-                                            i.putExtra(Album.SUBREDDIT,
-                                                    submission.getSubredditName());
-                                        }
-                                        i.putExtra(EXTRA_SUBMISSION_TITLE, submission.getTitle());
-
-                                        i.putExtra(RedditGallery.SUBREDDIT,
-                                                submission.getSubredditName());
-
-                                        ArrayList<GalleryImage> urls = new ArrayList<>();
-
-                                        JsonNode dataNode = submission.getDataNode();
-                                        if (dataNode.has("gallery_data")) {
-                                            JsonUtil.getGalleryData(dataNode, urls);
-                                        } else if (dataNode.has("crosspost_parent_list")) { //Else, try getting crosspost gallery data
-                                            JsonNode crosspost_parent = dataNode.get("crosspost_parent_list").get(0);
-                                            if (crosspost_parent.has("gallery_data")) {
-                                                JsonUtil.getGalleryData(crosspost_parent, urls);
-                                            }
-                                        }
-
-                                        Bundle urlsBundle = new Bundle();
-                                        urlsBundle.putSerializable(RedditGallery.GALLERY_URLS, urls);
-                                        i.putExtras(urlsBundle);
-
-                                        PopulateBase.addAdaptorPosition(i, submission,
-                                                holder.getBindingAdapterPosition());
-                                        contextActivity.startActivity(i);
-                                        contextActivity.overridePendingTransition(R.anim.slideright,
-                                                R.anim.fade_out);
-                                    } else {
-                                        LinkUtil.openExternally(submission.getUrl());
-                                    }
-                                    break;
-                                case LINK:
-                                    LinkUtil.openUrl(submission.getUrl(),
-                                            Palette.getColor(submission.getSubredditName()),
-                                            contextActivity, holder.getBindingAdapterPosition(),
-                                            submission);
-                                    break;
-                                case SELF:
-                                    if (holder != null) {
-                                        OnSingleClickListener.override = true;
-                                        holder.itemView.performClick();
-                                    }
-                                    break;
-                                case ALBUM:
-                                    if (SettingValues.album) {
-                                        Intent i;
-                                        if (SettingValues.albumSwipe) {
-                                            i = new Intent(contextActivity, AlbumPager.class);
-                                            i.putExtra(AlbumPager.SUBREDDIT,
-                                                    submission.getSubredditName());
-                                        } else {
-                                            i = new Intent(contextActivity, Album.class);
-                                            i.putExtra(Album.SUBREDDIT,
-                                                    submission.getSubredditName());
-                                        }
-                                        i.putExtra(EXTRA_SUBMISSION_TITLE, submission.getTitle());
-                                        i.putExtra(Album.EXTRA_URL, submission.getUrl());
-
-                                        PopulateBase.addAdaptorPosition(i, submission,
-                                                holder.getBindingAdapterPosition());
-                                        contextActivity.startActivity(i);
-                                        contextActivity.overridePendingTransition(R.anim.slideright,
-                                                R.anim.fade_out);
-                                    } else {
-                                        LinkUtil.openExternally(submission.getUrl());
-                                    }
-                                    break;
-                                case TUMBLR:
-                                    if (SettingValues.album) {
-                                        Intent i;
-                                        if (SettingValues.albumSwipe) {
-                                            i = new Intent(contextActivity, TumblrPager.class);
-                                            i.putExtra(TumblrPager.SUBREDDIT,
-                                                    submission.getSubredditName());
-                                        } else {
-                                            i = new Intent(contextActivity, Tumblr.class);
-                                            i.putExtra(Tumblr.SUBREDDIT,
-                                                    submission.getSubredditName());
-                                        }
-                                        i.putExtra(Album.EXTRA_URL, submission.getUrl());
-
-                                        PopulateBase.addAdaptorPosition(i, submission,
-                                                holder.getBindingAdapterPosition());
-                                        contextActivity.startActivity(i);
-                                        contextActivity.overridePendingTransition(R.anim.slideright,
-                                                R.anim.fade_out);
-                                    } else {
-                                        LinkUtil.openExternally(submission.getUrl());
-
-                                    }
-                                    break;
-                                case VREDDIT_REDIRECT:
-                                case GIF:
-                                case VREDDIT_DIRECT:
-                                    openGif(contextActivity, submission,
-                                            holder.getBindingAdapterPosition());
-                                    break;
-                                case NONE:
-                                    if (holder != null) {
-                                        holder.itemView.performClick();
-                                    }
-                                    break;
-                                case VIDEO:
-                                    if (!LinkUtil.tryOpenWithVideoPlugin(submission.getUrl())) {
-                                        LinkUtil.openUrl(submission.getUrl(),
-                                                Palette.getStatusBarColor(), contextActivity);
-                                    }
-                                    break;
-                            }
-                        } else {
-                            LinkUtil.openExternally(submission.getUrl());
-                        }
-                    }
-                } else {
-                    if (!(contextActivity instanceof PeekViewActivity)
-                            || !((PeekViewActivity) contextActivity).isPeeking()) {
-
-                        Snackbar s = Snackbar.make(holder.itemView, R.string.go_online_view_content,
-                                Snackbar.LENGTH_SHORT);
-                        LayoutUtils.showSnackbar(s);
-                    }
-                }
-            }
-        });
-    }
-
-    public static void openRedditContent(String url, Context c) {
-        OpenRedditLink.openUrl(c, url, true);
-    }
-
-    public static void openImage(ContentType.Type type, Activity contextActivity,
-            Submission submission, HeaderImageLinkView baseView, int adapterPosition) {
-        if (SettingValues.image) {
-            Intent myIntent = new Intent(contextActivity, MediaView.class);
-            myIntent.putExtra(MediaView.SUBREDDIT, submission.getSubredditName());
-            myIntent.putExtra(EXTRA_SUBMISSION_TITLE, submission.getTitle());
-            String previewUrl;
-            String url = submission.getUrl();
-
-            if (baseView != null
-                    && baseView.lq
-                    && SettingValues.loadImageLq
-                    && type != ContentType.Type.XKCD) {
-                myIntent.putExtra(MediaView.EXTRA_LQ, true);
-                myIntent.putExtra(MediaView.EXTRA_DISPLAY_URL, baseView.loadedUrl);
-            } else if (submission.getDataNode().has("preview")
-                    && submission.getDataNode()
-                    .get("preview")
-                    .get("images")
-                    .get(0)
-                    .get("source")
-                    .has("height")
-                    && type
-                    != ContentType.Type.XKCD) { //Load the preview image which has probably already been cached in memory instead of the direct link
-                previewUrl = submission.getDataNode()
-                        .get("preview")
-                        .get("images")
-                        .get(0)
-                        .get("source")
-                        .get("url")
-                        .asText();
-                if (baseView == null || (!SettingValues.loadImageLq && baseView.lq)) {
-                    myIntent.putExtra(MediaView.EXTRA_DISPLAY_URL, previewUrl);
-                } else {
-                    myIntent.putExtra(MediaView.EXTRA_DISPLAY_URL, baseView.loadedUrl);
-                }
-            }
-            myIntent.putExtra(MediaView.EXTRA_URL, url);
-            PopulateBase.addAdaptorPosition(myIntent, submission, adapterPosition);
-            myIntent.putExtra(MediaView.EXTRA_SHARE_URL, submission.getUrl());
-
-            contextActivity.startActivity(myIntent);
-
-        } else {
-            LinkUtil.openExternally(submission.getUrl());
-        }
-
-    }
-
-    public static void openGif(Activity contextActivity, Submission submission,
-            int adapterPosition) {
-        if (SettingValues.gif) {
-            DataShare.sharedSubmission = submission;
-
-            Intent myIntent = new Intent(contextActivity, MediaView.class);
-            myIntent.putExtra(MediaView.SUBREDDIT, submission.getSubredditName());
-            myIntent.putExtra(EXTRA_SUBMISSION_TITLE, submission.getTitle());
-
-            GifUtils.AsyncLoadGif.VideoType t =
-                    GifUtils.AsyncLoadGif.getVideoType(submission.getUrl());
-
-            if (t == GifUtils.AsyncLoadGif.VideoType.VREDDIT) {
-                if (submission.getDataNode().has("media") && submission.getDataNode()
-                        .get("media")
-                        .has("reddit_video") && submission.getDataNode()
-                        .get("media")
-                        .get("reddit_video").has("hls_url")) {
-                    myIntent.putExtra(MediaView.EXTRA_URL, StringEscapeUtils.unescapeJson(submission
-                            .getDataNode()
-                            .get("media")
-                            .get("reddit_video")
-                            .get("dash_url") //In the future, we could load the HLS url as well
-                            .asText()).replace("&amp;", "&"));
-                } else if (submission.getDataNode().has("media") && submission.getDataNode()
-                            .get("media")
-                            .has("reddit_video")) {
-                        myIntent.putExtra(MediaView.EXTRA_URL, StringEscapeUtils.unescapeJson(submission
-                                .getDataNode()
-                                .get("media")
-                                .get("reddit_video")
-                                .get("fallback_url")
-                                .asText()).replace("&amp;", "&"));
-                } else if (submission.getDataNode().has("crosspost_parent_list")) {
-                    myIntent.putExtra(MediaView.EXTRA_URL, StringEscapeUtils.unescapeJson(submission
-                            .getDataNode()
-                            .get("crosspost_parent_list")
-                            .get(0)
-                            .get("media")
-                            .get("reddit_video")
-                            .get("dash_url")
-                            .asText()).replace("&amp;", "&"));
-                } else {
-                    new OpenVRedditTask(contextActivity, submission.getSubredditName()).executeOnExecutor(
-                            AsyncTask.THREAD_POOL_EXECUTOR, submission.getUrl());
-                    return;
-
-                }
-
-            } else if (t.shouldLoadPreview()
-                    && submission.getDataNode().has("preview")
-                    && submission.getDataNode().get("preview").get("images").get(0).has("variants")
-                    && submission.getDataNode()
-                    .get("preview")
-                    .get("images")
-                    .get(0)
-                    .get("variants")
-                    .has("mp4")) {
-                myIntent.putExtra(MediaView.EXTRA_URL, StringEscapeUtils.unescapeJson(
-                        submission.getDataNode()
-                                .get("preview")
-                                .get("images")
-                                .get(0)
-                                .get("variants")
-                                .get("mp4")
-                                .get("source")
-                                .get("url")
-                                .asText()).replace("&amp;", "&"));
-            } else if (t.shouldLoadPreview()
-                    && submission.getDataNode().has("preview")
-                    && submission.getDataNode().get("preview").get("reddit_video_preview").has("fallback_url")) {
-                myIntent.putExtra(MediaView.EXTRA_URL, StringEscapeUtils.unescapeJson(
-                        submission.getDataNode()
-                                .get("preview")
-                                .get("reddit_video_preview")
-                                .get("fallback_url")
-                                .asText()).replace("&amp;", "&"));
-            } else if (t == GifUtils.AsyncLoadGif.VideoType.DIRECT
-                    && submission.getDataNode()
-                    .has("media")
-                    && submission.getDataNode().get("media").has("reddit_video")
-                    && submission.getDataNode()
-                    .get("media")
-                    .get("reddit_video")
-                    .has("fallback_url")) {
-                myIntent.putExtra(MediaView.EXTRA_URL, StringEscapeUtils.unescapeJson(
-                        submission.getDataNode()
-                                .get("media")
-                                .get("reddit_video")
-                                .get("fallback_url")
-                                .asText()).replace("&amp;", "&"));
-
-            } else if (t != GifUtils.AsyncLoadGif.VideoType.OTHER) {
-                myIntent.putExtra(MediaView.EXTRA_URL, submission.getUrl());
-            } else {
-                LinkUtil.openUrl(submission.getUrl(),
-                        Palette.getColor(submission.getSubredditName()), contextActivity,
-                        adapterPosition, submission);
-                return;
-            }
-            if (submission.getDataNode().has("preview") && submission.getDataNode()
-                    .get("preview")
-                    .get("images")
-                    .get(0)
-                    .get("source")
-                    .has("height")) { //Load the preview image which has probably already been cached in memory instead of the direct link
-                String previewUrl = submission.getDataNode()
-                        .get("preview")
-                        .get("images")
-                        .get(0)
-                        .get("source")
-                        .get("url")
-                        .asText();
-                myIntent.putExtra(MediaView.EXTRA_DISPLAY_URL, previewUrl);
-            }
-            PopulateBase.addAdaptorPosition(myIntent, submission, adapterPosition);
-            contextActivity.startActivity(myIntent);
-        } else {
-            LinkUtil.openExternally(submission.getUrl());
-        }
-
-    }
-
-    public String reason;
-
-    boolean[] chosen    = new boolean[]{false, false, false};
-    boolean[] oldChosen = new boolean[]{false, false, false};
-
-    public <T extends Contribution> void showBottomSheet(final Activity mContext,
-            final Submission submission, final SubmissionViewHolder holder, final List<T> posts,
-            final String baseSub, final RecyclerView recyclerview, final boolean full) {
-
-        int[] attrs = new int[]{R.attr.tintColor};
-        TypedArray ta = mContext.obtainStyledAttributes(attrs);
-
-        int color = ta.getColor(0, Color.WHITE);
-        Drawable profile =
-                ResourcesCompat.getDrawable(mContext.getResources(), R.drawable.ic_account_circle, null);
-        final Drawable sub =
-                ResourcesCompat.getDrawable(mContext.getResources(), R.drawable.ic_bookmark_border, null);
-        Drawable saved =
-                ResourcesCompat.getDrawable(mContext.getResources(), R.drawable.ic_star,
-                        null);
-        Drawable hide = ResourcesCompat.getDrawable(mContext.getResources(), R.drawable.ic_visibility_off, null);
-        final Drawable report =
-                ResourcesCompat.getDrawable(mContext.getResources(), R.drawable.ic_report, null);
-        Drawable copy =
-                ResourcesCompat.getDrawable(mContext.getResources(), R.drawable.ic_content_copy,
-                        null);
-        final Drawable readLater =
-                ResourcesCompat.getDrawable(mContext.getResources(), R.drawable.ic_download, null);
-        Drawable open =
-                ResourcesCompat.getDrawable(mContext.getResources(), R.drawable.ic_open_in_browser, null);
-        Drawable link = ResourcesCompat.getDrawable(mContext.getResources(), R.drawable.ic_link, null);
-        Drawable reddit =
-                ResourcesCompat.getDrawable(mContext.getResources(), R.drawable.ic_forum,
-                        null);
-        Drawable filter =
-                ResourcesCompat.getDrawable(mContext.getResources(), R.drawable.ic_filter_list, null);
-        Drawable crosspost =
-                ResourcesCompat.getDrawable(mContext.getResources(), R.drawable.ic_forward, null);
-
-        final List<Drawable> drawableSet = Arrays.asList(
-                profile, sub, saved, hide, report, copy,
-                open, link, reddit, readLater, filter, crosspost);
-        BlendModeUtil.tintDrawablesAsSrcAtop(drawableSet, color);
-
-        ta.recycle();
-
-        final BottomSheet.Builder b =
-                new BottomSheet.Builder(mContext).title(CompatUtil.fromHtml(submission.getTitle()));
-
-
-        final boolean isReadLater = mContext instanceof PostReadLater;
-        final boolean isAddedToReadLaterList = ReadLater.isToBeReadLater(submission);
+class PopulateSubmissionViewHolder() {
+    var reason: String? = null
+    var chosen = booleanArrayOf(false, false, false)
+    var oldChosen = booleanArrayOf(false, false, false)
+    fun <T : Contribution?> showBottomSheet(
+        mContext: Activity,
+        submission: Submission, holder: SubmissionViewHolder, posts: MutableList<T>,
+        baseSub: String?, recyclerview: RecyclerView, full: Boolean
+    ) {
+        val attrs = intArrayOf(R.attr.tintColor)
+        val ta = mContext.obtainStyledAttributes(attrs)
+        val color = ta.getColor(0, Color.WHITE)
+        val profile =
+            ResourcesCompat.getDrawable(mContext.resources, R.drawable.ic_account_circle, null)
+        val sub =
+            ResourcesCompat.getDrawable(mContext.resources, R.drawable.ic_bookmark_border, null)
+        val saved = ResourcesCompat.getDrawable(
+            mContext.resources, R.drawable.ic_star,
+            null
+        )
+        val hide =
+            ResourcesCompat.getDrawable(mContext.resources, R.drawable.ic_visibility_off, null)
+        val report = ResourcesCompat.getDrawable(mContext.resources, R.drawable.ic_report, null)
+        val copy = ResourcesCompat.getDrawable(
+            mContext.resources, R.drawable.ic_content_copy,
+            null
+        )
+        val readLater =
+            ResourcesCompat.getDrawable(mContext.resources, R.drawable.ic_download, null)
+        val open =
+            ResourcesCompat.getDrawable(mContext.resources, R.drawable.ic_open_in_browser, null)
+        val link = ResourcesCompat.getDrawable(mContext.resources, R.drawable.ic_link, null)
+        val reddit = ResourcesCompat.getDrawable(
+            mContext.resources, R.drawable.ic_forum,
+            null
+        )
+        val filter =
+            ResourcesCompat.getDrawable(mContext.resources, R.drawable.ic_filter_list, null)
+        val crosspost = ResourcesCompat.getDrawable(mContext.resources, R.drawable.ic_forward, null)
+        val drawableSet = Arrays.asList(
+            profile, sub, saved, hide, report, copy,
+            open, link, reddit, readLater, filter, crosspost
+        )
+        BlendModeUtil.tintDrawablesAsSrcAtop(drawableSet, color)
+        ta.recycle()
+        val b = BottomSheet.Builder(mContext).title(CompatUtil.fromHtml(submission.title))
+        val isReadLater = mContext is PostReadLater
+        val isAddedToReadLaterList = ReadLater.isToBeReadLater(submission)
         if (Authentication.didOnline) {
-            b.sheet(1, profile, "/u/" + submission.getAuthor())
-                    .sheet(2, sub, "/r/" + submission.getSubredditName());
-            String save = mContext.getString(R.string.btn_save);
+            b.sheet(1, (profile)!!, "/u/" + submission.author)
+                .sheet(2, (sub)!!, "/r/" + submission.subredditName)
+            var save: String = mContext.getString(R.string.btn_save)
             if (ActionStates.isSaved(submission)) {
-                save = mContext.getString(R.string.comment_unsave);
+                save = mContext.getString(R.string.comment_unsave)
             }
             if (Authentication.isLoggedIn) {
-                b.sheet(3, saved, save);
-
+                b.sheet(3, (saved)!!, (save))
             }
         }
-
         if (isAddedToReadLaterList) {
-            b.sheet(28, readLater, "Mark As Read");
+            b.sheet(28, (readLater)!!, "Mark As Read")
         } else {
-            b.sheet(28, readLater, "Read later");
+            b.sheet(28, (readLater)!!, "Read later")
         }
-
         if (Authentication.didOnline) {
             if (Authentication.isLoggedIn) {
-                b.sheet(12, report, mContext.getString(R.string.btn_report));
-                b.sheet(13, crosspost, mContext.getString(R.string.btn_crosspost));
+                b.sheet(12, (report)!!, mContext.getString(R.string.btn_report))
+                b.sheet(13, (crosspost)!!, mContext.getString(R.string.btn_crosspost))
             }
         }
-
-        if (submission.getSelftext() != null && !submission.getSelftext().isEmpty() && full) {
-            b.sheet(25, copy, mContext.getString(R.string.submission_copy_text));
+        if ((submission.selftext != null) && !submission.selftext.isEmpty() && full) {
+            b.sheet(25, (copy)!!, mContext.getString(R.string.submission_copy_text))
         }
-
-        boolean hidden = submission.isHidden();
+        val hidden = submission.isHidden
         if (!full && Authentication.didOnline) {
             if (!hidden) {
-                b.sheet(5, hide, mContext.getString(R.string.submission_hide));
+                b.sheet(5, (hide)!!, mContext.getString(R.string.submission_hide))
             } else {
-                b.sheet(5, hide, mContext.getString(R.string.submission_unhide));
+                b.sheet(5, (hide)!!, mContext.getString(R.string.submission_unhide))
             }
         }
-        b.sheet(7, open, mContext.getString(R.string.open_externally));
-
-        b.sheet(4, link, mContext.getString(R.string.submission_share_permalink))
-                .sheet(8, reddit, mContext.getString(R.string.submission_share_reddit_url));
-        if ((mContext instanceof MainActivity) || (mContext instanceof SubredditView)) {
-            b.sheet(10, filter, mContext.getString(R.string.filter_content));
+        b.sheet(7, (open)!!, mContext.getString(R.string.open_externally))
+        b.sheet(4, (link)!!, mContext.getString(R.string.submission_share_permalink))
+            .sheet(8, (reddit)!!, mContext.getString(R.string.submission_share_reddit_url))
+        if ((mContext is MainActivity) || (mContext is SubredditView)) {
+            b.sheet(10, (filter)!!, mContext.getString(R.string.filter_content))
         }
+        b.listener(object : DialogInterface.OnClickListener {
+            override fun onClick(dialog: DialogInterface, which: Int) {
+                when (which) {
+                    1 -> {
+                        val i = Intent(mContext, Profile::class.java)
+                        i.putExtra(Profile.EXTRA_PROFILE, submission.author)
+                        mContext.startActivity(i)
+                    }
 
-        b.listener(new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                switch (which) {
-                    case 1: {
-                        Intent i = new Intent(mContext, Profile.class);
-                        i.putExtra(Profile.EXTRA_PROFILE, submission.getAuthor());
-                        mContext.startActivity(i);
+                    2 -> {
+                        val i = Intent(mContext, SubredditView::class.java)
+                        i.putExtra(SubredditView.EXTRA_SUBREDDIT, submission.subredditName)
+                        mContext.startActivityForResult(i, 14)
                     }
-                    break;
-                    case 2: {
-                        Intent i = new Intent(mContext, SubredditView.class);
-                        i.putExtra(SubredditView.EXTRA_SUBREDDIT, submission.getSubredditName());
-                        mContext.startActivityForResult(i, 14);
-                    }
-                    break;
-                    case 10:
-                        String[] choices;
-                        final String flair = submission.getSubmissionFlair().getText() != null
-                                ? submission.getSubmissionFlair().getText() : "";
+
+                    10 -> {
+                        val choices: Array<String>
+                        val flair =
+                            if (submission.submissionFlair.text != null) submission.submissionFlair.text else ""
                         if (flair.isEmpty()) {
-                            choices = new String[]{
-                                    mContext.getString(R.string.filter_posts_sub,
-                                            submission.getSubredditName()),
-                                    mContext.getString(R.string.filter_posts_user,
-                                            submission.getAuthor()),
-                                    mContext.getString(R.string.filter_posts_urls,
-                                            submission.getDomain()),
-                                    mContext.getString(R.string.filter_open_externally,
-                                            submission.getDomain())
-                            };
-
-                            chosen = new boolean[] {
-                                    SettingValues.subredditFilters.contains(
-                                            submission.getSubredditName().toLowerCase(Locale.ENGLISH)),
-                                    SettingValues.userFilters.contains(
-                                            submission.getAuthor().toLowerCase(Locale.ENGLISH)),
-                                    SettingValues.domainFilters.contains(
-                                            submission.getDomain().toLowerCase(Locale.ENGLISH)),
-                                    SettingValues.alwaysExternal.contains(
-                                            submission.getDomain().toLowerCase(Locale.ENGLISH))
-                            };
-                            oldChosen = chosen.clone();
-                        } else {
-                            choices = new String[]{
-                                    mContext.getString(R.string.filter_posts_sub,
-                                            submission.getSubredditName()),
-                                    mContext.getString(R.string.filter_posts_user,
-                                            submission.getAuthor()),
-                                    mContext.getString(R.string.filter_posts_urls,
-                                            submission.getDomain()),
-                                    mContext.getString(R.string.filter_open_externally,
-                                            submission.getDomain()),
-                                    mContext.getString(R.string.filter_posts_flair, flair, baseSub)
-                            };
-                        }
-                        chosen = new boolean[] {
+                            choices = arrayOf(
+                                mContext.getString(
+                                    R.string.filter_posts_sub,
+                                    submission.subredditName
+                                ),
+                                mContext.getString(
+                                    R.string.filter_posts_user,
+                                    submission.author
+                                ),
+                                mContext.getString(
+                                    R.string.filter_posts_urls,
+                                    submission.domain
+                                ),
+                                mContext.getString(
+                                    R.string.filter_open_externally,
+                                    submission.domain
+                                )
+                            )
+                            chosen = booleanArrayOf(
                                 SettingValues.subredditFilters.contains(
-                                        submission.getSubredditName().toLowerCase(Locale.ENGLISH)),
+                                    submission.subredditName.lowercase()
+                                ),
                                 SettingValues.userFilters.contains(
-                                submission.getAuthor().toLowerCase(Locale.ENGLISH)),
+                                    submission.author.lowercase()
+                                ),
                                 SettingValues.domainFilters.contains(
-                                        submission.getDomain().toLowerCase(Locale.ENGLISH)),
+                                    submission.domain.lowercase()
+                                ),
                                 SettingValues.alwaysExternal.contains(
-                                        submission.getDomain().toLowerCase(Locale.ENGLISH)),
-                                SettingValues.flairFilters.contains(baseSub + ":" + flair.toLowerCase(Locale.ENGLISH).trim())
-                        };
-                        oldChosen = chosen.clone();
-
-                        new AlertDialog.Builder(mContext)
-                                .setTitle(R.string.filter_title)
-                                .setMultiChoiceItems(choices, chosen, (dialog1, which1, isChecked) ->
-                                        chosen[which1] = isChecked)
-                                .setPositiveButton(R.string.filter_btn, (dialog12, which12) -> {
-                                    boolean filtered = false;
-                                    SharedPreferences.Editor e = SettingValues.prefs.edit();
-                                    if (chosen[0] && chosen[0] != oldChosen[0]) {
-                                        SettingValues.subredditFilters.add(submission.getSubredditName()
-                                                .toLowerCase(Locale.ENGLISH).trim());
-                                        filtered = true;
-                                        e.putStringSet(
-                                                SettingValues.PREF_SUBREDDIT_FILTERS,
-                                                SettingValues.subredditFilters);
-                                    } else if (!chosen[0] && chosen[0] != oldChosen[0]) {
-                                        SettingValues.subredditFilters.remove(submission.getSubredditName()
-                                                .toLowerCase(Locale.ENGLISH).trim());
-                                        filtered = false;
-                                        e.putStringSet(
-                                                SettingValues.PREF_SUBREDDIT_FILTERS,
-                                                SettingValues.subredditFilters);
-                                        e.apply();
+                                    submission.domain.lowercase()
+                                )
+                            )
+                            oldChosen = chosen.clone()
+                        } else {
+                            choices = arrayOf(
+                                mContext.getString(
+                                    R.string.filter_posts_sub,
+                                    submission.subredditName
+                                ),
+                                mContext.getString(
+                                    R.string.filter_posts_user,
+                                    submission.author
+                                ),
+                                mContext.getString(
+                                    R.string.filter_posts_urls,
+                                    submission.domain
+                                ),
+                                mContext.getString(
+                                    R.string.filter_open_externally,
+                                    submission.domain
+                                ),
+                                mContext.getString(R.string.filter_posts_flair, flair, baseSub)
+                            )
+                        }
+                        chosen = booleanArrayOf(
+                            SettingValues.subredditFilters.contains(
+                                submission.subredditName.lowercase()
+                            ),
+                            SettingValues.userFilters.contains(
+                                submission.author.lowercase()
+                            ),
+                            SettingValues.domainFilters.contains(
+                                submission.domain.lowercase()
+                            ),
+                            SettingValues.alwaysExternal.contains(
+                                submission.domain.lowercase()
+                            ),
+                            SettingValues.flairFilters.contains(
+                                baseSub + ":" + flair.lowercase().trim { it <= ' ' })
+                        )
+                        oldChosen = chosen.clone()
+                        AlertDialog.Builder(mContext)
+                            .setTitle(R.string.filter_title)
+                            .setMultiChoiceItems(
+                                choices,
+                                chosen
+                            ) { dialog1: DialogInterface?, which1: Int, isChecked: Boolean ->
+                                chosen[which1] = isChecked
+                            }
+                            .setPositiveButton(
+                                R.string.filter_btn
+                            ) { dialog12: DialogInterface?, which12: Int ->
+                                var filtered: Boolean = false
+                                if (chosen[0] && chosen[0] != oldChosen[0]) {
+                                    SettingValues.subredditFilters += submission.getSubredditName()
+                                        .lowercase().trim { it <= ' ' }
+                                    filtered = true
+                                } else if (!chosen.get(0) && chosen.get(0) != oldChosen.get(0)) {
+                                    SettingValues.subredditFilters -= submission.getSubredditName()
+                                        .lowercase().trim { it <= ' ' }
+                                    filtered = false
+                                }
+                                if (chosen.get(1) && chosen.get(1) != oldChosen.get(1)) {
+                                    SettingValues.userFilters += submission.getAuthor()
+                                        .lowercase().trim { it <= ' ' }
+                                    filtered = true
+                                } else if (!chosen.get(1) && chosen.get(1) != oldChosen.get(1)) {
+                                    SettingValues.userFilters -= submission.getAuthor()
+                                        .lowercase().trim { it <= ' ' }
+                                    filtered = false
+                                }
+                                if (chosen.get(2) && chosen.get(2) != oldChosen.get(2)) {
+                                    SettingValues.domainFilters += submission.getDomain()
+                                        .lowercase().trim { it <= ' ' }
+                                    filtered = true
+                                } else if (!chosen.get(2) && chosen.get(2) != oldChosen.get(2)) {
+                                    SettingValues.domainFilters -= submission.getDomain()
+                                        .lowercase().trim { it <= ' ' }
+                                    filtered = false
+                                }
+                                if (chosen.get(3) && chosen.get(3) != oldChosen.get(3)) {
+                                    SettingValues.alwaysExternal += submission.getDomain()
+                                        .lowercase().trim { it <= ' ' }
+                                } else if (!chosen.get(3) && chosen.get(3) != oldChosen.get(3)) {
+                                    SettingValues.alwaysExternal -= submission.getDomain()
+                                        .lowercase().trim { it <= ' ' }
+                                }
+                                if (chosen.size > 4) {
+                                    val s: String = (baseSub + ":" + flair)
+                                        .lowercase().trim { it <= ' ' }
+                                    if (chosen.get(4) && chosen.get(4) != oldChosen.get(4)) {
+                                        SettingValues.flairFilters += s
+                                        filtered = true
+                                    } else if (!chosen.get(4) && chosen.get(4) != oldChosen.get(
+                                            4
+                                        )
+                                    ) {
+                                        SettingValues.flairFilters -= s
                                     }
-                                    if (chosen[1] && chosen[1] != oldChosen[1]) {
-                                        SettingValues.userFilters.add(submission.getAuthor()
-                                                .toLowerCase(Locale.ENGLISH).trim());
-                                        filtered = true;
-                                        e.putStringSet(SettingValues.PREF_USER_FILTERS,
-                                                SettingValues.userFilters);
-                                    } else if (!chosen[1] && chosen[1] != oldChosen[1]) {
-                                        SettingValues.userFilters.remove(submission.getAuthor()
-                                                .toLowerCase(Locale.ENGLISH).trim());
-                                        filtered = false;
-                                        e.putStringSet(SettingValues.PREF_USER_FILTERS,
-                                                SettingValues.userFilters);
-                                        e.apply();
-                                    }
-                                    if (chosen[2] && chosen[2] != oldChosen[2]) {
-                                        SettingValues.domainFilters.add(submission.getDomain()
-                                                .toLowerCase(Locale.ENGLISH).trim());
-                                        filtered = true;
-                                        e.putStringSet(SettingValues.PREF_DOMAIN_FILTERS,
-                                                SettingValues.domainFilters);
-                                    } else if (!chosen[2] && chosen[2] != oldChosen[2]) {
-                                        SettingValues.domainFilters.remove(submission.getDomain()
-                                                .toLowerCase(Locale.ENGLISH).trim());
-                                        filtered = false;
-                                        e.putStringSet(SettingValues.PREF_DOMAIN_FILTERS,
-                                                SettingValues.domainFilters);
-                                        e.apply();
-                                    }
-                                    if (chosen[3] && chosen[3] != oldChosen[3]) {
-                                        SettingValues.alwaysExternal.add(submission.getDomain()
-                                                .toLowerCase(Locale.ENGLISH).trim());
-                                        e.putStringSet(SettingValues.PREF_ALWAYS_EXTERNAL,
-                                                SettingValues.alwaysExternal);
-                                        e.apply();
-                                    } else if (!chosen[3] && chosen[3] != oldChosen[3]) {
-                                        SettingValues.alwaysExternal.remove(submission.getDomain()
-                                                .toLowerCase(Locale.ENGLISH).trim());
-                                        e.putStringSet(SettingValues.PREF_ALWAYS_EXTERNAL,
-                                                SettingValues.alwaysExternal);
-                                        e.apply();
-                                    }
-                                    if (chosen.length > 4) {
-                                        String s = (baseSub + ":" + flair)
-                                                .toLowerCase(Locale.ENGLISH).trim();
-                                        if (chosen[4] && chosen[4] != oldChosen[4]) {
-                                            SettingValues.flairFilters.add(s);
-                                            e.putStringSet(
-                                                    SettingValues.PREF_FLAIR_FILTERS,
-                                                    SettingValues.flairFilters);
-                                            e.apply();
-                                            filtered = true;
-                                        } else if (!chosen[4] && chosen[4] != oldChosen[4]) {
-                                            SettingValues.flairFilters.remove(s);
-                                            e.putStringSet(
-                                                    SettingValues.PREF_FLAIR_FILTERS,
-                                                    SettingValues.flairFilters);
-                                            e.apply();
+                                }
+                                if (filtered) {
+                                    val toRemove: ArrayList<Contribution> = ArrayList()
+                                    for (s: Contribution? in posts) {
+                                        if ((s is Submission
+                                                    && PostMatch.doesMatch(s as Submission?))
+                                        ) {
+                                            toRemove.add(s)
                                         }
                                     }
-                                    if (filtered) {
-                                        e.apply();
-                                        ArrayList<Contribution> toRemove = new ArrayList<>();
-                                        for (Contribution s : posts) {
-                                            if (s instanceof Submission
-                                                    && PostMatch.doesMatch((Submission) s)) {
-                                                toRemove.add(s);
-                                            }
+                                    val s: OfflineSubreddit = OfflineSubreddit.getSubreddit(
+                                        baseSub,
+                                        false, mContext
+                                    )
+                                    for (remove: Contribution? in toRemove) {
+                                        val pos: Int = posts.indexOf(remove)
+                                        posts.removeAt(pos)
+                                        if (baseSub != null) {
+                                            s.hideMulti(pos)
                                         }
-
-                                        OfflineSubreddit s =
-                                                OfflineSubreddit.getSubreddit(baseSub,
-                                                        false, mContext);
-
-                                        for (Contribution remove : toRemove) {
-                                            final int pos = posts.indexOf(remove);
-                                            posts.remove(pos);
-                                            if (baseSub != null) {
-                                                s.hideMulti(pos);
-                                            }
-                                        }
-                                        s.writeToMemoryNoStorage();
-                                        recyclerview.getAdapter()
-                                                .notifyDataSetChanged();
                                     }
-                                })
-                                .setNegativeButton(R.string.btn_cancel, null)
-                                .show();
-                        break;
-
-                    case 3:
-                        saveSubmission(submission, mContext, holder, full);
-                        break;
-                    case 5: {
-                        hideSubmission(submission, posts, baseSub, recyclerview, mContext);
+                                    s.writeToMemoryNoStorage()
+                                    recyclerview.adapter!!
+                                        .notifyDataSetChanged()
+                                }
+                            }
+                            .setNegativeButton(R.string.btn_cancel, null)
+                            .show()
                     }
-                    break;
-                    case 7:
-                        LinkUtil.openExternally(submission.getUrl());
-                        if (submission.isNsfw() && !SettingValues.storeNSFWHistory) {
+
+                    3 -> saveSubmission(submission, mContext, holder, full)
+                    5 -> {
+                        hideSubmission(submission, posts, baseSub, recyclerview, mContext)
+                    }
+
+                    7 -> {
+                        LinkUtil.openExternally(submission.url)
+                        if (submission.isNsfw && !SettingValues.storeNSFWHistory) {
                             //Do nothing if the post is NSFW and storeNSFWHistory is not enabled
                         } else if (SettingValues.storeHistory) {
-                            HasSeen.addSeen(submission.getFullName());
+                            HasSeen.addSeen(submission.fullName)
                         }
-                        break;
-                    case 13:
-                        LinkUtil.crosspost(submission, mContext);
-                        break;
-                    case 28:
-                        if (!isAddedToReadLaterList) {
-                            ReadLater.setReadLater(submission, true);
-                            Snackbar s = Snackbar.make(holder.itemView, "Added to read later!",
-                                    Snackbar.LENGTH_SHORT);
-                            View view = s.getView();
-                            TextView tv = view.findViewById(
-                                    com.google.android.material.R.id.snackbar_text);
-                            tv.setTextColor(Color.WHITE);
-                            s.setAction(R.string.btn_undo, new View.OnClickListener() {
-                                @Override
-                                public void onClick(View view) {
-                                    ReadLater.setReadLater(submission, false);
-                                    Snackbar s2 = Snackbar.make(holder.itemView,
-                                            "Removed from read later", Snackbar.LENGTH_SHORT);
-                                    LayoutUtils.showSnackbar(s2);
+                    }
+
+                    13 -> LinkUtil.crosspost(submission, mContext)
+                    28 -> if (!isAddedToReadLaterList) {
+                        ReadLater.setReadLater(submission, true)
+                        val s = Snackbar.make(
+                            holder.itemView, "Added to read later!",
+                            Snackbar.LENGTH_SHORT
+                        )
+                        val view = s.view
+                        val tv = view.findViewById<TextView>(
+                            com.google.android.material.R.id.snackbar_text
+                        )
+                        tv.setTextColor(Color.WHITE)
+                        s.setAction(R.string.btn_undo, View.OnClickListener {
+                            ReadLater.setReadLater(submission, false)
+                            val s2 = Snackbar.make(
+                                holder.itemView,
+                                "Removed from read later", Snackbar.LENGTH_SHORT
+                            )
+                            LayoutUtils.showSnackbar(s2)
+                        })
+                        if (NetworkUtil.isConnected(mContext)) {
+                            CommentCacheAsync(
+                                listOf(submission), mContext,
+                                CommentCacheAsync.SAVED_SUBMISSIONS, booleanArrayOf(true, true)
+                            ).executeOnExecutor(
+                                AsyncTask.THREAD_POOL_EXECUTOR
+                            )
+                        }
+                        s.show()
+                    } else {
+                        ReadLater.setReadLater(submission, false)
+                        if (isReadLater || !Authentication.didOnline) {
+                            val pos = posts.indexOf(submission as T)
+                            posts.remove(submission as T)
+                            recyclerview.adapter!!
+                                .notifyItemRemoved(holder.bindingAdapterPosition)
+                            val s2 = Snackbar.make(
+                                holder.itemView, "Removed from read later",
+                                Snackbar.LENGTH_SHORT
+                            )
+                            val view2 = s2.view
+                            val tv2 = view2.findViewById<TextView>(
+                                com.google.android.material.R.id.snackbar_text
+                            )
+                            tv2.setTextColor(Color.WHITE)
+                            s2.setAction(R.string.btn_undo, object : View.OnClickListener {
+                                override fun onClick(view: View) {
+                                    posts.add(pos, submission as T)
+                                    recyclerview.adapter!!.notifyDataSetChanged()
                                 }
-                            });
-                            if (NetworkUtil.isConnected(mContext)) {
-                                new CommentCacheAsync(Collections.singletonList(submission), mContext,
-                                        CommentCacheAsync.SAVED_SUBMISSIONS,
-                                        new boolean[]{true, true}).executeOnExecutor(
-                                        AsyncTask.THREAD_POOL_EXECUTOR);
-                            }
-                            s.show();
+                            })
                         } else {
-                            ReadLater.setReadLater(submission, false);
-                            if (isReadLater || !Authentication.didOnline) {
-                                final int pos = posts.indexOf(submission);
-                                posts.remove(submission);
-
-                                recyclerview.getAdapter()
-                                        .notifyItemRemoved(holder.getBindingAdapterPosition());
-
-                                Snackbar s2 =
-                                        Snackbar.make(holder.itemView, "Removed from read later",
-                                                Snackbar.LENGTH_SHORT);
-                                View view2 = s2.getView();
-                                TextView tv2 = view2.findViewById(
-                                        com.google.android.material.R.id.snackbar_text);
-                                tv2.setTextColor(Color.WHITE);
-                                s2.setAction(R.string.btn_undo, new View.OnClickListener() {
-                                    @Override
-                                    public void onClick(View view) {
-                                        posts.add(pos, (T) submission);
-                                        recyclerview.getAdapter().notifyDataSetChanged();
-                                    }
-                                });
-                            } else {
-                                Snackbar s2 =
-                                        Snackbar.make(holder.itemView, "Removed from read later",
-                                                Snackbar.LENGTH_SHORT);
-                                View view2 = s2.getView();
-                                TextView tv2 = view2.findViewById(
-                                        com.google.android.material.R.id.snackbar_text);
-                                s2.show();
-                            }
-                            OfflineSubreddit.newSubreddit(CommentCacheAsync.SAVED_SUBMISSIONS)
-                                    .deleteFromMemory(submission.getFullName());
-
+                            val s2 = Snackbar.make(
+                                holder.itemView, "Removed from read later",
+                                Snackbar.LENGTH_SHORT
+                            )
+                            val view2 = s2.view
+                            val tv2 = view2.findViewById<TextView>(
+                                com.google.android.material.R.id.snackbar_text
+                            )
+                            s2.show()
                         }
-                        break;
-                    case 4:
-                        App.defaultShareText(CompatUtil.fromHtml(submission.getTitle()).toString(),
-                                StringEscapeUtils.escapeHtml4(submission.getUrl()), mContext);
-                        break;
-                    case 12:
-                        final MaterialDialog reportDialog = new MaterialDialog.Builder(mContext)
-                                .customView(R.layout.report_dialog, true)
-                                .title(R.string.report_post)
-                                .positiveText(R.string.btn_report)
-                                .negativeText(R.string.btn_cancel)
-                                .onPositive(new MaterialDialog.SingleButtonCallback() {
-                                    @Override
-                                    public void onClick(MaterialDialog dialog, DialogAction which) {
-                                        RadioGroup reasonGroup = dialog.getCustomView()
-                                                .findViewById(R.id.report_reasons);
-                                        String reportReason;
-                                        if (reasonGroup.getCheckedRadioButtonId() == R.id.report_other) {
-                                            reportReason = ((EditText) dialog.getCustomView()
-                                                    .findViewById(R.id.input_report_reason)).getText().toString();
-                                        } else {
-                                            reportReason = ((RadioButton) reasonGroup
-                                                    .findViewById(reasonGroup.getCheckedRadioButtonId()))
-                                                    .getText().toString();
-                                        }
-                                        new AsyncReportTask(submission, holder.itemView)
-                                                .executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, reportReason);
+                        OfflineSubreddit.newSubreddit(CommentCacheAsync.SAVED_SUBMISSIONS)
+                            .deleteFromMemory(submission.fullName)
+                    }
+
+                    4 -> defaultShareText(
+                        CompatUtil.fromHtml(submission.title).toString(),
+                        StringEscapeUtils.escapeHtml4(submission.url), mContext
+                    )
+
+                    12 -> {
+                        val reportDialog = MaterialDialog.Builder(mContext)
+                            .customView(R.layout.report_dialog, true)
+                            .title(R.string.report_post)
+                            .positiveText(R.string.btn_report)
+                            .negativeText(R.string.btn_cancel)
+                            .onPositive(object : SingleButtonCallback {
+                                override fun onClick(dialog: MaterialDialog, which: DialogAction) {
+                                    val reasonGroup = dialog.customView!!
+                                        .findViewById<RadioGroup>(R.id.report_reasons)
+                                    val reportReason: String
+                                    if (reasonGroup.checkedRadioButtonId == R.id.report_other) {
+                                        reportReason = (dialog.customView!!
+                                            .findViewById<View>(R.id.input_report_reason) as EditText).text.toString()
+                                    } else {
+                                        reportReason = (reasonGroup
+                                            .findViewById<View>(reasonGroup.checkedRadioButtonId) as RadioButton)
+                                            .text.toString()
                                     }
-                                }).build();
-
-                        final RadioGroup reasonGroup = reportDialog.getCustomView().findViewById(R.id.report_reasons);
-
-                        reasonGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
-                            @Override
-                            public void onCheckedChanged(RadioGroup group, int checkedId) {
-                                if (checkedId == R.id.report_other)
-                                    reportDialog.getCustomView().findViewById(R.id.input_report_reason)
-                                            .setVisibility(View.VISIBLE);
-                                else
-                                    reportDialog.getCustomView().findViewById(R.id.input_report_reason)
-                                            .setVisibility(View.GONE);
-                            }
-                        });
+                                    AsyncReportTask(submission, holder.itemView)
+                                        .executeOnExecutor(
+                                            AsyncTask.THREAD_POOL_EXECUTOR,
+                                            reportReason
+                                        )
+                                }
+                            }).build()
+                        val reasonGroup =
+                            reportDialog.customView!!.findViewById<RadioGroup>(R.id.report_reasons)
+                        reasonGroup.setOnCheckedChangeListener { group, checkedId ->
+                            if (checkedId == R.id.report_other) reportDialog.customView!!.findViewById<View>(
+                                R.id.input_report_reason
+                            ).visibility = View.VISIBLE else reportDialog.customView!!
+                                .findViewById<View>(R.id.input_report_reason).visibility =
+                                View.GONE
+                        }
 
                         // Load sub's report reasons and show the appropriate ones
-                        new AsyncTask<Void, Void, Ruleset>() {
-                            @Override
-                            protected Ruleset doInBackground(Void... voids) {
-                                return Authentication.reddit.getRules(submission.getSubredditName());
+                        object : AsyncTask<Void?, Void?, Ruleset>() {
+                            override fun doInBackground(vararg voids: Void?): Ruleset {
+                                return Authentication.reddit!!.getRules(submission.subredditName)
                             }
 
-                            @Override
-                            protected void onPostExecute(Ruleset rules) {
-                                reportDialog.getCustomView().findViewById(R.id.report_loading).setVisibility(View.GONE);
-                                if (rules.getSubredditRules().size() > 0) {
-                                    TextView subHeader = new TextView(mContext);
-                                    subHeader.setText(mContext.getString(R.string.report_sub_rules,
-                                            submission.getSubredditName()));
-                                    reasonGroup.addView(subHeader, reasonGroup.getChildCount() - 2);
+                            override fun onPostExecute(rules: Ruleset) {
+                                reportDialog.customView!!.findViewById<View>(R.id.report_loading).visibility =
+                                    View.GONE
+                                if (rules.subredditRules.size > 0) {
+                                    val subHeader = TextView(mContext)
+                                    subHeader.text = mContext.getString(
+                                        R.string.report_sub_rules,
+                                        submission.subredditName
+                                    )
+                                    reasonGroup.addView(subHeader, reasonGroup.childCount - 2)
                                 }
-                                for (SubredditRule rule : rules.getSubredditRules()) {
-                                    if (rule.getKind() == SubredditRule.RuleKind.LINK
-                                            || rule.getKind() == SubredditRule.RuleKind.ALL) {
-                                        RadioButton btn = new RadioButton(mContext);
-                                        btn.setText(rule.getViolationReason());
-                                        reasonGroup.addView(btn, reasonGroup.getChildCount() - 2);
-                                        btn.getLayoutParams().width = WindowManager.LayoutParams.MATCH_PARENT;
+                                for (rule: SubredditRule in rules.subredditRules) {
+                                    if ((rule.kind == SubredditRule.RuleKind.LINK
+                                                || rule.kind == SubredditRule.RuleKind.ALL)
+                                    ) {
+                                        val btn = RadioButton(mContext)
+                                        btn.text = rule.violationReason
+                                        reasonGroup.addView(btn, reasonGroup.childCount - 2)
+                                        btn.layoutParams.width =
+                                            WindowManager.LayoutParams.MATCH_PARENT
                                     }
                                 }
-                                if (rules.getSiteRules().size() > 0) {
-                                    TextView siteHeader = new TextView(mContext);
-                                    siteHeader.setText(R.string.report_site_rules);
-                                    reasonGroup.addView(siteHeader, reasonGroup.getChildCount() - 2);
+                                if (rules.siteRules.size > 0) {
+                                    val siteHeader = TextView(mContext)
+                                    siteHeader.setText(R.string.report_site_rules)
+                                    reasonGroup.addView(siteHeader, reasonGroup.childCount - 2)
                                 }
-                                for (String rule : rules.getSiteRules()) {
-                                    RadioButton btn = new RadioButton(mContext);
-                                    btn.setText(rule);
-                                    reasonGroup.addView(btn, reasonGroup.getChildCount() - 2);
-                                    btn.getLayoutParams().width = WindowManager.LayoutParams.MATCH_PARENT;
+                                for (rule: String? in rules.siteRules) {
+                                    val btn = RadioButton(mContext)
+                                    btn.text = rule
+                                    reasonGroup.addView(btn, reasonGroup.childCount - 2)
+                                    btn.layoutParams.width = WindowManager.LayoutParams.MATCH_PARENT
                                 }
                             }
-                        }.execute();
-
-                        reportDialog.show();
-                        break;
-                    case 8:
-                        if(SettingValues.shareLongLink){
-                            App.defaultShareText(submission.getTitle(), "https://reddit.com" + submission.getPermalink(), mContext);
-                        } else {
-                            App.defaultShareText(submission.getTitle(), "https://redd.it/" + submission.getId(), mContext);
-                        }
-                        break;
-                    case 6: {
-                        ClipboardUtil.copyToClipboard(mContext, "Link", submission.getUrl());
-                        Toast.makeText(mContext, R.string.submission_link_copied,
-                                Toast.LENGTH_SHORT).show();
+                        }.execute()
+                        reportDialog.show()
                     }
-                    break;
-                    case 25:
-                        final TextView showText = new TextView(mContext);
-                        showText.setText(StringEscapeUtils.unescapeHtml4(
-                                submission.getTitle() + "\n\n" + submission.getSelftext()));
-                        showText.setTextIsSelectable(true);
-                        int sixteen = DisplayUtil.dpToPxVertical(24);
-                        showText.setPadding(sixteen, 0, sixteen, 0);
-                        new AlertDialog.Builder(mContext)
-                                .setView(showText)
-                                .setTitle("Select text to copy")
-                                .setCancelable(true)
-                                .setPositiveButton("COPY SELECTED", (dialog13, which13) -> {
-                                    String selected = showText.getText()
-                                            .toString()
-                                            .substring(showText.getSelectionStart(),
-                                                    showText.getSelectionEnd());
-                                    if (!selected.isEmpty()) {
-                                        ClipboardUtil.copyToClipboard(mContext, "Selftext", selected);
-                                    } else {
-                                        ClipboardUtil.copyToClipboard(mContext, "Selftext",
-                                                CompatUtil.fromHtml(
-                                                        submission.getTitle()
-                                                                + "\n\n"
-                                                                + submission.getSelftext()));
-                                    }
-                                    Toast.makeText(mContext,
-                                            R.string.submission_comment_copied,
-                                            Toast.LENGTH_SHORT).show();
 
-                                })
-                                .setNegativeButton(R.string.btn_cancel, null)
-                                .setNeutralButton("COPY ALL", (dialog14, which14) -> {
-                                    ClipboardUtil.copyToClipboard(mContext, "Selftext",
-                                            StringEscapeUtils.unescapeHtml4(
-                                                    submission.getTitle()
-                                                            + "\n\n"
-                                                            + submission.getSelftext()));
+                    8 -> if (SettingValues.shareLongLink) {
+                        defaultShareText(
+                            submission.title,
+                            "https://reddit.com" + submission.permalink,
+                            mContext
+                        )
+                    } else {
+                        defaultShareText(
+                            submission.title,
+                            "https://redd.it/" + submission.id,
+                            mContext
+                        )
+                    }
 
-                                    Toast.makeText(mContext,
-                                            R.string.submission_text_copied,
-                                            Toast.LENGTH_SHORT).show();
-                                })
-                                .show();
-                        break;
+                    6 -> {
+                        ClipboardUtil.copyToClipboard(mContext, "Link", submission.url)
+                        Toast.makeText(
+                            mContext, R.string.submission_link_copied,
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+
+                    25 -> {
+                        val showText = TextView(mContext)
+                        showText.text = StringEscapeUtils.unescapeHtml4(
+                            submission.title + "\n\n" + submission.selftext
+                        )
+                        showText.setTextIsSelectable(true)
+                        val sixteen = DisplayUtil.dpToPxVertical(24)
+                        showText.setPadding(sixteen, 0, sixteen, 0)
+                        AlertDialog.Builder(mContext)
+                            .setView(showText)
+                            .setTitle("Select text to copy")
+                            .setCancelable(true)
+                            .setPositiveButton(
+                                "COPY SELECTED"
+                            ) { dialog13: DialogInterface?, which13: Int ->
+                                val selected: String = showText.getText()
+                                    .toString()
+                                    .substring(
+                                        showText.getSelectionStart(),
+                                        showText.getSelectionEnd()
+                                    )
+                                if (!selected.isEmpty()) {
+                                    ClipboardUtil.copyToClipboard(
+                                        mContext,
+                                        "Selftext",
+                                        selected
+                                    )
+                                } else {
+                                    ClipboardUtil.copyToClipboard(
+                                        mContext, "Selftext",
+                                        CompatUtil.fromHtml(
+                                            (submission.getTitle()
+                                                    + "\n\n"
+                                                    + submission.getSelftext())
+                                        )
+                                    )
+                                }
+                                Toast.makeText(
+                                    mContext,
+                                    R.string.submission_comment_copied,
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                            .setNegativeButton(R.string.btn_cancel, null)
+                            .setNeutralButton(
+                                "COPY ALL"
+                            ) { dialog14: DialogInterface?, which14: Int ->
+                                ClipboardUtil.copyToClipboard(
+                                    mContext, "Selftext",
+                                    StringEscapeUtils.unescapeHtml4(
+                                        (submission.getTitle()
+                                                + "\n\n"
+                                                + submission.getSelftext())
+                                    )
+                                )
+                                Toast.makeText(
+                                    mContext,
+                                    R.string.submission_text_copied,
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                            .show()
+                    }
                 }
             }
-        });
-        b.show();
+        })
+        b.show()
     }
 
-    private void saveSubmission(final Submission submission, final Activity mContext,
-            final SubmissionViewHolder holder, final boolean full) {
-        new AsyncTask<Void, Void, Void>() {
-            @Override
-            protected Void doInBackground(Void... params) {
+    private fun saveSubmission(
+        submission: Submission, mContext: Activity,
+        holder: SubmissionViewHolder, full: Boolean
+    ) {
+        object : AsyncTask<Void?, Void?, Void?>() {
+            override fun doInBackground(vararg params: Void?): Void? {
                 try {
                     if (ActionStates.isSaved(submission)) {
-                        new AccountManager(Authentication.reddit).unsave(submission);
-                        ActionStates.setSaved(submission, false);
+                        AccountManager(Authentication.reddit).unsave(submission)
+                        ActionStates.setSaved(submission, false)
                     } else {
-                        new AccountManager(Authentication.reddit).save(submission);
-                        ActionStates.setSaved(submission, true);
+                        AccountManager(Authentication.reddit).save(submission)
+                        ActionStates.setSaved(submission, true)
                     }
-
-                } catch (Exception e) {
-                    e.printStackTrace();
+                } catch (e: Exception) {
+                    e.printStackTrace()
                 }
-
-                return null;
+                return null
             }
 
-            @Override
-            protected void onPostExecute(Void aVoid) {
-                Snackbar s;
+            override fun onPostExecute(aVoid: Void?) {
+                val s: Snackbar
                 try {
                     if (ActionStates.isSaved(submission)) {
-
                         BlendModeUtil.tintImageViewAsSrcAtop(
-                                (ImageView) holder.save,
-                                ContextCompat.getColor(mContext, R.color.md_amber_500));
-                        holder.save.setContentDescription(mContext.getString(R.string.btn_unsave));
-                        s = Snackbar.make(holder.itemView, R.string.submission_info_saved,
-                                Snackbar.LENGTH_LONG);
-                        if (Authentication.me.hasGold()) {
-                            s.setAction(R.string.category_categorize, new View.OnClickListener() {
-                                @Override
-                                public void onClick(View v) {
-                                    categorizeSaved(submission, holder.itemView, mContext);
-                                }
-                            });
+                            (holder.save as ImageView),
+                            ContextCompat.getColor(mContext, R.color.md_amber_500)
+                        )
+                        holder.save.setContentDescription(mContext.getString(R.string.btn_unsave))
+                        s = Snackbar.make(
+                            holder.itemView, R.string.submission_info_saved,
+                            Snackbar.LENGTH_LONG
+                        )
+                        if (Authentication.me!!.hasGold()) {
+                            s.setAction(
+                                R.string.category_categorize,
+                                object : View.OnClickListener {
+                                    override fun onClick(v: View) {
+                                        categorizeSaved(submission, holder.itemView, mContext)
+                                    }
+                                })
                         }
-
-                        AnimatorUtil.setFlashAnimation(holder.itemView, holder.save,
-                                ContextCompat.getColor(mContext, R.color.md_amber_500));
+                        AnimatorUtil.setFlashAnimation(
+                            holder.itemView, holder.save,
+                            ContextCompat.getColor(mContext, R.color.md_amber_500)
+                        )
                     } else {
-                        s = Snackbar.make(holder.itemView, R.string.submission_info_unsaved,
-                                Snackbar.LENGTH_SHORT);
-                        final int getTintColor = holder.itemView.getTag(holder.itemView.getId()) != null
-                                && holder.itemView.getTag(holder.itemView.getId())
-                                .equals("none") || full ? Palette.getCurrentTintColor(mContext)
-                                : Palette.getWhiteTintColor();
-                        BlendModeUtil.tintImageViewAsSrcAtop((ImageView) holder.save, getTintColor);
-                        holder.save.setContentDescription(mContext.getString(R.string.btn_save));
-
+                        s = Snackbar.make(
+                            holder.itemView, R.string.submission_info_unsaved,
+                            Snackbar.LENGTH_SHORT
+                        )
+                        val getTintColor = if (holder.itemView.getTag(holder.itemView.id) != null
+                            && (holder.itemView.getTag(holder.itemView.id)
+                                    == "none") || full
+                        ) Palette.getCurrentTintColor(mContext) else Palette.getWhiteTintColor()
+                        BlendModeUtil.tintImageViewAsSrcAtop(
+                            (holder.save as ImageView),
+                            getTintColor
+                        )
+                        holder.save.setContentDescription(mContext.getString(R.string.btn_save))
                     }
-                    LayoutUtils.showSnackbar(s);
-                } catch (Exception ignored) {
-
+                    LayoutUtils.showSnackbar(s)
+                } catch (ignored: Exception) {
                 }
             }
-        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR)
     }
 
-    private void categorizeSaved(final Submission submission, View itemView,
-            final Context mContext) {
-        new AsyncTask<Void, Void, List<String>>() {
-
-            Dialog d;
-
-            @Override
-            public void onPreExecute() {
-                d = new MaterialDialog.Builder(mContext).progress(true, 100)
-                        .title(R.string.profile_category_loading)
-                        .content(R.string.misc_please_wait)
-                        .show();
+    private fun categorizeSaved(
+        submission: Submission, itemView: View,
+        mContext: Context
+    ) {
+        object : AsyncTask<Void?, Void?, List<String?>>() {
+            var d: Dialog? = null
+            public override fun onPreExecute() {
+                d = MaterialDialog.Builder(mContext).progress(true, 100)
+                    .title(R.string.profile_category_loading)
+                    .content(R.string.misc_please_wait)
+                    .show()
             }
 
-            @Override
-            protected List<String> doInBackground(Void... params) {
+            override fun doInBackground(vararg params: Void?): List<String?> {
                 try {
-                    List<String> categories = new ArrayList<String>(
-                            new AccountManager(Authentication.reddit).getSavedCategories());
-                    categories.add("New category");
-                    return categories;
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    return new ArrayList<String>() {{
-                        add("New category");
-                    }};
+                    val categories: MutableList<String?> = ArrayList(
+                        AccountManager(Authentication.reddit).savedCategories
+                    )
+                    categories.add("New category")
+                    return categories
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    return object : ArrayList<String?>() {
+                        init {
+                            add("New category")
+                        }
+                    }
                     //sub probably has no flairs?
                 }
             }
 
-            @Override
-            public void onPostExecute(final List<String> data) {
+            public override fun onPostExecute(data: List<String?>) {
                 try {
-                    new MaterialDialog.Builder(mContext).items(data)
-                            .title(R.string.sidebar_select_flair)
-                            .itemsCallback(new MaterialDialog.ListCallback() {
-                                @Override
-                                public void onSelection(MaterialDialog dialog, final View itemView,
-                                        int which, CharSequence text) {
-                                    final String t = data.get(which);
-                                    if (which == data.size() - 1) {
-                                        new MaterialDialog.Builder(mContext).title(
-                                                R.string.category_set_name)
-                                                .input(mContext.getString(
-                                                        R.string.category_set_name_hint), null,
-                                                        false, (dialog1, input) -> {})
-                                                .positiveText(R.string.btn_set)
-                                                .onPositive(
-                                                        new MaterialDialog.SingleButtonCallback() {
-                                                            @Override
-                                                            public void onClick(
-                                                                    MaterialDialog dialog,
-                                                                    DialogAction which) {
-                                                                final String flair =
-                                                                        dialog.getInputEditText()
-                                                                                .getText()
-                                                                                .toString();
-                                                                new AsyncTask<Void, Void, Boolean>() {
-                                                                    @Override
-                                                                    protected Boolean doInBackground(
-                                                                            Void... params) {
-                                                                        try {
-                                                                            new AccountManager(
-                                                                                    Authentication.reddit)
-                                                                                    .save(submission,
-                                                                                            flair);
-                                                                            return true;
-                                                                        } catch (ApiException e) {
-                                                                            e.printStackTrace();
-                                                                            return false;
-                                                                        }
-                                                                    }
-
-                                                                    @Override
-                                                                    protected void onPostExecute(
-                                                                            Boolean done) {
-                                                                        Snackbar s;
-                                                                        if (done) {
-                                                                            if (itemView != null) {
-                                                                                s = Snackbar.make(
-                                                                                        itemView,
-                                                                                        R.string.submission_info_saved,
-                                                                                        Snackbar.LENGTH_SHORT);
-                                                                                LayoutUtils.showSnackbar(s);
-                                                                            }
-                                                                        } else {
-                                                                            if (itemView != null) {
-                                                                                s = Snackbar.make(
-                                                                                        itemView,
-                                                                                        R.string.category_set_error,
-                                                                                        Snackbar.LENGTH_SHORT);
-                                                                                LayoutUtils.showSnackbar(s);
-                                                                            }
-                                                                        }
-
-                                                                    }
-                                                                }.executeOnExecutor(
-                                                                        AsyncTask.THREAD_POOL_EXECUTOR);
+                    MaterialDialog.Builder(mContext).items(data)
+                        .title(R.string.sidebar_select_flair)
+                        .itemsCallback(object : ListCallback {
+                            override fun onSelection(
+                                dialog: MaterialDialog, itemView: View,
+                                which: Int, text: CharSequence
+                            ) {
+                                val t = data[which]
+                                if (which == data.size - 1) {
+                                    MaterialDialog.Builder(mContext).title(
+                                        R.string.category_set_name
+                                    )
+                                        .input(mContext.getString(
+                                            R.string.category_set_name_hint
+                                        ),
+                                            null,
+                                            false,
+                                            { dialog1: MaterialDialog?, input: CharSequence? -> })
+                                        .positiveText(R.string.btn_set)
+                                        .onPositive(
+                                            object : SingleButtonCallback {
+                                                override fun onClick(
+                                                    dialog: MaterialDialog,
+                                                    which: DialogAction
+                                                ) {
+                                                    val flair = dialog.inputEditText!!
+                                                        .getText()
+                                                        .toString()
+                                                    object : AsyncTask<Void?, Void?, Boolean>() {
+                                                        override fun doInBackground(
+                                                            vararg params: Void?
+                                                        ): Boolean {
+                                                            try {
+                                                                AccountManager(
+                                                                    Authentication.reddit
+                                                                )
+                                                                    .save(
+                                                                        submission,
+                                                                        flair
+                                                                    )
+                                                                return true
+                                                            } catch (e: ApiException) {
+                                                                e.printStackTrace()
+                                                                return false
                                                             }
-                                                        })
-                                                .negativeText(R.string.btn_cancel)
-                                                .show();
-                                    } else {
-                                        new AsyncTask<Void, Void, Boolean>() {
-                                            @Override
-                                            protected Boolean doInBackground(Void... params) {
-                                                try {
-                                                    new AccountManager(Authentication.reddit).save(
-                                                            submission, t);
-                                                    return true;
-                                                } catch (ApiException e) {
-                                                    e.printStackTrace();
-                                                    return false;
-                                                }
-                                            }
+                                                        }
 
-                                            @Override
-                                            protected void onPostExecute(Boolean done) {
-                                                Snackbar s;
-                                                if (done) {
-                                                    if (itemView != null) {
-                                                        s = Snackbar.make(itemView,
-                                                                R.string.submission_info_saved,
-                                                                Snackbar.LENGTH_SHORT);
-                                                        LayoutUtils.showSnackbar(s);
-                                                    }
-                                                } else {
-                                                    if (itemView != null) {
-                                                        s = Snackbar.make(itemView,
-                                                                R.string.category_set_error,
-                                                                Snackbar.LENGTH_SHORT);
-                                                        LayoutUtils.showSnackbar(s);
-                                                    }
+                                                        override fun onPostExecute(
+                                                            done: Boolean
+                                                        ) {
+                                                            val s: Snackbar
+                                                            if (done) {
+                                                                if (itemView != null) {
+                                                                    s = Snackbar.make(
+                                                                        itemView,
+                                                                        R.string.submission_info_saved,
+                                                                        Snackbar.LENGTH_SHORT
+                                                                    )
+                                                                    LayoutUtils.showSnackbar(s)
+                                                                }
+                                                            } else {
+                                                                if (itemView != null) {
+                                                                    s = Snackbar.make(
+                                                                        itemView,
+                                                                        R.string.category_set_error,
+                                                                        Snackbar.LENGTH_SHORT
+                                                                    )
+                                                                    LayoutUtils.showSnackbar(s)
+                                                                }
+                                                            }
+                                                        }
+                                                    }.executeOnExecutor(
+                                                        THREAD_POOL_EXECUTOR
+                                                    )
+                                                }
+                                            })
+                                        .negativeText(R.string.btn_cancel)
+                                        .show()
+                                } else {
+                                    object : AsyncTask<Void?, Void?, Boolean>() {
+                                        override fun doInBackground(vararg params: Void?): Boolean {
+                                            try {
+                                                AccountManager(Authentication.reddit).save(
+                                                    submission, t
+                                                )
+                                                return true
+                                            } catch (e: ApiException) {
+                                                e.printStackTrace()
+                                                return false
+                                            }
+                                        }
+
+                                        override fun onPostExecute(done: Boolean) {
+                                            val s: Snackbar
+                                            if (done) {
+                                                if (itemView != null) {
+                                                    s = Snackbar.make(
+                                                        itemView,
+                                                        R.string.submission_info_saved,
+                                                        Snackbar.LENGTH_SHORT
+                                                    )
+                                                    LayoutUtils.showSnackbar(s)
+                                                }
+                                            } else {
+                                                if (itemView != null) {
+                                                    s = Snackbar.make(
+                                                        itemView,
+                                                        R.string.category_set_error,
+                                                        Snackbar.LENGTH_SHORT
+                                                    )
+                                                    LayoutUtils.showSnackbar(s)
                                                 }
                                             }
-                                        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                                        }
+                                    }.executeOnExecutor(THREAD_POOL_EXECUTOR)
+                                }
+                            }
+                        })
+                        .show()
+                    if (d != null) {
+                        d!!.dismiss()
+                    }
+                } catch (ignored: Exception) {
+                }
+            }
+        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR)
+    }
+
+    fun <T : Contribution?> hideSubmission(
+        submission: Submission,
+        posts: MutableList<T>, baseSub: String?, recyclerview: RecyclerView, c: Context?
+    ) {
+        val pos = posts.indexOf(submission as T)
+        if (pos != -1) {
+            if (submission.isHidden) {
+                posts.removeAt(pos)
+                Hidden.undoHidden(submission)
+                recyclerview.adapter!!.notifyItemRemoved(pos + 1)
+                val snack = Snackbar.make(
+                    recyclerview, R.string.submission_info_unhidden,
+                    Snackbar.LENGTH_LONG
+                )
+                LayoutUtils.showSnackbar(snack)
+            } else {
+                val t = posts[pos]
+                posts.removeAt(pos)
+                Hidden.setHidden(t)
+                val s: OfflineSubreddit?
+                var success = false
+                if (baseSub != null) {
+                    s = OfflineSubreddit.getSubreddit(baseSub, false, c)
+                    try {
+                        s.hide(pos)
+                        success = true
+                    } catch (e: Exception) {
+                    }
+                } else {
+                    success = false
+                    s = null
+                }
+                recyclerview.adapter!!.notifyItemRemoved(pos + 1)
+                val finalSuccess = success
+                val snack = Snackbar.make(
+                    recyclerview, R.string.submission_info_hidden,
+                    Snackbar.LENGTH_LONG
+                )
+                    .setAction(R.string.btn_undo, object : View.OnClickListener {
+                        override fun onClick(v: View) {
+                            if ((baseSub != null) && (s != null) && finalSuccess) {
+                                s.unhideLast()
+                            }
+                            posts.add(pos, t)
+                            recyclerview.adapter!!.notifyItemInserted(pos + 1)
+                            Hidden.undoHidden(t)
+                        }
+                    })
+                LayoutUtils.showSnackbar(snack)
+            }
+        }
+    }
+
+    fun <T : Contribution?> showModBottomSheet(
+        mContext: Activity,
+        submission: Submission, posts: MutableList<T>, holder: SubmissionViewHolder,
+        recyclerview: RecyclerView, reports: Map<String, Int>,
+        reports2: Map<String, String>
+    ) {
+        val res = mContext.resources
+        val attrs = intArrayOf(R.attr.tintColor)
+        val ta = mContext.obtainStyledAttributes(attrs)
+        val color = ta.getColor(0, Color.WHITE)
+        val profile =
+            ResourcesCompat.getDrawable(mContext.resources, R.drawable.ic_account_circle, null)
+        val report = ResourcesCompat.getDrawable(mContext.resources, R.drawable.ic_report, null)
+        val approve = ResourcesCompat.getDrawable(mContext.resources, R.drawable.ic_thumb_up, null)
+        val nsfw =
+            ResourcesCompat.getDrawable(mContext.resources, R.drawable.ic_visibility_off, null)
+        val spoiler =
+            ResourcesCompat.getDrawable(mContext.resources, R.drawable.ic_remove_circle, null)
+        val pin =
+            ResourcesCompat.getDrawable(mContext.resources, R.drawable.ic_bookmark_border, null)
+        val lock = ResourcesCompat.getDrawable(mContext.resources, R.drawable.ic_lock, null)
+        val flair = ResourcesCompat.getDrawable(
+            mContext.resources,
+            R.drawable.ic_format_quote, null
+        )
+        val remove = ResourcesCompat.getDrawable(mContext.resources, R.drawable.ic_close, null)
+        val remove_reason =
+            ResourcesCompat.getDrawable(mContext.resources, R.drawable.ic_announcement, null)
+        val ban = ResourcesCompat.getDrawable(mContext.resources, R.drawable.ic_gavel, null)
+        val spam = ResourcesCompat.getDrawable(mContext.resources, R.drawable.ic_flag, null)
+        val distinguish = ResourcesCompat.getDrawable(
+            mContext.resources, R.drawable.ic_star,
+            null
+        )
+        val note = ResourcesCompat.getDrawable(mContext.resources, R.drawable.ic_note, null)
+        val drawableSet = Arrays.asList(
+            profile, report, approve, spam, nsfw,
+            pin, flair, remove, spoiler, remove_reason,
+            ban, spam, distinguish, lock, note
+        )
+        BlendModeUtil.tintDrawablesAsSrcAtop(drawableSet, color)
+        ta.recycle()
+        val b = BottomSheet.Builder(mContext).title(CompatUtil.fromHtml(submission.title))
+        val reportCount = reports.size + reports2.size
+        b.sheet(
+            0, (report)!!,
+            res.getQuantityString(R.plurals.mod_btn_reports, reportCount, reportCount)
+        )
+        if (SettingValues.toolboxEnabled) {
+            b.sheet(24, (note)!!, res.getString(R.string.mod_usernotes_view))
+        }
+        val approved = false
+        val whoApproved = ""
+        b.sheet(1, (approve)!!, res.getString(R.string.mod_btn_approve))
+        b.sheet(6, (remove)!!, mContext.getString(R.string.mod_btn_remove))
+            .sheet(7, (remove_reason)!!, res.getString(R.string.mod_btn_remove_reason))
+            .sheet(30, (spam)!!, res.getString(R.string.mod_btn_spam))
+
+        // b.sheet(2, spam, mContext.getString(R.string.mod_btn_spam)) todo this
+        b.sheet(20, (flair)!!, res.getString(R.string.mod_btn_submission_flair))
+        val isNsfw = submission.isNsfw
+        if (isNsfw) {
+            b.sheet(3, (nsfw)!!, res.getString(R.string.mod_btn_unmark_nsfw))
+        } else {
+            b.sheet(3, (nsfw)!!, res.getString(R.string.mod_btn_mark_nsfw))
+        }
+        val isSpoiler = submission.dataNode["spoiler"].asBoolean()
+        if (isSpoiler) {
+            b.sheet(12, (nsfw)!!, res.getString(R.string.mod_btn_unmark_spoiler))
+        } else {
+            b.sheet(12, (nsfw)!!, res.getString(R.string.mod_btn_mark_spoiler))
+        }
+        val locked = submission.isLocked
+        if (locked) {
+            b.sheet(9, (lock)!!, res.getString(R.string.mod_btn_unlock_thread))
+        } else {
+            b.sheet(9, (lock)!!, res.getString(R.string.mod_btn_lock_thread))
+        }
+        val stickied = submission.isStickied
+        if (!SubmissionCache.removed.contains(submission.fullName)) {
+            if (stickied) {
+                b.sheet(4, (pin)!!, res.getString(R.string.mod_btn_unpin))
+            } else {
+                b.sheet(4, (pin)!!, res.getString(R.string.mod_btn_pin))
+            }
+        }
+        val distinguished = (submission.distinguishedStatus == DistinguishedStatus.MODERATOR
+                || submission.distinguishedStatus == DistinguishedStatus.ADMIN)
+        if (submission.author.equals(Authentication.name, ignoreCase = true)) {
+            if (distinguished) {
+                b.sheet(5, (distinguish)!!, "Undistingiush")
+            } else {
+                b.sheet(5, (distinguish)!!, "Distinguish")
+            }
+        }
+        val finalWhoApproved = whoApproved
+        val finalApproved = approved
+        b.sheet(8, (profile)!!, res.getString(R.string.mod_btn_author))
+        b.sheet(23, (ban)!!, mContext.getString(R.string.mod_ban_user))
+        b.listener(object : DialogInterface.OnClickListener {
+            override fun onClick(dialog: DialogInterface, which: Int) {
+                when (which) {
+                    0 -> object : AsyncTask<Void?, Void?, ArrayList<String>>() {
+                        override fun doInBackground(vararg params: Void?): ArrayList<String> {
+                            val finalReports = ArrayList<String>()
+                            for (entry: Map.Entry<String, Int> in reports.entries) {
+                                finalReports.add(entry.value.toString() + "× " + entry.key)
+                            }
+                            for (entry: Map.Entry<String, String> in reports2.entries) {
+                                finalReports.add(entry.key + ": " + entry.value)
+                            }
+                            if (finalReports.isEmpty()) {
+                                finalReports.add(mContext.getString(R.string.mod_no_reports))
+                            }
+                            return finalReports
+                        }
+
+                        public override fun onPostExecute(data: ArrayList<String>) {
+                            AlertDialog.Builder(mContext)
+                                .setTitle(R.string.mod_reports)
+                                .setItems(data.toTypedArray<CharSequence>(), null)
+                                .show()
+                        }
+                    }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR)
+
+                    1 -> if (finalApproved) {
+                        val i = Intent(mContext, Profile::class.java)
+                        i.putExtra(Profile.EXTRA_PROFILE, finalWhoApproved)
+                        mContext.startActivity(i)
+                    } else {
+                        approveSubmission(mContext, posts, submission, recyclerview, holder)
+                    }
+
+                    2 -> {}
+                    3 -> if (isNsfw) {
+                        unNsfwSubmission(mContext, submission, holder)
+                    } else {
+                        setPostNsfw(mContext, submission, holder)
+                    }
+
+                    12 -> if (isSpoiler) {
+                        unSpoiler(mContext, submission, holder)
+                    } else {
+                        setSpoiler(mContext, submission, holder)
+                    }
+
+                    9 -> if (locked) {
+                        unLockSubmission(mContext, submission, holder)
+                    } else {
+                        lockSubmission(mContext, submission, holder)
+                    }
+
+                    4 -> if (stickied) {
+                        unStickySubmission(mContext, submission, holder)
+                    } else {
+                        stickySubmission(mContext, submission, holder)
+                    }
+
+                    5 -> if (distinguished) {
+                        unDistinguishSubmission(mContext, submission, holder)
+                    } else {
+                        distinguishSubmission(mContext, submission, holder)
+                    }
+
+                    6 -> removeSubmission(mContext, submission, posts, recyclerview, holder, false)
+                    7 -> if ((SettingValues.removalReasonType == SettingValues.RemovalReasonType.TOOLBOX.ordinal
+                                && ToolboxUI.canShowRemoval(submission.subredditName))
+                    ) {
+                        ToolboxUI.showRemoval(
+                            mContext,
+                            submission,
+                            object : CompletedRemovalCallback {
+                                override fun onComplete(success: Boolean) {
+                                    if (success) {
+                                        SubmissionCache.removed.add(submission.fullName)
+                                        SubmissionCache.approved.remove(submission.fullName)
+                                        SubmissionCache.updateInfoSpannable(
+                                            submission, mContext,
+                                            submission.subredditName
+                                        )
+                                        if (mContext is ModQueue) {
+                                            val pos = posts.indexOf(submission as T)
+                                            posts.remove(submission as T)
+                                            if (pos == 0) {
+                                                recyclerview.adapter!!.notifyDataSetChanged()
+                                            } else {
+                                                recyclerview.adapter!!.notifyItemRemoved(pos + 1)
+                                            }
+                                        } else {
+                                            recyclerview.adapter!!.notifyItemChanged(holder.bindingAdapterPosition)
+                                        }
+                                        val s = Snackbar.make(
+                                            holder.itemView, R.string.submission_removed,
+                                            Snackbar.LENGTH_LONG
+                                        )
+                                        LayoutUtils.showSnackbar(s)
+                                    } else {
+                                        AlertDialog.Builder(mContext)
+                                            .setTitle(R.string.err_general)
+                                            .setMessage(R.string.err_retry_later)
+                                            .show()
                                     }
                                 }
                             })
-                            .show();
-                    if (d != null) {
-                        d.dismiss();
+                    } else { // Show a Slide reason dialog if we can't show a toolbox or reddit one
+                        doRemoveSubmissionReason(mContext, submission, posts, recyclerview, holder)
                     }
-                } catch (Exception ignored) {
 
-                }
-            }
-        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-    }
-
-    public <T extends Contribution> void hideSubmission(final Submission submission,
-            final List<T> posts, final String baseSub, final RecyclerView recyclerview, Context c) {
-        final int pos = posts.indexOf(submission);
-        if (pos != -1) {
-            if (submission.isHidden()) {
-                posts.remove(pos);
-                Hidden.undoHidden(submission);
-                recyclerview.getAdapter().notifyItemRemoved(pos + 1);
-                Snackbar snack = Snackbar.make(recyclerview, R.string.submission_info_unhidden,
-                        Snackbar.LENGTH_LONG);
-                LayoutUtils.showSnackbar(snack);
-            } else {
-                final T t = posts.get(pos);
-                posts.remove(pos);
-                Hidden.setHidden(t);
-                final OfflineSubreddit s;
-                boolean success = false;
-                if (baseSub != null) {
-                    s = OfflineSubreddit.getSubreddit(baseSub, false, c);
-                    try {
-                        s.hide(pos);
-                        success = true;
-                    } catch (Exception e) {
+                    30 -> removeSubmission(mContext, submission, posts, recyclerview, holder, true)
+                    8 -> {
+                        val i = Intent(mContext, Profile::class.java)
+                        i.putExtra(Profile.EXTRA_PROFILE, submission.author)
+                        mContext.startActivity(i)
                     }
-                } else {
-                    success = false;
-                    s = null;
-                }
 
-                recyclerview.getAdapter().notifyItemRemoved(pos + 1);
+                    20 -> doSetFlair(mContext, submission, holder)
+                    23 ->                         //ban a user
+                        showBan(mContext, holder.itemView, submission, "", "", "", "")
 
-                final boolean finalSuccess = success;
-                Snackbar snack = Snackbar.make(recyclerview, R.string.submission_info_hidden,
-                        Snackbar.LENGTH_LONG)
-                        .setAction(R.string.btn_undo, new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-                                if (baseSub != null && s != null && finalSuccess) {
-                                    s.unhideLast();
-                                }
-                                posts.add(pos, t);
-                                recyclerview.getAdapter().notifyItemInserted(pos + 1);
-                                Hidden.undoHidden(t);
-
-                            }
-                        });
-                LayoutUtils.showSnackbar(snack);
-            }
-
-        }
-    }
-
-    public <T extends Contribution> void showModBottomSheet(final Activity mContext,
-            final Submission submission, final List<T> posts, final SubmissionViewHolder holder,
-            final RecyclerView recyclerview, final Map<String, Integer> reports,
-            final Map<String, String> reports2) {
-
-        final Resources res = mContext.getResources();
-        int[] attrs = new int[]{R.attr.tintColor};
-        TypedArray ta = mContext.obtainStyledAttributes(attrs);
-
-        int color = ta.getColor(0, Color.WHITE);
-        Drawable profile =
-                ResourcesCompat.getDrawable(mContext.getResources(), R.drawable.ic_account_circle, null);
-        final Drawable report =
-                ResourcesCompat.getDrawable(mContext.getResources(), R.drawable.ic_report, null);
-        final Drawable approve =
-                ResourcesCompat.getDrawable(mContext.getResources(), R.drawable.ic_thumb_up, null);
-        final Drawable nsfw =
-                ResourcesCompat.getDrawable(mContext.getResources(), R.drawable.ic_visibility_off, null);
-        final Drawable spoiler =
-                ResourcesCompat.getDrawable(mContext.getResources(), R.drawable.ic_remove_circle, null);
-        final Drawable pin =
-                ResourcesCompat.getDrawable(mContext.getResources(), R.drawable.ic_bookmark_border, null);
-        final Drawable lock =
-                ResourcesCompat.getDrawable(mContext.getResources(), R.drawable.ic_lock, null);
-        final Drawable flair = ResourcesCompat.getDrawable(mContext.getResources(),
-                R.drawable.ic_format_quote, null);
-        final Drawable remove =
-                ResourcesCompat.getDrawable(mContext.getResources(), R.drawable.ic_close, null);
-        final Drawable remove_reason =
-                ResourcesCompat.getDrawable(mContext.getResources(), R.drawable.ic_announcement, null);
-        final Drawable ban =
-                ResourcesCompat.getDrawable(mContext.getResources(), R.drawable.ic_gavel, null);
-        final Drawable spam =
-                ResourcesCompat.getDrawable(mContext.getResources(), R.drawable.ic_flag, null);
-        final Drawable distinguish =
-                ResourcesCompat.getDrawable(mContext.getResources(), R.drawable.ic_star,
-                        null);
-        final Drawable note = ResourcesCompat.getDrawable(mContext.getResources(), R.drawable.ic_note, null);
-
-        final List<Drawable> drawableSet = Arrays.asList(
-                profile, report, approve, spam, nsfw,
-                pin, flair, remove, spoiler, remove_reason,
-                ban, spam, distinguish, lock, note);
-        BlendModeUtil.tintDrawablesAsSrcAtop(drawableSet, color);
-
-        ta.recycle();
-
-        BottomSheet.Builder b =
-                new BottomSheet.Builder(mContext).title(CompatUtil.fromHtml(submission.getTitle()));
-
-        int reportCount = reports.size() + reports2.size();
-
-        b.sheet(0, report,
-                res.getQuantityString(R.plurals.mod_btn_reports, reportCount, reportCount));
-
-        if (SettingValues.toolboxEnabled) {
-            b.sheet(24, note, res.getString(R.string.mod_usernotes_view));
-        }
-
-        boolean approved = false;
-        String whoApproved = "";
-        b.sheet(1, approve, res.getString(R.string.mod_btn_approve));
-        b.sheet(6, remove, mContext.getString(R.string.mod_btn_remove))
-                .sheet(7, remove_reason, res.getString(R.string.mod_btn_remove_reason))
-                .sheet(30, spam, res.getString(R.string.mod_btn_spam));
-
-        // b.sheet(2, spam, mContext.getString(R.string.mod_btn_spam)) todo this
-        b.sheet(20, flair, res.getString(R.string.mod_btn_submission_flair));
-
-        final boolean isNsfw = submission.isNsfw();
-        if (isNsfw) {
-            b.sheet(3, nsfw, res.getString(R.string.mod_btn_unmark_nsfw));
-        } else {
-            b.sheet(3, nsfw, res.getString(R.string.mod_btn_mark_nsfw));
-        }
-
-        final boolean isSpoiler = submission.getDataNode().get("spoiler").asBoolean();
-        if (isSpoiler) {
-            b.sheet(12, nsfw, res.getString(R.string.mod_btn_unmark_spoiler));
-        } else {
-            b.sheet(12, nsfw, res.getString(R.string.mod_btn_mark_spoiler));
-        }
-
-        final boolean locked = submission.isLocked();
-        if (locked) {
-            b.sheet(9, lock, res.getString(R.string.mod_btn_unlock_thread));
-        } else {
-            b.sheet(9, lock, res.getString(R.string.mod_btn_lock_thread));
-        }
-
-        final boolean stickied = submission.isStickied();
-        if (!SubmissionCache.removed.contains(submission.getFullName())) {
-            if (stickied) {
-                b.sheet(4, pin, res.getString(R.string.mod_btn_unpin));
-            } else {
-                b.sheet(4, pin, res.getString(R.string.mod_btn_pin));
-            }
-        }
-
-        final boolean distinguished =
-                submission.getDistinguishedStatus() == DistinguishedStatus.MODERATOR
-                        || submission.getDistinguishedStatus() == DistinguishedStatus.ADMIN;
-        if (submission.getAuthor().equalsIgnoreCase(Authentication.name)) {
-            if (distinguished) {
-                b.sheet(5, distinguish, "Undistingiush");
-            } else {
-                b.sheet(5, distinguish, "Distinguish");
-            }
-        }
-
-        final String finalWhoApproved = whoApproved;
-        final boolean finalApproved = approved;
-        b.sheet(8, profile, res.getString(R.string.mod_btn_author));
-        b.sheet(23, ban, mContext.getString(R.string.mod_ban_user));
-        b.listener(new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                switch (which) {
-                    case 0:
-                        new AsyncTask<Void, Void, ArrayList<String>>() {
-                            @Override
-                            protected ArrayList<String> doInBackground(Void... params) {
-
-                                ArrayList<String> finalReports = new ArrayList<>();
-                                for (Map.Entry<String, Integer> entry : reports.entrySet()) {
-                                    finalReports.add(entry.getValue() + "× " + entry.getKey());
-                                }
-                                for (Map.Entry<String, String> entry : reports2.entrySet()) {
-                                    finalReports.add(entry.getKey() + ": " + entry.getValue());
-                                }
-                                if (finalReports.isEmpty()) {
-                                    finalReports.add(mContext.getString(R.string.mod_no_reports));
-                                }
-                                return finalReports;
-                            }
-
-                            @Override
-                            public void onPostExecute(ArrayList<String> data) {
-                                new AlertDialog.Builder(mContext)
-                                        .setTitle(R.string.mod_reports)
-                                        .setItems(data.toArray(new CharSequence[0]), null)
-                                        .show();
-                            }
-                        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-
-                        break;
-                    case 1:
-                        if (finalApproved) {
-                            Intent i = new Intent(mContext, Profile.class);
-                            i.putExtra(Profile.EXTRA_PROFILE, finalWhoApproved);
-                            mContext.startActivity(i);
-                        } else {
-                            approveSubmission(mContext, posts, submission, recyclerview, holder);
-                        }
-                        break;
-                    case 2:
-                        //todo this
-                        break;
-                    case 3:
-                        if (isNsfw) {
-                            unNsfwSubmission(mContext, submission, holder);
-                        } else {
-                            setPostNsfw(mContext, submission, holder);
-                        }
-                        break;
-                    case 12:
-                        if (isSpoiler) {
-                            unSpoiler(mContext, submission, holder);
-                        } else {
-                            setSpoiler(mContext, submission, holder);
-                        }
-                        break;
-                    case 9:
-                        if (locked) {
-                            unLockSubmission(mContext, submission, holder);
-                        } else {
-                            lockSubmission(mContext, submission, holder);
-                        }
-                        break;
-                    case 4:
-                        if (stickied) {
-                            unStickySubmission(mContext, submission, holder);
-                        } else {
-                            stickySubmission(mContext, submission, holder);
-                        }
-                        break;
-                    case 5:
-                        if (distinguished) {
-                            unDistinguishSubmission(mContext, submission, holder);
-                        } else {
-                            distinguishSubmission(mContext, submission, holder);
-                        }
-                        break;
-                    case 6:
-                        removeSubmission(mContext, submission, posts, recyclerview, holder, false);
-                        break;
-                    case 7:
-                        if (SettingValues.removalReasonType == SettingValues.RemovalReasonType.TOOLBOX.ordinal()
-                                && ToolboxUI.canShowRemoval(submission.getSubredditName())) {
-                            ToolboxUI.showRemoval(mContext, submission, new ToolboxUI.CompletedRemovalCallback() {
-                                @Override
-                                public void onComplete(boolean success) {
-                                    if (success) {
-                                        SubmissionCache.removed.add(submission.getFullName());
-                                        SubmissionCache.approved.remove(submission.getFullName());
-
-                                        SubmissionCache.updateInfoSpannable(submission, mContext,
-                                                submission.getSubredditName());
-
-                                        if (mContext instanceof ModQueue) {
-                                            final int pos = posts.indexOf(submission);
-                                            posts.remove(submission);
-
-                                            if (pos == 0) {
-                                                recyclerview.getAdapter().notifyDataSetChanged();
-                                            } else {
-                                                recyclerview.getAdapter().notifyItemRemoved(pos + 1);
-                                            }
-                                        } else {
-                                            recyclerview.getAdapter().notifyItemChanged(holder.getBindingAdapterPosition());
-                                        }
-                                        Snackbar s = Snackbar.make(holder.itemView, R.string.submission_removed,
-                                                Snackbar.LENGTH_LONG);
-
-                                        LayoutUtils.showSnackbar(s);
-
-                                    } else {
-                                        new AlertDialog.Builder(mContext)
-                                                .setTitle(R.string.err_general)
-                                                .setMessage(R.string.err_retry_later)
-                                                .show();
-                                    }
-                                }
-                            });
-                        } else { // Show a Slide reason dialog if we can't show a toolbox or reddit one
-                            doRemoveSubmissionReason(mContext, submission, posts, recyclerview, holder);
-                        }
-                        break;
-                    case 30:
-                        removeSubmission(mContext, submission, posts, recyclerview, holder, true);
-                        break;
-                    case 8:
-                        Intent i = new Intent(mContext, Profile.class);
-                        i.putExtra(Profile.EXTRA_PROFILE, submission.getAuthor());
-                        mContext.startActivity(i);
-                        break;
-                    case 20:
-                        doSetFlair(mContext, submission, holder);
-                        break;
-                    case 23:
-                        //ban a user
-                        showBan(mContext, holder.itemView, submission, "", "", "", "");
-                        break;
-                    case 24:
-                        ToolboxUI.showUsernotes(mContext, submission.getAuthor(), submission.getSubredditName(),
-                                "l," + submission.getId());
-                        break;
+                    24 -> ToolboxUI.showUsernotes(
+                        mContext, submission.author, submission.subredditName,
+                        "l," + submission.id
+                    )
                 }
             }
-        });
-
-
-        b.show();
+        })
+        b.show()
     }
 
-    private <T extends Contribution> void doRemoveSubmissionReason(final Activity mContext,
-            final Submission submission, final List<T> posts, final RecyclerView recyclerview,
-            final SubmissionViewHolder holder) {
-        reason = "";
-        new MaterialDialog.Builder(mContext).title(R.string.mod_remove_title)
-                .positiveText(R.string.btn_remove)
-                .alwaysCallInputCallback()
-                .input(mContext.getString(R.string.mod_remove_hint),
-                        mContext.getString(R.string.mod_remove_template), false,
-                        new MaterialDialog.InputCallback() {
-                            @Override
-                            public void onInput(MaterialDialog dialog, CharSequence input) {
-                                reason = input.toString();
-                            }
-                        })
-                .inputType(InputType.TYPE_TEXT_FLAG_CAP_SENTENCES)
-                .neutralText(R.string.mod_remove_insert_draft)
-                .onPositive(new MaterialDialog.SingleButtonCallback() {
-                    @Override
-                    public void onClick(final MaterialDialog dialog, DialogAction which) {
-
-                        removeSubmissionReason(submission, mContext, posts, reason, holder,
-                                recyclerview);
-
+    private fun <T : Contribution?> doRemoveSubmissionReason(
+        mContext: Activity,
+        submission: Submission, posts: MutableList<T>, recyclerview: RecyclerView,
+        holder: SubmissionViewHolder
+    ) {
+        reason = ""
+        MaterialDialog.Builder(mContext).title(R.string.mod_remove_title)
+            .positiveText(R.string.btn_remove)
+            .alwaysCallInputCallback()
+            .input(mContext.getString(R.string.mod_remove_hint),
+                mContext.getString(R.string.mod_remove_template), false,
+                object : InputCallback {
+                    override fun onInput(dialog: MaterialDialog, input: CharSequence) {
+                        reason = input.toString()
                     }
                 })
-                .negativeText(R.string.btn_cancel)
-                .onNegative(null)
-                .show();
+            .inputType(InputType.TYPE_TEXT_FLAG_CAP_SENTENCES)
+            .neutralText(R.string.mod_remove_insert_draft)
+            .onPositive(object : SingleButtonCallback {
+                override fun onClick(dialog: MaterialDialog, which: DialogAction) {
+                    removeSubmissionReason(
+                        submission, mContext, posts, reason!!, holder,
+                        recyclerview
+                    )
+                }
+            })
+            .negativeText(R.string.btn_cancel)
+            .onNegative {_, _ -> }
+            .show()
     }
 
-    private <T extends Contribution> void removeSubmissionReason(final Submission submission,
-            final Activity mContext, final List<T> posts, final String reason,
-            final SubmissionViewHolder holder, final RecyclerView recyclerview) {
-        new AsyncTask<Void, Void, Boolean>() {
-
-            @Override
-            public void onPostExecute(Boolean b) {
+    private fun <T : Contribution?> removeSubmissionReason(
+        submission: Submission,
+        mContext: Activity, posts: MutableList<T>, reason: String,
+        holder: SubmissionViewHolder, recyclerview: RecyclerView
+    ) {
+        object : AsyncTask<Void?, Void?, Boolean>() {
+            public override fun onPostExecute(b: Boolean) {
                 if (b) {
-                    SubmissionCache.removed.add(submission.getFullName());
-                    SubmissionCache.approved.remove(submission.getFullName());
-
-                    SubmissionCache.updateInfoSpannable(submission, mContext,
-                            submission.getSubredditName());
-
-                    if (mContext instanceof ModQueue) {
-                        final int pos = posts.indexOf(submission);
-                        posts.remove(submission);
-
+                    SubmissionCache.removed.add(submission.fullName)
+                    SubmissionCache.approved.remove(submission.fullName)
+                    SubmissionCache.updateInfoSpannable(
+                        submission, mContext,
+                        submission.subredditName
+                    )
+                    if (mContext is ModQueue) {
+                        val pos = posts.indexOf(submission as T)
+                        posts.remove(submission as T)
                         if (pos == 0) {
-                            recyclerview.getAdapter().notifyDataSetChanged();
+                            recyclerview.adapter!!.notifyDataSetChanged()
                         } else {
-                            recyclerview.getAdapter().notifyItemRemoved(pos + 1);
+                            recyclerview.adapter!!.notifyItemRemoved(pos + 1)
                         }
                     } else {
-                        recyclerview.getAdapter().notifyItemChanged(holder.getBindingAdapterPosition());
+                        recyclerview.adapter!!.notifyItemChanged(holder.bindingAdapterPosition)
                     }
-                    Snackbar s = Snackbar.make(holder.itemView, R.string.submission_removed,
-                            Snackbar.LENGTH_LONG);
-
-                    LayoutUtils.showSnackbar(s);
-
+                    val s = Snackbar.make(
+                        holder.itemView, R.string.submission_removed,
+                        Snackbar.LENGTH_LONG
+                    )
+                    LayoutUtils.showSnackbar(s)
                 } else {
-                    new AlertDialog.Builder(mContext)
-                            .setTitle(R.string.err_general)
-                            .setMessage(R.string.err_retry_later)
-                            .show();
+                    AlertDialog.Builder(mContext)
+                        .setTitle(R.string.err_general)
+                        .setMessage(R.string.err_retry_later)
+                        .show()
                 }
             }
 
-            @Override
-            protected Boolean doInBackground(Void... params) {
+            override fun doInBackground(vararg params: Void?): Boolean {
                 try {
-                    String toDistinguish = new AccountManager(Authentication.reddit).reply(submission, reason);
-                    new ModerationManager(Authentication.reddit).remove(submission, false);
-                    new ModerationManager(Authentication.reddit).setDistinguishedStatus(
-                            Authentication.reddit.get("t1_" + toDistinguish).get(0),
-                            DistinguishedStatus.MODERATOR);
-                } catch (ApiException e) {
-                    e.printStackTrace();
-                    return false;
-
+                    val toDistinguish =
+                        AccountManager(Authentication.reddit).reply(submission, reason)
+                    ModerationManager(Authentication.reddit).remove(submission, false)
+                    ModerationManager(Authentication.reddit).setDistinguishedStatus(
+                        Authentication.reddit!!["t1_$toDistinguish"][0],
+                        DistinguishedStatus.MODERATOR
+                    )
+                } catch (e: ApiException) {
+                    e.printStackTrace()
+                    return false
                 }
-                return true;
+                return true
             }
-        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR)
     }
 
-    private <T extends Contribution> void removeSubmission(final Activity mContext,
-            final Submission submission, final List<T> posts, final RecyclerView recyclerview,
-            final SubmissionViewHolder holder, final boolean spam) {
-        new AsyncTask<Void, Void, Boolean>() {
-
-            @Override
-            public void onPostExecute(Boolean b) {
-
-                SubmissionCache.removed.add(submission.getFullName());
-                SubmissionCache.approved.remove(submission.getFullName());
-
-                SubmissionCache.updateInfoSpannable(submission, mContext,
-                        submission.getSubredditName());
-
+    private fun <T : Contribution?> removeSubmission(
+        mContext: Activity,
+        submission: Submission, posts: MutableList<T>, recyclerview: RecyclerView,
+        holder: SubmissionViewHolder, spam: Boolean
+    ) {
+        object : AsyncTask<Void?, Void?, Boolean>() {
+            public override fun onPostExecute(b: Boolean) {
+                SubmissionCache.removed.add(submission.fullName)
+                SubmissionCache.approved.remove(submission.fullName)
+                SubmissionCache.updateInfoSpannable(
+                    submission, mContext,
+                    submission.subredditName
+                )
                 if (b) {
-                    if (mContext instanceof ModQueue) {
-                        final int pos = posts.indexOf(submission);
-                        posts.remove(submission);
-
+                    if (mContext is ModQueue) {
+                        val pos = posts.indexOf(submission as T)
+                        posts.remove(submission as T)
                         if (pos == 0) {
-                            recyclerview.getAdapter().notifyDataSetChanged();
+                            recyclerview.adapter!!.notifyDataSetChanged()
                         } else {
-                            recyclerview.getAdapter().notifyItemRemoved(pos + 1);
+                            recyclerview.adapter!!.notifyItemRemoved(pos + 1)
                         }
                     } else {
-                        recyclerview.getAdapter().notifyItemChanged(holder.getBindingAdapterPosition());
+                        recyclerview.adapter!!.notifyItemChanged(holder.bindingAdapterPosition)
                     }
-
-
-                    Snackbar s = Snackbar.make(holder.itemView, R.string.submission_removed,
-                            Snackbar.LENGTH_LONG);
-                    LayoutUtils.showSnackbar(s);
-
+                    val s = Snackbar.make(
+                        holder.itemView, R.string.submission_removed,
+                        Snackbar.LENGTH_LONG
+                    )
+                    LayoutUtils.showSnackbar(s)
                 } else {
-                    new AlertDialog.Builder(mContext)
-                            .setTitle(R.string.err_general)
-                            .setMessage(R.string.err_retry_later)
-                            .show();
+                    AlertDialog.Builder(mContext)
+                        .setTitle(R.string.err_general)
+                        .setMessage(R.string.err_retry_later)
+                        .show()
                 }
             }
 
-            @Override
-            protected Boolean doInBackground(Void... params) {
+            protected override fun doInBackground(vararg params: Void?): Boolean {
                 try {
-                    new ModerationManager(Authentication.reddit).remove(submission, spam);
-                } catch (ApiException | NetworkException e) {
-                    e.printStackTrace();
-                    return false;
-
+                    ModerationManager(Authentication.reddit).remove(submission, spam)
+                } catch (e: ApiException) {
+                    e.printStackTrace()
+                    return false
+                } catch (e: NetworkException) {
+                    e.printStackTrace()
+                    return false
                 }
-                return true;
+                return true
             }
-        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR)
     }
 
-
-    private void doSetFlair(final Activity mContext, final Submission submission,
-            final SubmissionViewHolder holder) {
-        new AsyncTask<Void, Void, ArrayList<String>>() {
-            ArrayList<FlairTemplate> flair;
-
-            @Override
-            protected ArrayList<String> doInBackground(Void... params) {
-                FlairReference allFlairs = new FluentRedditClient(Authentication.reddit).subreddit(
-                        submission.getSubredditName()).flair();
+    private fun doSetFlair(
+        mContext: Activity, submission: Submission,
+        holder: SubmissionViewHolder
+    ) {
+        object : AsyncTask<Void?, Void?, ArrayList<String?>?>() {
+            var flair: ArrayList<FlairTemplate>? = null
+            protected override fun doInBackground(vararg params: Void?): ArrayList<String?>? {
+                val allFlairs = FluentRedditClient(Authentication.reddit).subreddit(
+                    submission.subredditName
+                ).flair()
                 try {
-                    flair = new ArrayList<>(allFlairs.options(submission));
-                    final ArrayList<String> finalFlairs = new ArrayList<>();
-                    for (FlairTemplate temp : flair) {
-                        finalFlairs.add(temp.getText());
+                    flair = ArrayList(allFlairs.options(submission))
+                    val finalFlairs = ArrayList<String?>()
+                    for (temp: FlairTemplate in flair!!) {
+                        finalFlairs.add(temp.text)
                     }
-                    return finalFlairs;
-                } catch (Exception e) {
-                    e.printStackTrace();
+                    return finalFlairs
+                } catch (e: Exception) {
+                    e.printStackTrace()
                     //sub probably has no flairs?
                 }
-                return null;
+                return null
             }
 
-            @Override
-            public void onPostExecute(final ArrayList<String> data) {
+            public override fun onPostExecute(data: ArrayList<String?>?) {
                 try {
-                    if (data.isEmpty()) {
-                        new AlertDialog.Builder(mContext)
-                                .setTitle(R.string.mod_flair_none_found)
-                                .setPositiveButton(R.string.btn_ok, null)
-                                .show();
+                    if (data!!.isEmpty()) {
+                        AlertDialog.Builder(mContext)
+                            .setTitle(R.string.mod_flair_none_found)
+                            .setPositiveButton(R.string.btn_ok, null)
+                            .show()
                     } else {
-                        showFlairSelectionDialog(mContext, submission, data, flair, holder);
+                        showFlairSelectionDialog(mContext, submission, data, flair, holder)
                     }
-                } catch (Exception ignored) {
-
+                } catch (ignored: Exception) {
                 }
             }
-        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR)
     }
 
-    private void showFlairSelectionDialog(final Activity mContext, final Submission submission,
-            ArrayList<String> data, final ArrayList<FlairTemplate> flair,
-            final SubmissionViewHolder holder) {
-        new MaterialDialog.Builder(mContext).items(data)
-                .title(R.string.sidebar_select_flair)
-                .itemsCallback(new MaterialDialog.ListCallback() {
-                    @Override
-                    public void onSelection(MaterialDialog dialog, View itemView, int which,
-                            CharSequence text) {
-                        final FlairTemplate t = flair.get(which);
-                        if (t.isTextEditable()) {
-                            showFlairEditDialog(mContext, submission, t, holder);
-                        } else {
-                            setFlair(mContext, null, submission, t, holder);
-                        }
+    private fun showFlairSelectionDialog(
+        mContext: Activity, submission: Submission,
+        data: ArrayList<String?>?, flair: ArrayList<FlairTemplate>?,
+        holder: SubmissionViewHolder
+    ) {
+        MaterialDialog.Builder(mContext).items((data)!!)
+            .title(R.string.sidebar_select_flair)
+            .itemsCallback(object : ListCallback {
+                override fun onSelection(
+                    dialog: MaterialDialog, itemView: View, which: Int,
+                    text: CharSequence
+                ) {
+                    val t = flair!![which]
+                    if (t.isTextEditable) {
+                        showFlairEditDialog(mContext, submission, t, holder)
+                    } else {
+                        setFlair(mContext, null, submission, t, holder)
                     }
-                })
-                .show();
+                }
+            })
+            .show()
     }
 
-    private void showFlairEditDialog(final Activity mContext, final Submission submission,
-            final FlairTemplate t, final SubmissionViewHolder holder) {
-        new MaterialDialog.Builder(mContext).title(R.string.sidebar_select_flair_text)
-                .input(mContext.getString(R.string.mod_flair_hint), t.getText(), true,
-                        (dialog, input) -> {})
-                .positiveText(R.string.btn_set)
-                .onPositive(new MaterialDialog.SingleButtonCallback() {
-                    @Override
-                    public void onClick(MaterialDialog dialog, DialogAction which) {
-                        final String flair = dialog.getInputEditText().getText().toString();
-                        setFlair(mContext, flair, submission, t, holder);
-                    }
-                })
-                .negativeText(R.string.btn_cancel)
-                .show();
+    private fun showFlairEditDialog(
+        mContext: Activity, submission: Submission,
+        t: FlairTemplate, holder: SubmissionViewHolder
+    ) {
+        MaterialDialog.Builder(mContext).title(R.string.sidebar_select_flair_text)
+            .input(mContext.getString(R.string.mod_flair_hint), t.text, true,
+                { dialog: MaterialDialog?, input: CharSequence? -> })
+            .positiveText(R.string.btn_set)
+            .onPositive(object : SingleButtonCallback {
+                override fun onClick(dialog: MaterialDialog, which: DialogAction) {
+                    val flair = dialog.inputEditText!!.text.toString()
+                    setFlair(mContext, flair, submission, t, holder)
+                }
+            })
+            .negativeText(R.string.btn_cancel)
+            .show()
     }
 
-    private void setFlair(final Context mContext, final String flair, final Submission submission,
-            final FlairTemplate t, final SubmissionViewHolder holder) {
-        new AsyncTask<Void, Void, Boolean>() {
-            @Override
-            protected Boolean doInBackground(Void... params) {
+    private fun setFlair(
+        mContext: Context, flair: String?, submission: Submission,
+        t: FlairTemplate, holder: SubmissionViewHolder
+    ) {
+        object : AsyncTask<Void?, Void?, Boolean>() {
+            protected override fun doInBackground(vararg params: Void?): Boolean {
                 try {
-                    new ModerationManager(Authentication.reddit).setFlair(
-                            submission.getSubredditName(), t, flair, submission);
-                    return true;
-                } catch (ApiException e) {
-                    e.printStackTrace();
-                    return false;
+                    ModerationManager(Authentication.reddit).setFlair(
+                        submission.subredditName, t, flair, submission
+                    )
+                    return true
+                } catch (e: ApiException) {
+                    e.printStackTrace()
+                    return false
                 }
             }
 
-            @Override
-            protected void onPostExecute(Boolean done) {
-                Snackbar s = null;
+            override fun onPostExecute(done: Boolean) {
+                var s: Snackbar? = null
                 if (done) {
                     if (holder.itemView != null) {
-                        s = Snackbar.make(holder.itemView, R.string.snackbar_flair_success,
-                                Snackbar.LENGTH_SHORT);
+                        s = Snackbar.make(
+                            holder.itemView, R.string.snackbar_flair_success,
+                            Snackbar.LENGTH_SHORT
+                        )
                     }
                     if (holder.itemView != null) {
-                        SubmissionCache.updateTitleFlair(submission, flair, mContext);
-                        doText(holder, submission, mContext, submission.getSubredditName(), false);
+                        SubmissionCache.updateTitleFlair(submission, flair, mContext)
+                        doText(holder, submission, mContext, submission.subredditName, false)
                     }
                 } else {
                     if (holder.itemView != null) {
-                        s = Snackbar.make(holder.itemView, R.string.snackbar_flair_error,
-                                Snackbar.LENGTH_SHORT);
+                        s = Snackbar.make(
+                            holder.itemView, R.string.snackbar_flair_error,
+                            Snackbar.LENGTH_SHORT
+                        )
                     }
                 }
                 if (s != null) {
-                    LayoutUtils.showSnackbar(s);
+                    LayoutUtils.showSnackbar(s)
                 }
             }
-        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR)
     }
 
-
-    public void doText(SubmissionViewHolder holder, Submission submission, Context mContext,
-            String baseSub, boolean full) {
-        SpannableStringBuilder t = SubmissionCache.getTitleLine(submission, mContext);
-        SpannableStringBuilder l = SubmissionCache.getInfoLine(submission, mContext, baseSub);
-        SpannableStringBuilder c = SubmissionCache.getCrosspostLine(submission, mContext);
-
-        int[] textSizeAttr = new int[]{R.attr.font_cardtitle, R.attr.font_cardinfo};
-        TypedArray a = mContext.obtainStyledAttributes(textSizeAttr);
-        int textSizeT = a.getDimensionPixelSize(0, 18);
-        int textSizeI = a.getDimensionPixelSize(1, 14);
-
-
-        t.setSpan(new AbsoluteSizeSpan(textSizeT), 0, t.length(), 0);
-        l.setSpan(new AbsoluteSizeSpan(textSizeI), 0, l.length(), 0);
-
-        SpannableStringBuilder s = new SpannableStringBuilder();
+    fun doText(
+        holder: SubmissionViewHolder, submission: Submission?, mContext: Context,
+        baseSub: String?, full: Boolean
+    ) {
+        val t = SubmissionCache.getTitleLine(submission, mContext)
+        val l = SubmissionCache.getInfoLine(submission, mContext, baseSub)
+        val c = SubmissionCache.getCrosspostLine(submission, mContext)
+        val textSizeAttr = intArrayOf(R.attr.font_cardtitle, R.attr.font_cardinfo)
+        val a = mContext.obtainStyledAttributes(textSizeAttr)
+        val textSizeT = a.getDimensionPixelSize(0, 18)
+        val textSizeI = a.getDimensionPixelSize(1, 14)
+        t.setSpan(AbsoluteSizeSpan(textSizeT), 0, t.length, 0)
+        l.setSpan(AbsoluteSizeSpan(textSizeI), 0, l.length, 0)
+        val s = SpannableStringBuilder()
         if (SettingValues.titleTop) {
-            s.append(t);
-            s.append("\n");
-            s.append(l);
+            s.append(t)
+            s.append("\n")
+            s.append(l)
         } else {
-            s.append(l);
-            s.append("\n");
-            s.append(t);
+            s.append(l)
+            s.append("\n")
+            s.append(t)
         }
-        if(!full && c != null){
-            c.setSpan(new AbsoluteSizeSpan(textSizeI), 0, c.length(), 0);
-            s.append("\n");
-            s.append(c);
+        if (!full && c != null) {
+            c.setSpan(AbsoluteSizeSpan(textSizeI), 0, c.length, 0)
+            s.append("\n")
+            s.append(c)
         }
-        a.recycle();
-
-        holder.title.setText(s);
-
+        a.recycle()
+        holder.title.text = s
     }
 
-    private void stickySubmission(final Activity mContext, final Submission submission,
-            final SubmissionViewHolder holder) {
-        new AsyncTask<Void, Void, Boolean>() {
-
-            @Override
-            public void onPostExecute(Boolean b) {
+    private fun stickySubmission(
+        mContext: Activity, submission: Submission,
+        holder: SubmissionViewHolder
+    ) {
+        object : AsyncTask<Void?, Void?, Boolean>() {
+            public override fun onPostExecute(b: Boolean) {
                 if (b) {
-                    Snackbar s =
-                            Snackbar.make(holder.itemView, R.string.really_pin_submission_message,
-                                    Snackbar.LENGTH_LONG);
-                    LayoutUtils.showSnackbar(s);
-
+                    val s = Snackbar.make(
+                        holder.itemView, R.string.really_pin_submission_message,
+                        Snackbar.LENGTH_LONG
+                    )
+                    LayoutUtils.showSnackbar(s)
                 } else {
-                    new AlertDialog.Builder(mContext)
-                            .setTitle(R.string.err_general)
-                            .setMessage(R.string.err_retry_later)
-                            .show();
+                    AlertDialog.Builder(mContext)
+                        .setTitle(R.string.err_general)
+                        .setMessage(R.string.err_retry_later)
+                        .show()
                 }
             }
 
-            @Override
-            protected Boolean doInBackground(Void... params) {
+            protected override fun doInBackground(vararg params: Void?): Boolean {
                 try {
-                    new ModerationManager(Authentication.reddit).setSticky(submission, true);
-                } catch (ApiException | NetworkException e) {
-                    e.printStackTrace();
-                    return false;
-
+                    ModerationManager(Authentication.reddit).setSticky(submission, true)
+                } catch (e: ApiException) {
+                    e.printStackTrace()
+                    return false
+                } catch (e: NetworkException) {
+                    e.printStackTrace()
+                    return false
                 }
-                return true;
+                return true
             }
-        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR)
     }
 
-    private void unStickySubmission(final Activity mContext, final Submission submission,
-            final SubmissionViewHolder holder) {
-        new AsyncTask<Void, Void, Boolean>() {
-
-            @Override
-            public void onPostExecute(Boolean b) {
+    private fun unStickySubmission(
+        mContext: Activity, submission: Submission,
+        holder: SubmissionViewHolder
+    ) {
+        object : AsyncTask<Void?, Void?, Boolean>() {
+            public override fun onPostExecute(b: Boolean) {
                 if (b) {
-                    Snackbar s =
-                            Snackbar.make(holder.itemView, R.string.really_unpin_submission_message,
-                                    Snackbar.LENGTH_LONG);
-                    LayoutUtils.showSnackbar(s);
-
+                    val s = Snackbar.make(
+                        holder.itemView, R.string.really_unpin_submission_message,
+                        Snackbar.LENGTH_LONG
+                    )
+                    LayoutUtils.showSnackbar(s)
                 } else {
-                    new AlertDialog.Builder(mContext)
-                            .setTitle(R.string.err_general)
-                            .setMessage(R.string.err_retry_later)
-                            .show();
+                    AlertDialog.Builder(mContext)
+                        .setTitle(R.string.err_general)
+                        .setMessage(R.string.err_retry_later)
+                        .show()
                 }
             }
 
-            @Override
-            protected Boolean doInBackground(Void... params) {
+            protected override fun doInBackground(vararg params: Void?): Boolean {
                 try {
-                    new ModerationManager(Authentication.reddit).setSticky(submission, false);
-                } catch (ApiException e) {
-                    e.printStackTrace();
-                    return false;
-
+                    ModerationManager(Authentication.reddit).setSticky(submission, false)
+                } catch (e: ApiException) {
+                    e.printStackTrace()
+                    return false
                 }
-                return true;
+                return true
             }
-        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR)
     }
 
-    private void lockSubmission(final Activity mContext, final Submission submission,
-            final SubmissionViewHolder holder) {
-        new AsyncTask<Void, Void, Boolean>() {
-
-            @Override
-            public void onPostExecute(Boolean b) {
+    private fun lockSubmission(
+        mContext: Activity, submission: Submission,
+        holder: SubmissionViewHolder
+    ) {
+        object : AsyncTask<Void?, Void?, Boolean>() {
+            public override fun onPostExecute(b: Boolean) {
                 if (b) {
-                    Snackbar s =
-                            Snackbar.make(holder.itemView, R.string.mod_locked, Snackbar.LENGTH_LONG);
-                    LayoutUtils.showSnackbar(s);
-
+                    val s =
+                        Snackbar.make(holder.itemView, R.string.mod_locked, Snackbar.LENGTH_LONG)
+                    LayoutUtils.showSnackbar(s)
                 } else {
-                    new AlertDialog.Builder(mContext)
-                            .setTitle(R.string.err_general)
-                            .setMessage(R.string.err_retry_later)
-                            .show();
+                    AlertDialog.Builder(mContext)
+                        .setTitle(R.string.err_general)
+                        .setMessage(R.string.err_retry_later)
+                        .show()
                 }
             }
 
-            @Override
-            protected Boolean doInBackground(Void... params) {
+            protected override fun doInBackground(vararg params: Void?): Boolean {
                 try {
-                    new ModerationManager(Authentication.reddit).setLocked(submission);
-                } catch (ApiException e) {
-                    e.printStackTrace();
-                    return false;
-
+                    ModerationManager(Authentication.reddit).setLocked(submission)
+                } catch (e: ApiException) {
+                    e.printStackTrace()
+                    return false
                 }
-                return true;
+                return true
             }
-        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR)
     }
 
-    private void unLockSubmission(final Activity mContext, final Submission submission,
-            final SubmissionViewHolder holder) {
-        new AsyncTask<Void, Void, Boolean>() {
-
-            @Override
-            public void onPostExecute(Boolean b) {
+    private fun unLockSubmission(
+        mContext: Activity, submission: Submission,
+        holder: SubmissionViewHolder
+    ) {
+        object : AsyncTask<Void?, Void?, Boolean>() {
+            public override fun onPostExecute(b: Boolean) {
                 if (b) {
-                    Snackbar s =
-                            Snackbar.make(holder.itemView, R.string.mod_unlocked, Snackbar.LENGTH_LONG);
-                    LayoutUtils.showSnackbar(s);
-
+                    val s =
+                        Snackbar.make(holder.itemView, R.string.mod_unlocked, Snackbar.LENGTH_LONG)
+                    LayoutUtils.showSnackbar(s)
                 } else {
-                    new AlertDialog.Builder(mContext)
-                            .setTitle(R.string.err_general)
-                            .setMessage(R.string.err_retry_later)
-                            .show();
+                    AlertDialog.Builder(mContext)
+                        .setTitle(R.string.err_general)
+                        .setMessage(R.string.err_retry_later)
+                        .show()
                 }
             }
 
-            @Override
-            protected Boolean doInBackground(Void... params) {
+            protected override fun doInBackground(vararg params: Void?): Boolean {
                 try {
-                    new ModerationManager(Authentication.reddit).setUnlocked(submission);
-                } catch (ApiException e) {
-                    e.printStackTrace();
-                    return false;
-
+                    ModerationManager(Authentication.reddit).setUnlocked(submission)
+                } catch (e: ApiException) {
+                    e.printStackTrace()
+                    return false
                 }
-                return true;
+                return true
             }
-        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR)
     }
 
-    private void distinguishSubmission(final Activity mContext, final Submission submission,
-            final SubmissionViewHolder holder) {
-        new AsyncTask<Void, Void, Boolean>() {
-
-            @Override
-            public void onPostExecute(Boolean b) {
+    private fun distinguishSubmission(
+        mContext: Activity, submission: Submission,
+        holder: SubmissionViewHolder
+    ) {
+        object : AsyncTask<Void?, Void?, Boolean>() {
+            public override fun onPostExecute(b: Boolean) {
                 if (b) {
-                    Snackbar s = Snackbar.make(holder.itemView, "Submission distinguished",
-                            Snackbar.LENGTH_LONG);
-                    LayoutUtils.showSnackbar(s);
-
+                    val s = Snackbar.make(
+                        holder.itemView, "Submission distinguished",
+                        Snackbar.LENGTH_LONG
+                    )
+                    LayoutUtils.showSnackbar(s)
                 } else {
-                    new AlertDialog.Builder(mContext)
-                            .setTitle(R.string.err_general)
-                            .setMessage(R.string.err_retry_later)
-                            .show();
+                    AlertDialog.Builder(mContext)
+                        .setTitle(R.string.err_general)
+                        .setMessage(R.string.err_retry_later)
+                        .show()
                 }
             }
 
-            @Override
-            protected Boolean doInBackground(Void... params) {
+            protected override fun doInBackground(vararg params: Void?): Boolean {
                 try {
-                    new ModerationManager(Authentication.reddit).setDistinguishedStatus(submission,
-                            DistinguishedStatus.MODERATOR);
-                } catch (ApiException e) {
-                    e.printStackTrace();
-                    return false;
-
+                    ModerationManager(Authentication.reddit).setDistinguishedStatus(
+                        submission,
+                        DistinguishedStatus.MODERATOR
+                    )
+                } catch (e: ApiException) {
+                    e.printStackTrace()
+                    return false
                 }
-                return true;
+                return true
             }
-        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR)
     }
 
-    private void unDistinguishSubmission(final Activity mContext, final Submission submission,
-            final SubmissionViewHolder holder) {
-        new AsyncTask<Void, Void, Boolean>() {
-
-            @Override
-            public void onPostExecute(Boolean b) {
+    private fun unDistinguishSubmission(
+        mContext: Activity, submission: Submission,
+        holder: SubmissionViewHolder
+    ) {
+        object : AsyncTask<Void?, Void?, Boolean>() {
+            public override fun onPostExecute(b: Boolean) {
                 if (b) {
-                    Snackbar s = Snackbar.make(holder.itemView, "Submission distinguish removed",
-                            Snackbar.LENGTH_LONG);
-                    LayoutUtils.showSnackbar(s);
-
+                    val s = Snackbar.make(
+                        holder.itemView, "Submission distinguish removed",
+                        Snackbar.LENGTH_LONG
+                    )
+                    LayoutUtils.showSnackbar(s)
                 } else {
-                    new AlertDialog.Builder(mContext)
-                            .setTitle(R.string.err_general)
-                            .setMessage(R.string.err_retry_later)
-                            .show();
+                    AlertDialog.Builder(mContext)
+                        .setTitle(R.string.err_general)
+                        .setMessage(R.string.err_retry_later)
+                        .show()
                 }
             }
 
-            @Override
-            protected Boolean doInBackground(Void... params) {
+            protected override fun doInBackground(vararg params: Void?): Boolean {
                 try {
-                    new ModerationManager(Authentication.reddit).setDistinguishedStatus(submission,
-                            DistinguishedStatus.MODERATOR);
-                } catch (ApiException e) {
-                    e.printStackTrace();
-                    return false;
-
+                    ModerationManager(Authentication.reddit).setDistinguishedStatus(
+                        submission,
+                        DistinguishedStatus.MODERATOR
+                    )
+                } catch (e: ApiException) {
+                    e.printStackTrace()
+                    return false
                 }
-                return true;
+                return true
             }
-        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR)
     }
 
-    private void setPostNsfw(final Activity mContext, final Submission submission,
-            final SubmissionViewHolder holder) {
-        new AsyncTask<Void, Void, Boolean>() {
-
-            @Override
-            public void onPostExecute(Boolean b) {
+    private fun setPostNsfw(
+        mContext: Activity, submission: Submission,
+        holder: SubmissionViewHolder
+    ) {
+        object : AsyncTask<Void?, Void?, Boolean>() {
+            public override fun onPostExecute(b: Boolean) {
                 if (b) {
-                    Snackbar s =
-                            Snackbar.make(holder.itemView, "NSFW status set", Snackbar.LENGTH_LONG);
-                    LayoutUtils.showSnackbar(s);
-
+                    val s = Snackbar.make(holder.itemView, "NSFW status set", Snackbar.LENGTH_LONG)
+                    LayoutUtils.showSnackbar(s)
                 } else {
-                    new AlertDialog.Builder(mContext)
-                            .setTitle(R.string.err_general)
-                            .setMessage(R.string.err_retry_later)
-                            .show();
+                    AlertDialog.Builder(mContext)
+                        .setTitle(R.string.err_general)
+                        .setMessage(R.string.err_retry_later)
+                        .show()
                 }
-
             }
 
-            @Override
-            protected Boolean doInBackground(Void... params) {
+            protected override fun doInBackground(vararg params: Void?): Boolean {
                 try {
-                    new ModerationManager(Authentication.reddit).setNsfw(submission, true);
-                } catch (ApiException e) {
-                    e.printStackTrace();
-                    return false;
-
+                    ModerationManager(Authentication.reddit).setNsfw(submission, true)
+                } catch (e: ApiException) {
+                    e.printStackTrace()
+                    return false
                 }
-                return true;
+                return true
             }
-        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR)
     }
 
-    private void unNsfwSubmission(final Context mContext, final Submission submission,
-            final SubmissionViewHolder holder) {
+    private fun unNsfwSubmission(
+        mContext: Context, submission: Submission,
+        holder: SubmissionViewHolder
+    ) {
         //todo update view with NSFW tag
-        new AsyncTask<Void, Void, Boolean>() {
-
-            @Override
-            public void onPostExecute(Boolean b) {
+        object : AsyncTask<Void?, Void?, Boolean>() {
+            public override fun onPostExecute(b: Boolean) {
                 if (b) {
-                    Snackbar s = Snackbar.make(holder.itemView, "NSFW status removed",
-                            Snackbar.LENGTH_LONG);
-                    LayoutUtils.showSnackbar(s);
-
+                    val s = Snackbar.make(
+                        holder.itemView, "NSFW status removed",
+                        Snackbar.LENGTH_LONG
+                    )
+                    LayoutUtils.showSnackbar(s)
                 } else {
-                    new AlertDialog.Builder(mContext)
-                            .setTitle(R.string.err_general)
-                            .setMessage(R.string.err_retry_later)
-                            .show();
+                    AlertDialog.Builder(mContext)
+                        .setTitle(R.string.err_general)
+                        .setMessage(R.string.err_retry_later)
+                        .show()
                 }
-
             }
 
-            @Override
-            protected Boolean doInBackground(Void... params) {
+            protected override fun doInBackground(vararg params: Void?): Boolean {
                 try {
-                    new ModerationManager(Authentication.reddit).setNsfw(submission, false);
-                } catch (ApiException e) {
-                    e.printStackTrace();
-                    return false;
-
+                    ModerationManager(Authentication.reddit).setNsfw(submission, false)
+                } catch (e: ApiException) {
+                    e.printStackTrace()
+                    return false
                 }
-                return true;
+                return true
             }
-        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR)
     }
 
-    private void setSpoiler(final Activity mContext, final Submission submission,
-            final SubmissionViewHolder holder) {
-        new AsyncTask<Void, Void, Boolean>() {
-
-            @Override
-            public void onPostExecute(Boolean b) {
+    private fun setSpoiler(
+        mContext: Activity, submission: Submission,
+        holder: SubmissionViewHolder
+    ) {
+        object : AsyncTask<Void?, Void?, Boolean>() {
+            public override fun onPostExecute(b: Boolean) {
                 if (b) {
-                    Snackbar s = Snackbar.make(holder.itemView, "Spoiler status set",
-                            Snackbar.LENGTH_LONG);
-                    LayoutUtils.showSnackbar(s);
-
+                    val s = Snackbar.make(
+                        holder.itemView, "Spoiler status set",
+                        Snackbar.LENGTH_LONG
+                    )
+                    LayoutUtils.showSnackbar(s)
                 } else {
-                    new AlertDialog.Builder(mContext)
-                            .setTitle(R.string.err_general)
-                            .setMessage(R.string.err_retry_later)
-                            .show();
+                    AlertDialog.Builder(mContext)
+                        .setTitle(R.string.err_general)
+                        .setMessage(R.string.err_retry_later)
+                        .show()
                 }
-
             }
 
-            @Override
-            protected Boolean doInBackground(Void... params) {
+            protected override fun doInBackground(vararg params: Void?): Boolean {
                 try {
-                    new ModerationManager(Authentication.reddit).setSpoiler(submission, true);
-                } catch (ApiException e) {
-                    e.printStackTrace();
-                    return false;
-
+                    ModerationManager(Authentication.reddit).setSpoiler(submission, true)
+                } catch (e: ApiException) {
+                    e.printStackTrace()
+                    return false
                 }
-                return true;
+                return true
             }
-        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR)
     }
 
-    private void unSpoiler(final Context mContext, final Submission submission,
-            final SubmissionViewHolder holder) {
+    private fun unSpoiler(
+        mContext: Context, submission: Submission,
+        holder: SubmissionViewHolder
+    ) {
         //todo update view with NSFW tag
-        new AsyncTask<Void, Void, Boolean>() {
-
-            @Override
-            public void onPostExecute(Boolean b) {
+        object : AsyncTask<Void?, Void?, Boolean>() {
+            public override fun onPostExecute(b: Boolean) {
                 if (b) {
-                    Snackbar s = Snackbar.make(holder.itemView, "Spoiler status removed",
-                            Snackbar.LENGTH_LONG);
-                    LayoutUtils.showSnackbar(s);
-
+                    val s = Snackbar.make(
+                        holder.itemView, "Spoiler status removed",
+                        Snackbar.LENGTH_LONG
+                    )
+                    LayoutUtils.showSnackbar(s)
                 } else {
-                    new AlertDialog.Builder(mContext)
-                            .setTitle(R.string.err_general)
-                            .setMessage(R.string.err_retry_later)
-                            .show();
+                    AlertDialog.Builder(mContext)
+                        .setTitle(R.string.err_general)
+                        .setMessage(R.string.err_retry_later)
+                        .show()
                 }
-
             }
 
-            @Override
-            protected Boolean doInBackground(Void... params) {
+            protected override fun doInBackground(vararg params: Void?): Boolean {
                 try {
-                    new ModerationManager(Authentication.reddit).setSpoiler(submission, false);
-                } catch (ApiException e) {
-                    e.printStackTrace();
-                    return false;
-
+                    ModerationManager(Authentication.reddit).setSpoiler(submission, false)
+                } catch (e: ApiException) {
+                    e.printStackTrace()
+                    return false
                 }
-                return true;
+                return true
             }
-        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR)
     }
 
-    private <T extends Thing> void approveSubmission(final Context mContext, final List<T> posts,
-            final Submission submission, final RecyclerView recyclerview,
-            final SubmissionViewHolder holder) {
-        new AsyncTask<Void, Void, Boolean>() {
-
-            @Override
-            public void onPostExecute(Boolean b) {
+    private fun <T : Thing?> approveSubmission(
+        mContext: Context, posts: MutableList<T>,
+        submission: Submission, recyclerview: RecyclerView,
+        holder: SubmissionViewHolder
+    ) {
+        object : AsyncTask<Void?, Void?, Boolean>() {
+            public override fun onPostExecute(b: Boolean) {
                 if (b) {
-                    SubmissionCache.approved.add(submission.getFullName());
-                    SubmissionCache.removed.remove(submission.getFullName());
-                    SubmissionCache.updateInfoSpannable(submission, mContext,
-                            submission.getSubredditName());
-
-                    if (mContext instanceof ModQueue) {
-                        final int pos = posts.indexOf(submission);
-                        posts.remove(submission);
-
+                    SubmissionCache.approved.add(submission.fullName)
+                    SubmissionCache.removed.remove(submission.fullName)
+                    SubmissionCache.updateInfoSpannable(
+                        submission, mContext,
+                        submission.subredditName
+                    )
+                    if (mContext is ModQueue) {
+                        val pos = posts.indexOf(submission as T)
+                        posts.remove(submission as T)
                         if (pos == 0) {
-                            recyclerview.getAdapter().notifyDataSetChanged();
+                            recyclerview.adapter!!.notifyDataSetChanged()
                         } else {
-                            recyclerview.getAdapter().notifyItemRemoved(pos + 1);
+                            recyclerview.adapter!!.notifyItemRemoved(pos + 1)
                         }
                     } else {
-                        recyclerview.getAdapter().notifyItemChanged(holder.getBindingAdapterPosition());
+                        recyclerview.adapter!!.notifyItemChanged(holder.bindingAdapterPosition)
                     }
-
                     try {
-                        Snackbar s = Snackbar.make(holder.itemView, R.string.mod_approved,
-                                Snackbar.LENGTH_LONG);
-                        LayoutUtils.showSnackbar(s);
-                    } catch (Exception ignored) {
-
+                        val s = Snackbar.make(
+                            holder.itemView, R.string.mod_approved,
+                            Snackbar.LENGTH_LONG
+                        )
+                        LayoutUtils.showSnackbar(s)
+                    } catch (ignored: Exception) {
                     }
-
                 } else {
-                    new AlertDialog.Builder(mContext)
-                            .setTitle(R.string.err_general)
-                            .setMessage(R.string.err_retry_later)
-                            .show();
+                    AlertDialog.Builder(mContext)
+                        .setTitle(R.string.err_general)
+                        .setMessage(R.string.err_retry_later)
+                        .show()
                 }
             }
 
-            @Override
-            protected Boolean doInBackground(Void... params) {
+            protected override fun doInBackground(vararg params: Void?): Boolean {
                 try {
-                    new ModerationManager(Authentication.reddit).approve(submission);
-                } catch (ApiException e) {
-                    e.printStackTrace();
-                    return false;
-
+                    ModerationManager(Authentication.reddit).approve(submission)
+                } catch (e: ApiException) {
+                    e.printStackTrace()
+                    return false
                 }
-                return true;
+                return true
             }
-        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR)
     }
 
-    public void showBan(final Context mContext, final View mToolbar, final Submission submission,
-            String rs, String nt, String msg, String t) {
-        LinearLayout l = new LinearLayout(mContext);
-        l.setOrientation(LinearLayout.VERTICAL);
-        int sixteen = DisplayUtil.dpToPxVertical(16);
-        l.setPadding(sixteen, 0, sixteen, 0);
-
-        final EditText reason = new EditText(mContext);
-        reason.setHint(R.string.mod_ban_reason);
-        reason.setText(rs);
-        reason.setInputType(InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
-        l.addView(reason);
-
-
-        final EditText note = new EditText(mContext);
-        note.setHint(R.string.mod_ban_note_mod);
-        note.setText(nt);
-        note.setInputType(InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
-        l.addView(note);
-
-        final EditText message = new EditText(mContext);
-        message.setHint(R.string.mod_ban_note_user);
-        message.setText(msg);
-        message.setInputType(InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
-        l.addView(message);
-
-        final EditText time = new EditText(mContext);
-        time.setHint(R.string.mod_ban_time);
-        time.setText(t);
-        time.setInputType(InputType.TYPE_CLASS_NUMBER);
-        l.addView(time);
-
-        new AlertDialog.Builder(mContext)
-                .setView(l)
-                .setTitle(mContext.getString(R.string.mod_ban_title, submission.getAuthor()))
-                .setCancelable(true)
-                .setPositiveButton(R.string.mod_btn_ban, (dialog, which) -> {
-                    //to ban
-                    if (reason.getText().toString().isEmpty()) {
-                        new AlertDialog.Builder(mContext)
-                                .setTitle(R.string.mod_ban_reason_required)
-                                .setMessage(R.string.misc_please_try_again)
-                                .setPositiveButton(R.string.btn_ok, (dialog1, which1) ->
-                                        showBan(mContext, mToolbar, submission,
-                                                reason.getText().toString(),
-                                                note.getText().toString(),
-                                                message.getText().toString(),
-                                                time.getText().toString()))
-                                .setCancelable(false)
-                                .show();
-                    } else {
-                        new AsyncTask<Void, Void, Boolean>() {
-                            @Override
-                            protected Boolean doInBackground(Void... params) {
-                                try {
-                                    String n = note.getText().toString();
-                                    String m = message.getText().toString();
-
-                                    if (n.isEmpty()) {
-                                        n = null;
-                                    }
-                                    if (m.isEmpty()) {
-                                        m = null;
-                                    }
-                                    if (time.getText().toString().isEmpty()) {
-                                        new ModerationManager(
-                                                Authentication.reddit).banUserPermanently(
-                                                submission.getSubredditName(),
-                                                submission.getAuthor(),
-                                                reason.getText().toString(), n, m);
-                                    } else {
-                                        new ModerationManager(Authentication.reddit).banUser(
-                                                submission.getSubredditName(),
-                                                submission.getAuthor(),
-                                                reason.getText().toString(), n, m,
-                                                Integer.parseInt(time.getText().toString()));
-                                    }
-                                    return true;
-                                } catch (Exception e) {
-                                    if (e instanceof InvalidScopeException) {
-                                        scope = true;
-                                    }
-                                    e.printStackTrace();
-                                    return false;
+    fun showBan(
+        mContext: Context, mToolbar: View?, submission: Submission,
+        rs: String?, nt: String?, msg: String?, t: String?
+    ) {
+        val l = LinearLayout(mContext)
+        l.orientation = LinearLayout.VERTICAL
+        val sixteen = DisplayUtil.dpToPxVertical(16)
+        l.setPadding(sixteen, 0, sixteen, 0)
+        val reason = EditText(mContext)
+        reason.setHint(R.string.mod_ban_reason)
+        reason.setText(rs)
+        reason.inputType = InputType.TYPE_TEXT_FLAG_CAP_SENTENCES
+        l.addView(reason)
+        val note = EditText(mContext)
+        note.setHint(R.string.mod_ban_note_mod)
+        note.setText(nt)
+        note.inputType = InputType.TYPE_TEXT_FLAG_CAP_SENTENCES
+        l.addView(note)
+        val message = EditText(mContext)
+        message.setHint(R.string.mod_ban_note_user)
+        message.setText(msg)
+        message.inputType = InputType.TYPE_TEXT_FLAG_CAP_SENTENCES
+        l.addView(message)
+        val time = EditText(mContext)
+        time.setHint(R.string.mod_ban_time)
+        time.setText(t)
+        time.inputType = InputType.TYPE_CLASS_NUMBER
+        l.addView(time)
+        AlertDialog.Builder(mContext)
+            .setView(l)
+            .setTitle(mContext.getString(R.string.mod_ban_title, submission.author))
+            .setCancelable(true)
+            .setPositiveButton(R.string.mod_btn_ban
+            ) { dialog: DialogInterface?, which: Int ->
+                //to ban
+                if (reason.getText().toString().isEmpty()) {
+                    AlertDialog.Builder(mContext)
+                        .setTitle(R.string.mod_ban_reason_required)
+                        .setMessage(R.string.misc_please_try_again)
+                        .setPositiveButton(
+                            R.string.btn_ok,
+                            DialogInterface.OnClickListener { dialog1: DialogInterface?, which1: Int ->
+                                showBan(
+                                    mContext, mToolbar, submission,
+                                    reason.getText().toString(),
+                                    note.getText().toString(),
+                                    message.getText().toString(),
+                                    time.getText().toString()
+                                )
+                            })
+                        .setCancelable(false)
+                        .show()
+                } else {
+                    object : AsyncTask<Void?, Void?, Boolean>() {
+                        protected override fun doInBackground(vararg params: Void?): Boolean {
+                            try {
+                                var n: String? = note.getText().toString()
+                                var m: String? = message.getText().toString()
+                                if (n!!.isEmpty()) {
+                                    n = null
                                 }
-                            }
-
-                            boolean scope;
-
-                            @Override
-                            protected void onPostExecute(Boolean done) {
-                                Snackbar s;
-                                if (done) {
-                                    s = Snackbar.make(mToolbar, R.string.mod_ban_success,
-                                            Snackbar.LENGTH_SHORT);
+                                if (m!!.isEmpty()) {
+                                    m = null
+                                }
+                                if (time.getText().toString().isEmpty()) {
+                                    ModerationManager(
+                                        Authentication.reddit
+                                    ).banUserPermanently(
+                                        submission.getSubredditName(),
+                                        submission.getAuthor(),
+                                        reason.getText().toString(), n, m
+                                    )
                                 } else {
-                                    if (scope) {
-                                        new AlertDialog.Builder(mContext)
-                                                .setTitle(R.string.mod_ban_reauth)
-                                                .setMessage(R.string.mod_ban_reauth_question)
-                                                .setPositiveButton(R.string.btn_ok, (dialog12, which12) -> {
-                                                    Intent i = new Intent(mContext, Reauthenticate.class);
-                                                    mContext.startActivity(i);
-                                                })
-                                                .setNegativeButton(R.string.misc_maybe_later, null)
-                                                .setCancelable(false)
-                                                .show();
-                                    }
-                                    s = Snackbar.make(mToolbar, R.string.mod_ban_fail,
-                                            Snackbar.LENGTH_INDEFINITE)
-                                            .setAction(R.string.misc_try_again,
-                                                    new View.OnClickListener() {
-                                                        @Override
-                                                        public void onClick(View v) {
-                                                            showBan(mContext, mToolbar,
-                                                                    submission,
-                                                                    reason.getText().toString(),
-                                                                    note.getText().toString(),
-                                                                    message.getText()
-                                                                            .toString(),
-                                                                    time.getText().toString());
-                                                        }
-                                                    });
-
+                                    ModerationManager(Authentication.reddit).banUser(
+                                        submission.getSubredditName(),
+                                        submission.getAuthor(),
+                                        reason.getText().toString(),
+                                        n,
+                                        m,
+                                        time.getText().toString().toInt()
+                                    )
                                 }
-
-                                if (s != null) {
-                                    LayoutUtils.showSnackbar(s);
+                                return true
+                            } catch (e: Exception) {
+                                if (e is InvalidScopeException) {
+                                    scope = true
                                 }
+                                e.printStackTrace()
+                                return false
                             }
-                        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-                    }
+                        }
+
+                        var scope: Boolean = false
+                        override fun onPostExecute(done: Boolean) {
+                            val s: Snackbar?
+                            if (done) {
+                                s = Snackbar.make(
+                                    (mToolbar)!!, R.string.mod_ban_success,
+                                    Snackbar.LENGTH_SHORT
+                                )
+                            } else {
+                                if (scope) {
+                                    AlertDialog.Builder(mContext)
+                                        .setTitle(R.string.mod_ban_reauth)
+                                        .setMessage(R.string.mod_ban_reauth_question)
+                                        .setPositiveButton(
+                                            R.string.btn_ok,
+                                            DialogInterface.OnClickListener { dialog12: DialogInterface?, which12: Int ->
+                                                val i: Intent =
+                                                    Intent(mContext, Reauthenticate::class.java)
+                                                mContext.startActivity(i)
+                                            })
+                                        .setNegativeButton(R.string.misc_maybe_later, null)
+                                        .setCancelable(false)
+                                        .show()
+                                }
+                                s = Snackbar.make(
+                                    (mToolbar)!!, R.string.mod_ban_fail,
+                                    Snackbar.LENGTH_INDEFINITE
+                                )
+                                    .setAction(R.string.misc_try_again,
+                                        object : View.OnClickListener {
+                                            override fun onClick(v: View) {
+                                                showBan(
+                                                    mContext, mToolbar,
+                                                    submission,
+                                                    reason.getText().toString(),
+                                                    note.getText().toString(),
+                                                    message.getText()
+                                                        .toString(),
+                                                    time.getText().toString()
+                                                )
+                                            }
+                                        })
+                            }
+                            if (s != null) {
+                                LayoutUtils.showSnackbar(s)
+                            }
+                        }
+                    }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR)
                 }
-
-                )
-                .setNegativeButton(R.string.btn_cancel, null)
-                .show();
-
+            }
+            .setNegativeButton(R.string.btn_cancel, null)
+            .show()
     }
 
-
-    public <T extends Contribution> void populateSubmissionViewHolder(
-            final SubmissionViewHolder holder, final Submission submission, final Activity mContext,
-            boolean fullscreen, final boolean full, final List<T> posts,
-            final RecyclerView recyclerview, final boolean same, final boolean offline,
-            final String baseSub, @Nullable final CommentAdapter adapter) {
-        holder.itemView.findViewById(R.id.vote).setVisibility(View.GONE);
-
-
-        if (!offline
-                && UserSubscriptions.modOf != null
-                && submission.getSubredditName() != null
-                && UserSubscriptions.modOf.contains(
-                submission.getSubredditName().toLowerCase(Locale.ENGLISH))) {
-            holder.mod.setVisibility(View.VISIBLE);
-            final Map<String, Integer> reports = submission.getUserReports();
-            final Map<String, String> reports2 = submission.getModeratorReports();
-            if (reports.size() + reports2.size() > 0) {
+    fun <T : Contribution?> populateSubmissionViewHolder(
+        holder: SubmissionViewHolder, submission: Submission, mContext: Activity,
+        fullscreen: Boolean, full: Boolean, posts: MutableList<T>,
+        recyclerview: RecyclerView, same: Boolean, offline: Boolean,
+        baseSub: String?, adapter: CommentAdapter?
+    ) {
+        holder.itemView.findViewById<View>(R.id.vote).visibility = View.GONE
+        if ((!offline
+                    && (UserSubscriptions.modOf != null
+                    ) && (submission.subredditName != null
+                    ) && UserSubscriptions.modOf.contains(
+                submission.subredditName.lowercase()
+            ))
+        ) {
+            holder.mod.visibility = View.VISIBLE
+            val reports = submission.userReports
+            val reports2 = submission.moderatorReports
+            if (reports.size + reports2.size > 0) {
                 BlendModeUtil.tintImageViewAsSrcAtop(
-                        (ImageView) holder.mod,
-                        ContextCompat.getColor(mContext, R.color.md_red_300));
+                    (holder.mod as ImageView),
+                    ContextCompat.getColor(mContext, R.color.md_red_300)
+                )
             } else {
-                final int getTintColor = holder.itemView.getTag(holder.itemView.getId()) != null
-                        && holder.itemView.getTag(holder.itemView.getId()).equals("none")
-                        || full ? Palette.getCurrentTintColor(mContext) : Palette.getWhiteTintColor();
-                BlendModeUtil.tintImageViewAsSrcAtop((ImageView) holder.mod, getTintColor);
+                val getTintColor = if ((holder.itemView.getTag(holder.itemView.id) != null
+                            && (holder.itemView.getTag(holder.itemView.id) == "none")
+                            || full)
+                ) Palette.getCurrentTintColor(mContext) else Palette.getWhiteTintColor()
+                BlendModeUtil.tintImageViewAsSrcAtop((holder.mod as ImageView), getTintColor)
             }
-            holder.mod.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    showModBottomSheet(mContext, submission, posts, holder, recyclerview, reports,
-                            reports2);
+            holder.mod.setOnClickListener(object : View.OnClickListener {
+                override fun onClick(v: View) {
+                    showModBottomSheet(
+                        mContext, submission, posts, holder, recyclerview, reports,
+                        reports2
+                    )
                 }
-            });
+            })
         } else {
-            holder.mod.setVisibility(View.GONE);
+            holder.mod.visibility = View.GONE
         }
-
-        holder.menu.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                showBottomSheet(mContext, submission, holder, posts, baseSub, recyclerview, full);
+        holder.menu.setOnClickListener(object : View.OnClickListener {
+            override fun onClick(view: View) {
+                showBottomSheet(mContext, submission, holder, posts, baseSub, recyclerview, full)
             }
-        });
+        })
 
         //Use this to offset the submission score
-        int submissionScore = submission.getScore();
-
-        final int commentCount = submission.getCommentCount();
-        final int more = LastComments.commentsSince(submission);
-        holder.comments.setText(String.format(Locale.getDefault(), "%d %s", commentCount,
-                ((more > 0 && SettingValues.commentLastVisit) ? "(+" + more + ")" : "")));
-        String scoreRatio =
-                (SettingValues.upvotePercentage && full && submission.getUpvoteRatio() != null) ?
-                        "("
-                                + (int) (submission.getUpvoteRatio() * 100)
-                                + "%)" : "";
-
+        var submissionScore = submission.score
+        val commentCount = submission.commentCount
+        val more = LastComments.commentsSince(submission)
+        holder.comments.text = String.format(
+            Locale.getDefault(), "%d %s", commentCount,
+            (if ((more > 0 && SettingValues.commentLastVisit)) "(+$more)" else "")
+        )
+        val scoreRatio =
+            if ((SettingValues.upvotePercentage && full && (submission.upvoteRatio != null))) ("("
+                    + (submission.upvoteRatio * 100).toInt() + "%)") else ""
         if (!scoreRatio.isEmpty()) {
-            TextView percent = holder.itemView.findViewById(R.id.percent);
-            percent.setVisibility(View.VISIBLE);
-            percent.setText(scoreRatio);
-
-            final double numb = (submission.getUpvoteRatio());
+            val percent = holder.itemView.findViewById<TextView>(R.id.percent)
+            percent.visibility = View.VISIBLE
+            percent.text = scoreRatio
+            val numb = (submission.upvoteRatio)
             if (numb <= .5) {
                 if (numb <= .1) {
-                    percent.setTextColor(ContextCompat.getColor(mContext, R.color.md_blue_500));
+                    percent.setTextColor(ContextCompat.getColor(mContext, R.color.md_blue_500))
                 } else if (numb <= .3) {
-                    percent.setTextColor(ContextCompat.getColor(mContext, R.color.md_blue_400));
+                    percent.setTextColor(ContextCompat.getColor(mContext, R.color.md_blue_400))
                 } else {
-                    percent.setTextColor(ContextCompat.getColor(mContext, R.color.md_blue_300));
+                    percent.setTextColor(ContextCompat.getColor(mContext, R.color.md_blue_300))
                 }
             } else {
                 if (numb >= .9) {
-                    percent.setTextColor(ContextCompat.getColor(mContext, R.color.md_orange_500));
+                    percent.setTextColor(ContextCompat.getColor(mContext, R.color.md_orange_500))
                 } else if (numb >= .7) {
-                    percent.setTextColor(ContextCompat.getColor(mContext, R.color.md_orange_400));
+                    percent.setTextColor(ContextCompat.getColor(mContext, R.color.md_orange_400))
                 } else {
-                    percent.setTextColor(ContextCompat.getColor(mContext, R.color.md_orange_300));
+                    percent.setTextColor(ContextCompat.getColor(mContext, R.color.md_orange_300))
                 }
             }
         }
-
-
-        final ImageView downvotebutton = (ImageView) holder.downvote;
-        final ImageView upvotebutton = (ImageView) holder.upvote;
-
-        if (submission.isArchived()) {
-            downvotebutton.setVisibility(View.GONE);
-            upvotebutton.setVisibility(View.GONE);
+        val downvotebutton = holder.downvote as ImageView
+        val upvotebutton = holder.upvote as ImageView
+        if (submission.isArchived) {
+            downvotebutton.visibility = View.GONE
+            upvotebutton.visibility = View.GONE
         } else if (Authentication.isLoggedIn && Authentication.didOnline) {
-            if (SettingValues.actionbarVisible && downvotebutton.getVisibility() != View.VISIBLE) {
-                downvotebutton.setVisibility(View.VISIBLE);
-                upvotebutton.setVisibility(View.VISIBLE);
+            if (SettingValues.actionbarVisible && downvotebutton.visibility != View.VISIBLE) {
+                downvotebutton.visibility = View.VISIBLE
+                upvotebutton.visibility = View.VISIBLE
             }
         }
+        when (ActionStates.getVoteDirection(submission)) {
+            VoteDirection.UPVOTE -> {
+                holder.score.setTextColor(ContextCompat.getColor(mContext, R.color.md_orange_500))
+                BlendModeUtil.tintImageViewAsSrcAtop(
+                    upvotebutton,
+                    ContextCompat.getColor(mContext, R.color.md_orange_500)
+                )
+                upvotebutton.contentDescription = mContext.getString(R.string.btn_upvoted)
+                holder.score.setTypeface(null, Typeface.BOLD)
+                val getTintColor = if ((holder.itemView.getTag(holder.itemView.id) != null
+                            && (holder.itemView.getTag(holder.itemView.id) == "none")
+                            || full)
+                ) Palette.getCurrentTintColor(mContext) else Palette.getWhiteTintColor()
+                BlendModeUtil.tintImageViewAsSrcAtop(downvotebutton, getTintColor)
+                downvotebutton.contentDescription = mContext.getString(R.string.btn_downvote)
+                if (submission.vote != VoteDirection.UPVOTE) {
+                    if (submission.vote == VoteDirection.DOWNVOTE) ++submissionScore
+                    ++submissionScore //offset the score by +1
+                }
+            }
 
-        //Set the colors and styles for the score text depending on what state it is in
-        //Also set content descriptions
-        switch (ActionStates.getVoteDirection(submission)) {
-            case UPVOTE: {
-                holder.score.setTextColor(ContextCompat.getColor(mContext, R.color.md_orange_500));
-                BlendModeUtil.tintImageViewAsSrcAtop(upvotebutton, ContextCompat.getColor(mContext, R.color.md_orange_500));
-                upvotebutton.setContentDescription(mContext.getString(R.string.btn_upvoted));
-                holder.score.setTypeface(null, Typeface.BOLD);
-                final int getTintColor = holder.itemView.getTag(holder.itemView.getId()) != null
-                        && holder.itemView.getTag(holder.itemView.getId()).equals("none")
-                        || full ? Palette.getCurrentTintColor(mContext) : Palette.getWhiteTintColor();
-                BlendModeUtil.tintImageViewAsSrcAtop(downvotebutton, getTintColor);
-                downvotebutton.setContentDescription(mContext.getString(R.string.btn_downvote));
-                if (submission.getVote() != VoteDirection.UPVOTE) {
-                    if (submission.getVote() == VoteDirection.DOWNVOTE) ++submissionScore;
-                    ++submissionScore; //offset the score by +1
+            VoteDirection.DOWNVOTE -> {
+                holder.score.setTextColor(ContextCompat.getColor(mContext, R.color.md_blue_500))
+                BlendModeUtil.tintImageViewAsSrcAtop(
+                    downvotebutton,
+                    ContextCompat.getColor(mContext, R.color.md_blue_500)
+                )
+                downvotebutton.contentDescription = mContext.getString(R.string.btn_downvoted)
+                holder.score.setTypeface(null, Typeface.BOLD)
+                val getTintColor = if ((holder.itemView.getTag(holder.itemView.id) != null
+                            && (holder.itemView.getTag(holder.itemView.id) == "none")
+                            || full)
+                ) Palette.getCurrentTintColor(mContext) else Palette.getWhiteTintColor()
+                BlendModeUtil.tintImageViewAsSrcAtop(upvotebutton, getTintColor)
+                upvotebutton.contentDescription = mContext.getString(R.string.btn_upvote)
+                if (submission.vote != VoteDirection.DOWNVOTE) {
+                    if (submission.vote == VoteDirection.UPVOTE) --submissionScore
+                    --submissionScore //offset the score by +1
                 }
-                break;
             }
-            case DOWNVOTE: {
-                holder.score.setTextColor(ContextCompat.getColor(mContext, R.color.md_blue_500));
-                BlendModeUtil.tintImageViewAsSrcAtop(downvotebutton, ContextCompat.getColor(mContext, R.color.md_blue_500));
-                downvotebutton.setContentDescription(mContext.getString(R.string.btn_downvoted));
-                holder.score.setTypeface(null, Typeface.BOLD);
-                final int getTintColor = holder.itemView.getTag(holder.itemView.getId()) != null
-                        && holder.itemView.getTag(holder.itemView.getId()).equals("none")
-                        || full ? Palette.getCurrentTintColor(mContext) : Palette.getWhiteTintColor();
-                BlendModeUtil.tintImageViewAsSrcAtop(upvotebutton, getTintColor);
-                upvotebutton.setContentDescription(mContext.getString(R.string.btn_upvote));
-                if (submission.getVote() != VoteDirection.DOWNVOTE) {
-                    if (submission.getVote() == VoteDirection.UPVOTE) --submissionScore;
-                    --submissionScore; //offset the score by +1
-                }
-                break;
-            }
-            case NO_VOTE: {
-                holder.score.setTextColor(holder.comments.getCurrentTextColor());
-                holder.score.setTypeface(null, Typeface.NORMAL);
-                final int getTintColor = holder.itemView.getTag(holder.itemView.getId()) != null
-                        && holder.itemView.getTag(holder.itemView.getId()).equals("none")
-                        || full ? Palette.getCurrentTintColor(mContext) : Palette.getWhiteTintColor();
-                final List<ImageView> imageViewSet = Arrays.asList(downvotebutton, upvotebutton);
-                BlendModeUtil.tintImageViewsAsSrcAtop(imageViewSet, getTintColor);
-                upvotebutton.setContentDescription(mContext.getString(R.string.btn_upvote));
-                downvotebutton.setContentDescription(mContext.getString(R.string.btn_downvote));
-                break;
+
+            VoteDirection.NO_VOTE -> {
+                holder.score.setTextColor(holder.comments.currentTextColor)
+                holder.score.setTypeface(null, Typeface.NORMAL)
+                val getTintColor = if ((holder.itemView.getTag(holder.itemView.id) != null
+                            && (holder.itemView.getTag(holder.itemView.id) == "none")
+                            || full)
+                ) Palette.getCurrentTintColor(mContext) else Palette.getWhiteTintColor()
+                val imageViewSet = Arrays.asList(downvotebutton, upvotebutton)
+                BlendModeUtil.tintImageViewsAsSrcAtop(imageViewSet, getTintColor)
+                upvotebutton.contentDescription = mContext.getString(R.string.btn_upvote)
+                downvotebutton.contentDescription = mContext.getString(R.string.btn_downvote)
             }
         }
 
 
         //if the submission is already at 0pts, keep it at 0pts
-        submissionScore = Math.max(submissionScore, 0);
+        submissionScore = Math.max(submissionScore, 0)
         if (submissionScore >= 10000 && SettingValues.abbreviateScores) {
-            holder.score.setText(String.format(Locale.getDefault(), "%.1fk",
-                    (((double) submissionScore) / 1000)));
+            holder.score.text = String.format(
+                Locale.getDefault(), "%.1fk",
+                ((submissionScore.toDouble()) / 1000)
+            )
         } else {
-            holder.score.setText(String.format(Locale.getDefault(), "%d", submissionScore));
+            holder.score.text = String.format(Locale.getDefault(), "%d", submissionScore)
         }
 
         //Save the score so we can use it in the OnClickListeners for the vote buttons
-        final int SUBMISSION_SCORE = submissionScore;
-
-        final ImageView hideButton = (ImageView) holder.hide;
+        val SUBMISSION_SCORE = submissionScore
+        val hideButton: ImageView? = holder.hide as ImageView
         if (hideButton != null) {
             if (SettingValues.hideButton && Authentication.isLoggedIn) {
-                hideButton.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        hideSubmission(submission, posts, baseSub, recyclerview, mContext);
+                hideButton.setOnClickListener(object : View.OnClickListener {
+                    override fun onClick(v: View) {
+                        hideSubmission(submission, posts, baseSub, recyclerview, mContext)
                     }
-                });
+                })
             } else {
-                hideButton.setVisibility(View.GONE);
+                hideButton.visibility = View.GONE
             }
         }
         if (Authentication.isLoggedIn && Authentication.didOnline) {
             if (ActionStates.isSaved(submission)) {
                 BlendModeUtil.tintImageViewAsSrcAtop(
-                        (ImageView) holder.save,
-                        ContextCompat.getColor(mContext, R.color.md_amber_500));
-                holder.save.setContentDescription(mContext.getString(R.string.btn_unsave));
+                    (holder.save as ImageView),
+                    ContextCompat.getColor(mContext, R.color.md_amber_500)
+                )
+                holder.save.setContentDescription(mContext.getString(R.string.btn_unsave))
             } else {
-                final int getTintColor = holder.itemView.getTag(holder.itemView.getId()) != null
-                        && holder.itemView.getTag(holder.itemView.getId()).equals("none")
-                        || full ? Palette.getCurrentTintColor(mContext) : Palette.getWhiteTintColor();
-                BlendModeUtil.tintImageViewAsSrcAtop((ImageView) holder.save, getTintColor);
-                holder.save.setContentDescription(mContext.getString(R.string.btn_save));
+                val getTintColor = if ((holder.itemView.getTag(holder.itemView.id) != null
+                            && (holder.itemView.getTag(holder.itemView.id) == "none")
+                            || full)
+                ) Palette.getCurrentTintColor(mContext) else Palette.getWhiteTintColor()
+                BlendModeUtil.tintImageViewAsSrcAtop((holder.save as ImageView), getTintColor)
+                holder.save.setContentDescription(mContext.getString(R.string.btn_save))
             }
-            holder.save.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    saveSubmission(submission, mContext, holder, full);
+            holder.save.setOnClickListener(object : View.OnClickListener {
+                override fun onClick(v: View) {
+                    saveSubmission(submission, mContext, holder, full)
                 }
-            });
+            })
         }
-
-        if (!SettingValues.saveButton && !full
-                || !Authentication.isLoggedIn
-                || !Authentication.didOnline) {
-            holder.save.setVisibility(View.GONE);
+        if (((!SettingValues.saveButton && !full
+                    ) || !Authentication.isLoggedIn
+                    || !Authentication.didOnline)
+        ) {
+            holder.save.visibility = View.GONE
         }
-
-        ImageView thumbImage2 = ((ImageView) holder.thumbimage);
-
+        val thumbImage2: ImageView? = (holder.thumbimage as ImageView)
         if (holder.leadImage.thumbImage2 == null) {
-            holder.leadImage.setThumbnail(thumbImage2);
+            holder.leadImage.setThumbnail(thumbImage2)
         }
-
-        final ContentType.Type type = ContentType.getContentType(submission);
-
-        addClickFunctions(holder.leadImage, type, mContext, submission, holder, full);
-
+        val type = ContentType.getContentType(submission)
+        addClickFunctions(holder.leadImage, type, mContext, submission, holder, full)
         if (thumbImage2 != null) {
-            addClickFunctions(thumbImage2, type, mContext, submission, holder, full);
+            addClickFunctions(thumbImage2, type, mContext, submission, holder, full)
         }
-
         if (full) {
-            addClickFunctions(holder.itemView.findViewById(R.id.wraparea), type, mContext,
-                    submission, holder, full);
+            addClickFunctions(
+                holder.itemView.findViewById(R.id.wraparea), type, mContext,
+                submission, holder, full
+            )
         }
-
         if (full) {
-            holder.leadImage.setWrapArea(holder.itemView.findViewById(R.id.wraparea));
+            holder.leadImage.wrapArea = holder.itemView.findViewById(R.id.wraparea)
         }
-
-        if (full && (submission.getDataNode() != null
-                && submission.getDataNode()
+        if (full && (((submission.dataNode != null
+                    ) && submission.dataNode
                 .has("crosspost_parent_list")
-                && submission.getDataNode().get("crosspost_parent_list") != null
-                && submission.getDataNode().get("crosspost_parent_list").get(0) != null)) {
-            holder.itemView.findViewById(R.id.crosspost).setVisibility(View.VISIBLE);
-            ((TextView)holder.itemView.findViewById(R.id.crossinfo)).setText(SubmissionCache.getCrosspostLine(submission, mContext));
-            ((App) mContext.getApplicationContext()).getImageLoader()
-                    .displayImage(submission.getDataNode().get("crosspost_parent_list").get(0).get("thumbnail").asText(), ((ImageView)holder.itemView.findViewById(R.id.crossthumb)));
-            holder.itemView.findViewById(R.id.crosspost).setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    OpenRedditLink.openUrl(mContext, submission.getDataNode().get("crosspost_parent_list").get(0).get("permalink").asText(), true);
-                }
-            });
+                    && (submission.dataNode["crosspost_parent_list"] != null
+                    ) && (submission.dataNode["crosspost_parent_list"][0] != null)))
+        ) {
+            holder.itemView.findViewById<View>(R.id.crosspost).visibility = View.VISIBLE
+            (holder.itemView.findViewById<View>(R.id.crossinfo) as TextView).text =
+                SubmissionCache.getCrosspostLine(submission, mContext)
+            (mContext.applicationContext as App).imageLoader!!
+                .displayImage(
+                    submission.dataNode["crosspost_parent_list"][0]["thumbnail"].asText(),
+                    (holder.itemView.findViewById<View>(R.id.crossthumb) as ImageView)
+                )
+            holder.itemView.findViewById<View>(R.id.crosspost)
+                .setOnClickListener(object : View.OnClickListener {
+                    override fun onClick(v: View) {
+                        OpenRedditLink.openUrl(
+                            mContext,
+                            submission.dataNode["crosspost_parent_list"][0]["permalink"].asText(),
+                            true
+                        )
+                    }
+                })
         }
-
-
-        holder.leadImage.setSubmission(submission, full, baseSub, type);
-
-        holder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-
+        holder.leadImage.setSubmission(submission, full, baseSub, type)
+        holder.itemView.setOnLongClickListener(object : View.OnLongClickListener {
+            override fun onLongClick(v: View): Boolean {
                 if (offline) {
-                    Snackbar s =
-                            Snackbar.make(holder.itemView, mContext.getString(R.string.offline_msg),
-                                    Snackbar.LENGTH_SHORT);
-                    LayoutUtils.showSnackbar(s);
+                    val s = Snackbar.make(
+                        holder.itemView, mContext.getString(R.string.offline_msg),
+                        Snackbar.LENGTH_SHORT
+                    )
+                    LayoutUtils.showSnackbar(s)
                 } else {
                     if (SettingValues.actionbarTap && !full) {
-                        CreateCardView.toggleActionbar(holder.itemView);
+                        CreateCardView.toggleActionbar(holder.itemView)
                     } else {
-                        holder.itemView.findViewById(R.id.menu).callOnClick();
+                        holder.itemView.findViewById<View>(R.id.menu).callOnClick()
                     }
                 }
-                return true;
+                return true
             }
-
-        });
-
-        doText(holder, submission, mContext, baseSub, full);
-
-        if (!full
-                && SettingValues.isSelftextEnabled(baseSub)
-                && submission.isSelfPost()
-                && !submission.getSelftext().isEmpty()
-                && !submission.isNsfw()
-                && !submission.getDataNode().get("spoiler").asBoolean()
-                && !submission.getDataNode().get("selftext_html").asText().trim().isEmpty()) {
-            holder.body.setVisibility(View.VISIBLE);
-            String text = submission.getDataNode().get("selftext_html").asText();
-            int typef = new FontPreferences(mContext).getFontTypeComment().getTypeface();
-            Typeface typeface;
+        })
+        doText(holder, submission, mContext, baseSub, full)
+        if ((!full
+                    && isSelftextEnabled(baseSub)
+                    && submission.isSelfPost
+                    && !submission.selftext.isEmpty()
+                    && !submission.isNsfw
+                    && !submission.dataNode["spoiler"].asBoolean()
+                    && !submission.dataNode["selftext_html"].asText().trim { it <= ' ' }.isEmpty())
+        ) {
+            holder.body.visibility = View.VISIBLE
+            val text = submission.dataNode["selftext_html"].asText()
+            val typef = FontPreferences(mContext).fontTypeComment.typeface
+            val typeface: Typeface
             if (typef >= 0) {
-                typeface = RobotoTypefaces.obtainTypeface(mContext, typef);
+                typeface = RobotoTypefaces.obtainTypeface(mContext, typef)
             } else {
-                typeface = Typeface.DEFAULT;
+                typeface = Typeface.DEFAULT
             }
-            holder.body.setTypeface(typeface);
-
-            holder.body.setTextHtml(CompatUtil.fromHtml(
-                    text.substring(0, text.contains("\n") ? text.indexOf("\n") : text.length()))
+            holder.body.setTypeface(typeface)
+            holder.body.setTextHtml(
+                CompatUtil.fromHtml(
+                    text.substring(0, if (text.contains("\n")) text.indexOf("\n") else text.length)
+                )
                     .toString()
                     .replace("<sup>", "<sup><small>")
-                    .replace("</sup>", "</small></sup>"), "none ");
-            holder.body.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    holder.itemView.callOnClick();
+                    .replace("</sup>", "</small></sup>"), "none "
+            )
+            holder.body.setOnClickListener(object : View.OnClickListener {
+                override fun onClick(v: View) {
+                    holder.itemView.callOnClick()
                 }
-            });
-            holder.body.setOnLongClickListener(new View.OnLongClickListener() {
-                @Override
-                public boolean onLongClick(View v) {
-                    holder.menu.callOnClick();
-                    return true;
+            })
+            holder.body.setOnLongClickListener(object : View.OnLongClickListener {
+                override fun onLongClick(v: View): Boolean {
+                    holder.menu.callOnClick()
+                    return true
                 }
-            });
+            })
         } else if (!full) {
-            holder.body.setVisibility(View.GONE);
+            holder.body.visibility = View.GONE
         }
-
         if (full) {
-            if (!submission.getSelftext().isEmpty()) {
-                int typef = new FontPreferences(mContext).getFontTypeComment().getTypeface();
-                Typeface typeface;
+            if (!submission.selftext.isEmpty()) {
+                val typef = FontPreferences(mContext).fontTypeComment.typeface
+                val typeface: Typeface
                 if (typef >= 0) {
-                    typeface = RobotoTypefaces.obtainTypeface(mContext, typef);
+                    typeface = RobotoTypefaces.obtainTypeface(mContext, typef)
                 } else {
-                    typeface = Typeface.DEFAULT;
+                    typeface = Typeface.DEFAULT
                 }
-                holder.firstTextView.setTypeface(typeface);
-
-                setViews(submission.getDataNode().get("selftext_html").asText(),
-                        submission.getSubredditName() == null ? "all"
-                                : submission.getSubredditName(), holder);
-                holder.itemView.findViewById(R.id.body_area).setVisibility(View.VISIBLE);
+                holder.firstTextView.setTypeface(typeface)
+                setViews(
+                    submission.dataNode["selftext_html"].asText(),
+                    if (submission.subredditName == null) "all" else submission.subredditName,
+                    holder
+                )
+                holder.itemView.findViewById<View>(R.id.body_area).visibility = View.VISIBLE
             } else {
-                holder.itemView.findViewById(R.id.body_area).setVisibility(View.GONE);
+                holder.itemView.findViewById<View>(R.id.body_area).visibility = View.GONE
             }
         }
-
         try {
-            final TextView points = holder.score;
-            final TextView comments = holder.comments;
-
+            val points = holder.score
+            val comments = holder.comments
             if (Authentication.isLoggedIn && !offline && Authentication.didOnline) {
-                {
-                    downvotebutton.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
+                run {
+                    downvotebutton.setOnClickListener(object : View.OnClickListener {
+                        override fun onClick(view: View) {
                             if (SettingValues.storeHistory && !full) {
                                 if (!submission.isNsfw() || SettingValues.storeNSFWHistory) {
-                                    HasSeen.addSeen(submission.getFullName());
-                                    if (mContext instanceof MainActivity) {
-                                        holder.title.setAlpha(0.54f);
-                                        holder.body.setAlpha(0.54f);
+                                    HasSeen.addSeen(submission.getFullName())
+                                    if (mContext is MainActivity) {
+                                        holder.title.setAlpha(0.54f)
+                                        holder.body.setAlpha(0.54f)
                                     }
                                 }
                             }
-                            final int getTintColor = holder.itemView.getTag(holder.itemView.getId()) != null
-                                    && holder.itemView.getTag(holder.itemView.getId()).equals("none")
-                                    || full ? Palette.getCurrentTintColor(mContext) : Palette.getWhiteTintColor();
-                            if (ActionStates.getVoteDirection(submission)
-                                    != VoteDirection.DOWNVOTE) { //has not been downvoted
+                            val getTintColor: Int =
+                                if ((holder.itemView.getTag(holder.itemView.getId()) != null
+                                            && (holder.itemView.getTag(holder.itemView.getId()) == "none")
+                                            || full)
+                                ) Palette.getCurrentTintColor(mContext) else Palette.getWhiteTintColor()
+                            if ((ActionStates.getVoteDirection(submission)
+                                        != VoteDirection.DOWNVOTE)
+                            ) { //has not been downvoted
                                 points.setTextColor(
-                                        ContextCompat.getColor(mContext, R.color.md_blue_500));
+                                    ContextCompat.getColor(mContext, R.color.md_blue_500)
+                                )
                                 BlendModeUtil.tintImageViewAsSrcAtop(
-                                        downvotebutton,
-                                        ContextCompat.getColor(mContext, R.color.md_blue_500));
-                                BlendModeUtil.tintImageViewAsSrcAtop(upvotebutton, getTintColor);
-                                downvotebutton.setContentDescription(mContext.getString(R.string.btn_downvoted));
-
-                                AnimatorUtil.setFlashAnimation(holder.itemView, downvotebutton,
-                                        ContextCompat.getColor(mContext, R.color.md_blue_500));
-                                holder.score.setTypeface(null, Typeface.BOLD);
-                                final int DOWNVOTE_SCORE = (SUBMISSION_SCORE == 0) ? 0 :
-                                        SUBMISSION_SCORE
-                                                - 1; //if a post is at 0 votes, keep it at 0 when downvoting
-                                new Vote(false, points, mContext).execute(submission);
-                                ActionStates.setVoteDirection(submission, VoteDirection.DOWNVOTE);
+                                    downvotebutton,
+                                    ContextCompat.getColor(mContext, R.color.md_blue_500)
+                                )
+                                BlendModeUtil.tintImageViewAsSrcAtop(upvotebutton, getTintColor)
+                                downvotebutton.setContentDescription(mContext.getString(R.string.btn_downvoted))
+                                AnimatorUtil.setFlashAnimation(
+                                    holder.itemView, downvotebutton,
+                                    ContextCompat.getColor(mContext, R.color.md_blue_500)
+                                )
+                                holder.score.setTypeface(null, Typeface.BOLD)
+                                val DOWNVOTE_SCORE: Int =
+                                    if ((SUBMISSION_SCORE == 0)) 0 else (SUBMISSION_SCORE
+                                            - 1) //if a post is at 0 votes, keep it at 0 when downvoting
+                                Vote(false, points, mContext).execute(submission)
+                                ActionStates.setVoteDirection(submission, VoteDirection.DOWNVOTE)
                             } else { //un-downvoted a post
-                                points.setTextColor(comments.getCurrentTextColor());
-                                new Vote(points, mContext).execute(submission);
-                                holder.score.setTypeface(null, Typeface.NORMAL);
-                                ActionStates.setVoteDirection(submission, VoteDirection.NO_VOTE);
-                                BlendModeUtil.tintImageViewAsSrcAtop(downvotebutton, getTintColor);
-                                downvotebutton.setContentDescription(mContext.getString(R.string.btn_downvote));
+                                points.setTextColor(comments.getCurrentTextColor())
+                                Vote(points, mContext).execute(submission)
+                                holder.score.setTypeface(null, Typeface.NORMAL)
+                                ActionStates.setVoteDirection(submission, VoteDirection.NO_VOTE)
+                                BlendModeUtil.tintImageViewAsSrcAtop(downvotebutton, getTintColor)
+                                downvotebutton.setContentDescription(mContext.getString(R.string.btn_downvote))
                             }
-                            setSubmissionScoreText(submission, holder);
-                            if (!full
-                                    && !SettingValues.actionbarVisible
-                                    && SettingValues.defaultCardView
-                                    != CreateCardView.CardEnum.DESKTOP) {
-                                CreateCardView.toggleActionbar(holder.itemView);
+                            setSubmissionScoreText(submission, holder)
+                            if ((!full
+                                        && !SettingValues.actionbarVisible
+                                        && ((SettingValues.defaultCardView
+                                        != CreateCardView.CardEnum.DESKTOP)))
+                            ) {
+                                CreateCardView.toggleActionbar(holder.itemView)
                             }
                         }
-                    });
+                    })
                 }
-                {
-                    upvotebutton.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
+                run {
+                    upvotebutton.setOnClickListener(object : View.OnClickListener {
+                        override fun onClick(view: View) {
                             if (SettingValues.storeHistory && !full) {
                                 if (!submission.isNsfw() || SettingValues.storeNSFWHistory) {
-                                    HasSeen.addSeen(submission.getFullName());
-                                    if (mContext instanceof MainActivity) {
-                                        holder.title.setAlpha(0.54f);
-                                        holder.body.setAlpha(0.54f);
+                                    HasSeen.addSeen(submission.getFullName())
+                                    if (mContext is MainActivity) {
+                                        holder.title.setAlpha(0.54f)
+                                        holder.body.setAlpha(0.54f)
                                     }
                                 }
                             }
-
-                            final int getTintColor = holder.itemView.getTag(holder.itemView.getId()) != null
-                                    && holder.itemView.getTag(holder.itemView.getId()).equals("none")
-                                    || full ? Palette.getCurrentTintColor(mContext) : Palette.getWhiteTintColor();
-                            if (ActionStates.getVoteDirection(submission)
-                                    != VoteDirection.UPVOTE) { //has not been upvoted
+                            val getTintColor: Int =
+                                if ((holder.itemView.getTag(holder.itemView.getId()) != null
+                                            && (holder.itemView.getTag(holder.itemView.getId()) == "none")
+                                            || full)
+                                ) Palette.getCurrentTintColor(mContext) else Palette.getWhiteTintColor()
+                            if ((ActionStates.getVoteDirection(submission)
+                                        != VoteDirection.UPVOTE)
+                            ) { //has not been upvoted
                                 points.setTextColor(
-                                        ContextCompat.getColor(mContext, R.color.md_orange_500));
+                                    ContextCompat.getColor(mContext, R.color.md_orange_500)
+                                )
                                 BlendModeUtil.tintImageViewAsSrcAtop(
-                                        upvotebutton,
-                                        ContextCompat.getColor(mContext, R.color.md_orange_500));
-                                BlendModeUtil.tintImageViewAsSrcAtop(downvotebutton, getTintColor);
-                                upvotebutton.setContentDescription(mContext.getString(R.string.btn_upvoted));
-
-                                AnimatorUtil.setFlashAnimation(holder.itemView, upvotebutton,
-                                        ContextCompat.getColor(mContext, R.color.md_orange_500));
-                                holder.score.setTypeface(null, Typeface.BOLD);
-
-
-                                new Vote(true, points, mContext).execute(submission);
-                                ActionStates.setVoteDirection(submission, VoteDirection.UPVOTE);
-
+                                    upvotebutton,
+                                    ContextCompat.getColor(mContext, R.color.md_orange_500)
+                                )
+                                BlendModeUtil.tintImageViewAsSrcAtop(downvotebutton, getTintColor)
+                                upvotebutton.setContentDescription(mContext.getString(R.string.btn_upvoted))
+                                AnimatorUtil.setFlashAnimation(
+                                    holder.itemView, upvotebutton,
+                                    ContextCompat.getColor(mContext, R.color.md_orange_500)
+                                )
+                                holder.score.setTypeface(null, Typeface.BOLD)
+                                Vote(true, points, mContext).execute(submission)
+                                ActionStates.setVoteDirection(submission, VoteDirection.UPVOTE)
                             } else { //un-upvoted a post
-                                points.setTextColor(comments.getCurrentTextColor());
-                                new Vote(points, mContext).execute(submission);
-                                holder.score.setTypeface(null, Typeface.NORMAL);
-                                ActionStates.setVoteDirection(submission, VoteDirection.NO_VOTE);
-                                BlendModeUtil.tintImageViewAsSrcAtop(upvotebutton, getTintColor);
-                                upvotebutton.setContentDescription(mContext.getString(R.string.btn_upvote));
+                                points.setTextColor(comments.getCurrentTextColor())
+                                Vote(points, mContext).execute(submission)
+                                holder.score.setTypeface(null, Typeface.NORMAL)
+                                ActionStates.setVoteDirection(submission, VoteDirection.NO_VOTE)
+                                BlendModeUtil.tintImageViewAsSrcAtop(upvotebutton, getTintColor)
+                                upvotebutton.setContentDescription(mContext.getString(R.string.btn_upvote))
                             }
-                            setSubmissionScoreText(submission, holder);
-                            if (!full
-                                    && !SettingValues.actionbarVisible
-                                    && SettingValues.defaultCardView
-                                    != CreateCardView.CardEnum.DESKTOP) {
-                                CreateCardView.toggleActionbar(holder.itemView);
+                            setSubmissionScoreText(submission, holder)
+                            if ((!full
+                                        && !SettingValues.actionbarVisible
+                                        && ((SettingValues.defaultCardView
+                                        != CreateCardView.CardEnum.DESKTOP)))
+                            ) {
+                                CreateCardView.toggleActionbar(holder.itemView)
                             }
                         }
-                    });
+                    })
                 }
             } else {
-                upvotebutton.setVisibility(View.GONE);
-                downvotebutton.setVisibility(View.GONE);
+                upvotebutton.visibility = View.GONE
+                downvotebutton.visibility = View.GONE
             }
-        } catch (Exception ignored) {
-            ignored.printStackTrace();
+        } catch (ignored: Exception) {
+            ignored.printStackTrace()
         }
-        final View edit = holder.edit;
+        val edit = holder.edit
+        if (((Authentication.name != null
+                    ) && (Authentication.name!!.lowercase()
+                    == submission.author.lowercase()) && Authentication.didOnline)
+        ) {
+            edit.visibility = View.VISIBLE
+            edit.setOnClickListener(object : OnSingleClickListener() {
+                override fun onSingleClick(v: View) {
+                    object : AsyncTask<Void?, Void?, ArrayList<String?>?>() {
+                        var flairlist: MutableList<FlairTemplate>? = null
 
-        if (Authentication.name != null
-                && Authentication.name.toLowerCase(Locale.ENGLISH)
-                .equals(submission.getAuthor().toLowerCase(Locale.ENGLISH))
-                && Authentication.didOnline) {
-            edit.setVisibility(View.VISIBLE);
-            edit.setOnClickListener(new OnSingleClickListener() {
-                @Override
-                public void onSingleClick(View v) {
-                    new AsyncTask<Void, Void, ArrayList<String>>() {
-                        List<FlairTemplate> flairlist;
-
-                        @Override
-                        protected ArrayList<String> doInBackground(Void... params) {
-                            FlairReference allFlairs =
-                                    new FluentRedditClient(Authentication.reddit).subreddit(
-                                            submission.getSubredditName()).flair();
+                        override fun doInBackground(vararg params: Void?): ArrayList<String?>? {
+                            val allFlairs = FluentRedditClient(Authentication.reddit).subreddit(
+                                submission.subredditName
+                            ).flair()
                             try {
-                                flairlist = allFlairs.options(submission);
-                                final ArrayList<String> finalFlairs = new ArrayList<>();
-                                for (FlairTemplate temp : flairlist) {
-                                    finalFlairs.add(temp.getText());
+                                flairlist = allFlairs.options(submission)
+                                val finalFlairs = ArrayList<String?>()
+                                for (temp: FlairTemplate in flairlist!!) {
+                                    finalFlairs.add(temp.text)
                                 }
-                                return finalFlairs;
-                            } catch (Exception e) {
-                                e.printStackTrace();
+                                return finalFlairs
+                            } catch (e: Exception) {
+                                e.printStackTrace()
                                 //sub probably has no flairs?
                             }
-
-
-                            return null;
+                            return null
                         }
 
-                        @Override
-                        public void onPostExecute(final ArrayList<String> data) {
-                            final boolean flair = (data != null && !data.isEmpty());
-
-
-                            int[] attrs = new int[]{R.attr.tintColor};
-                            TypedArray ta = mContext.obtainStyledAttributes(attrs);
-
-                            final int color2 = ta.getColor(0, Color.WHITE);
-                            Drawable edit_drawable =
-                                    mContext.getResources().getDrawable(R.drawable.ic_edit);
-                            Drawable nsfw_drawable =
-                                    mContext.getResources().getDrawable(R.drawable.ic_visibility_off);
-                            Drawable delete_drawable =
-                                    mContext.getResources().getDrawable(R.drawable.ic_delete);
-                            Drawable flair_drawable =
-                                    mContext.getResources().getDrawable(R.drawable.ic_text_fields);
-
-                            final List<Drawable> drawableSet = Arrays.asList(
-                                    edit_drawable, nsfw_drawable, delete_drawable, flair_drawable);
-                            BlendModeUtil.tintDrawablesAsSrcAtop(drawableSet, color2);
-
-                            ta.recycle();
-
-                            BottomSheet.Builder b = new BottomSheet.Builder(mContext).title(
-                                    CompatUtil.fromHtml(submission.getTitle()));
-
-                            if (submission.isSelfPost()) {
-                                b.sheet(1, edit_drawable,
-                                        mContext.getString(R.string.edit_selftext));
+                        public override fun onPostExecute(data: ArrayList<String?>?) {
+                            val flair = (data != null && !data.isEmpty())
+                            val attrs = intArrayOf(R.attr.tintColor)
+                            val ta = mContext.obtainStyledAttributes(attrs)
+                            val color2 = ta.getColor(0, Color.WHITE)
+                            val edit_drawable = mContext.resources.getDrawable(R.drawable.ic_edit)
+                            val nsfw_drawable =
+                                mContext.resources.getDrawable(R.drawable.ic_visibility_off)
+                            val delete_drawable =
+                                mContext.resources.getDrawable(R.drawable.ic_delete)
+                            val flair_drawable =
+                                mContext.resources.getDrawable(R.drawable.ic_text_fields)
+                            val drawableSet = Arrays.asList(
+                                edit_drawable, nsfw_drawable, delete_drawable, flair_drawable
+                            )
+                            BlendModeUtil.tintDrawablesAsSrcAtop(drawableSet, color2)
+                            ta.recycle()
+                            val b = BottomSheet.Builder(mContext).title(
+                                CompatUtil.fromHtml(submission.title)
+                            )
+                            if (submission.isSelfPost) {
+                                b.sheet(
+                                    1, edit_drawable,
+                                    mContext.getString(R.string.edit_selftext)
+                                )
                             }
-                            if (submission.isNsfw()) {
-                                b.sheet(4, nsfw_drawable,
-                                        mContext.getString(R.string.mod_btn_unmark_nsfw));
+                            if (submission.isNsfw) {
+                                b.sheet(
+                                    4, nsfw_drawable,
+                                    mContext.getString(R.string.mod_btn_unmark_nsfw)
+                                )
                             } else {
-                                b.sheet(4, nsfw_drawable,
-                                        mContext.getString(R.string.mod_btn_mark_nsfw));
+                                b.sheet(
+                                    4, nsfw_drawable,
+                                    mContext.getString(R.string.mod_btn_mark_nsfw)
+                                )
                             }
-                            if (submission.getDataNode().get("spoiler").asBoolean()) {
-                                b.sheet(5, nsfw_drawable, mContext.getString(R.string.mod_btn_unmark_spoiler));
+                            if (submission.dataNode["spoiler"].asBoolean()) {
+                                b.sheet(
+                                    5,
+                                    nsfw_drawable,
+                                    mContext.getString(R.string.mod_btn_unmark_spoiler)
+                                )
                             } else {
-                                b.sheet(5, nsfw_drawable, mContext.getString(R.string.mod_btn_mark_spoiler));
+                                b.sheet(
+                                    5,
+                                    nsfw_drawable,
+                                    mContext.getString(R.string.mod_btn_mark_spoiler)
+                                )
                             }
-
-                            b.sheet(2, delete_drawable,
-                                    mContext.getString(R.string.delete_submission));
-
+                            b.sheet(
+                                2, delete_drawable,
+                                mContext.getString(R.string.delete_submission)
+                            )
                             if (flair) {
-                                b.sheet(3, flair_drawable,
-                                        mContext.getString(R.string.set_submission_flair));
-
+                                b.sheet(
+                                    3, flair_drawable,
+                                    mContext.getString(R.string.set_submission_flair)
+                                )
                             }
-
-                            b.listener(new DialogInterface.OnClickListener()
-
-                            {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    switch (which) {
-                                        case 1: {
-                                            LayoutInflater inflater = mContext.getLayoutInflater();
-
-                                            final View dialoglayout =
-                                                    inflater.inflate(R.layout.edit_comment, null);
-
-
-                                            final EditText e = dialoglayout.findViewById(
-                                                    R.id.entry);
-                                            e.setText(StringEscapeUtils.unescapeHtml4(
-                                                    submission.getSelftext()));
-
-                                            DoEditorActions.doActions(e, dialoglayout,
-                                                    ((AppCompatActivity) mContext).getSupportFragmentManager(),
-                                                    mContext, null, null);
-
-                                            final AlertDialog.Builder builder = new AlertDialog.Builder(mContext)
-                                                    .setCancelable(false)
-                                                    .setView(dialoglayout);
-                                            final Dialog d = builder.create();
-                                            d.getWindow()
-                                                    .setSoftInputMode(
-                                                            WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
-
-                                            d.show();
-                                            dialoglayout.findViewById(R.id.cancel)
-                                                    .setOnClickListener(new View.OnClickListener() {
-                                                        @Override
-                                                        public void onClick(View v) {
-                                                            d.dismiss();
-                                                        }
-                                                    });
-                                            dialoglayout.findViewById(R.id.submit)
-                                                    .setOnClickListener(new View.OnClickListener() {
-                                                        @Override
-                                                        public void onClick(View v) {
-                                                            final String text =
-                                                                    e.getText().toString();
-                                                            new AsyncTask<Void, Void, Void>() {
-                                                                @Override
-                                                                protected Void doInBackground(
-                                                                        Void... params) {
-                                                                    try {
-                                                                        new AccountManager(
-                                                                                Authentication.reddit)
-                                                                                .updateContribution(
-                                                                                        submission,
-                                                                                        text);
-                                                                        if (adapter != null) {
-                                                                            adapter.dataSet.reloadSubmission(
-                                                                                    adapter);
-                                                                        }
-                                                                        d.dismiss();
-                                                                    } catch (Exception e) {
-                                                                        (mContext).runOnUiThread(
-                                                                                new Runnable() {
-                                                                                    @Override
-                                                                                    public void run() {
-                                                                                        new AlertDialog.Builder(mContext)
-                                                                                                .setTitle(R.string.comment_delete_err)
-                                                                                                .setMessage(R.string.comment_delete_err_msg)
-                                                                                                .setPositiveButton(R.string.btn_yes, (dialog1, which1) -> {
-                                                                                                    dialog1.dismiss();
-                                                                                                    doInBackground();
-                                                                                                })
-                                                                                                .setNegativeButton(R.string.btn_no, (dialog12, which12) ->
-                                                                                                        dialog12.dismiss())
-                                                                                                .show();
-                                                                                    }
-                                                                                });
-                                                                    }
-                                                                    return null;
-                                                                }
-
-                                                                @Override
-                                                                protected void onPostExecute(
-                                                                        Void aVoid) {
-                                                                    if (adapter != null) {
-                                                                        adapter.notifyItemChanged(
-                                                                                1);
-                                                                    }
-                                                                }
-                                                            }.executeOnExecutor(
-                                                                    AsyncTask.THREAD_POOL_EXECUTOR);
-                                                        }
-                                                    });
-                                        }
-                                        break;
-                                        case 2: {
-                                            new AlertDialog.Builder(mContext)
-                                                    .setTitle(R.string.really_delete_submission)
-                                                    .setPositiveButton(R.string.btn_yes, (dialog13, which13) ->
-                                                            new AsyncTask<Void, Void, Void>() {
-                                                                @Override
-                                                                protected Void doInBackground(
-                                                                        Void... params) {
-                                                                    try {
-                                                                        new ModerationManager(
-                                                                                Authentication.reddit)
-                                                                                .delete(submission);
-                                                                    } catch (ApiException e) {
-                                                                        e.printStackTrace();
-                                                                    }
-                                                                    return null;
-                                                                }
-
-                                                                @Override
-                                                                protected void onPostExecute(
-                                                                        Void aVoid) {
+                            b.listener(object : DialogInterface.OnClickListener {
+                                override fun onClick(dialog: DialogInterface, which: Int) {
+                                    when (which) {
+                                        1 -> {
+                                            val inflater = mContext.layoutInflater
+                                            val dialoglayout =
+                                                inflater.inflate(R.layout.edit_comment, null)
+                                            val e = dialoglayout.findViewById<EditText>(
+                                                R.id.entry
+                                            )
+                                            e.setText(
+                                                StringEscapeUtils.unescapeHtml4(
+                                                    submission.selftext
+                                                )
+                                            )
+                                            DoEditorActions.doActions(
+                                                e, dialoglayout,
+                                                (mContext as AppCompatActivity).supportFragmentManager,
+                                                mContext, null, null
+                                            )
+                                            val builder = AlertDialog.Builder(mContext)
+                                                .setCancelable(false)
+                                                .setView(dialoglayout)
+                                            val d: Dialog = builder.create()
+                                            d.window!!
+                                                .setSoftInputMode(
+                                                    WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE
+                                                )
+                                            d.show()
+                                            dialoglayout.findViewById<View>(R.id.cancel)
+                                                .setOnClickListener(object : View.OnClickListener {
+                                                    override fun onClick(v: View) {
+                                                        d.dismiss()
+                                                    }
+                                                })
+                                            dialoglayout.findViewById<View>(R.id.submit)
+                                                .setOnClickListener(object : View.OnClickListener {
+                                                    override fun onClick(v: View) {
+                                                        val text = e.text.toString()
+                                                        object : AsyncTask<Void?, Void?, Void?>() {
+                                                            override fun doInBackground(
+                                                                vararg params: Void?
+                                                            ): Void? {
+                                                                try {
+                                                                    AccountManager(
+                                                                        Authentication.reddit
+                                                                    )
+                                                                        .updateContribution(
+                                                                            submission,
+                                                                            text
+                                                                        )
+                                                                    adapter?.dataSet?.reloadSubmission(
+                                                                        adapter
+                                                                    )
+                                                                    d.dismiss()
+                                                                } catch (e: Exception) {
                                                                     (mContext).runOnUiThread(
-                                                                            new Runnable() {
-                                                                                @Override
-                                                                                public void run() {
-                                                                                    (holder.title)
-                                                                                            .setTextHtml(
-                                                                                                    mContext.getString(
-                                                                                                            R.string.content_deleted));
-                                                                                    if (holder.firstTextView
-                                                                                            != null) {
-                                                                                        holder.firstTextView
-                                                                                                .setText(
-                                                                                                        R.string.content_deleted);
-                                                                                        holder.commentOverflow
-                                                                                                .setVisibility(
-                                                                                                        View.GONE);
-                                                                                    } else {
-                                                                                        if (holder.itemView
-                                                                                                .findViewById(
-                                                                                                        R.id.body)
-                                                                                                != null) {
-                                                                                            ((TextView) holder.itemView
-                                                                                                    .findViewById(
-                                                                                                            R.id.body))
-                                                                                                    .setText(
-                                                                                                            R.string.content_deleted);
+                                                                        object : Runnable {
+                                                                            override fun run() {
+                                                                                AlertDialog.Builder(
+                                                                                    mContext
+                                                                                )
+                                                                                    .setTitle(R.string.comment_delete_err)
+                                                                                    .setMessage(R.string.comment_delete_err_msg)
+                                                                                    .setPositiveButton(
+                                                                                        R.string.btn_yes,
+                                                                                        { dialog1: DialogInterface, which1: Int ->
+                                                                                            dialog1.dismiss()
+                                                                                            doInBackground()
+                                                                                        })
+                                                                                    .setNegativeButton(
+                                                                                        R.string.btn_no,
+                                                                                        { dialog12: DialogInterface, which12: Int -> dialog12.dismiss() })
+                                                                                    .show()
+                                                                            }
+                                                                        })
+                                                                }
+                                                                return null
+                                                            }
+
+                                                            override fun onPostExecute(
+                                                                aVoid: Void?
+                                                            ) {
+                                                                adapter?.notifyItemChanged(
+                                                                    1
+                                                                )
+                                                            }
+                                                        }.executeOnExecutor(
+                                                            THREAD_POOL_EXECUTOR
+                                                        )
+                                                    }
+                                                })
+                                        }
+
+                                        2 -> {
+                                            AlertDialog.Builder(mContext)
+                                                .setTitle(R.string.really_delete_submission)
+                                                .setPositiveButton(
+                                                    R.string.btn_yes
+                                                ) { dialog13: DialogInterface?, which13: Int ->
+                                                    object : AsyncTask<Void?, Void?, Void>() {
+                                                        override fun doInBackground(
+                                                            vararg params: Void?
+                                                        ): Void? {
+                                                            try {
+                                                                ModerationManager(
+                                                                    Authentication.reddit
+                                                                )
+                                                                    .delete(submission)
+                                                            } catch (e: ApiException) {
+                                                                e.printStackTrace()
+                                                            }
+                                                            return null
+                                                        }
+
+                                                        override fun onPostExecute(
+                                                            aVoid: Void
+                                                        ) {
+                                                            (mContext).runOnUiThread(
+                                                                object : Runnable {
+                                                                    override fun run() {
+                                                                        (holder.title)
+                                                                            .setTextHtml(
+                                                                                mContext.getString(
+                                                                                    R.string.content_deleted
+                                                                                )
+                                                                            )
+                                                                        if ((holder.firstTextView
+                                                                                    != null)
+                                                                        ) {
+                                                                            holder.firstTextView
+                                                                                .setText(
+                                                                                    R.string.content_deleted
+                                                                                )
+                                                                            holder.commentOverflow
+                                                                                .setVisibility(
+                                                                                    View.GONE
+                                                                                )
+                                                                        } else {
+                                                                            if ((holder.itemView
+                                                                                    .findViewById<View?>(
+                                                                                        R.id.body
+                                                                                    )
+                                                                                        != null)
+                                                                            ) {
+                                                                                (holder.itemView
+                                                                                    .findViewById<View>(
+                                                                                        R.id.body
+                                                                                    ) as TextView)
+                                                                                    .setText(
+                                                                                        R.string.content_deleted
+                                                                                    )
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                })
+                                                        }
+                                                    }.executeOnExecutor(
+                                                        THREAD_POOL_EXECUTOR
+                                                    )
+                                                }
+                                                .setNegativeButton(R.string.btn_cancel, null)
+                                                .show()
+                                        }
+
+                                        3 -> {
+                                            MaterialDialog.Builder(mContext).items((data)!!)
+                                                .title(R.string.sidebar_select_flair)
+                                                .itemsCallback(
+                                                    object : ListCallback {
+                                                        override fun onSelection(
+                                                            dialog: MaterialDialog,
+                                                            itemView: View, which: Int,
+                                                            text: CharSequence
+                                                        ) {
+                                                            val t = flairlist!![which]
+                                                            if (t.isTextEditable) {
+                                                                MaterialDialog.Builder(
+                                                                    mContext
+                                                                ).title(
+                                                                    R.string.mod_btn_submission_flair_text
+                                                                )
+                                                                    .input(mContext.getString(
+                                                                        R.string.mod_flair_hint
+                                                                    ),
+                                                                        t.text,
+                                                                        true,
+                                                                        { dialog14: MaterialDialog?, input: CharSequence? -> })
+                                                                    .positiveText(
+                                                                        R.string.btn_set
+                                                                    )
+                                                                    .onPositive(
+                                                                        object :
+                                                                            SingleButtonCallback {
+                                                                            override fun onClick(
+                                                                                dialog: MaterialDialog,
+                                                                                which: DialogAction
+                                                                            ) {
+                                                                                val flair =
+                                                                                    dialog.inputEditText!!
+                                                                                        .getText()
+                                                                                        .toString()
+                                                                                object :
+                                                                                    AsyncTask<Void?, Void?, Boolean>() {
+                                                                                    override fun doInBackground(
+                                                                                        vararg params: Void?
+                                                                                    ): Boolean {
+                                                                                        try {
+                                                                                            ModerationManager(
+                                                                                                Authentication.reddit
+                                                                                            )
+                                                                                                .setFlair(
+                                                                                                    submission
+                                                                                                        .subredditName,
+                                                                                                    t,
+                                                                                                    flair,
+                                                                                                    submission
+                                                                                                )
+                                                                                            return true
+                                                                                        } catch (e: ApiException) {
+                                                                                            e.printStackTrace()
+                                                                                            return false
                                                                                         }
                                                                                     }
-                                                                                }
-                                                                            });
-                                                                }
-                                                            }.executeOnExecutor(
-                                                                    AsyncTask.THREAD_POOL_EXECUTOR))
-                                                    .setNegativeButton(R.string.btn_cancel, null)
-                                                    .show();
-                                        }
-                                        break;
-                                        case 3: {
-                                            new MaterialDialog.Builder(mContext).items(data)
-                                                    .title(R.string.sidebar_select_flair)
-                                                    .itemsCallback(
-                                                            new MaterialDialog.ListCallback() {
-                                                                @Override
-                                                                public void onSelection(
-                                                                        MaterialDialog dialog,
-                                                                        View itemView, int which,
-                                                                        CharSequence text) {
-                                                                    final FlairTemplate t =
-                                                                            flairlist.get(which);
-                                                                    if (t.isTextEditable()) {
-                                                                        new MaterialDialog.Builder(
-                                                                                mContext).title(
-                                                                                R.string.mod_btn_submission_flair_text)
-                                                                                .input(mContext.getString(
-                                                                                        R.string.mod_flair_hint),
-                                                                                        t.getText(),
-                                                                                        true,
-                                                                                        (dialog14, input) -> {})
-                                                                                .positiveText(
-                                                                                        R.string.btn_set)
-                                                                                .onPositive(
-                                                                                        new MaterialDialog.SingleButtonCallback() {
-                                                                                            @Override
-                                                                                            public void onClick(
-                                                                                                    MaterialDialog dialog,
-                                                                                                    DialogAction which) {
-                                                                                                final String
-                                                                                                        flair =
-                                                                                                        dialog.getInputEditText()
-                                                                                                                .getText()
-                                                                                                                .toString();
-                                                                                                new AsyncTask<Void, Void, Boolean>() {
-                                                                                                    @Override
-                                                                                                    protected Boolean doInBackground(
-                                                                                                            Void... params) {
-                                                                                                        try {
-                                                                                                            new ModerationManager(
-                                                                                                                    Authentication.reddit)
-                                                                                                                    .setFlair(
-                                                                                                                            submission
-                                                                                                                                    .getSubredditName(),
-                                                                                                                            t,
-                                                                                                                            flair,
-                                                                                                                            submission);
-                                                                                                            return true;
-                                                                                                        } catch (ApiException e) {
-                                                                                                            e.printStackTrace();
-                                                                                                            return false;
-                                                                                                        }
-                                                                                                    }
 
-                                                                                                    @Override
-                                                                                                    protected void onPostExecute(
-                                                                                                            Boolean done) {
-                                                                                                        Snackbar
-                                                                                                                s =
-                                                                                                                null;
-                                                                                                        if (done) {
-                                                                                                            if (holder.itemView
-                                                                                                                    != null) {
-                                                                                                                s =
-                                                                                                                        Snackbar.make(
-                                                                                                                                holder.itemView,
-                                                                                                                                R.string.snackbar_flair_success,
-                                                                                                                                Snackbar.LENGTH_SHORT);
-                                                                                                                SubmissionCache
-                                                                                                                        .updateTitleFlair(
-                                                                                                                                submission,
-                                                                                                                                flair,
-                                                                                                                                mContext);
-                                                                                                                holder.title
-                                                                                                                        .setText(
-                                                                                                                                SubmissionCache
-                                                                                                                                        .getTitleLine(
-                                                                                                                                                submission,
-                                                                                                                                                mContext));
-                                                                                                            }
-                                                                                                        } else {
-                                                                                                            if (holder.itemView
-                                                                                                                    != null) {
-                                                                                                                s =
-                                                                                                                        Snackbar.make(
-                                                                                                                                holder.itemView,
-                                                                                                                                R.string.snackbar_flair_error,
-                                                                                                                                Snackbar.LENGTH_SHORT);
-                                                                                                            }
-                                                                                                        }
-                                                                                                        if (s != null) {
-                                                                                                            LayoutUtils.showSnackbar(s);
-                                                                                                        }
-                                                                                                    }
-                                                                                                }.executeOnExecutor(
-                                                                                                        AsyncTask.THREAD_POOL_EXECUTOR);
-                                                                                            }
-                                                                                        })
-                                                                                .negativeText(
-                                                                                        R.string.btn_cancel)
-                                                                                .show();
-                                                                    } else {
-                                                                        new AsyncTask<Void, Void, Boolean>() {
-                                                                            @Override
-                                                                            protected Boolean doInBackground(
-                                                                                    Void... params) {
-                                                                                try {
-                                                                                    new ModerationManager(
-                                                                                            Authentication.reddit)
-                                                                                            .setFlair(
-                                                                                                    submission
-                                                                                                            .getSubredditName(),
-                                                                                                    t,
-                                                                                                    null,
-                                                                                                    submission);
-                                                                                    return true;
-                                                                                } catch (ApiException e) {
-                                                                                    e.printStackTrace();
-                                                                                    return false;
-                                                                                }
-                                                                            }
-
-                                                                            @Override
-                                                                            protected void onPostExecute(
-                                                                                    Boolean done) {
-                                                                                Snackbar s = null;
-                                                                                if (done) {
-                                                                                    if (holder.itemView
-                                                                                            != null) {
-                                                                                        s =
-                                                                                                Snackbar.make(
+                                                                                    override fun onPostExecute(
+                                                                                        done: Boolean
+                                                                                    ) {
+                                                                                        var s: Snackbar? =
+                                                                                            null
+                                                                                        if (done) {
+                                                                                            if ((holder.itemView
+                                                                                                        != null)
+                                                                                            ) {
+                                                                                                s =
+                                                                                                    Snackbar.make(
                                                                                                         holder.itemView,
                                                                                                         R.string.snackbar_flair_success,
-                                                                                                        Snackbar.LENGTH_SHORT);
-                                                                                        SubmissionCache
-                                                                                                .updateTitleFlair(
+                                                                                                        Snackbar.LENGTH_SHORT
+                                                                                                    )
+                                                                                                SubmissionCache
+                                                                                                    .updateTitleFlair(
                                                                                                         submission,
-                                                                                                        t.getCssClass(),
-                                                                                                        mContext);
-                                                                                        holder.title
-                                                                                                .setText(
-                                                                                                        SubmissionCache
-                                                                                                                .getTitleLine(
-                                                                                                                        submission,
-                                                                                                                        mContext));
-                                                                                    }
-                                                                                } else {
-                                                                                    if (holder.itemView
-                                                                                            != null) {
-                                                                                        s =
-                                                                                                Snackbar.make(
+                                                                                                        flair,
+                                                                                                        mContext
+                                                                                                    )
+                                                                                                holder.title.text =
+                                                                                                    SubmissionCache
+                                                                                                        .getTitleLine(
+                                                                                                            submission,
+                                                                                                            mContext
+                                                                                                        )
+                                                                                            }
+                                                                                        } else {
+                                                                                            if ((holder.itemView
+                                                                                                        != null)
+                                                                                            ) {
+                                                                                                s =
+                                                                                                    Snackbar.make(
                                                                                                         holder.itemView,
                                                                                                         R.string.snackbar_flair_error,
-                                                                                                        Snackbar.LENGTH_SHORT);
+                                                                                                        Snackbar.LENGTH_SHORT
+                                                                                                    )
+                                                                                            }
+                                                                                        }
+                                                                                        if (s != null) {
+                                                                                            LayoutUtils.showSnackbar(
+                                                                                                s
+                                                                                            )
+                                                                                        }
                                                                                     }
-                                                                                }
-                                                                                if (s != null) {
-                                                                                    LayoutUtils.showSnackbar(s);
-                                                                                }
+                                                                                }.executeOnExecutor(
+                                                                                    THREAD_POOL_EXECUTOR
+                                                                                )
                                                                             }
-                                                                        }.executeOnExecutor(
-                                                                                AsyncTask.THREAD_POOL_EXECUTOR);
+                                                                        })
+                                                                    .negativeText(
+                                                                        R.string.btn_cancel
+                                                                    )
+                                                                    .show()
+                                                            } else {
+                                                                object :
+                                                                    AsyncTask<Void?, Void?, Boolean>() {
+                                                                    override fun doInBackground(
+                                                                        vararg params: Void?
+                                                                    ): Boolean {
+                                                                        try {
+                                                                            ModerationManager(
+                                                                                Authentication.reddit
+                                                                            )
+                                                                                .setFlair(
+                                                                                    submission
+                                                                                        .subredditName,
+                                                                                    t,
+                                                                                    null,
+                                                                                    submission
+                                                                                )
+                                                                            return true
+                                                                        } catch (e: ApiException) {
+                                                                            e.printStackTrace()
+                                                                            return false
+                                                                        }
                                                                     }
-                                                                }
-                                                            })
-                                                    .show();
+
+                                                                    override fun onPostExecute(
+                                                                        done: Boolean
+                                                                    ) {
+                                                                        var s: Snackbar? = null
+                                                                        if (done) {
+                                                                            if ((holder.itemView
+                                                                                        != null)
+                                                                            ) {
+                                                                                s = Snackbar.make(
+                                                                                    holder.itemView,
+                                                                                    R.string.snackbar_flair_success,
+                                                                                    Snackbar.LENGTH_SHORT
+                                                                                )
+                                                                                SubmissionCache
+                                                                                    .updateTitleFlair(
+                                                                                        submission,
+                                                                                        t.cssClass,
+                                                                                        mContext
+                                                                                    )
+                                                                                holder.title.text =
+                                                                                    SubmissionCache
+                                                                                        .getTitleLine(
+                                                                                            submission,
+                                                                                            mContext
+                                                                                        )
+                                                                            }
+                                                                        } else {
+                                                                            if ((holder.itemView
+                                                                                        != null)
+                                                                            ) {
+                                                                                s = Snackbar.make(
+                                                                                    holder.itemView,
+                                                                                    R.string.snackbar_flair_error,
+                                                                                    Snackbar.LENGTH_SHORT
+                                                                                )
+                                                                            }
+                                                                        }
+                                                                        if (s != null) {
+                                                                            LayoutUtils.showSnackbar(
+                                                                                s
+                                                                            )
+                                                                        }
+                                                                    }
+                                                                }.executeOnExecutor(
+                                                                    THREAD_POOL_EXECUTOR
+                                                                )
+                                                            }
+                                                        }
+                                                    })
+                                                .show()
                                         }
-                                        break;
-                                        case 4:
-                                            if (submission.isNsfw()) {
-                                                unNsfwSubmission(mContext, submission, holder);
-                                            } else {
-                                                setPostNsfw(mContext, submission, holder);
-                                            }
-                                            break;
-                                        case 5:
-                                            if (submission.getDataNode().get("spoiler").asBoolean()) {
-                                                unSpoiler(mContext, submission, holder);
-                                            } else {
-                                                setSpoiler(mContext, submission, holder);
-                                            }
-                                            break;
+
+                                        4 -> if (submission.isNsfw) {
+                                            unNsfwSubmission(mContext, submission, holder)
+                                        } else {
+                                            setPostNsfw(mContext, submission, holder)
+                                        }
+
+                                        5 -> if (submission.dataNode["spoiler"].asBoolean()) {
+                                            unSpoiler(mContext, submission, holder)
+                                        } else {
+                                            setSpoiler(mContext, submission, holder)
+                                        }
                                     }
                                 }
-                            }).show();
+                            }).show()
                         }
-                    }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                    }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR)
                 }
-            });
+            })
         } else {
-            edit.setVisibility(View.GONE);
+            edit.visibility = View.GONE
         }
-
         if (HasSeen.getSeen(submission) && !full) {
-            holder.title.setAlpha(0.54f);
-            holder.body.setAlpha(0.54f);
+            holder.title.alpha = 0.54f
+            holder.body.alpha = 0.54f
         } else {
-            holder.title.setAlpha(1f);
+            holder.title.alpha = 1f
             if (!full) {
-                holder.body.setAlpha(1f);
+                holder.body.alpha = 1f
             }
         }
     }
 
-    private void setSubmissionScoreText(Submission submission, SubmissionViewHolder holder) {
-        int submissionScore = submission.getScore();
-        switch (ActionStates.getVoteDirection(submission)) {
-            case UPVOTE: {
-                if (submission.getVote() != VoteDirection.UPVOTE) {
-                    if (submission.getVote() == VoteDirection.DOWNVOTE) ++submissionScore;
-                    ++submissionScore; //offset the score by +1
+    private fun setSubmissionScoreText(submission: Submission, holder: SubmissionViewHolder) {
+        var submissionScore = submission.score
+        when (ActionStates.getVoteDirection(submission)) {
+            VoteDirection.UPVOTE -> {
+                if (submission.vote != VoteDirection.UPVOTE) {
+                    if (submission.vote == VoteDirection.DOWNVOTE) ++submissionScore
+                    ++submissionScore //offset the score by +1
                 }
-                break;
             }
-            case DOWNVOTE: {
-                if (submission.getVote() != VoteDirection.DOWNVOTE) {
-                    if (submission.getVote() == VoteDirection.UPVOTE) --submissionScore;
-                    --submissionScore; //offset the score by +1
+
+            VoteDirection.DOWNVOTE -> {
+                if (submission.vote != VoteDirection.DOWNVOTE) {
+                    if (submission.vote == VoteDirection.UPVOTE) --submissionScore
+                    --submissionScore //offset the score by +1
                 }
-                break;
             }
-            case NO_VOTE:
-                if (submission.getVote() == VoteDirection.UPVOTE && submission.getAuthor()
-                        .equalsIgnoreCase(Authentication.name)) {
-                    submissionScore--;
-                }
-                break;
+
+            VoteDirection.NO_VOTE -> if (submission.vote == VoteDirection.UPVOTE && submission.author
+                    .equals(Authentication.name, ignoreCase = true)
+            ) {
+                submissionScore--
+            }
         }
 
 
         //if the submission is already at 0pts, keep it at 0pts
-        submissionScore = Math.max(submissionScore, 0);
+        submissionScore = Math.max(submissionScore, 0)
         if (submissionScore >= 10000 && SettingValues.abbreviateScores) {
-            holder.score.setText(String.format(Locale.getDefault(), "%.1fk",
-                    (((double) submissionScore) / 1000)));
+            holder.score.text = String.format(
+                Locale.getDefault(), "%.1fk",
+                ((submissionScore.toDouble()) / 1000)
+            )
         } else {
-            holder.score.setText(String.format(Locale.getDefault(), "%d", submissionScore));
+            holder.score.text = String.format(Locale.getDefault(), "%d", submissionScore)
         }
     }
 
-    private void setViews(String rawHTML, String subredditName, SubmissionViewHolder holder) {
+    private fun setViews(rawHTML: String, subredditName: String, holder: SubmissionViewHolder) {
         if (rawHTML.isEmpty()) {
-            return;
+            return
         }
-
-        List<String> blocks = SubmissionParser.getBlocks(rawHTML);
-
-        int startIndex = 0;
-        if (!blocks.get(0).startsWith("<table>") && !blocks.get(0).startsWith("<pre>")) {
-            holder.firstTextView.setTextHtml(blocks.get(0), subredditName);
-            startIndex = 1;
+        val blocks = SubmissionParser.getBlocks(rawHTML)
+        var startIndex = 0
+        if (!blocks[0].startsWith("<table>") && !blocks[0].startsWith("<pre>")) {
+            holder.firstTextView.setTextHtml(blocks[0], subredditName)
+            startIndex = 1
         }
-
-        if (blocks.size() > 1) {
+        if (blocks.size > 1) {
             if (startIndex == 0) {
-                holder.commentOverflow.setViews(blocks, subredditName);
+                holder.commentOverflow.setViews(blocks, subredditName)
             } else {
-                holder.commentOverflow.setViews(blocks.subList(startIndex, blocks.size()),
-                        subredditName);
+                holder.commentOverflow.setViews(
+                    blocks.subList(startIndex, blocks.size),
+                    subredditName
+                )
             }
         }
     }
 
-    public static class AsyncReportTask extends AsyncTask<String, Void, Void> {
-        private Submission submission;
-        private View contextView;
-
-        public AsyncReportTask(Submission submission, View contextView) {
-            this.submission = submission;
-            this.contextView = contextView;
-        }
-
-        @Override
-        protected Void doInBackground(String... reason) {
+    class AsyncReportTask(private val submission: Submission, private val contextView: View?) :
+        AsyncTask<String?, Void?, Void?>() {
+        override fun doInBackground(vararg reason: String?): Void? {
             try {
-                new AccountManager(
-                        Authentication.reddit).report(submission, reason[0]);
-            } catch (ApiException e) {
-                e.printStackTrace();
+                AccountManager(
+                    Authentication.reddit
+                ).report(submission, reason[0])
+            } catch (e: ApiException) {
+                e.printStackTrace()
             }
-            return null;
+            return null
         }
 
-        @Override
-        protected void onPostExecute(Void aVoid) {
+        override fun onPostExecute(aVoid: Void?) {
             if (contextView != null) {
                 try {
-                    Snackbar s = Snackbar.make(contextView, R.string.msg_report_sent, Snackbar.LENGTH_SHORT);
-                    LayoutUtils.showSnackbar(s);
-                } catch (Exception ignored) {
-
+                    val s =
+                        Snackbar.make(contextView, R.string.msg_report_sent, Snackbar.LENGTH_SHORT)
+                    LayoutUtils.showSnackbar(s)
+                } catch (ignored: Exception) {
                 }
+            }
+        }
+    }
+
+    companion object {
+        private fun addClickFunctions(
+            base: View, type: ContentType.Type,
+            contextActivity: Activity, submission: Submission,
+            holder: SubmissionViewHolder?, full: Boolean
+        ) {
+            base.setOnClickListener(object : OnSingleClickListener() {
+                override fun onSingleClick(v: View) {
+                    if (NetworkUtil.isConnected(contextActivity) || (!NetworkUtil.isConnected(
+                            contextActivity
+                        ) && ContentType.fullImage(type))
+                    ) {
+                        if (SettingValues.storeHistory && !full) {
+                            if (!submission.isNsfw || SettingValues.storeNSFWHistory) {
+                                HasSeen.addSeen(submission.fullName)
+                                if ((contextActivity is MainActivity
+                                            || contextActivity is MultiredditOverview
+                                            || contextActivity is SubredditView
+                                            || contextActivity is Search
+                                            || contextActivity is Profile)
+                                ) {
+                                    holder!!.title.alpha = 0.54f
+                                    holder.body.alpha = 0.54f
+                                }
+                            }
+                        }
+                        if ((contextActivity !is PeekViewActivity
+                                    || !contextActivity.isPeeking()
+                                    || ((base is HeaderImageLinkView
+                                    && base.popped)))
+                        ) {
+                            if ((!PostMatch.openExternal(submission.url)
+                                        || type == ContentType.Type.VIDEO)
+                            ) {
+                                when (type) {
+                                    ContentType.Type.STREAMABLE -> if (SettingValues.video) {
+                                        val myIntent =
+                                            Intent(contextActivity, MediaView::class.java)
+                                        myIntent.putExtra(
+                                            MediaView.SUBREDDIT,
+                                            submission.subredditName
+                                        )
+                                        myIntent.putExtra(MediaView.EXTRA_URL, submission.url)
+                                        myIntent.putExtra(
+                                            ImageDownloadNotificationService.EXTRA_SUBMISSION_TITLE,
+                                            submission.title
+                                        )
+                                        PopulateBase.addAdaptorPosition(
+                                            myIntent, submission,
+                                            holder!!.bindingAdapterPosition
+                                        )
+                                        contextActivity.startActivity(myIntent)
+                                    } else {
+                                        LinkUtil.openExternally(submission.url)
+                                    }
+
+                                    ContentType.Type.IMGUR, ContentType.Type.DEVIANTART, ContentType.Type.XKCD, ContentType.Type.IMAGE -> openImage(
+                                        type, contextActivity, submission, holder!!.leadImage,
+                                        holder.bindingAdapterPosition
+                                    )
+
+                                    ContentType.Type.EMBEDDED -> if (SettingValues.video) {
+                                        val data = CompatUtil.fromHtml(
+                                            submission.dataNode["media_embed"]["content"]
+                                                .asText()
+                                        ).toString()
+                                        run {
+                                            val i: Intent = Intent(
+                                                contextActivity,
+                                                FullscreenVideo::class.java
+                                            )
+                                            i.putExtra(FullscreenVideo.EXTRA_HTML, data)
+                                            contextActivity.startActivity(i)
+                                        }
+                                    } else {
+                                        LinkUtil.openExternally(submission.url)
+                                    }
+
+                                    ContentType.Type.REDDIT -> openRedditContent(
+                                        submission.url,
+                                        contextActivity
+                                    )
+
+                                    ContentType.Type.REDDIT_GALLERY -> if (SettingValues.album) {
+                                        val i: Intent
+                                        if (SettingValues.albumSwipe) {
+                                            i = Intent(
+                                                contextActivity,
+                                                RedditGalleryPager::class.java
+                                            )
+                                            i.putExtra(
+                                                AlbumPager.SUBREDDIT,
+                                                submission.subredditName
+                                            )
+                                        } else {
+                                            i = Intent(contextActivity, RedditGallery::class.java)
+                                            i.putExtra(
+                                                Album.SUBREDDIT,
+                                                submission.subredditName
+                                            )
+                                        }
+                                        i.putExtra(
+                                            ImageDownloadNotificationService.EXTRA_SUBMISSION_TITLE,
+                                            submission.title
+                                        )
+                                        i.putExtra(
+                                            RedditGallery.SUBREDDIT,
+                                            submission.subredditName
+                                        )
+                                        val urls = ArrayList<GalleryImage>()
+                                        val dataNode = submission.dataNode
+                                        if (dataNode.has("gallery_data")) {
+                                            JsonUtil.getGalleryData(dataNode, urls)
+                                        } else if (dataNode.has("crosspost_parent_list")) { //Else, try getting crosspost gallery data
+                                            val crosspost_parent =
+                                                dataNode["crosspost_parent_list"][0]
+                                            if (crosspost_parent.has("gallery_data")) {
+                                                JsonUtil.getGalleryData(crosspost_parent, urls)
+                                            }
+                                        }
+                                        val urlsBundle = Bundle()
+                                        urlsBundle.putSerializable(RedditGallery.GALLERY_URLS, urls)
+                                        i.putExtras(urlsBundle)
+                                        PopulateBase.addAdaptorPosition(
+                                            i, submission,
+                                            holder!!.bindingAdapterPosition
+                                        )
+                                        contextActivity.startActivity(i)
+                                        contextActivity.overridePendingTransition(
+                                            R.anim.slideright,
+                                            R.anim.fade_out
+                                        )
+                                    } else {
+                                        LinkUtil.openExternally(submission.url)
+                                    }
+
+                                    ContentType.Type.LINK -> LinkUtil.openUrl(
+                                        submission.url,
+                                        Palette.getColor(submission.subredditName),
+                                        contextActivity, holder!!.bindingAdapterPosition,
+                                        submission
+                                    )
+
+                                    ContentType.Type.SELF -> if (holder != null) {
+                                        override = true
+                                        holder.itemView.performClick()
+                                    }
+
+                                    ContentType.Type.ALBUM -> if (SettingValues.album) {
+                                        val i: Intent
+                                        if (SettingValues.albumSwipe) {
+                                            i = Intent(contextActivity, AlbumPager::class.java)
+                                            i.putExtra(
+                                                AlbumPager.SUBREDDIT,
+                                                submission.subredditName
+                                            )
+                                        } else {
+                                            i = Intent(contextActivity, Album::class.java)
+                                            i.putExtra(
+                                                Album.SUBREDDIT,
+                                                submission.subredditName
+                                            )
+                                        }
+                                        i.putExtra(
+                                            ImageDownloadNotificationService.EXTRA_SUBMISSION_TITLE,
+                                            submission.title
+                                        )
+                                        i.putExtra(Album.EXTRA_URL, submission.url)
+                                        PopulateBase.addAdaptorPosition(
+                                            i, submission,
+                                            holder!!.bindingAdapterPosition
+                                        )
+                                        contextActivity.startActivity(i)
+                                        contextActivity.overridePendingTransition(
+                                            R.anim.slideright,
+                                            R.anim.fade_out
+                                        )
+                                    } else {
+                                        LinkUtil.openExternally(submission.url)
+                                    }
+
+                                    ContentType.Type.TUMBLR -> if (SettingValues.album) {
+                                        val i: Intent
+                                        if (SettingValues.albumSwipe) {
+                                            i = Intent(contextActivity, TumblrPager::class.java)
+                                            i.putExtra(
+                                                TumblrPager.SUBREDDIT,
+                                                submission.subredditName
+                                            )
+                                        } else {
+                                            i = Intent(contextActivity, Tumblr::class.java)
+                                            i.putExtra(
+                                                Tumblr.SUBREDDIT,
+                                                submission.subredditName
+                                            )
+                                        }
+                                        i.putExtra(Album.EXTRA_URL, submission.url)
+                                        PopulateBase.addAdaptorPosition(
+                                            i, submission,
+                                            holder!!.bindingAdapterPosition
+                                        )
+                                        contextActivity.startActivity(i)
+                                        contextActivity.overridePendingTransition(
+                                            R.anim.slideright,
+                                            R.anim.fade_out
+                                        )
+                                    } else {
+                                        LinkUtil.openExternally(submission.url)
+                                    }
+
+                                    ContentType.Type.VREDDIT_REDIRECT, ContentType.Type.GIF, ContentType.Type.VREDDIT_DIRECT -> openGif(
+                                        contextActivity, submission,
+                                        holder!!.bindingAdapterPosition
+                                    )
+
+                                    ContentType.Type.NONE -> holder?.itemView?.performClick()
+                                    ContentType.Type.VIDEO -> if (!LinkUtil.tryOpenWithVideoPlugin(
+                                            submission.url
+                                        )
+                                    ) {
+                                        LinkUtil.openUrl(
+                                            submission.url,
+                                            Palette.getStatusBarColor(), contextActivity
+                                        )
+                                    }
+
+                                    else -> {}
+                                }
+                            } else {
+                                LinkUtil.openExternally(submission.url)
+                            }
+                        }
+                    } else {
+                        if ((contextActivity !is PeekViewActivity
+                                    || !contextActivity.isPeeking())
+                        ) {
+                            val s = Snackbar.make(
+                                holder!!.itemView, R.string.go_online_view_content,
+                                Snackbar.LENGTH_SHORT
+                            )
+                            LayoutUtils.showSnackbar(s)
+                        }
+                    }
+                }
+            })
+        }
+
+        @JvmStatic
+        fun openRedditContent(url: String?, c: Context?) {
+            OpenRedditLink.openUrl(c, url, true)
+        }
+
+        @JvmStatic
+        fun openImage(
+            type: ContentType.Type, contextActivity: Activity,
+            submission: Submission, baseView: HeaderImageLinkView?, adapterPosition: Int
+        ) {
+            if (SettingValues.image) {
+                val myIntent = Intent(contextActivity, MediaView::class.java)
+                myIntent.putExtra(MediaView.SUBREDDIT, submission.subredditName)
+                myIntent.putExtra(
+                    ImageDownloadNotificationService.EXTRA_SUBMISSION_TITLE,
+                    submission.title
+                )
+                val previewUrl: String
+                val url = submission.url
+                if (((baseView != null
+                            ) && baseView.lq
+                            && SettingValues.loadImageLq
+                            && (type != ContentType.Type.XKCD))
+                ) {
+                    myIntent.putExtra(MediaView.EXTRA_LQ, true)
+                    myIntent.putExtra(MediaView.EXTRA_DISPLAY_URL, baseView.loadedUrl)
+                } else if ((submission.dataNode.has("preview")
+                            && submission.dataNode["preview"]["images"][0]["source"]
+                        .has("height")
+                            && ((type
+                            != ContentType.Type.XKCD)))
+                ) { //Load the preview image which has probably already been cached in memory instead of the direct link
+                    previewUrl = submission.dataNode["preview"]["images"][0]["source"]["url"]
+                        .asText()
+                    if (baseView == null || (!SettingValues.loadImageLq && baseView.lq)) {
+                        myIntent.putExtra(MediaView.EXTRA_DISPLAY_URL, previewUrl)
+                    } else {
+                        myIntent.putExtra(MediaView.EXTRA_DISPLAY_URL, baseView.loadedUrl)
+                    }
+                }
+                myIntent.putExtra(MediaView.EXTRA_URL, url)
+                PopulateBase.addAdaptorPosition(myIntent, submission, adapterPosition)
+                myIntent.putExtra(MediaView.EXTRA_SHARE_URL, submission.url)
+                contextActivity.startActivity(myIntent)
+            } else {
+                LinkUtil.openExternally(submission.url)
+            }
+        }
+
+        @JvmStatic
+        fun openGif(
+            contextActivity: Activity, submission: Submission,
+            adapterPosition: Int
+        ) {
+            if (SettingValues.gif) {
+                DataShare.sharedSubmission = submission
+                val myIntent = Intent(contextActivity, MediaView::class.java)
+                myIntent.putExtra(MediaView.SUBREDDIT, submission.subredditName)
+                myIntent.putExtra(
+                    ImageDownloadNotificationService.EXTRA_SUBMISSION_TITLE,
+                    submission.title
+                )
+                val t = AsyncLoadGif.getVideoType(submission.url)
+                if (t == AsyncLoadGif.VideoType.VREDDIT) {
+                    if (submission.dataNode.has("media") && submission.dataNode["media"]
+                            .has("reddit_video") && submission.dataNode["media"]["reddit_video"].has(
+                            "hls_url"
+                        )
+                    ) {
+                        myIntent.putExtra(
+                            MediaView.EXTRA_URL, StringEscapeUtils.unescapeJson(
+                                submission
+                                    .dataNode["media"]["reddit_video"]["dash_url"] //In the future, we could load the HLS url as well
+                                    .asText()
+                            ).replace("&amp;", "&")
+                        )
+                    } else if (submission.dataNode.has("media") && submission.dataNode["media"]
+                            .has("reddit_video")
+                    ) {
+                        myIntent.putExtra(
+                            MediaView.EXTRA_URL, StringEscapeUtils.unescapeJson(
+                                submission
+                                    .dataNode["media"]["reddit_video"]["fallback_url"]
+                                    .asText()
+                            ).replace("&amp;", "&")
+                        )
+                    } else if (submission.dataNode.has("crosspost_parent_list")) {
+                        myIntent.putExtra(
+                            MediaView.EXTRA_URL, StringEscapeUtils.unescapeJson(
+                                submission
+                                    .dataNode["crosspost_parent_list"][0]["media"]["reddit_video"]["dash_url"]
+                                    .asText()
+                            ).replace("&amp;", "&")
+                        )
+                    } else {
+                        OpenVRedditTask(
+                            contextActivity,
+                            submission.subredditName
+                        ).executeOnExecutor(
+                            AsyncTask.THREAD_POOL_EXECUTOR, submission.url
+                        )
+                        return
+                    }
+                } else if ((t.shouldLoadPreview()
+                            && submission.dataNode.has("preview")
+                            && submission.dataNode["preview"]["images"][0].has("variants")
+                            && submission.dataNode["preview"]["images"][0]["variants"]
+                        .has("mp4"))
+                ) {
+                    myIntent.putExtra(
+                        MediaView.EXTRA_URL, StringEscapeUtils.unescapeJson(
+                            submission.dataNode["preview"]["images"][0]["variants"]["mp4"]["source"]["url"]
+                                .asText()
+                        ).replace("&amp;", "&")
+                    )
+                } else if ((t.shouldLoadPreview()
+                            && submission.dataNode.has("preview")
+                            && submission.dataNode["preview"]["reddit_video_preview"].has("fallback_url"))
+                ) {
+                    myIntent.putExtra(
+                        MediaView.EXTRA_URL, StringEscapeUtils.unescapeJson(
+                            submission.dataNode["preview"]["reddit_video_preview"]["fallback_url"]
+                                .asText()
+                        ).replace("&amp;", "&")
+                    )
+                } else if (((t == AsyncLoadGif.VideoType.DIRECT
+                            ) && submission.dataNode
+                        .has("media")
+                            && submission.dataNode["media"].has("reddit_video")
+                            && submission.dataNode["media"]["reddit_video"]
+                        .has("fallback_url"))
+                ) {
+                    myIntent.putExtra(
+                        MediaView.EXTRA_URL, StringEscapeUtils.unescapeJson(
+                            submission.dataNode["media"]["reddit_video"]["fallback_url"]
+                                .asText()
+                        ).replace("&amp;", "&")
+                    )
+                } else if (t != AsyncLoadGif.VideoType.OTHER) {
+                    myIntent.putExtra(MediaView.EXTRA_URL, submission.url)
+                } else {
+                    LinkUtil.openUrl(
+                        submission.url,
+                        Palette.getColor(submission.subredditName), contextActivity,
+                        adapterPosition, submission
+                    )
+                    return
+                }
+                if (submission.dataNode.has("preview") && submission.dataNode["preview"]["images"][0]["source"]
+                        .has("height")
+                ) { //Load the preview image which has probably already been cached in memory instead of the direct link
+                    val previewUrl = submission.dataNode["preview"]["images"][0]["source"]["url"]
+                        .asText()
+                    myIntent.putExtra(MediaView.EXTRA_DISPLAY_URL, previewUrl)
+                }
+                PopulateBase.addAdaptorPosition(myIntent, submission, adapterPosition)
+                contextActivity.startActivity(myIntent)
+            } else {
+                LinkUtil.openExternally(submission.url)
             }
         }
     }

@@ -80,8 +80,12 @@ import com.afollestad.materialdialogs.MaterialDialog
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.tabs.TabLayout
 import com.lusfold.androidkeyvaluestore.KVStore
+import ltd.ucode.slide.App
+import ltd.ucode.slide.Authentication
 import ltd.ucode.slide.BuildConfig
+import ltd.ucode.slide.Preferences
 import ltd.ucode.slide.R
+import ltd.ucode.slide.SettingValues
 import me.ccrama.redditslide.Activities.Announcement
 import me.ccrama.redditslide.Activities.BaseActivity
 import me.ccrama.redditslide.Activities.CancelSubNotifs
@@ -101,8 +105,6 @@ import me.ccrama.redditslide.Activities.Submit
 import me.ccrama.redditslide.Activities.SubredditView
 import me.ccrama.redditslide.Activities.Wiki
 import me.ccrama.redditslide.Adapters.SideArrayAdapter
-import ltd.ucode.slide.Authentication
-import ltd.ucode.slide.Preferences
 import me.ccrama.redditslide.Autocache.AutoCacheScheduler
 import me.ccrama.redditslide.CaseInsensitiveArrayList
 import me.ccrama.redditslide.CommentCacheAsync
@@ -119,8 +121,6 @@ import me.ccrama.redditslide.Notifications.CheckForMail.AsyncGetSubs
 import me.ccrama.redditslide.Notifications.NotificationJobScheduler
 import me.ccrama.redditslide.OpenRedditLink
 import me.ccrama.redditslide.PostMatch
-import ltd.ucode.slide.App
-import ltd.ucode.slide.SettingValues
 import me.ccrama.redditslide.SpoilerRobotoTextView
 import me.ccrama.redditslide.Synccit.MySynccitUpdateTask
 import me.ccrama.redditslide.Synccit.SynccitRead
@@ -268,8 +268,8 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             }
 
             //clear the text from the toolbar search field
-            if (findViewById(R.id.toolbar_search) != null) {
-                (findViewById(R.id.toolbar_search) as AutoCompleteTextView?)?.setText("")
+            if (findViewById<AutoCompleteTextView>(R.id.toolbar_search) != null) {
+                findViewById<AutoCompleteTextView>(R.id.toolbar_search)?.setText("")
             }
             val view = this@MainActivity.currentFocus
             if (view != null) {
@@ -332,9 +332,9 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             pager!!.currentItem = pager!!.currentItem - 1
         } else if ((SettingValues.subredditSearchMethod == Constants.SUBREDDIT_SEARCH_METHOD_TOOLBAR
                     || SettingValues.subredditSearchMethod == Constants.SUBREDDIT_SEARCH_METHOD_BOTH)
-            && findViewById(R.id.toolbar_search).visibility == View.VISIBLE
+            && findViewById<AutoCompleteTextView>(R.id.toolbar_search).visibility == View.VISIBLE
         ) {
-            findViewById(R.id.close_search_toolbar).performClick() //close GO_TO_SUB_FIELD
+            findViewById<ImageView>(R.id.close_search_toolbar).performClick() //close GO_TO_SUB_FIELD
         } else if (SettingValues.backButtonBehavior
             == Constants.BackButtonBehaviorOptions.OpenDrawer.value
         ) {
@@ -390,8 +390,8 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
         }
 
         //Upon leaving MainActivity--hide the toolbar search if it is visible
-        if (findViewById(R.id.toolbar_search).visibility == View.VISIBLE) {
-            findViewById(R.id.close_search_toolbar).performClick()
+        if (findViewById<AutoCompleteTextView>(R.id.toolbar_search).visibility == View.VISIBLE) {
+            findViewById<ImageView>(R.id.close_search_toolbar).performClick()
         }
     }
 
@@ -950,7 +950,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
         if (intent.getBooleanExtra("EXIT", false)) finish()
         applyColorTheme()
         setContentView(R.layout.activity_overview)
-        mToolbar = findViewById(R.id.toolbar) as Toolbar?
+        mToolbar = findViewById<Toolbar>(R.id.toolbar)
         mToolbar!!.popupTheme = ColorPreferences(this).fontStyle.baseId
         setSupportActionBar(mToolbar)
         if (intent != null && intent.hasExtra(EXTRA_PAGE_TO)) {
@@ -961,7 +961,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             window.statusBarColor =
                 Palette.getDarkerColor(Palette.getDarkerColor(Palette.getDefaultColor()))
         }
-        mTabLayout = findViewById(R.id.sliding_tabs) as TabLayout?
+        mTabLayout = findViewById<TabLayout>(R.id.sliding_tabs)
         header = findViewById(R.id.header)
 
         //Gets the height of the header
@@ -974,21 +974,21 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                     }
                 })
         }
-        pager = findViewById(R.id.content_view) as ToggleSwipeViewPager?
+        pager = findViewById<ToggleSwipeViewPager>(R.id.content_view)
         singleMode = SettingValues.single
         if (singleMode) {
             commentPager = SettingValues.commentPager
         }
         // Inflate tabs if single mode is disabled
         if (!singleMode) {
-            mTabLayout = (findViewById(R.id.stub_tabs) as ViewStub?)?.inflate() as TabLayout?
+            mTabLayout = findViewById<ViewStub>(R.id.stub_tabs)?.inflate() as TabLayout?
         }
         // Disable swiping if single mode is enabled
         if (singleMode) {
             pager!!.setSwipingEnabled(false)
         }
-        sidebarBody = findViewById(R.id.sidebar_text) as SpoilerRobotoTextView?
-        sidebarOverflow = findViewById(R.id.commentOverflow) as CommentOverflow?
+        sidebarBody = findViewById<SpoilerRobotoTextView>(R.id.sidebar_text)
+        sidebarOverflow = findViewById<CommentOverflow>(R.id.commentOverflow)
         if (!Preferences.appRestart.getBoolean("isRestarting", false) && Preferences.colours.contains(
                 "Tutorial"
             )
@@ -1209,7 +1209,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                     mToolbar!!.setOnLongClickListener(
                         null
                     ) //remove the long click listener from the toolbar
-                    findViewById(R.id.drawer_divider).visibility = View.GONE
+                    findViewById<View>(R.id.drawer_divider).visibility = View.GONE
                 } else if (SettingValues.subredditSearchMethod
                     == Constants.SUBREDDIT_SEARCH_METHOD_TOOLBAR
                 ) {
@@ -1217,7 +1217,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                 } else if (SettingValues.subredditSearchMethod
                     == Constants.SUBREDDIT_SEARCH_METHOD_BOTH
                 ) {
-                    findViewById(R.id.drawer_divider).visibility = View.GONE
+                    findViewById<View>(R.id.drawer_divider).visibility = View.GONE
                     setupSubredditSearchToolbar()
                     setDrawerSubList()
                 }
@@ -1248,7 +1248,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
 
     var accounts = HashMap<String, String>()
     fun doDrawer() {
-        drawerSubList = findViewById(R.id.drawerlistview) as ListView?
+        drawerSubList = findViewById<ListView>(R.id.drawerlistview)
         drawerSubList!!.dividerHeight = 0
         drawerSubList!!.descendantFocusability = ListView.FOCUS_BEFORE_DESCENDANTS
         val inflater = layoutInflater
@@ -1373,7 +1373,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             //update notification badge
             val profStuff = header.findViewById<LinearLayout>(R.id.accountsarea)
             profStuff.visibility = View.GONE
-            findViewById(R.id.back).setOnClickListener {
+            findViewById<View>(R.id.back).setOnClickListener {
                 if (profStuff.visibility == View.GONE) {
                     expand(profStuff)
                     header.contentDescription = resources.getString(R.string.btn_collapse)
@@ -1566,7 +1566,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             hea = header.findViewById(R.id.back)
             val profStuff = header.findViewById<LinearLayout>(R.id.accountsarea)
             profStuff.visibility = View.GONE
-            findViewById(R.id.back).setOnClickListener {
+            findViewById<View>(R.id.back).setOnClickListener {
                 if (profStuff.visibility == View.GONE) {
                     expand(profStuff)
                     AnimatorUtil.flipAnimator(false, header.findViewById(R.id.headerflip)).start()
@@ -1860,7 +1860,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                 Overview.this.startActivityForResult(inte, 3);
             }
         });*/
-        val toolbar = findViewById(R.id.toolbar) as Toolbar?
+        val toolbar = findViewById<Toolbar>(R.id.toolbar)
         val actionBarDrawerToggle: ActionBarDrawerToggle = object : ActionBarDrawerToggle(
             this@MainActivity,
             drawerLayout,
@@ -2014,14 +2014,14 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
     }
 
     fun doSubOnlyStuff(subreddit: Subreddit) {
-        findViewById(R.id.loader).visibility = View.GONE
+        findViewById<View>(R.id.loader).visibility = View.GONE
         canSubmit = if (subreddit.subredditType != null) {
             subreddit.subredditType != Subreddit.Type.RESTRICTED
         } else {
             true
         }
         if (subreddit.sidebar != null && !subreddit.sidebar.isEmpty()) {
-            findViewById(R.id.sidebar_text).visibility = View.VISIBLE
+            findViewById<View>(R.id.sidebar_text).visibility = View.VISIBLE
             val text = subreddit.dataNode["description_html"].asText().trim { it <= ' ' }
             setViews(text, subreddit.displayName, sidebarBody, sidebarOverflow)
 
@@ -2040,12 +2040,12 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
 
             //whether or not this subreddit was in the keySet
             val isNotified = subThresholds.containsKey(subreddit.displayName.lowercase())
-            (findViewById(R.id.notify_posts_state) as AppCompatCheckBox?)!!.isChecked = isNotified
+            findViewById<AppCompatCheckBox>(R.id.notify_posts_state)!!.isChecked = isNotified
         } else {
-            findViewById(R.id.sidebar_text).visibility = View.GONE
+            findViewById<View>(R.id.sidebar_text).visibility = View.GONE
         }
         run {
-            val collection = findViewById(R.id.collection)
+            val collection = findViewById<View>(R.id.collection)
             if (Authentication.isLoggedIn) {
                 collection.setOnClickListener {
                     object : AsyncTask<Void?, Void?, Void?>() {
@@ -2148,7 +2148,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             }
         }
         run {
-            val notifyStateCheckBox = findViewById(R.id.notify_posts_state) as AppCompatCheckBox?
+            val notifyStateCheckBox = findViewById<AppCompatCheckBox>(R.id.notify_posts_state)
             notifyStateCheckBox!!.setOnCheckedChangeListener { buttonView, isChecked ->
                 if (isChecked) {
                     val sub = subreddit.displayName
@@ -2227,7 +2227,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             }
         }
         run {
-            val subscribe = findViewById(R.id.subscribe) as TextView?
+            val subscribe = findViewById<TextView>(R.id.subscribe)
             currentlySubbed = !Authentication.isLoggedIn && usedArray!!.contains(
                 subreddit.displayName.lowercase()
             ) || subreddit.isUserSubscriber
@@ -2370,51 +2370,51 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             })
         }
         if (!subreddit.publicDescription.isEmpty()) {
-            findViewById(R.id.sub_title).visibility = View.VISIBLE
+            findViewById<View>(R.id.sub_title).visibility = View.VISIBLE
             setViews(
                 subreddit.dataNode["public_description_html"].asText(),
                 subreddit.displayName.lowercase(),
-                findViewById(R.id.sub_title) as SpoilerRobotoTextView?,
-                findViewById(R.id.sub_title_overflow) as CommentOverflow?
+                findViewById<SpoilerRobotoTextView>(R.id.sub_title),
+                findViewById<CommentOverflow>(R.id.sub_title_overflow)
             )
         } else {
-            findViewById(R.id.sub_title).visibility = View.GONE
+            findViewById<View>(R.id.sub_title).visibility = View.GONE
         }
-        (findViewById(R.id.subimage) as ImageView?)?.setImageResource(0)
+        findViewById<ImageView>(R.id.subimage)?.setImageResource(0)
         if (subreddit.dataNode.has("icon_img") && !subreddit.dataNode["icon_img"]
                 .asText()
                 .isEmpty()
         ) {
-            findViewById(R.id.subimage).visibility = View.VISIBLE
+            findViewById<View>(R.id.subimage).visibility = View.VISIBLE
             (application as App).imageLoader!!
                 .displayImage(
                     subreddit.dataNode["icon_img"].asText(),
-                    findViewById(R.id.subimage) as ImageView?
+                    findViewById<ImageView>(R.id.subimage)
                 )
         } else {
-            findViewById(R.id.subimage).visibility = View.GONE
+            findViewById<View>(R.id.subimage).visibility = View.GONE
         }
         val bannerImage = subreddit.bannerImage
         if (bannerImage != null && !bannerImage.isEmpty()) {
-            findViewById(R.id.sub_banner).visibility = View.VISIBLE
+            findViewById<View>(R.id.sub_banner).visibility = View.VISIBLE
             (application as App).imageLoader!!
                 .displayImage(
                     bannerImage,
-                    findViewById(R.id.sub_banner) as ImageView?
+                    findViewById<ImageView>(R.id.sub_banner)
                 )
         } else {
-            findViewById(R.id.sub_banner).visibility = View.GONE
+            findViewById<View>(R.id.sub_banner).visibility = View.GONE
         }
-        (findViewById(R.id.subscribers) as TextView?)!!.text = getString(
+        findViewById<TextView>(R.id.subscribers)!!.text = getString(
             R.string.subreddit_subscribers_string,
             subreddit.localizedSubscriberCount
         )
-        findViewById(R.id.subscribers).visibility = View.VISIBLE
-        (findViewById(R.id.active_users) as TextView?)!!.text = getString(
+        findViewById<View>(R.id.subscribers).visibility = View.VISIBLE
+        findViewById<TextView>(R.id.active_users)!!.text = getString(
             R.string.subreddit_active_users_string_new,
             subreddit.localizedAccountsActive
         )
-        findViewById(R.id.active_users).visibility = View.VISIBLE
+        findViewById<View>(R.id.active_users).visibility = View.VISIBLE
     }
 
     var sorts: Sorting? = null
@@ -2422,7 +2422,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
         if (mAsyncGetSubreddit != null) {
             mAsyncGetSubreddit!!.cancel(true)
         }
-        findViewById(R.id.loader).visibility = View.VISIBLE
+        findViewById<View>(R.id.loader).visibility = View.VISIBLE
         invalidateOptionsMenu()
         if (!subreddit.equals("all", ignoreCase = true)
             && !subreddit.equals("frontpage", ignoreCase = true)
@@ -2437,7 +2437,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             }
             mAsyncGetSubreddit = AsyncGetSubreddit()
             mAsyncGetSubreddit!!.execute(subreddit)
-            val dialoglayout = findViewById(R.id.sidebarsub)
+            val dialoglayout: View = findViewById(R.id.sidebarsub)
             run {
                 val submit = dialoglayout.findViewById<View>(R.id.submit)
                 if (!Authentication.isLoggedIn || !Authentication.didOnline) {
@@ -2799,7 +2799,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                         }
                     }
                 }
-                currentFlair!!.execute(dialoglayout.findViewById(R.id.flair) as View?)
+                currentFlair!!.execute(dialoglayout.findViewById<View>(R.id.flair))
             }
         } else {
             if (drawerLayout != null) {
@@ -2850,7 +2850,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
         if (mAsyncGetSubreddit != null) {
             mAsyncGetSubreddit!!.cancel(true)
         }
-        findViewById(R.id.loader).visibility = View.GONE
+        findViewById<View>(R.id.loader).visibility = View.GONE
         invalidateOptionsMenu()
         if (!subreddit.equals("all", ignoreCase = true)
             && !subreddit.equals("frontpage", ignoreCase = true)
@@ -2863,23 +2863,23 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             if (drawerLayout != null) {
                 drawerLayout!!.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED, GravityCompat.END)
             }
-            findViewById(R.id.sidebar_text).visibility = View.GONE
-            findViewById(R.id.sub_title).visibility = View.GONE
-            findViewById(R.id.subscribers).visibility = View.GONE
-            findViewById(R.id.active_users).visibility = View.GONE
-            findViewById(R.id.header_sub).setBackgroundColor(Palette.getColor(subreddit))
-            (findViewById(R.id.sub_infotitle) as TextView?)!!.text = subreddit
+            findViewById<View>(R.id.sidebar_text).visibility = View.GONE
+            findViewById<View>(R.id.sub_title).visibility = View.GONE
+            findViewById<View>(R.id.subscribers).visibility = View.GONE
+            findViewById<View>(R.id.active_users).visibility = View.GONE
+            findViewById<View>(R.id.header_sub).setBackgroundColor(Palette.getColor(subreddit))
+            findViewById<TextView>(R.id.sub_infotitle)!!.text = subreddit
 
             //Sidebar buttons should use subreddit's accent color
             val subColor = ColorPreferences(this).getColor(subreddit)
-            (findViewById(R.id.theme_text) as TextView?)?.setTextColor(subColor)
-            (findViewById(R.id.wiki_text) as TextView?)?.setTextColor(subColor)
-            (findViewById(R.id.post_text) as TextView?)?.setTextColor(subColor)
-            (findViewById(R.id.mods_text) as TextView?)?.setTextColor(subColor)
-            (findViewById(R.id.flair_text) as TextView?)?.setTextColor(subColor)
+            findViewById<TextView>(R.id.theme_text)?.setTextColor(subColor)
+            findViewById<TextView>(R.id.wiki_text)?.setTextColor(subColor)
+            findViewById<TextView>(R.id.post_text)?.setTextColor(subColor)
+            findViewById<TextView>(R.id.mods_text)?.setTextColor(subColor)
+            findViewById<TextView>(R.id.flair_text)?.setTextColor(subColor)
             (drawerLayout!!.findViewById<View>(R.id.sorting)
                 .findViewById<View>(R.id.sort) as TextView?)?.setTextColor(subColor)
-            (findViewById(R.id.sync) as TextView?)?.setTextColor(subColor)
+            findViewById<TextView>(R.id.sync)?.setTextColor(subColor)
         } else {
             if (drawerLayout != null) {
                 drawerLayout!!.setDrawerLockMode(
@@ -3257,7 +3257,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
         overridePendingTransition(R.anim.fade_in_real, R.anim.fading_out_real)
     }
 
-    fun saveOffline(submissions: List<Submission?>?, subreddit: String?) {
+    fun saveOffline(submissions: List<Submission>?, subreddit: String) {
         val chosen = BooleanArray(2)
         AlertDialog.Builder(this)
             .setTitle(R.string.save_for_offline_viewing)
@@ -3448,7 +3448,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                 }
                 false
             })
-            val close = findViewById(R.id.close_search_drawer)
+            val close = findViewById<View>(R.id.close_search_drawer)
             close.visibility = View.GONE
             drawerSearch!!.addTextChangedListener(object : SimpleTextWatcher() {
                 override fun afterTextChanged(editable: Editable) {
@@ -3497,7 +3497,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             window.statusBarColor = Palette.getDarkerColor(color)
         }
         setRecentBar(subreddit, color)
-        findViewById(R.id.header_sub).setBackgroundColor(color)
+        findViewById<View>(R.id.header_sub).setBackgroundColor(color)
     }
 
     fun updateMultiNameToSubs(subs: Map<String, String>) {
@@ -3506,7 +3506,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
 
     fun updateSubs(subs: ArrayList<String>) {
         if (subs.isEmpty() && !NetworkUtil.isConnected(this)) {
-            findViewById(R.id.toolbar).visibility = View.GONE
+            findViewById<View>(R.id.toolbar).visibility = View.GONE
             d = MaterialDialog.Builder(this@MainActivity).title(
                 R.string.offline_no_content_found
             )
@@ -3520,7 +3520,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                 }
                 .show()
         } else {
-            drawerLayout = findViewById(R.id.drawer_layout) as DrawerLayout?
+            drawerLayout = findViewById<DrawerLayout>(R.id.drawer_layout)
             if (!resources.getBoolean(R.bool.isTablet)) {
                 setDrawerEdge(this, Constants.DRAWER_SWIPE_EDGE, drawerLayout)
             } else {
@@ -3709,7 +3709,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             } else {
                 commentOverflow!!.setViews(blocks.subList(startIndex, blocks.size), subredditName)
             }
-            val sidebar = findViewById(R.id.drawer_layout) as SidebarLayout?
+            val sidebar = findViewById<SidebarLayout>(R.id.drawer_layout)
             for (i in 0 until commentOverflow.childCount) {
                 val maybeScrollable = commentOverflow.getChildAt(i)
                 if (maybeScrollable is HorizontalScrollView) {
@@ -3728,25 +3728,25 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
      */
     private fun setupSubredditSearchToolbar() {
         if (!NetworkUtil.isConnected(this)) {
-            if (findViewById(R.id.drawer_divider) != null) {
-                findViewById(R.id.drawer_divider).visibility = View.GONE
+            if (findViewById<View>(R.id.drawer_divider) != null) {
+                findViewById<View>(R.id.drawer_divider).visibility = View.GONE
             }
         } else {
             if ((SettingValues.subredditSearchMethod == Constants.SUBREDDIT_SEARCH_METHOD_TOOLBAR
                         || SettingValues.subredditSearchMethod
                         == Constants.SUBREDDIT_SEARCH_METHOD_BOTH) && usedArray != null && !usedArray!!.isEmpty()
             ) {
-                if (findViewById(R.id.drawer_divider) != null) {
+                if (findViewById<View>(R.id.drawer_divider) != null) {
                     if (SettingValues.subredditSearchMethod
                         == Constants.SUBREDDIT_SEARCH_METHOD_BOTH
                     ) {
-                        findViewById(R.id.drawer_divider).visibility = View.GONE
+                        findViewById<View>(R.id.drawer_divider).visibility = View.GONE
                     } else {
-                        findViewById(R.id.drawer_divider).visibility = View.VISIBLE
+                        findViewById<View>(R.id.drawer_divider).visibility = View.VISIBLE
                     }
                 }
                 val TOOLBAR_SEARCH_SUGGEST_LIST =
-                    findViewById(R.id.toolbar_search_suggestions_list) as ListView?
+                    findViewById<ListView>(R.id.toolbar_search_suggestions_list)
                 val subs_copy = ArrayList(usedArray)
                 val TOOLBAR_SEARCH_SUGGEST_ADAPTER = SideArrayAdapter(
                     this, subs_copy,
@@ -3759,10 +3759,10 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                 if (mToolbar != null) {
                     mToolbar!!.setOnLongClickListener {
                         val GO_TO_SUB_FIELD =
-                            findViewById(R.id.toolbar_search) as AutoCompleteTextView?
-                        val CLOSE_BUTTON = findViewById(R.id.close_search_toolbar) as ImageView
+                            findViewById<AutoCompleteTextView>(R.id.toolbar_search)
+                        val CLOSE_BUTTON = findViewById<ImageView>(R.id.close_search_toolbar)
                         val SUGGESTIONS_BACKGROUND =
-                            findViewById(R.id.toolbar_search_suggestions) as CardView?
+                            findViewById<CardView>(R.id.toolbar_search_suggestions)
 
                         //if the view mode is set to Subreddit Tabs, save the title ("Slide" or "Slide (debug)")
                         tabViewModeTitle = if (!SettingValues.single) supportActionBar!!.title
@@ -4135,7 +4135,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                                     == Constants.SUBREDDIT_SEARCH_METHOD_TOOLBAR
                                     || SettingValues.subredditSearchMethod
                                     == Constants.SUBREDDIT_SEARCH_METHOD_BOTH)
-                            && findViewById(R.id.toolbar_search).visibility
+                            && findViewById<AutoCompleteTextView>(R.id.toolbar_search).visibility
                             == View.VISIBLE
                         ) {
                             Handler().postDelayed(

@@ -77,8 +77,7 @@ public class Album extends FullScreenActivity implements FolderChooserDialogCrea
             onBackPressed();
         }
         if (id == R.id.slider) {
-            SettingValues.albumSwipe = true;
-            SettingValues.prefs.edit().putBoolean(SettingValues.PREF_ALBUM_SWIPE, true).apply();
+            SettingValues.INSTANCE.setAlbumSwipe(true);
             Intent i = new Intent(Album.this, AlbumPager.class);
             int adapterPosition = getIntent().getIntExtra(MediaView.ADAPTER_POSITION, -1);
             i.putExtra(MediaView.ADAPTER_POSITION, adapterPosition);

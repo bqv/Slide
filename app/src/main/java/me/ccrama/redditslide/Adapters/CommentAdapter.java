@@ -287,7 +287,7 @@ public class CommentAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     }
 
     public void doTimes() {
-        if (submission != null && SettingValues.commentLastVisit && !dataSet.single && (
+        if (submission != null && SettingValues.INSTANCE.getCommentLastVisit() && !dataSet.single && (
                 SettingValues.storeHistory
                         && (!submission.isNsfw() || SettingValues.storeNSFWHistory))) {
             lastSeen = HasSeen.getSeenTime(submission);
@@ -1526,7 +1526,7 @@ public class CommentAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         if (lastSeen != 0
                 && lastSeen < c.getCreated().getTime()
                 && !dataSet.single
-                && SettingValues.commentLastVisit
+                && SettingValues.INSTANCE.getCommentLastVisit()
                 && !Authentication.name.equals(c.getAuthor())) {
             color = Palette.getColor(baseNode.getComment().getSubredditName());
             color = Color.argb(20, Color.red(color), Color.green(color), Color.blue(color));

@@ -939,7 +939,7 @@ public class CommentPage extends Fragment implements Toolbar.OnMenuItemClickList
                             case ALBUM:
                                 if (SettingValues.album) {
                                     Intent i;
-                                    if (SettingValues.albumSwipe) {
+                                    if (SettingValues.INSTANCE.getAlbumSwipe()) {
                                         i = new Intent(getActivity(), AlbumPager.class);
                                         i.putExtra(Album.EXTRA_URL,
                                                 adapter.submission.getUrl());
@@ -962,7 +962,7 @@ public class CommentPage extends Fragment implements Toolbar.OnMenuItemClickList
                             case TUMBLR:
                                 if (SettingValues.image) {
                                     Intent i;
-                                    if (SettingValues.albumSwipe) {
+                                    if (SettingValues.INSTANCE.getAlbumSwipe()) {
                                         i = new Intent(getActivity(),
                                                 TumblrPager.class);
                                         i.putExtra(Album.EXTRA_URL,
@@ -1073,7 +1073,7 @@ public class CommentPage extends Fragment implements Toolbar.OnMenuItemClickList
                             if (!Authentication.isLoggedIn || !Authentication.didOnline) {
                                 submit.setVisibility(View.GONE);
                             }
-                            if (SettingValues.fab && SettingValues.fabType == Constants.FAB_POST) {
+                            if (SettingValues.INSTANCE.getFab() && SettingValues.INSTANCE.getFabType() == Constants.FAB_POST) {
                                 submit.setVisibility(View.GONE);
                             }
 

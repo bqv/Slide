@@ -1345,7 +1345,7 @@ public class CommentAdapterHelper {
                 && adapter.lastSeen != 0
                 && adapter.lastSeen < time
                 && !adapter.dataSet.single
-                && SettingValues.commentLastVisit) {
+                && SettingValues.INSTANCE.getCommentLastVisit()) {
             timeSpan.setSpan(new RoundedBackgroundSpan(Color.WHITE,
                             Palette.getColor(comment.getSubredditName()), false, mContext), 0,
                     timeSpan.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);

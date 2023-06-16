@@ -67,7 +67,7 @@ public class SettingsSubAdapter extends RecyclerView.Adapter<SettingsSubAdapter.
                         .setPositiveButton(R.string.btn_yes, (dialog, which) -> {
                             Palette.removeColor(subreddit);
                             // Remove layout settings
-                            SettingValues.prefs.edit().remove(App.PREF_LAYOUT + subreddit).apply();
+                            SettingValues.setLayoutSettings(subreddit, false);
                             // Remove accent / font color settings
                             new ColorPreferences(context).removeFontStyle(subreddit);
 
@@ -130,8 +130,8 @@ public class SettingsSubAdapter extends RecyclerView.Adapter<SettingsSubAdapter.
             //Check if all selected subs have the same settings
             int previousSubColor = 0;
             int previousSubAccent = 0;
-            bigPics.setChecked(SettingValues.bigPicEnabled);
-            selftext.setChecked(SettingValues.cardText);
+            bigPics.setChecked(SettingValues.INSTANCE.getBigPicEnabled());
+            selftext.setChecked(SettingValues.INSTANCE.getCardText());
             boolean sameMainColor = true;
             boolean sameAccentColor = true;
 
@@ -167,7 +167,7 @@ public class SettingsSubAdapter extends RecyclerView.Adapter<SettingsSubAdapter.
             }
         } else {  //Is only one selected sub
             currentColor = Palette.getColor(subreddit);
-            isAlternateLayout = SettingValues.prefs.contains(App.PREF_LAYOUT + subreddit);
+            isAlternateLayout = SettingValues.getLayoutSettings(subreddit);
             currentAccentColor = colorPrefs.getColor(subreddit);
             bigPics.setChecked(SettingValues.isPicsEnabled(subreddit));
             selftext.setChecked(SettingValues.isSelftextEnabled(subreddit));
@@ -347,7 +347,7 @@ public class SettingsSubAdapter extends RecyclerView.Adapter<SettingsSubAdapter.
                                     for (String sub : subreddits) {
                                         Palette.removeColor(sub);
                                         // Remove layout settings
-                                        SettingValues.prefs.edit().remove(App.PREF_LAYOUT + sub).apply();
+                                        SettingValues.setLayoutSettings(sub, false);
                                         // Remove accent / font color settings
                                         new ColorPreferences(context).removeFontStyle(sub);
 
@@ -411,7 +411,7 @@ public class SettingsSubAdapter extends RecyclerView.Adapter<SettingsSubAdapter.
                             }
 
                             // Set layout
-                            SettingValues.prefs.edit().putBoolean(App.PREF_LAYOUT + sub, true).apply();
+                            SettingValues.setLayoutSettings(sub, true);
                         }
 
                         //Only refresh stuff if the user changed something

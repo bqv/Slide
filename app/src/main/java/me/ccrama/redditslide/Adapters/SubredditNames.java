@@ -80,7 +80,7 @@ public class SubredditNames {
             if (submissions != null && !submissions.isEmpty()) {
                 ArrayList<Subreddit> toRemove = new ArrayList<>();
                 for (Subreddit s : submissions) {
-                    if (PostMatch.contains(s.getDisplayName().toLowerCase(Locale.ENGLISH), SettingValues.subredditFilters, true))
+                    if (PostMatch.contains(s.getDisplayName().toLowerCase(Locale.ENGLISH), SettingValues.INSTANCE.getSubredditFilters(), true))
                         toRemove.add(s);
                 }
                 submissions.removeAll(toRemove);

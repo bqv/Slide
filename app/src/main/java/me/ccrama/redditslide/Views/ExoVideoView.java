@@ -285,7 +285,7 @@ public class ExoVideoView extends RelativeLayout {
 
                         mute.setVisibility(VISIBLE);
                         // Set initial mute state
-                        if (!SettingValues.isMuted) {
+                        if (!SettingValues.INSTANCE.isMuted()) {
                             player.setVolume(1f);
                             BlendModeUtil.tintImageViewAsSrcAtop(mute, Color.WHITE);
                             audioFocusHelper.gainFocus();
@@ -295,16 +295,14 @@ public class ExoVideoView extends RelativeLayout {
                         }
 
                         mute.setOnClickListener((v) -> {
-                            if (SettingValues.isMuted) {
+                            if (SettingValues.INSTANCE.isMuted()) {
                                 player.setVolume(1f);
-                                SettingValues.isMuted = false;
-                                SettingValues.prefs.edit().putBoolean(SettingValues.PREF_MUTE, false).apply();
+                                SettingValues.INSTANCE.setMuted(false);
                                 BlendModeUtil.tintImageViewAsSrcAtop(mute, Color.WHITE);
                                 audioFocusHelper.gainFocus();
                             } else {
                                 player.setVolume(0f);
-                                SettingValues.isMuted = true;
-                                SettingValues.prefs.edit().putBoolean(SettingValues.PREF_MUTE, true).apply();
+                                SettingValues.INSTANCE.setMuted(true);
                                 BlendModeUtil.tintImageViewAsSrcAtop(mute, getResources().getColor(R.color.md_red_500));
                                 audioFocusHelper.loseFocus();
                             }

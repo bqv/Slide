@@ -1,74 +1,69 @@
-package me.ccrama.redditslide.ui.settings;
+package me.ccrama.redditslide.ui.settings
 
-import android.content.SharedPreferences;
-import android.graphics.Typeface;
-import android.os.Bundle;
-import android.text.SpannableStringBuilder;
-import android.text.Spanned;
-import android.text.style.ForegroundColorSpan;
-import android.text.style.StyleSpan;
-import android.view.KeyEvent;
-import android.view.View;
-import android.view.inputmethod.EditorInfo;
-import android.widget.EditText;
-import android.widget.LinearLayout;
-import android.widget.TextView;
+import android.graphics.Typeface
+import android.os.Bundle
+import android.text.SpannableStringBuilder
+import android.text.Spanned
+import android.text.style.ForegroundColorSpan
+import android.text.style.StyleSpan
+import android.view.KeyEvent
+import android.view.View
+import android.view.inputmethod.EditorInfo
+import android.widget.EditText
+import android.widget.LinearLayout
+import android.widget.TextView
+import android.widget.TextView.OnEditorActionListener
+import androidx.core.util.Consumer
+import ltd.ucode.slide.R
+import ltd.ucode.slide.SettingValues
+import me.ccrama.redditslide.Activities.BaseActivityAnim
+import me.ccrama.redditslide.Visuals.Palette
 
-import androidx.core.util.Consumer;
-
-import java.util.Locale;
-import java.util.Set;
-
-import me.ccrama.redditslide.Activities.BaseActivityAnim;
-import ltd.ucode.slide.R;
-import ltd.ucode.slide.SettingValues;
-import me.ccrama.redditslide.Visuals.Palette;
-
-/**
- * Created by l3d00m on 11/13/2015.
- */
-public class SettingsFilter extends BaseActivityAnim {
-    EditText title;
-    EditText text;
-    EditText domain;
-    EditText subreddit;
-    EditText flair;
-    EditText user;
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        applyColorTheme();
-        setContentView(R.layout.activity_settings_filters);
-        setupAppBar(R.id.toolbar, R.string.settings_title_filter, true, true);
-
-        title = (EditText) findViewById(R.id.title);
-        text = (EditText) findViewById(R.id.text);
-        domain = (EditText) findViewById(R.id.domain);
-        subreddit = (EditText) findViewById(R.id.subreddit);
-        flair = (EditText) findViewById(R.id.flair);
-        user = (EditText) findViewById(R.id.user);
-
-        title.setOnEditorActionListener(makeOnEditorActionListener(SettingValues.titleFilters::add));
-        text.setOnEditorActionListener(makeOnEditorActionListener(SettingValues.textFilters::add));
-        domain.setOnEditorActionListener(makeOnEditorActionListener(SettingValues.domainFilters::add));
-        subreddit.setOnEditorActionListener(makeOnEditorActionListener(SettingValues.subredditFilters::add));
-        user.setOnEditorActionListener(makeOnEditorActionListener(SettingValues.userFilters::add));
-
-        flair.setOnEditorActionListener((v, actionId, event) -> {
+class SettingsFilter : BaseActivityAnim() {
+    var title: EditText? = null
+    var text: EditText? = null
+    var domain: EditText? = null
+    var subreddit: EditText? = null
+    var flair: EditText? = null
+    var user: EditText? = null
+    public override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        applyColorTheme()
+        setContentView(R.layout.activity_settings_filters)
+        setupAppBar(R.id.toolbar, R.string.settings_title_filter, true, true)
+        title = findViewById<View>(R.id.title) as EditText
+        text = findViewById<View>(R.id.text) as EditText
+        domain = findViewById<View>(R.id.domain) as EditText
+        subreddit = findViewById<View>(R.id.subreddit) as EditText
+        flair = findViewById<View>(R.id.flair) as EditText
+        user = findViewById<View>(R.id.user) as EditText
+        title!!.setOnEditorActionListener(makeOnEditorActionListener { e: String ->
+            SettingValues.titleFilters += e
+        })
+        text!!.setOnEditorActionListener(makeOnEditorActionListener { e: String ->
+            SettingValues.textFilters += e
+        })
+        domain!!.setOnEditorActionListener(makeOnEditorActionListener { e: String ->
+            SettingValues.domainFilters += e
+        })
+        subreddit!!.setOnEditorActionListener(makeOnEditorActionListener { e: String ->
+            SettingValues.subredditFilters += e
+        })
+        user!!.setOnEditorActionListener(makeOnEditorActionListener { e: String ->
+            SettingValues.userFilters += e
+        })
+        flair!!.setOnEditorActionListener { v: TextView, actionId: Int, event: KeyEvent? ->
             if (actionId == EditorInfo.IME_ACTION_DONE) {
-                String text = v.getText().toString().toLowerCase(Locale.ENGLISH).trim();
-                if (text.matches(".+:.+")) {
-                    SettingValues.flairFilters.add(text);
-                    v.setText("");
-                    updateFilters();
+                val text = v.text.toString().lowercase().trim { it <= ' ' }
+                if (text.matches(Regex(""".+:.+"""))) {
+                    SettingValues.flairFilters += text
+                    v.text = ""
+                    updateFilters()
                 }
             }
-
-            return false;
-        });
-
-        updateFilters();
+            false
+        }
+        updateFilters()
     }
 
     /**
@@ -77,21 +72,18 @@ public class SettingsFilter extends BaseActivityAnim {
      * @param filtersAdd called when done is pressed
      * @return The new OnEditorActionListener
      */
-    private TextView.OnEditorActionListener makeOnEditorActionListener(Consumer<String> filtersAdd) {
-        return new TextView.OnEditorActionListener() {
-            @Override
-            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-                if (actionId == EditorInfo.IME_ACTION_DONE) {
-                    String text = v.getText().toString().toLowerCase(Locale.ENGLISH).trim();
-                    if (!text.isEmpty()) {
-                        filtersAdd.accept(text);
-                        v.setText("");
-                        updateFilters();
-                    }
+    private fun makeOnEditorActionListener(filtersAdd: Consumer<String>): OnEditorActionListener {
+        return OnEditorActionListener { v, actionId, event ->
+            if (actionId == EditorInfo.IME_ACTION_DONE) {
+                val text = v.text.toString().lowercase().trim { it <= ' ' }
+                if (!text.isEmpty()) {
+                    filtersAdd.accept(text)
+                    v.text = ""
+                    updateFilters()
                 }
-                return false;
             }
-        };
+            false
+        }
     }
 
     /**
@@ -101,60 +93,83 @@ public class SettingsFilter extends BaseActivityAnim {
      * @param filters       Set of filters to iterate through
      * @param filtersRemove Method to call on remove button press
      */
-    private void updateList(int id, Set<String> filters, Consumer<String> filtersRemove) {
-        ((LinearLayout) findViewById(id)).removeAllViews();
-        for (String s : filters) {
-            final View t = getLayoutInflater().inflate(R.layout.account_textview, (LinearLayout) findViewById(id), false);
-            ((TextView) t.findViewById(R.id.name)).setText(s);
-            t.findViewById(R.id.remove).setOnClickListener(v -> {
-                filtersRemove.accept(s);
-                updateFilters();
-            });
-            ((LinearLayout) findViewById(id)).addView(t);
+    private fun updateList(id: Int, filters: Set<String>, filtersRemove: Consumer<String>) {
+        (findViewById<View>(id) as LinearLayout).removeAllViews()
+        for (s in filters) {
+            val t = layoutInflater.inflate(
+                R.layout.account_textview,
+                findViewById<View>(id) as LinearLayout,
+                false
+            )
+            (t.findViewById<View>(R.id.name) as TextView).text = s
+            t.findViewById<View>(R.id.remove).setOnClickListener { v: View? ->
+                filtersRemove.accept(s)
+                updateFilters()
+            }
+            (findViewById<View>(id) as LinearLayout).addView(t)
         }
     }
 
     /**
      * Updates the filters shown in the UI
      */
-    public void updateFilters() {
-        updateList(R.id.domainlist, SettingValues.domainFilters, SettingValues.domainFilters::remove);
-        updateList(R.id.subredditlist, SettingValues.subredditFilters, SettingValues.subredditFilters::remove);
-        updateList(R.id.userlist, SettingValues.userFilters, SettingValues.userFilters::remove);
-        updateList(R.id.selftextlist, SettingValues.textFilters, SettingValues.textFilters::remove);
-        updateList(R.id.titlelist, SettingValues.titleFilters, SettingValues.titleFilters::remove);
-
-        ((LinearLayout) findViewById(R.id.flairlist)).removeAllViews();
-        for (String s : SettingValues.flairFilters) {
-            final View t = getLayoutInflater().inflate(R.layout.account_textview, (LinearLayout) findViewById(R.id.domainlist), false);
-            SpannableStringBuilder b = new SpannableStringBuilder();
-            String subname = s.split(":")[0];
-            SpannableStringBuilder subreddit = new SpannableStringBuilder(" /r/" + subname + " ");
-            if ((SettingValues.colorSubName && Palette.getColor(subname) != Palette.getDefaultColor())) {
-                subreddit.setSpan(new ForegroundColorSpan(Palette.getColor(subname)), 0, subreddit.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-                subreddit.setSpan(new StyleSpan(Typeface.BOLD), 0, subreddit.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+    fun updateFilters() {
+        updateList(
+            R.id.domainlist,
+            SettingValues.domainFilters
+        ) { o: String -> SettingValues.domainFilters -= o }
+        updateList(
+            R.id.subredditlist,
+            SettingValues.subredditFilters
+        ) { o: String -> SettingValues.subredditFilters -= o }
+        updateList(
+            R.id.userlist,
+            SettingValues.userFilters
+        ) { o: String -> SettingValues.userFilters -= o }
+        updateList(
+            R.id.selftextlist,
+            SettingValues.textFilters
+        ) { o: String -> SettingValues.textFilters -= o }
+        updateList(
+            R.id.titlelist,
+            SettingValues.titleFilters
+        ) { o: String -> SettingValues.titleFilters -= o }
+        (findViewById<View>(R.id.flairlist) as LinearLayout).removeAllViews()
+        for (s in SettingValues.flairFilters) {
+            val t = layoutInflater.inflate(
+                R.layout.account_textview,
+                findViewById<View>(R.id.domainlist) as LinearLayout,
+                false
+            )
+            val b = SpannableStringBuilder()
+            val subname = s.split(":".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()[0]
+            val subreddit = SpannableStringBuilder(" /r/$subname ")
+            if (SettingValues.colorSubName && Palette.getColor(subname) != Palette.getDefaultColor()) {
+                subreddit.setSpan(
+                    ForegroundColorSpan(Palette.getColor(subname)),
+                    0,
+                    subreddit.length,
+                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                )
+                subreddit.setSpan(
+                    StyleSpan(Typeface.BOLD),
+                    0,
+                    subreddit.length,
+                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                )
             }
-            b.append(subreddit).append(s.split(":")[1]);
-            ((TextView) t.findViewById(R.id.name)).setText(b);
-            t.findViewById(R.id.remove).setOnClickListener(v -> {
-                SettingValues.flairFilters.remove(s);
-                updateFilters();
-            });
-            ((LinearLayout) findViewById(R.id.flairlist)).addView(t);
+            b.append(subreddit).append(s.split(":".toRegex()).dropLastWhile { it.isEmpty() }
+                .toTypedArray()[1])
+            (t.findViewById<View>(R.id.name) as TextView).text = b
+            t.findViewById<View>(R.id.remove).setOnClickListener { v: View? ->
+                SettingValues.flairFilters -= s
+                updateFilters()
+            }
+            (findViewById<View>(R.id.flairlist) as LinearLayout).addView(t)
         }
     }
 
-
-    @Override
-    public void onPause() {
-        super.onPause();
-        SharedPreferences.Editor e = SettingValues.prefs.edit();
-        e.putStringSet(SettingValues.PREF_TITLE_FILTERS, SettingValues.titleFilters);
-        e.putStringSet(SettingValues.PREF_DOMAIN_FILTERS, SettingValues.domainFilters);
-        e.putStringSet(SettingValues.PREF_TEXT_FILTERS, SettingValues.textFilters);
-        e.putStringSet(SettingValues.PREF_SUBREDDIT_FILTERS, SettingValues.subredditFilters);
-        e.putStringSet(SettingValues.PREF_FLAIR_FILTERS, SettingValues.flairFilters);
-        e.putStringSet(SettingValues.PREF_USER_FILTERS, SettingValues.userFilters);
-        e.apply();
+    override fun onPause() {
+        super.onPause()
     }
 }

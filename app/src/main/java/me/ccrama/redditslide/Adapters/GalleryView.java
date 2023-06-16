@@ -240,7 +240,7 @@ public class GalleryView extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                             case ALBUM:
                                 if (SettingValues.album) {
                                     Intent i;
-                                    if (SettingValues.albumSwipe) {
+                                    if (SettingValues.INSTANCE.getAlbumSwipe()) {
                                         i = new Intent(main, AlbumPager.class);
                                         i.putExtra(AlbumPager.SUBREDDIT, subreddit);
                                         i.putExtra(EXTRA_SUBMISSION_TITLE, submission.getTitle());
@@ -260,7 +260,7 @@ public class GalleryView extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                             case REDDIT_GALLERY:
                                 if (SettingValues.album) {
                                     Intent i;
-                                    if (SettingValues.albumSwipe) {
+                                    if (SettingValues.INSTANCE.getAlbumSwipe()) {
                                         i = new Intent(main, RedditGalleryPager.class);
                                         i.putExtra(AlbumPager.SUBREDDIT,
                                                 submission.getSubredditName());
@@ -294,7 +294,7 @@ public class GalleryView extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                             case TUMBLR:
                                 if (SettingValues.image) {
                                     Intent i;
-                                    if (SettingValues.albumSwipe) {
+                                    if (SettingValues.INSTANCE.getAlbumSwipe()) {
                                         i = new Intent(main, TumblrPager.class);
                                         i.putExtra(TumblrPager.SUBREDDIT, subreddit);
                                     } else {

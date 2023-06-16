@@ -82,7 +82,7 @@ public class SettingsModerationFragment {
         enableToolboxSwitch.setChecked(SettingValues.toolboxEnabled);
         enableToolboxSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
             SettingValues.toolboxEnabled = isChecked;
-            editSharedBooleanPreference(SettingValues.PREF_MOD_TOOLBOX_ENABLED, isChecked);
+            SettingValues.editBoolean(SettingValues.PREF_MOD_TOOLBOX_ENABLED, isChecked);
 
             removalMessageLayout.setEnabled(isChecked);
             sendMsgAsSubredditSwitch.setEnabled(isChecked);
@@ -149,7 +149,7 @@ public class SettingsModerationFragment {
         sendMsgAsSubredditSwitch.setChecked(SettingValues.toolboxModmail);
         sendMsgAsSubredditSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
             SettingValues.toolboxModmail = isChecked;
-            editSharedBooleanPreference(SettingValues.PREF_MOD_TOOLBOX_MODMAIL, isChecked);
+            SettingValues.editBoolean(SettingValues.PREF_MOD_TOOLBOX_MODMAIL, isChecked);
         });
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -158,7 +158,7 @@ public class SettingsModerationFragment {
         stickyMessageSwitch.setChecked(SettingValues.toolboxSticky);
         stickyMessageSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
             SettingValues.toolboxSticky = isChecked;
-            editSharedBooleanPreference(SettingValues.PREF_MOD_TOOLBOX_STICKY, isChecked);
+            SettingValues.editBoolean(SettingValues.PREF_MOD_TOOLBOX_STICKY, isChecked);
         });
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -167,7 +167,7 @@ public class SettingsModerationFragment {
         lockAfterRemovalSwitch.setChecked(SettingValues.toolboxLock);
         lockAfterRemovalSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
             SettingValues.toolboxLock = isChecked;
-            editSharedBooleanPreference(SettingValues.PREF_MOD_TOOLBOX_LOCK, isChecked);
+            SettingValues.editBoolean(SettingValues.PREF_MOD_TOOLBOX_LOCK, isChecked);
         });
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -194,16 +194,8 @@ public class SettingsModerationFragment {
     }
 
     private void setBaseModerationType(final TextView textView, final int moderationType, final int string) {
-        editSharedIntPreference(SettingValues.PREF_MOD_REMOVAL_TYPE, moderationType);
+        SettingValues.editInt(SettingValues.PREF_MOD_REMOVAL_TYPE, moderationType);
         textView.setText(context.getString(string));
-    }
-
-    private void editSharedIntPreference(final String settingValueString, final int i) {
-        SettingValues.prefs.edit().putInt(settingValueString, i).apply();
-    }
-
-    private void editSharedBooleanPreference(final String settingValueString, final boolean isChecked) {
-        SettingValues.prefs.edit().putBoolean(settingValueString, isChecked).apply();
     }
 
     private static class AsyncRefreshToolboxTask extends AsyncTask<Void, Void, Void> {

@@ -1,622 +1,548 @@
-package me.ccrama.redditslide.ui.settings;
+package me.ccrama.redditslide.ui.settings
 
-import android.app.Dialog;
-import android.content.DialogInterface;
-import android.content.Intent;
-import android.content.SharedPreferences;
-import android.content.res.Resources;
-import android.net.Uri;
-import android.os.Bundle;
-import android.os.SystemClock;
-import android.view.KeyEvent;
-import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
-import android.view.MotionEvent;
-import android.view.View;
-import android.view.ViewGroup;
-import android.view.ViewTreeObserver;
-import android.widget.CompoundButton;
-import android.widget.EditText;
-import android.widget.LinearLayout;
-import android.widget.ScrollView;
-import android.widget.SeekBar;
-import android.widget.TextView;
-
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.widget.SwitchCompat;
-
-import com.google.common.base.Strings;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import ltd.ucode.slide.Preferences;
-import me.ccrama.redditslide.Activities.BaseActivity;
-import ltd.ucode.slide.Authentication;
-import ltd.ucode.slide.BuildConfig;
-import me.ccrama.redditslide.Fragments.FolderChooserDialogCreate;
-import ltd.ucode.slide.R;
-import ltd.ucode.slide.App;
-import ltd.ucode.slide.SettingValues;
-import me.ccrama.redditslide.Visuals.Palette;
-import me.ccrama.redditslide.ui.settings.dragSort.ReorderSubreddits;
-import me.ccrama.redditslide.util.NetworkUtil;
-import me.ccrama.redditslide.util.OnSingleClickListener;
-import me.ccrama.redditslide.util.ProUtil;
-import me.ccrama.redditslide.util.stubs.SimpleTextWatcher;
+import android.app.Dialog
+import android.content.DialogInterface
+import android.content.Intent
+import android.content.SharedPreferences
+import android.net.Uri
+import android.os.Bundle
+import android.os.SystemClock
+import android.view.KeyEvent
+import android.view.Menu
+import android.view.MenuItem
+import android.view.MotionEvent
+import android.view.View
+import android.view.ViewGroup
+import android.widget.CompoundButton
+import android.widget.EditText
+import android.widget.LinearLayout
+import android.widget.ScrollView
+import android.widget.SeekBar
+import android.widget.SeekBar.OnSeekBarChangeListener
+import android.widget.TextView
+import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.widget.SwitchCompat
+import com.google.common.base.Strings
+import ltd.ucode.slide.App
+import ltd.ucode.slide.Authentication
+import ltd.ucode.slide.BuildConfig
+import ltd.ucode.slide.Preferences.colours
+import ltd.ucode.slide.R
+import ltd.ucode.slide.SettingValues
+import me.ccrama.redditslide.Activities.BaseActivity
+import me.ccrama.redditslide.Fragments.FolderChooserDialogCreate
+import me.ccrama.redditslide.Visuals.Palette
+import me.ccrama.redditslide.ui.settings.dragSort.ReorderSubreddits
+import me.ccrama.redditslide.util.NetworkUtil
+import me.ccrama.redditslide.util.OnSingleClickListener
+import me.ccrama.redditslide.util.ProUtil
+import me.ccrama.redditslide.util.stubs.SimpleTextWatcher
+import java.io.File
+import java.util.Arrays
+import java.util.Locale
 
 /**
  * Created by ccrama on 3/5/2015.
  */
-public class SettingsActivity extends BaseActivity
-        implements FolderChooserDialogCreate.FolderCallback, RestartActivity {
+class SettingsActivity : BaseActivity(), FolderChooserDialogCreate.FolderCallback, RestartActivity {
+    private var scrollY = 0
+    private var prev_text: String? = null
+    private val mSettingsGeneralFragment: SettingsGeneralFragment<*> =
+        SettingsGeneralFragment(this)
+    private val mManageOfflineContentFragment = ManageOfflineContentFragment(this)
+    private val mSettingsThemeFragment: SettingsThemeFragment<*> = SettingsThemeFragment(this)
+    private val mSettingsFontFragment = SettingsFontFragment(this)
+    private val mSettingsCommentsFragment = SettingsCommentsFragment(this)
+    private val mSettingsHandlingFragment = SettingsHandlingFragment(this)
+    private val mSettingsHistoryFragment = SettingsHistoryFragment(this)
+    private val mSettingsDataFragment = SettingsDataFragment(this)
+    private val mSettingsRedditFragment = SettingsRedditFragment(this)
+    private val settings_activities: List<Int> = ArrayList(
+        Arrays.asList(
+            R.layout.activity_settings_general_child,
+            R.layout.activity_manage_history_child,
+            R.layout.activity_settings_theme_child,
+            R.layout.activity_settings_font_child,
+            R.layout.activity_settings_comments_child,
+            R.layout.activity_settings_handling_child,
+            R.layout.activity_settings_history_child,
+            R.layout.activity_settings_datasaving_child,
+            R.layout.activity_settings_reddit_child
+        )
+    )
 
-    private final static int RESTART_SETTINGS_RESULT = 2;
-    private       int                                                scrollY;
-    private       SharedPreferences.OnSharedPreferenceChangeListener prefsListener;
-    private       String                                             prev_text;
-    public static boolean                                            changed;  //whether or not a Setting was changed
-
-    private SettingsGeneralFragment      mSettingsGeneralFragment      = new SettingsGeneralFragment(this);
-    private ManageOfflineContentFragment mManageOfflineContentFragment = new ManageOfflineContentFragment(this);
-    private SettingsThemeFragment        mSettingsThemeFragment        = new SettingsThemeFragment(this);
-    private SettingsFontFragment         mSettingsFontFragment         = new SettingsFontFragment(this);
-    private SettingsCommentsFragment     mSettingsCommentsFragment     = new SettingsCommentsFragment(this);
-    private SettingsHandlingFragment     mSettingsHandlingFragment     = new SettingsHandlingFragment(this);
-    private SettingsHistoryFragment      mSettingsHistoryFragment      = new SettingsHistoryFragment(this);
-    private SettingsDataFragment         mSettingsDataFragment         = new SettingsDataFragment(this);
-    private SettingsRedditFragment       mSettingsRedditFragment       = new SettingsRedditFragment(this);
-
-    private List<Integer> settings_activities = new ArrayList<>(
-            Arrays.asList(
-                    R.layout.activity_settings_general_child,
-                    R.layout.activity_manage_history_child,
-                    R.layout.activity_settings_theme_child,
-                    R.layout.activity_settings_font_child,
-                    R.layout.activity_settings_comments_child,
-                    R.layout.activity_settings_handling_child,
-                    R.layout.activity_settings_history_child,
-                    R.layout.activity_settings_datasaving_child,
-                    R.layout.activity_settings_reddit_child
-            )
-    );
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == RESTART_SETTINGS_RESULT) {
-            restartActivity();
+            restartActivity()
         }
     }
 
-    public void restartActivity() {
-        Intent i = new Intent(SettingsActivity.this, SettingsActivity.class);
-        i.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-        i.putExtra("position", scrollY);
-        i.putExtra("prev_text", prev_text);
-        startActivity(i);
-        overridePendingTransition(0, 0);
-        finish();
-        overridePendingTransition(0, 0);
+    override fun restartActivity() {
+        val i = Intent(this@SettingsActivity, SettingsActivity::class.java)
+        i.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION)
+        i.putExtra("position", scrollY)
+        i.putExtra("prev_text", prev_text)
+        startActivity(i)
+        overridePendingTransition(0, 0)
+        finish()
+        overridePendingTransition(0, 0)
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.settings, menu);
-        return true;
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        val inflater = menuInflater
+        inflater.inflate(R.menu.settings, menu)
+        return true
     }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-
-            case android.R.id.home:
-                if(findViewById(R.id.settings_search).getVisibility() == View.VISIBLE){
-                    findViewById(R.id.settings_search).setVisibility(View.GONE);
-                    findViewById(R.id.search).setVisibility(View.VISIBLE);
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            android.R.id.home -> {
+                if (findViewById<View>(R.id.settings_search).visibility == View.VISIBLE) {
+                    findViewById<View>(R.id.settings_search).visibility = View.GONE
+                    findViewById<View>(R.id.search).visibility = View.VISIBLE
                 } else {
-                    onBackPressed();
+                    onBackPressed()
                 }
-                return true;
-            case R.id.search: {
-                findViewById(R.id.settings_search).setVisibility(View.VISIBLE);
-                findViewById(R.id.search).setVisibility(View.GONE);
+                return true
             }
-            return true;
-            default:
-                return false;
+
+            R.id.search -> {
+                run {
+                    findViewById<View>(R.id.settings_search).visibility = View.VISIBLE
+                    findViewById<View>(R.id.search).visibility = View.GONE
+                }
+                return true
+            }
+
+            else -> return false
         }
     }
 
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        applyColorTheme();
-        setContentView(R.layout.activity_settings);
-        setupAppBar(R.id.toolbar, R.string.title_settings, true, true);
-
-        if (getIntent() != null && !Strings.isNullOrEmpty(getIntent().getStringExtra("prev_text"))) {
-            prev_text = getIntent().getStringExtra("prev_text");
+    public override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        applyColorTheme()
+        setContentView(R.layout.activity_settings)
+        setupAppBar(R.id.toolbar, R.string.title_settings, true, true)
+        if (intent != null && !Strings.isNullOrEmpty(intent.getStringExtra("prev_text"))) {
+            prev_text = intent.getStringExtra("prev_text")
         } else if (savedInstanceState != null) {
-            prev_text = savedInstanceState.getString("prev_text");
+            prev_text = savedInstanceState.getString("prev_text")
         }
-
         if (!Strings.isNullOrEmpty(prev_text)) {
-            ((EditText) findViewById(R.id.settings_search)).setText(prev_text);
+            (findViewById<View>(R.id.settings_search) as EditText).setText(prev_text)
+        }
+        BuildLayout(prev_text)
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        outState.putInt("position", scrollY)
+        outState.putString("prev_text", prev_text)
+        super.onSaveInstanceState(outState)
+    }
+
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        if (event.keyCode == KeyEvent.KEYCODE_SEARCH
+            && event.action == KeyEvent.ACTION_DOWN
+        ) {
+            onOptionsItemSelected(mToolbar!!.menu.findItem(R.id.search))
+            //            (findViewById(R.id.settings_search)).requestFocus();
+            val motionEventDown = MotionEvent.obtain(
+                SystemClock.uptimeMillis(),
+                SystemClock.uptimeMillis(),
+                MotionEvent.ACTION_DOWN,
+                0f, 0f, 0
+            )
+            val motionEventUp = MotionEvent.obtain(
+                SystemClock.uptimeMillis(),
+                SystemClock.uptimeMillis(),
+                MotionEvent.ACTION_UP,
+                0f, 0f, 0
+            )
+            findViewById<View>(R.id.settings_search).dispatchTouchEvent(motionEventDown)
+            findViewById<View>(R.id.settings_search).dispatchTouchEvent(motionEventUp)
+            return true
+        }
+        return super.dispatchKeyEvent(event)
+    }
+
+    private fun BuildLayout(text: String?) {
+        val parent = findViewById<View>(R.id.settings_parent) as LinearLayout
+
+        /* Clear the settings out, then re-add the default top-level settings */parent.removeAllViews()
+        parent.addView(layoutInflater.inflate(R.layout.activity_settings_child, null))
+        Bind()
+
+        /* The EditView contains text that we can use to search for matching settings */if (!Strings.isNullOrEmpty(
+                text
+            )
+        ) {
+            val inflater = layoutInflater
+            for (activity in settings_activities) {
+                parent.addView(inflater.inflate(activity, null))
+            }
+            mSettingsGeneralFragment.Bind()
+            mManageOfflineContentFragment.Bind()
+            mSettingsThemeFragment.Bind()
+            mSettingsFontFragment.Bind()
+            mSettingsCommentsFragment.Bind()
+            mSettingsHandlingFragment.Bind()
+            mSettingsHistoryFragment.Bind()
+            mSettingsDataFragment.Bind()
+            mSettingsRedditFragment.Bind()
+
+            /* Go through each subview and scan it for matching text, non-matches */loopViews(
+                parent, text!!.lowercase(
+                    Locale.getDefault()
+                ), true, ""
+            )
         }
 
-        BuildLayout(prev_text);
+        /* Try to clean up the mess we've made */System.gc()
     }
 
-    @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        outState.putInt("position", scrollY);
-        outState.putString("prev_text", prev_text);
-        super.onSaveInstanceState(outState);
-    }
-
-    @Override
-    public boolean dispatchKeyEvent(KeyEvent event) {
-        if (event.getKeyCode() == KeyEvent.KEYCODE_SEARCH
-                && event.getAction() == KeyEvent.ACTION_DOWN) {
-            onOptionsItemSelected(mToolbar.getMenu().findItem(R.id.search));
-//            (findViewById(R.id.settings_search)).requestFocus();
-            MotionEvent motionEventDown = MotionEvent.obtain(
-                    SystemClock.uptimeMillis(),
-                    SystemClock.uptimeMillis(),
-                    MotionEvent.ACTION_DOWN,
-                    0, 0, 0
-            );
-            MotionEvent motionEventUp = MotionEvent.obtain(
-                    SystemClock.uptimeMillis(),
-                    SystemClock.uptimeMillis(),
-                    MotionEvent.ACTION_UP,
-                    0, 0, 0
-            );
-            (findViewById(R.id.settings_search)).dispatchTouchEvent(motionEventDown);
-            (findViewById(R.id.settings_search)).dispatchTouchEvent(motionEventUp);
-            return true;
+    private fun Bind() {
+        SettingValues.expandedSettings = true
+        setSettingItems()
+        val mScrollView = findViewById<View>(R.id.base) as ScrollView
+        SettingValues.setListener { sharedPreferences: SharedPreferences?, key: String? ->
+            changed = true
         }
-        return super.dispatchKeyEvent(event);
-    }
-
-    private void BuildLayout(String text) {
-        LinearLayout parent = (LinearLayout) findViewById(R.id.settings_parent);
-
-        /* Clear the settings out, then re-add the default top-level settings */
-        parent.removeAllViews();
-        parent.addView(getLayoutInflater().inflate(R.layout.activity_settings_child, null));
-        Bind();
-
-        /* The EditView contains text that we can use to search for matching settings */
-        if (!Strings.isNullOrEmpty(text)){
-            LayoutInflater inflater = getLayoutInflater();
-
-            for (Integer activity: settings_activities) {
-                parent.addView(inflater.inflate(activity, null));
+        mScrollView.post {
+            val observer = mScrollView.viewTreeObserver
+            if (intent.hasExtra("position")) {
+                mScrollView.scrollTo(0, intent.getIntExtra("position", 0))
             }
-
-            mSettingsGeneralFragment.Bind();
-            mManageOfflineContentFragment.Bind();
-            mSettingsThemeFragment.Bind();
-            mSettingsFontFragment.Bind();
-            mSettingsCommentsFragment.Bind();
-            mSettingsHandlingFragment.Bind();
-            mSettingsHistoryFragment.Bind();
-            mSettingsDataFragment.Bind();
-            mSettingsRedditFragment.Bind();
-
-            /* Go through each subview and scan it for matching text, non-matches */
-            loopViews(parent, text.toLowerCase(), true, "");
+            if (intent.hasExtra("prev_text")) {
+                prev_text = intent.getStringExtra("prev_text")
+            }
+            observer.addOnScrollChangedListener { scrollY = mScrollView.scrollY }
         }
-
-        /* Try to clean up the mess we've made */
-        System.gc();
     }
 
-    private void Bind() {
+    private fun loopViews(
+        parent: ViewGroup,
+        text: String,
+        isRootViewGroup: Boolean,
+        indent: String
+    ): Boolean {
+        var foundText = false
+        var prev_child_is_View = false
+        var i = 0
+        while (i < parent.childCount) {
+            val child = parent.getChildAt(i)
+            var childRemoved = false
 
-        SettingValues.expandedSettings = true;
-        setSettingItems();
-
-        final ScrollView mScrollView = ((ScrollView) findViewById(R.id.base));
-
-        prefsListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
-            @Override
-            public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-                SettingsActivity.changed = true;
-            }
-        };
-
-        SettingValues.prefs.registerOnSharedPreferenceChangeListener(prefsListener);
-
-        mScrollView.post(new Runnable() {
-
-            @Override
-            public void run() {
-                ViewTreeObserver observer = mScrollView.getViewTreeObserver();
-                if (getIntent().hasExtra("position")) {
-                    mScrollView.scrollTo(0, getIntent().getIntExtra("position", 0));
-                }
-                if (getIntent().hasExtra("prev_text")) {
-                    prev_text = getIntent().getStringExtra("prev_text");
-                }
-                observer.addOnScrollChangedListener(new ViewTreeObserver.OnScrollChangedListener() {
-
-                    @Override
-                    public void onScrollChanged() {
-                        scrollY = mScrollView.getScrollY();
-                    }
-                });
-            }
-        });
-    }
-
-    private boolean loopViews(ViewGroup parent, String text, boolean isRootViewGroup, String indent) {
-
-        boolean foundText = false;
-        boolean prev_child_is_View = false;
-
-        for (int i = 0; i < parent.getChildCount(); i++) {
-
-            View child = parent.getChildAt(i);
-            boolean childRemoved = false;
-
-            /* Found some text, remove labels and check for matches on non-labels */
-            if (child instanceof TextView) {
+            /* Found some text, remove labels and check for matches on non-labels */if (child is TextView) {
 
                 // Found text at the top-level that is probably a label, or an explicitly tagged label
-                if (isRootViewGroup ||
-                        (child.getTag() != null && child.getTag().toString().equals("label"))) {
-                    parent.removeView(child);
-                    childRemoved = true;
-                    i--;
-                }
-
-                // Found matching text!
-                else if (((TextView) child).getText().toString().toLowerCase().contains(text)) {
-                    foundText = true;
+                if (isRootViewGroup || (child.getTag()?.toString() == "label")) {
+                    parent.removeView(child)
+                    childRemoved = true
+                    i--
+                } else if (child.text.toString().lowercase(Locale.getDefault()).contains(text)) {
+                    foundText = true
                 }
 
                 // No match
-            }
-
-            /* This child is a View and the previous child was a View, remove duplicates */
-            else if (child != null && prev_child_is_View && child.getClass() == View.class) {
-                parent.removeView(child);
-                childRemoved = true;
-                i--;
-            }
-
-            /* Found a group, need to recursively search through it */
-            else if (child instanceof ViewGroup) {
+            } else if (child != null && prev_child_is_View && child.javaClass == View::class.java) {
+                parent.removeView(child)
+                childRemoved = true
+                i--
+            } else if (child is ViewGroup) {
                 // Look for matching TextView in the ViewGroup, remove the ViewGroup if no match is found
-                if (!this.loopViews((ViewGroup) child, text, false, indent + "  ")) {
-                    parent.removeView(child);
-                    childRemoved = true;
-                    i--;
+                if (!loopViews(child, text, false, "$indent  ")) {
+                    parent.removeView(child)
+                    childRemoved = true
+                    i--
                 } else {
-                    foundText = true;
+                    foundText = true
                 }
             }
-
             if (child != null && !childRemoved) {
-                prev_child_is_View = child.getClass() == View.class;
+                prev_child_is_View = child.javaClass == View::class.java
             }
+            i++
         }
-        return foundText;
+        return foundText
     }
 
-    private void setSettingItems() {
-        View pro = findViewById(R.id.settings_child_pro);
+    private fun setSettingItems() {
+        val pro = findViewById<View>(R.id.settings_child_pro)
         if (SettingValues.isPro) {
-            pro.setVisibility(View.GONE);
+            pro.visibility = View.GONE
         } else {
-            pro.setOnClickListener(new OnSingleClickListener() {
-                @Override
-                public void onSingleClick(View v) {
-                    ProUtil.proUpgradeMsg(SettingsActivity.this, R.string.settings_support_slide)
-                            .setNegativeButton(R.string.btn_no_thanks, (dialog, whichButton) ->
-                                    dialog.dismiss())
-                            .show();
+            pro.setOnClickListener(object : OnSingleClickListener() {
+                override fun onSingleClick(v: View) {
+                    ProUtil.proUpgradeMsg(this@SettingsActivity, R.string.settings_support_slide)
+                        .setNegativeButton(R.string.btn_no_thanks) { dialog: DialogInterface, whichButton: Int -> dialog.dismiss() }
+                        .show()
                 }
-            });
+            })
         }
-
-        ((EditText) findViewById(R.id.settings_search)).addTextChangedListener(new SimpleTextWatcher() {
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                String text = s.toString().trim();
-                /* No idea why, but this event can fire many times when there is no change */
-                if (text.equalsIgnoreCase(prev_text)) return;
-                BuildLayout(text);
-                prev_text = text;
+        (findViewById<View>(R.id.settings_search) as EditText).addTextChangedListener(object :
+            SimpleTextWatcher() {
+            override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {
+                val text = s.toString().trim { it <= ' ' }
+                /* No idea why, but this event can fire many times when there is no change */if (text.equals(
+                        prev_text,
+                        ignoreCase = true
+                    )
+                ) return
+                BuildLayout(text)
+                prev_text = text
             }
-        });
-
-        findViewById(R.id.settings_child_general).setOnClickListener(new OnSingleClickListener() {
-            @Override
-            public void onSingleClick(View v) {
-                Intent i = new Intent(SettingsActivity.this, SettingsGeneral.class);
-                startActivityForResult(i, RESTART_SETTINGS_RESULT);
+        })
+        findViewById<View>(R.id.settings_child_general).setOnClickListener(object :
+            OnSingleClickListener() {
+            override fun onSingleClick(v: View) {
+                val i = Intent(this@SettingsActivity, SettingsGeneral::class.java)
+                startActivityForResult(i, RESTART_SETTINGS_RESULT)
             }
-        });
-
-        findViewById(R.id.settings_child_history).setOnClickListener(new OnSingleClickListener() {
-            @Override
-            public void onSingleClick(View v) {
-                Intent i = new Intent(SettingsActivity.this, SettingsHistory.class);
-                startActivity(i);
+        })
+        findViewById<View>(R.id.settings_child_history).setOnClickListener(object :
+            OnSingleClickListener() {
+            override fun onSingleClick(v: View) {
+                val i = Intent(this@SettingsActivity, SettingsHistory::class.java)
+                startActivity(i)
             }
-        });
-
-        findViewById(R.id.settings_child_about).setOnClickListener(new OnSingleClickListener() {
-            @Override
-            public void onSingleClick(View v) {
-                Intent i = new Intent(SettingsActivity.this, SettingsAbout.class);
-                startActivity(i);
+        })
+        findViewById<View>(R.id.settings_child_about).setOnClickListener(object :
+            OnSingleClickListener() {
+            override fun onSingleClick(v: View) {
+                val i = Intent(this@SettingsActivity, SettingsAbout::class.java)
+                startActivity(i)
             }
-        });
-
-        findViewById(R.id.settings_child_offline).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent i = new Intent(SettingsActivity.this, ManageOfflineContent.class);
-                startActivity(i);
+        })
+        findViewById<View>(R.id.settings_child_offline).setOnClickListener(View.OnClickListener {
+            val i = Intent(this@SettingsActivity, ManageOfflineContent::class.java)
+            startActivity(i)
+        })
+        findViewById<View>(R.id.settings_child_datasave).setOnClickListener(object :
+            OnSingleClickListener() {
+            override fun onSingleClick(v: View) {
+                val i = Intent(this@SettingsActivity, SettingsData::class.java)
+                startActivity(i)
             }
-        });
-
-        findViewById(R.id.settings_child_datasave).setOnClickListener(new OnSingleClickListener() {
-            @Override
-            public void onSingleClick(View v) {
-                Intent i = new Intent(SettingsActivity.this, SettingsData.class);
-                startActivity(i);
+        })
+        findViewById<View>(R.id.settings_child_subtheme).setOnClickListener(object :
+            OnSingleClickListener() {
+            override fun onSingleClick(v: View) {
+                val i = Intent(this@SettingsActivity, SettingsSubreddit::class.java)
+                startActivityForResult(i, RESTART_SETTINGS_RESULT)
             }
-        });
-
-        findViewById(R.id.settings_child_subtheme).setOnClickListener(new OnSingleClickListener() {
-            @Override
-            public void onSingleClick(View v) {
-                Intent i = new Intent(SettingsActivity.this, SettingsSubreddit.class);
-                startActivityForResult(i, RESTART_SETTINGS_RESULT);
+        })
+        findViewById<View>(R.id.settings_child_filter).setOnClickListener(object :
+            OnSingleClickListener() {
+            override fun onSingleClick(v: View) {
+                val i = Intent(this@SettingsActivity, SettingsFilter::class.java)
+                startActivity(i)
             }
-        });
-
-        findViewById(R.id.settings_child_filter).setOnClickListener(new OnSingleClickListener() {
-            @Override
-            public void onSingleClick(View v) {
-
-                Intent i = new Intent(SettingsActivity.this, SettingsFilter.class);
-                startActivity(i);
+        })
+        findViewById<View>(R.id.settings_child_synccit).setOnClickListener(object :
+            OnSingleClickListener() {
+            override fun onSingleClick(v: View) {
+                val i = Intent(this@SettingsActivity, SettingsSynccit::class.java)
+                startActivity(i)
             }
-        });
-
-        findViewById(R.id.settings_child_synccit).setOnClickListener(new OnSingleClickListener() {
-            @Override
-            public void onSingleClick(View v) {
-
-                Intent i = new Intent(SettingsActivity.this, SettingsSynccit.class);
-                startActivity(i);
+        })
+        findViewById<View>(R.id.settings_child_reorder).setOnClickListener(object :
+            OnSingleClickListener() {
+            override fun onSingleClick(view: View) {
+                val inte = Intent(this@SettingsActivity, ReorderSubreddits::class.java)
+                startActivity(inte)
             }
-        });
-
-        findViewById(R.id.settings_child_reorder).setOnClickListener(new OnSingleClickListener() {
-            @Override
-            public void onSingleClick(View view) {
-                Intent inte = new Intent(SettingsActivity.this, ReorderSubreddits.class);
-                startActivity(inte);
+        })
+        findViewById<View>(R.id.settings_child_maintheme).setOnClickListener(object :
+            OnSingleClickListener() {
+            override fun onSingleClick(v: View) {
+                val i = Intent(this@SettingsActivity, SettingsTheme::class.java)
+                startActivityForResult(i, RESTART_SETTINGS_RESULT)
             }
-        });
-
-        findViewById(R.id.settings_child_maintheme).setOnClickListener(new OnSingleClickListener() {
-            @Override
-            public void onSingleClick(View v) {
-
-                Intent i = new Intent(SettingsActivity.this, SettingsTheme.class);
-                startActivityForResult(i, RESTART_SETTINGS_RESULT);
+        })
+        findViewById<View>(R.id.settings_child_handling).setOnClickListener(object :
+            OnSingleClickListener() {
+            override fun onSingleClick(v: View) {
+                val i = Intent(this@SettingsActivity, SettingsHandling::class.java)
+                startActivity(i)
             }
-        });
-
-        findViewById(R.id.settings_child_handling).setOnClickListener(new OnSingleClickListener() {
-            @Override
-            public void onSingleClick(View v) {
-                Intent i = new Intent(SettingsActivity.this, SettingsHandling.class);
-                startActivity(i);
+        })
+        findViewById<View>(R.id.settings_child_layout).setOnClickListener(object :
+            OnSingleClickListener() {
+            override fun onSingleClick(v: View) {
+                val i = Intent(this@SettingsActivity, EditCardsLayout::class.java)
+                startActivity(i)
             }
-        });
-
-        findViewById(R.id.settings_child_layout).setOnClickListener(new OnSingleClickListener() {
-            @Override
-            public void onSingleClick(View v) {
-                Intent i = new Intent(SettingsActivity.this, EditCardsLayout.class);
-                startActivity(i);
+        })
+        findViewById<View>(R.id.settings_child_backup).setOnClickListener(object :
+            OnSingleClickListener() {
+            override fun onSingleClick(v: View) {
+                val i = Intent(this@SettingsActivity, SettingsBackup::class.java)
+                startActivity(i)
             }
-        });
-
-        findViewById(R.id.settings_child_backup).setOnClickListener(new OnSingleClickListener() {
-            @Override
-            public void onSingleClick(View v) {
-                Intent i = new Intent(SettingsActivity.this, SettingsBackup.class);
-                startActivity(i);
+        })
+        findViewById<View>(R.id.settings_child_font).setOnClickListener(object :
+            OnSingleClickListener() {
+            override fun onSingleClick(v: View) {
+                val i = Intent(this@SettingsActivity, SettingsFont::class.java)
+                startActivity(i)
             }
-        });
-
-        findViewById(R.id.settings_child_font).setOnClickListener(new OnSingleClickListener() {
-            @Override
-            public void onSingleClick(View v) {
-                Intent i = new Intent(SettingsActivity.this, SettingsFont.class);
-                startActivity(i);
-            }
-        });
-
-        findViewById(R.id.settings_child_tablet).setOnClickListener(new OnSingleClickListener() {
-            @Override
-            public void onSingleClick(View view) {
-                  /*  Intent inte = new Intent(Overview.this, Overview.class);
+        })
+        findViewById<View>(R.id.settings_child_tablet).setOnClickListener(object :
+            OnSingleClickListener() {
+            override fun onSingleClick(view: View) {
+                /*  Intent inte = new Intent(Overview.this, Overview.class);
                     inte.putExtra("type", UpdateSubreddits.COLLECTIONS);
                     Overview.this.startActivity(inte);*/
                 if (SettingValues.isPro) {
-                    LayoutInflater inflater = getLayoutInflater();
-                    final View dialoglayout = inflater.inflate(R.layout.tabletui, null);
-                    final Resources res = getResources();
-
-                    dialoglayout.findViewById(R.id.title)
-                            .setBackgroundColor(Palette.getDefaultColor());
+                    val inflater = layoutInflater
+                    val dialoglayout = inflater.inflate(R.layout.tabletui, null)
+                    val res = resources
+                    dialoglayout.findViewById<View>(R.id.title)
+                        .setBackgroundColor(Palette.getDefaultColor())
                     //todo final Slider portrait = (Slider) dialoglayout.findViewById(R.id.portrait);
-                    final SeekBar landscape = dialoglayout.findViewById(R.id.landscape);
+                    val landscape = dialoglayout.findViewById<SeekBar>(R.id.landscape)
 
                     //todo  portrait.setBackgroundColor(Palette.getDefaultColor());
-                    landscape.setProgress(App.dpWidth - 1);
-
-                    ((TextView) dialoglayout.findViewById(R.id.progressnumber)).setText(
-                            res.getQuantityString(R.plurals.landscape_columns,
-                                    landscape.getProgress() + 1, landscape.getProgress() + 1));
-
-                    landscape.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-                        @Override
-                        public void onProgressChanged(SeekBar seekBar, int progress,
-                                boolean fromUser) {
-                            ((TextView) dialoglayout.findViewById(R.id.progressnumber)).setText(
-                                    res.getQuantityString(R.plurals.landscape_columns,
-                                            landscape.getProgress() + 1,
-                                            landscape.getProgress() + 1));
-                            SettingsActivity.changed = true;
+                    landscape.progress = App.dpWidth - 1
+                    (dialoglayout.findViewById<View>(R.id.progressnumber) as TextView).text =
+                        res.getQuantityString(
+                            R.plurals.landscape_columns,
+                            landscape.progress + 1, landscape.progress + 1
+                        )
+                    landscape.setOnSeekBarChangeListener(object : OnSeekBarChangeListener {
+                        override fun onProgressChanged(
+                            seekBar: SeekBar, progress: Int,
+                            fromUser: Boolean
+                        ) {
+                            (dialoglayout.findViewById<View>(R.id.progressnumber) as TextView).text =
+                                res.getQuantityString(
+                                    R.plurals.landscape_columns,
+                                    landscape.progress + 1,
+                                    landscape.progress + 1
+                                )
+                            changed = true
                         }
 
-                        @Override
-                        public void onStartTrackingTouch(SeekBar seekBar) {
-
+                        override fun onStartTrackingTouch(seekBar: SeekBar) {}
+                        override fun onStopTrackingTouch(seekBar: SeekBar) {}
+                    })
+                    val builder = AlertDialog.Builder(this@SettingsActivity)
+                        .setView(dialoglayout)
+                    val dialog: Dialog = builder.create()
+                    dialog.show()
+                    dialog.setOnDismissListener(object : DialogInterface.OnDismissListener {
+                        override fun onDismiss(dialog: DialogInterface) {
+                            App.dpWidth = landscape.progress + 1
+                            colours.edit()
+                                .putInt("tabletOVERRIDE", landscape.progress + 1)
+                                .apply()
                         }
-
-                        @Override
-                        public void onStopTrackingTouch(SeekBar seekBar) {
-
+                    })
+                    val s = dialog.findViewById<SwitchCompat>(R.id.dualcolumns)
+                    s.isChecked = SettingValues.dualPortrait
+                    s.setOnCheckedChangeListener(object : CompoundButton.OnCheckedChangeListener {
+                        override fun onCheckedChanged(
+                            buttonView: CompoundButton,
+                            isChecked: Boolean
+                        ) {
+                            SettingValues.dualPortrait = isChecked
                         }
-                    });
-                    final AlertDialog.Builder builder = new AlertDialog.Builder(SettingsActivity.this)
-                            .setView(dialoglayout);
-                    final Dialog dialog = builder.create();
-                    dialog.show();
-                    dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
-                        @Override
-                        public void onDismiss(DialogInterface dialog) {
-                            App.dpWidth = landscape.getProgress() + 1;
-                            Preferences.INSTANCE.getColours().edit()
-                                    .putInt("tabletOVERRIDE", landscape.getProgress() + 1)
-                                    .apply();
+                    })
+                    val s2 = dialog.findViewById<SwitchCompat>(R.id.fullcomment)
+                    s2.isChecked = SettingValues.fullCommentOverride
+                    s2.setOnCheckedChangeListener(object : CompoundButton.OnCheckedChangeListener {
+                        override fun onCheckedChanged(
+                            buttonView: CompoundButton,
+                            isChecked: Boolean
+                        ) {
+                            SettingValues.fullCommentOverride = isChecked
                         }
-                    });
-                    SwitchCompat s = dialog.findViewById(R.id.dualcolumns);
-                    s.setChecked(SettingValues.dualPortrait);
-                    s.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                        @Override
-                        public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                            SettingValues.dualPortrait = isChecked;
-                            SettingValues.prefs.edit()
-                                    .putBoolean(SettingValues.PREF_DUAL_PORTRAIT, isChecked)
-                                    .apply();
+                    })
+                    val s3 = dialog.findViewById<SwitchCompat>(R.id.singlecolumnmultiwindow)
+                    s3.isChecked = SettingValues.singleColumnMultiWindow
+                    s3.setOnCheckedChangeListener(object : CompoundButton.OnCheckedChangeListener {
+                        override fun onCheckedChanged(
+                            buttonView: CompoundButton,
+                            isChecked: Boolean
+                        ) {
+                            SettingValues.singleColumnMultiWindow = isChecked
                         }
-                    });
-                    SwitchCompat s2 = dialog.findViewById(R.id.fullcomment);
-                    s2.setChecked(SettingValues.fullCommentOverride);
-                    s2.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                        @Override
-                        public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                            SettingValues.fullCommentOverride = isChecked;
-                            SettingValues.prefs.edit()
-                                    .putBoolean(SettingValues.PREF_FULL_COMMENT_OVERRIDE, isChecked)
-                                    .apply();
-                        }
-                    });
-                    SwitchCompat s3 = dialog.findViewById(R.id.singlecolumnmultiwindow);
-                    s3.setChecked(SettingValues.singleColumnMultiWindow);
-                    s3.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                        @Override
-                        public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                            SettingValues.singleColumnMultiWindow = isChecked;
-                            SettingValues.prefs.edit()
-                                    .putBoolean(SettingValues.PREF_SINGLE_COLUMN_MULTI, isChecked)
-                                    .apply();
-                        }
-                    });
+                    })
                 } else {
-                    ProUtil.proUpgradeMsg(SettingsActivity.this, R.string.general_multicolumn_ispro)
-                            .setNegativeButton(R.string.btn_no_thanks, (dialog, whichButton) ->
-                                    dialog.dismiss())
-                            .show();
+                    ProUtil.proUpgradeMsg(this@SettingsActivity, R.string.general_multicolumn_ispro)
+                        .setNegativeButton(R.string.btn_no_thanks) { dialog: DialogInterface, whichButton: Int -> dialog.dismiss() }
+                        .show()
                 }
             }
-        });
-
-        if(BuildConfig.isFDroid){
-            ((TextView) findViewById(R.id.settings_child_donatetext)).setText("Donate via PayPal");
+        })
+        if (BuildConfig.isFDroid) {
+            (findViewById<View>(R.id.settings_child_donatetext) as TextView).text =
+                "Donate via PayPal"
         }
-        findViewById(R.id.settings_child_support).setOnClickListener(new OnSingleClickListener() {
-            @Override
-            public void onSingleClick(View v) {
-                if(BuildConfig.isFDroid){
-                    Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=56FKCCYLX7L72"));
-                    startActivity(browserIntent);
+        findViewById<View>(R.id.settings_child_support).setOnClickListener(object :
+            OnSingleClickListener() {
+            override fun onSingleClick(v: View) {
+                if (BuildConfig.isFDroid) {
+                    val browserIntent = Intent(
+                        Intent.ACTION_VIEW,
+                        Uri.parse("https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=56FKCCYLX7L72")
+                    )
+                    startActivity(browserIntent)
                 } else {
-                    Intent inte = new Intent(SettingsActivity.this, DonateView.class);
-                    startActivity(inte);
+                    val inte = Intent(this@SettingsActivity, DonateView::class.java)
+                    startActivity(inte)
                 }
             }
-        });
-
-        findViewById(R.id.settings_child_comments).setOnClickListener(new OnSingleClickListener() {
-            @Override
-            public void onSingleClick(View v) {
-                Intent inte = new Intent(SettingsActivity.this, SettingsComments.class);
-                startActivity(inte);
+        })
+        findViewById<View>(R.id.settings_child_comments).setOnClickListener(object :
+            OnSingleClickListener() {
+            override fun onSingleClick(v: View) {
+                val inte = Intent(this@SettingsActivity, SettingsComments::class.java)
+                startActivity(inte)
             }
-        });
-
+        })
         if (Authentication.isLoggedIn && NetworkUtil.isConnected(this)) {
-            findViewById(R.id.settings_child_reddit_settings).setOnClickListener(new OnSingleClickListener() {
-                @Override
-                public void onSingleClick(View v) {
-                    Intent i = new Intent(SettingsActivity.this, SettingsReddit.class);
-                    startActivity(i);
+            findViewById<View>(R.id.settings_child_reddit_settings).setOnClickListener(object :
+                OnSingleClickListener() {
+                override fun onSingleClick(v: View) {
+                    val i = Intent(this@SettingsActivity, SettingsReddit::class.java)
+                    startActivity(i)
                 }
-            });
+            })
         } else {
-            findViewById(R.id.settings_child_reddit_settings).setEnabled(false);
-            findViewById(R.id.settings_child_reddit_settings).setAlpha(0.25f);
+            findViewById<View>(R.id.settings_child_reddit_settings).isEnabled = false
+            findViewById<View>(R.id.settings_child_reddit_settings).alpha = 0.25f
         }
-
         if (Authentication.mod) {
-            findViewById(R.id.settings_child_moderation).setVisibility(View.VISIBLE);
-            findViewById(R.id.settings_child_moderation).setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    Intent i = new Intent(SettingsActivity.this, SettingsModeration.class);
-                    startActivity(i);
+            findViewById<View>(R.id.settings_child_moderation).visibility = View.VISIBLE
+            findViewById<View>(R.id.settings_child_moderation).setOnClickListener(object :
+                View.OnClickListener {
+                override fun onClick(v: View) {
+                    val i = Intent(this@SettingsActivity, SettingsModeration::class.java)
+                    startActivity(i)
                 }
-            });
+            })
         }
     }
 
-    @Override
-    public void onFolderSelection(@NonNull FolderChooserDialogCreate dialog,
-                                  @NonNull File folder, boolean isSaveToLocation) {
-        mSettingsGeneralFragment.onFolderSelection(dialog, folder, false);
+    override fun onFolderSelection(
+        dialog: FolderChooserDialogCreate,
+        folder: File, isSaveToLocation: Boolean
+    ) {
+        mSettingsGeneralFragment.onFolderSelection(dialog, folder, false)
     }
 
-    @Override
-    public void onFolderChooserDismissed(@NonNull FolderChooserDialogCreate dialog) {
+    override fun onFolderChooserDismissed(dialog: FolderChooserDialogCreate) {}
+    override fun onDestroy() {
+        super.onDestroy()
+        SettingValues.clearListener()
     }
 
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        SettingValues.prefs.unregisterOnSharedPreferenceChangeListener(prefsListener);
+    companion object {
+        private const val RESTART_SETTINGS_RESULT = 2
+        @JvmField
+        var changed //whether or not a Setting was changed
+                = false
     }
-
 }

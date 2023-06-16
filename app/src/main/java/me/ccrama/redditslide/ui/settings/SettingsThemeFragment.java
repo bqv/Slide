@@ -106,7 +106,7 @@ public class SettingsThemeFragment<ActivityType extends BaseActivity & RestartAc
                 tintEverywhereSwitch.setChecked(SettingValues.colorEverywhere);
                 tintEverywhereSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
                     SettingValues.colorEverywhere = isChecked;
-                    editSharedBooleanPreference(SettingValues.PREF_COLOR_EVERYWHERE, isChecked);
+                    SettingValues.editBoolean(SettingValues.PREF_COLOR_EVERYWHERE, isChecked);
                 });
                 return true;
             });
@@ -128,7 +128,7 @@ public class SettingsThemeFragment<ActivityType extends BaseActivity & RestartAc
         tintEverywhereSwitch.setChecked(SettingValues.colorEverywhere);
         tintEverywhereSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
             SettingValues.colorEverywhere = isChecked;
-            editSharedBooleanPreference(SettingValues.PREF_COLOR_EVERYWHERE, isChecked);
+            SettingValues.editBoolean(SettingValues.PREF_COLOR_EVERYWHERE, isChecked);
         });
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -136,7 +136,7 @@ public class SettingsThemeFragment<ActivityType extends BaseActivity & RestartAc
         colorNavbarSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
             SettingsThemeFragment.changed = true;
             SettingValues.colorNavBar = isChecked;
-            editSharedBooleanPreference(SettingValues.PREF_COLOR_NAV_BAR, isChecked);
+            SettingValues.editBoolean(SettingValues.PREF_COLOR_NAV_BAR, isChecked);
             context.themeSystemBars("");
             if (!isChecked) {
                 context.getWindow().setNavigationBarColor(Color.TRANSPARENT);
@@ -147,7 +147,7 @@ public class SettingsThemeFragment<ActivityType extends BaseActivity & RestartAc
         colorIconSwitch.setChecked(SettingValues.colorIcon);
         colorIconSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
             SettingValues.colorIcon = isChecked;
-            editSharedBooleanPreference(SettingValues.PREF_COLOR_ICON, isChecked);
+            SettingValues.editBoolean(SettingValues.PREF_COLOR_ICON, isChecked);
             if (isChecked) {
                 setComponentState(
                         Slide.class.getPackage().getName() + ".Slide",
@@ -346,16 +346,13 @@ public class SettingsThemeFragment<ActivityType extends BaseActivity & RestartAc
 
                     nightModeStateSpinner.setAdapter(NightModeArrayAdapter.createFromResource(
                             dialog.getContext(), R.array.night_mode_state, android.R.layout.simple_spinner_dropdown_item));
-                    nightModeStateSpinner.setSelection(SettingValues.nightModeState);
+                    nightModeStateSpinner.setSelection(SettingValues.INSTANCE.getNightModeState());
                     nightModeStateSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                         @Override
                         public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                             startSpinner.setEnabled(position == SettingValues.NightModeState.MANUAL.ordinal());
                             endSpinner.setEnabled(position == SettingValues.NightModeState.MANUAL.ordinal());
-                            SettingValues.nightModeState = position;
-                            SettingValues.prefs.edit()
-                                    .putInt(SettingValues.PREF_NIGHT_MODE_STATE, position)
-                                    .apply();
+                            SettingValues.INSTANCE.setNightModeState(position);
                             SettingsThemeFragment.changed = true;
                         }
 
@@ -366,23 +363,19 @@ public class SettingsThemeFragment<ActivityType extends BaseActivity & RestartAc
                     for (final Pair<Integer, Integer> pair : ColorPreferences.themePairList) {
                         final RadioButton radioButton = root.findViewById(pair.first);
                         if (radioButton != null) {
-                            if (SettingValues.nightTheme == pair.second) {
+                            if (SettingValues.INSTANCE.getNightTheme() == pair.second) {
                                 radioButton.setChecked(true);
                             }
                             radioButton.setOnCheckedChangeListener((buttonView, isChecked) -> {
                                 if (isChecked) {
                                     SettingsThemeFragment.changed = true;
-                                    SettingValues.nightTheme = pair.second;
-                                    SettingValues.prefs.edit()
-                                            .putInt(SettingValues.PREF_NIGHT_THEME,
-                                                    pair.second)
-                                            .apply();
+                                    SettingValues.INSTANCE.setNightTheme(pair.second);
                                 }
                             });
                         }
                     }
 
-                    boolean nightState = SettingValues.nightModeState == SettingValues.NightModeState.MANUAL.ordinal();
+                    boolean nightState = SettingValues.INSTANCE.getNightModeState() == SettingValues.NightModeState.MANUAL.ordinal();
                     startSpinner.setEnabled(nightState);
                     endSpinner.setEnabled(nightState);
                     final List<String> timesStart = new ArrayList<String>() {{
@@ -402,7 +395,7 @@ public class SettingsThemeFragment<ActivityType extends BaseActivity & RestartAc
 
                     //set the currently selected pref
                     startSpinner.setSelection(startAdapter.getPosition(
-                            SettingValues.nightStart + "pm"));
+                            SettingValues.INSTANCE.getNightStart() + "pm"));
 
                     startSpinner.setOnItemSelectedListener(
                             new AdapterView.OnItemSelectedListener() {
@@ -414,10 +407,7 @@ public class SettingsThemeFragment<ActivityType extends BaseActivity & RestartAc
                                             ((String) startSpinner.getItemAtPosition(
                                                     position)).replaceAll("pm", ""));
 
-                                    SettingValues.nightStart = time;
-                                    SettingValues.prefs.edit()
-                                            .putInt(SettingValues.PREF_NIGHT_START, time)
-                                            .apply();
+                                    SettingValues.INSTANCE.setNightStart(time);
                                 }
 
                                 @Override
@@ -448,7 +438,7 @@ public class SettingsThemeFragment<ActivityType extends BaseActivity & RestartAc
 
                     //set the currently selected pref
                     endSpinner.setSelection(endAdapter.getPosition(
-                            SettingValues.nightEnd + "am"));
+                            SettingValues.INSTANCE.getNightEnd() + "am"));
 
                     endSpinner.setOnItemSelectedListener(
                             new AdapterView.OnItemSelectedListener() {
@@ -460,10 +450,7 @@ public class SettingsThemeFragment<ActivityType extends BaseActivity & RestartAc
                                             ((String) endSpinner.getItemAtPosition(
                                                     position)).replaceAll("am", ""));
 
-                                    SettingValues.nightEnd = time;
-                                    SettingValues.prefs.edit()
-                                            .putInt(SettingValues.PREF_NIGHT_END, time)
-                                            .apply();
+                                    SettingValues.INSTANCE.setNightEnd(time);
                                 }
 
                                 @Override
@@ -494,12 +481,8 @@ public class SettingsThemeFragment<ActivityType extends BaseActivity & RestartAc
     private void setTintingMode(boolean colorBack, boolean subName) {
         SettingValues.colorBack = colorBack;
         SettingValues.colorSubName = subName;
-        editSharedBooleanPreference(SettingValues.PREF_COLOR_BACK, colorBack);
-        editSharedBooleanPreference(SettingValues.PREF_COLOR_SUB_NAME, subName);
-    }
-
-    private void editSharedBooleanPreference(final String settingValueString, final boolean isChecked) {
-        SettingValues.prefs.edit().putBoolean(settingValueString, isChecked).apply();
+        SettingValues.editBoolean(SettingValues.PREF_COLOR_BACK, colorBack);
+        SettingValues.editBoolean(SettingValues.PREF_COLOR_SUB_NAME, subName);
     }
 
     private static class NightModeArrayAdapter {

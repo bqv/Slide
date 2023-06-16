@@ -77,13 +77,13 @@ public class SettingsFontFragment {
         fontEnlargeLinksSwitch.setChecked(SettingValues.largeLinks);
         fontEnlargeLinksSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
             SettingValues.largeLinks = isChecked;
-            editSharedBooleanPreference(SettingValues.PREF_LARGE_LINKS, isChecked);
+            SettingValues.editBoolean(SettingValues.PREF_LARGE_LINKS, isChecked);
         });
 
         fontLinkTypeSwitch.setChecked(SettingValues.typeInText);
         fontLinkTypeSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
             SettingValues.typeInText = isChecked;
-            editSharedBooleanPreference(SettingValues.PREF_TYPE_IN_TEXT, isChecked);
+            SettingValues.editBoolean(SettingValues.PREF_TYPE_IN_TEXT, isChecked);
         });
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -219,9 +219,5 @@ public class SettingsFontFragment {
                 newFontPrefs.setTitleFont(fontTypeTitle);
             }
         });
-    }
-
-    private void editSharedBooleanPreference(final String settingValueString, final boolean isChecked) {
-        SettingValues.prefs.edit().putBoolean(settingValueString, isChecked).apply();
     }
 }

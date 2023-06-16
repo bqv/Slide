@@ -1,265 +1,235 @@
-package me.ccrama.redditslide;
+package me.ccrama.redditslide
 
-import android.app.Activity;
-import android.app.NotificationManager;
-import android.content.Context;
-import android.net.Uri;
-import android.os.AsyncTask;
-import android.util.Log;
-
-import androidx.core.app.NotificationCompat;
-import androidx.core.content.ContextCompat;
-
-import com.fasterxml.jackson.databind.JsonNode;
-
-import net.dean.jraw.http.NetworkException;
-import net.dean.jraw.http.RestResponse;
-import net.dean.jraw.http.SubmissionRequest;
-import net.dean.jraw.models.CommentSort;
-import net.dean.jraw.models.Submission;
-import net.dean.jraw.models.meta.SubmissionSerializer;
-import net.dean.jraw.paginators.SubredditPaginator;
-import net.dean.jraw.util.JrawUtils;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-
-import ltd.ucode.slide.Authentication;
-import ltd.ucode.slide.Preferences;
-import ltd.ucode.slide.R;
-import ltd.ucode.slide.App;
-import ltd.ucode.slide.SettingValues;
-import me.ccrama.redditslide.util.GifUtils;
-import me.ccrama.redditslide.util.LogUtil;
-import me.ccrama.redditslide.util.PhotoLoader;
+import android.app.Activity
+import android.app.NotificationManager
+import android.content.Context
+import android.net.Uri
+import android.os.AsyncTask
+import android.util.Log
+import androidx.core.app.NotificationCompat
+import androidx.core.content.ContextCompat
+import com.fasterxml.jackson.databind.JsonNode
+import ltd.ucode.slide.App
+import ltd.ucode.slide.Authentication
+import ltd.ucode.slide.Preferences.authentication
+import ltd.ucode.slide.R
+import ltd.ucode.slide.SettingValues
+import ltd.ucode.slide.SettingValues.getCommentSorting
+import me.ccrama.redditslide.util.GifUtils
+import me.ccrama.redditslide.util.LogUtil
+import me.ccrama.redditslide.util.PhotoLoader
+import net.dean.jraw.http.NetworkException
+import net.dean.jraw.http.SubmissionRequest
+import net.dean.jraw.models.CommentSort
+import net.dean.jraw.models.Submission
+import net.dean.jraw.models.meta.SubmissionSerializer
+import net.dean.jraw.paginators.SubredditPaginator
+import net.dean.jraw.util.JrawUtils
 
 /**
  * Created by carlo_000 on 4/18/2016.
  */
-public class CommentCacheAsync extends AsyncTask {
+class CommentCacheAsync : AsyncTask<Any?, Any?, Any?> {
+    var alreadyReceived: List<Submission>? = null
+    var mNotifyManager: NotificationManager? = null
 
-    public static final String SAVED_SUBMISSIONS = "read later";
-    List<Submission> alreadyReceived;
-
-    NotificationManager mNotifyManager;
-
-    public CommentCacheAsync(List<Submission> submissions, Context c, String subreddit,
-            boolean[] otherChoices) {
-        alreadyReceived = submissions;
-        this.context = c;
-        this.subs = new String[]{subreddit};
-        this.otherChoices = otherChoices;
+    constructor(
+        submissions: List<Submission>?, c: Context, subreddit: String,
+        otherChoices: BooleanArray
+    ) {
+        alreadyReceived = submissions
+        context = c
+        subs = arrayOf(subreddit)
+        this.otherChoices = otherChoices
     }
 
-    public CommentCacheAsync(List<Submission> submissions, Activity mContext, String baseSub,
-            String alternateSubName) {
-        this(submissions, mContext, baseSub, new boolean[]{true, true});
-
+    constructor(
+        submissions: List<Submission>?, mContext: Activity, baseSub: String,
+        alternateSubName: String?
+    ) : this(submissions, mContext, baseSub, booleanArrayOf(true, true)) {
     }
 
-    public CommentCacheAsync(Context c, String[] subreddits) {
-        this.context = c;
-        this.subs = subreddits;
+    constructor(c: Context, subreddits: Array<String>) {
+        context = c
+        subs = subreddits
     }
 
-    String[] subs;
-
-    Context                    context;
-    NotificationCompat.Builder mBuilder;
-
-    boolean[] otherChoices;
-
-    @Override
-    public Void doInBackground(Object[] params) {
+    var subs: Array<String>
+    var context: Context
+    var mBuilder: NotificationCompat.Builder? = null
+    var otherChoices: BooleanArray = emptyArray<Boolean>().toBooleanArray()
+    public override fun doInBackground(params: Array<Any?>): Void? {
         if (Authentication.isLoggedIn && Authentication.me == null || Authentication.reddit == null) {
-
             if (Authentication.reddit == null) {
-                new Authentication(context);
+                Authentication(context)
             }
-            if(Authentication.reddit != null) {
+            if (Authentication.reddit != null) {
                 try {
-                    Authentication.me = Authentication.reddit.me();
-                    Authentication.mod = Authentication.me.isMod();
-
-                    Preferences.INSTANCE.getAuthentication().edit()
-                            .putBoolean(App.SHARED_PREF_IS_MOD, Authentication.mod)
-                            .apply();
-                    final String name = Authentication.me.getFullName();
-                    Authentication.name = name;
-                    LogUtil.v("AUTHENTICATED");
-
-                    if (Authentication.reddit.isAuthenticated()) {
-                        final Set<String> accounts =
-                                Preferences.INSTANCE.getAuthentication().getStringSet("accounts", new HashSet<String>());
-                        if (accounts.contains(name)) { //convert to new system
-                            accounts.remove(name);
-                            accounts.add(name + ":" + Authentication.refresh);
-                            Preferences.INSTANCE.getAuthentication().edit().putStringSet("accounts", accounts).apply(); //force commit
+                    Authentication.me = Authentication.reddit!!.me()
+                    Authentication.mod = Authentication.me!!.isMod()
+                    authentication.edit()
+                        .putBoolean(App.SHARED_PREF_IS_MOD, Authentication.mod)
+                        .apply()
+                    val name = Authentication.me!!.getFullName()
+                    Authentication.name = name
+                    LogUtil.v("AUTHENTICATED")
+                    if (Authentication.reddit!!.isAuthenticated) {
+                        val accounts = authentication.getStringSet("accounts", HashSet())
+                        if (accounts!!.contains(name)) { //convert to new system
+                            accounts.remove(name)
+                            accounts.add(name + ":" + Authentication.refresh)
+                            authentication.edit().putStringSet("accounts", accounts)
+                                .apply() //force commit
                         }
-                        Authentication.isLoggedIn = true;
-                        App.notFirst = true;
+                        Authentication.isLoggedIn = true
+                        App.notFirst = true
                     }
-                } catch(Exception e){
-                    new Authentication(context);
+                } catch (e: Exception) {
+                    Authentication(context)
                 }
             }
         }
-
-        Map<String, String> multiNameToSubsMap = UserSubscriptions.getMultiNameToSubs(true);
-        if (Authentication.reddit == null) App.authentication = new Authentication(context);
-
-        ArrayList<String> success = new ArrayList<>();
-
-        for (final String fSub : subs) {
-            final String sub;
-            CommentSort sortType = SettingValues.getCommentSorting(fSub);
-
-            if (multiNameToSubsMap.containsKey(fSub)) {
-                sub = multiNameToSubsMap.get(fSub);
+        val multiNameToSubsMap = UserSubscriptions.getMultiNameToSubs(true)
+        if (Authentication.reddit == null) App.authentication = Authentication(context)
+        val success = ArrayList<String?>()
+        for (fSub in subs) {
+            val sub: String?
+            val sortType = getCommentSorting(fSub)
+            sub = if (multiNameToSubsMap.containsKey(fSub)) {
+                multiNameToSubsMap[fSub]
             } else {
-                sub = fSub;
+                fSub
             }
-
-            if (!sub.isEmpty()) {
-                if (!sub.equals(SAVED_SUBMISSIONS)) {
-                    mNotifyManager = ContextCompat.getSystemService(context, NotificationManager.class);
-                    mBuilder = new NotificationCompat.Builder(context, App.CHANNEL_COMMENT_CACHE);
-                    mBuilder.setOngoing(true);
-                    mBuilder.setContentTitle(context.getString(R.string.offline_caching_title,
-                            sub.equalsIgnoreCase("frontpage") ? fSub
-                                    : (fSub.contains("/m/") ? fSub : "/r/" + fSub)))
-                            .setSmallIcon(R.drawable.ic_save);
+            if (!sub!!.isEmpty()) {
+                if (sub != SAVED_SUBMISSIONS) {
+                    mNotifyManager =
+                        ContextCompat.getSystemService(context, NotificationManager::class.java)
+                    mBuilder = NotificationCompat.Builder(context, App.CHANNEL_COMMENT_CACHE)
+                    mBuilder!!.setOngoing(true)
+                    mBuilder!!.setContentTitle(
+                        context.getString(
+                            R.string.offline_caching_title,
+                            if (sub.equals(
+                                    "frontpage",
+                                    ignoreCase = true
+                                )
+                            ) fSub else if (fSub.contains("/m/")) fSub else "/r/$fSub"
+                        )
+                    )
+                        .setSmallIcon(R.drawable.ic_save)
                 }
-                List<Submission> submissions = new ArrayList<>();
-                ArrayList<String> newFullnames = new ArrayList<>();
-                int count = 0;
+                val submissions: MutableList<Submission> = ArrayList()
+                val newFullnames = ArrayList<String>()
+                var count = 0
                 if (alreadyReceived != null) {
-                    submissions.addAll(alreadyReceived);
+                    submissions.addAll(alreadyReceived!!)
                 } else {
-                    SubredditPaginator p;
-                    if (fSub.equalsIgnoreCase("frontpage")) {
-                        p = new SubredditPaginator(Authentication.reddit);
+                    var p: SubredditPaginator
+                    p = if (fSub.equals("frontpage", ignoreCase = true)) {
+                        SubredditPaginator(Authentication.reddit)
                     } else {
-                        p = new SubredditPaginator(Authentication.reddit, sub);
+                        SubredditPaginator(Authentication.reddit, sub)
                     }
-                    p.setLimit(Constants.PAGINATOR_POST_LIMIT);
+                    p.setLimit(Constants.PAGINATOR_POST_LIMIT)
                     try {
-                        submissions.addAll(p.next());
-                    } catch (Exception e) {
-                        e.printStackTrace();
+                        submissions.addAll(p.next())
+                    } catch (e: Exception) {
+                        e.printStackTrace()
                     }
                 }
-
-                int commentDepth = Integer.parseInt(
-                        SettingValues.prefs.getString(SettingValues.COMMENT_DEPTH, "5"));
-                int commentCount = Integer.parseInt(
-                        SettingValues.prefs.getString(SettingValues.COMMENT_COUNT, "50"));
-
-                Log.v("CommentCacheAsync", "comment count " + commentCount);
-                int random = (int) (Math.random() * 100);
-
-                for (final Submission s : submissions) {
+                val commentDepth = SettingValues.commentDepth ?: 5
+                val commentCount = SettingValues.commentCount ?: 50
+                Log.v("CommentCacheAsync", "comment count $commentCount")
+                val random = (Math.random() * 100).toInt()
+                for (s in submissions) {
                     try {
-                        JsonNode n = getSubmission(
-                                new SubmissionRequest.Builder(s.getId()).limit(commentCount)
-                                        .depth(commentDepth)
-                                        .sort(sortType)
-                                        .build());
-                        Submission s2 =
-                                SubmissionSerializer.withComments(n, CommentSort.CONFIDENCE);
-                        OfflineSubreddit.writeSubmission(n, s2, context);
-                        newFullnames.add(s2.getFullName());
-                        if (!SettingValues.noImages) PhotoLoader.loadPhoto(context, s);
-                        switch (ContentType.getContentType(s)) {
-                            case VREDDIT_DIRECT:
-                            case VREDDIT_REDIRECT:
-                            case GIF:
-                                if (otherChoices[0]) {
-                                    if (context instanceof Activity) {
-                                        ((Activity) context).runOnUiThread(new Runnable() {
-                                            @Override
-                                            public void run() {
-                                                GifUtils.cacheSaveGif(
-                                                        Uri.parse(GifUtils.AsyncLoadGif.formatUrl(s.getUrl())),
-                                                        (Activity) context,
-                                                        s.getSubredditName(),
-                                                        null,
-                                                        false
-                                                );
-                                            }
-                                        });
+                        val n = getSubmission(
+                            SubmissionRequest.Builder(s.id).limit(commentCount)
+                                .depth(commentDepth)
+                                .sort(sortType)
+                                .build()
+                        )
+                        val s2 = SubmissionSerializer.withComments(n, CommentSort.CONFIDENCE)
+                        OfflineSubreddit.writeSubmission(n, s2, context)
+                        newFullnames.add(s2.fullName)
+                        if (!SettingValues.noImages) PhotoLoader.loadPhoto(context, s)
+                        when (ContentType.getContentType(s)) {
+                            ContentType.Type.VREDDIT_DIRECT, ContentType.Type.VREDDIT_REDIRECT, ContentType.Type.GIF -> if (otherChoices[0]) {
+                                if (context is Activity) {
+                                    (context as Activity).runOnUiThread {
+                                        GifUtils.cacheSaveGif(
+                                            Uri.parse(GifUtils.AsyncLoadGif.formatUrl(s.url)),
+                                            context as Activity,
+                                            s.subredditName,
+                                            null,
+                                            false
+                                        )
                                     }
                                 }
-                                break;
-                            case ALBUM:
-                                if (otherChoices[1])
-                                //todo this AlbumUtils.saveAlbumToCache(context, s.getUrl());
-                                {
-                                    break;
-                                }
+                            }
+
+                            ContentType.Type.ALBUM -> if (otherChoices[1]) //todo this AlbumUtils.saveAlbumToCache(context, s.getUrl());
+                            {
+                                break
+                            }
+
+                            else -> {}
                         }
-                    } catch (Exception ignored) {
+                    } catch (ignored: Exception) {
                     }
-                    count = count + 1;
+                    count = count + 1
                     if (mBuilder != null) {
-                        mBuilder.setProgress(submissions.size(), count, false);
-                        mNotifyManager.notify(random, mBuilder.build());
+                        mBuilder!!.setProgress(submissions.size, count, false)
+                        mNotifyManager!!.notify(random, mBuilder!!.build())
                     }
-
                 }
-
-                OfflineSubreddit.newSubreddit(sub).writeToMemory(newFullnames);
+                OfflineSubreddit.newSubreddit(sub).writeToMemory(newFullnames)
                 if (mBuilder != null) {
-                    mNotifyManager.cancel(random);
+                    mNotifyManager!!.cancel(random)
                 }
-                if (!submissions.isEmpty()) success.add(sub);
+                if (!submissions.isEmpty()) success.add(sub)
             }
         }
         if (mBuilder != null) {
-            mBuilder.setContentText(context.getString(R.string.offline_caching_complete))
-                    // Removes the progress bar
-                    .setSubText(success.size() + " subreddits cached").setProgress(0, 0, false);
-            mBuilder.setOngoing(false);
-            mNotifyManager.notify(2001, mBuilder.build());
+            mBuilder!!.setContentText(context.getString(R.string.offline_caching_complete)) // Removes the progress bar
+                .setSubText(success.size.toString() + " subreddits cached").setProgress(0, 0, false)
+            mBuilder!!.setOngoing(false)
+            mNotifyManager!!.notify(2001, mBuilder!!.build())
         }
-
-        return null;
+        return null
     }
 
-    public JsonNode getSubmission(SubmissionRequest request) throws NetworkException {
-        Map<String, String> args = new HashMap<>();
-        if (request.getDepth() != null) args.put("depth", Integer.toString(request.getDepth()));
-        if (request.getContext() != null) {
-            args.put("context", Integer.toString(request.getContext()));
+    @Throws(NetworkException::class)
+    fun getSubmission(request: SubmissionRequest): JsonNode? {
+        val args: MutableMap<String, String> = HashMap()
+        if (request.depth != null) args["depth"] = Integer.toString(request.depth)
+        if (request.context != null) {
+            args["context"] = Integer.toString(request.context)
         }
-        if (request.getLimit() != null) args.put("limit", Integer.toString(request.getLimit()));
-        if (request.getFocus() != null && !JrawUtils.isFullname(request.getFocus())) {
-            args.put("comment", request.getFocus());
+        if (request.limit != null) args["limit"] = Integer.toString(request.limit)
+        if (request.focus != null && !JrawUtils.isFullname(request.focus)) {
+            args["comment"] = request.focus
         }
-
-        CommentSort sort = request.getSort();
-        if (sort == null)
-        // Reddit sorts by confidence by default
+        var sort = request.sort
+        if (sort == null) // Reddit sorts by confidence by default
         {
-            sort = CommentSort.CONFIDENCE;
+            sort = CommentSort.CONFIDENCE
         }
-        args.put("sort", sort.name().toLowerCase(Locale.ENGLISH));
-
-        try {
-
-            RestResponse response = Authentication.reddit.execute(Authentication.reddit.request()
-                    .path(String.format("/comments/%s", request.getId()))
+        args["sort"] = sort.name.lowercase()
+        return try {
+            val response = Authentication.reddit!!.execute(
+                Authentication.reddit!!.request()
+                    .path(String.format("/comments/%s", request.id))
                     .query(args)
-                    .build());
-            return response.getJson();
-        } catch (Exception e) {
-            return null;
+                    .build()
+            )
+            response.json
+        } catch (e: Exception) {
+            null
         }
+    }
+
+    companion object {
+        const val SAVED_SUBMISSIONS = "read later"
     }
 }
-

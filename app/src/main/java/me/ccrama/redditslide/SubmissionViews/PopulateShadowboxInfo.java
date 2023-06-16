@@ -107,7 +107,7 @@ public class PopulateShadowboxInfo {
                     downvotebutton.setVisibility(View.GONE);
                     upvotebutton.setVisibility(View.GONE);
                 } else if (Authentication.isLoggedIn && Authentication.didOnline) {
-                    if (SettingValues.actionbarVisible && downvotebutton.getVisibility() != View.VISIBLE) {
+                    if (SettingValues.INSTANCE.getActionbarVisible() && downvotebutton.getVisibility() != View.VISIBLE) {
                         downvotebutton.setVisibility(View.VISIBLE);
                         upvotebutton.setVisibility(View.VISIBLE);
                     }
@@ -333,7 +333,7 @@ public class PopulateShadowboxInfo {
                     downvotebutton.setVisibility(View.GONE);
                     upvotebutton.setVisibility(View.GONE);
                 } else if (Authentication.isLoggedIn && Authentication.didOnline) {
-                    if (SettingValues.actionbarVisible && downvotebutton.getVisibility() != View.VISIBLE) {
+                    if (SettingValues.INSTANCE.getActionbarVisible() && downvotebutton.getVisibility() != View.VISIBLE) {
                         downvotebutton.setVisibility(View.VISIBLE);
                         upvotebutton.setVisibility(View.VISIBLE);
                     }

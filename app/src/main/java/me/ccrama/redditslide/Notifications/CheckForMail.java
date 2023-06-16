@@ -153,7 +153,7 @@ public class CheckForMail extends BroadcastReceiver {
 
                                     .addAction(R.drawable.ic_done_all,
                                             c.getString(R.string.mail_mark_read), readPI);
-                    if (!SettingValues.notifSound) {
+                    if (!SettingValues.INSTANCE.getNotifSound()) {
                         builder.setSound(null);
                     }
                     Notification notification = builder.build();
@@ -221,7 +221,7 @@ public class CheckForMail extends BroadcastReceiver {
                                         .setGroupAlertBehavior(NotificationCompat.GROUP_ALERT_SUMMARY)
                                         .addAction(R.drawable.ic_done_all,
                                                 c.getString(R.string.mail_mark_read), readPISingle);
-                        if (!SettingValues.notifSound) {
+                        if (!SettingValues.INSTANCE.getNotifSound()) {
                             builder.setSound(null);
                         }
                         Notification notification = builder.build();
@@ -294,7 +294,7 @@ public class CheckForMail extends BroadcastReceiver {
                                     .setContentTitle(res.getQuantityString(
                                             R.plurals.mod_mail_notification_title, amount, amount))
                             .setStyle(notiStyle);
-                    if (!SettingValues.notifSound) {
+                    if (!SettingValues.INSTANCE.getNotifSound()) {
                         builder.setSound(null);
                     }
                     Notification notification = builder.build();
@@ -328,7 +328,7 @@ public class CheckForMail extends BroadcastReceiver {
                                                         m.getSubject(), m.getAuthor()))
                                         .setContentText(Html.fromHtml(m.getBody(), Html.FROM_HTML_MODE_LEGACY))
                                 .setStyle(notiStyle);
-                        if (!SettingValues.notifSound) {
+                        if (!SettingValues.INSTANCE.getNotifSound()) {
                             builder.setSound(null);
                         }
                         Notification notification = builder.build();

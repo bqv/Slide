@@ -597,7 +597,7 @@ public class UserSubscriptions {
     public static void addSubreddit(String s, Context c) {
         CaseInsensitiveArrayList subs = getSubscriptions(c);
         subs.add(s);
-        if (SettingValues.alphabetizeOnSubscribe) {
+        if (SettingValues.INSTANCE.getAlphabetizeOnSubscribe()) {
             setSubscriptions(sortNoExtras(subs));
         } else {
             setSubscriptions(subs);

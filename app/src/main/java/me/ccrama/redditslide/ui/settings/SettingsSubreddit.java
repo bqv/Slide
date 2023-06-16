@@ -81,7 +81,7 @@ public class SettingsSubreddit extends BaseActivityAnim {
                         .setPositiveButton(R.string.btn_yes, (dialog, which) -> {
                             for (String s : changedSubs) {
                                 Palette.removeColor(s);
-                                SettingValues.prefs.edit().remove(App.PREF_LAYOUT + s).apply();
+                                SettingValues.setLayoutSettings(s, false);
                                 new ColorPreferences(SettingsSubreddit.this).removeFontStyle(s);
                                 SettingValues.resetPicsEnabled(s);
                             }
@@ -189,9 +189,9 @@ public class SettingsSubreddit extends BaseActivityAnim {
 
         for (String s : allSubs) {
             if (Palette.getColor(s) != Palette.getDefaultColor()
-                    || SettingValues.prefs.contains(App.PREF_LAYOUT + s)
+                    || SettingValues.getLayoutSettings(s)
                     || colorPrefs.getFontStyleSubreddit(s).getColor() != defaultFont
-                    || SettingValues.prefs.contains("picsenabled" + s.toLowerCase(Locale.ENGLISH))) {
+                    || SettingValues.hasPicsEnabled(s)) {
                 changedSubs.add(s);
             }
         }

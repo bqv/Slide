@@ -134,7 +134,7 @@ public class ImageDownloadNotificationService extends Service {
                                                 .getDiskCache()
                                                 .get(finalUrl);
                                         if (f != null && f.exists()) {
-                                            if (SettingValues.imageSubfolders && !subreddit.isEmpty()) {
+                                            if (SettingValues.INSTANCE.getImageSubfolders() && !subreddit.isEmpty()) {
                                                 File directory = new File(getFolderPath() + getSubfolderPath());
                                                 directory.mkdirs();
                                             }
@@ -186,7 +186,7 @@ public class ImageDownloadNotificationService extends Service {
 
         @NonNull
         private String getSubfolderPath() {
-            return SettingValues.imageSubfolders && !subreddit.isEmpty() ? File.separator + subreddit : "";
+            return SettingValues.INSTANCE.getImageSubfolders() && !subreddit.isEmpty() ? File.separator + subreddit : "";
         }
 
         public void onError(Exception e) {

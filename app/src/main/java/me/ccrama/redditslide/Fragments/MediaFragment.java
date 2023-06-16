@@ -173,7 +173,7 @@ public class MediaFragment extends Fragment {
 
         if (Strings.isNullOrEmpty(s.getThumbnail())
                 || Strings.isNullOrEmpty(firstUrl)
-                || (s.isNsfw() && SettingValues.getIsNSFWEnabled())) {
+                || (s.isNsfw() && SettingValues.isNSFWEnabled())) {
             thumbnailView.setVisibility(View.VISIBLE);
             ((ImageView) thumbnailView).setImageResource(R.drawable.web);
             addClickFunctions(thumbnailView, slideLayout, rootView,
@@ -182,7 +182,7 @@ public class MediaFragment extends Fragment {
                     type, getActivity(), s);
             (rootView.findViewById(R.id.progress)).setVisibility(View.GONE);
 
-            if ((s.isNsfw() && SettingValues.getIsNSFWEnabled())) {
+            if ((s.isNsfw() && SettingValues.isNSFWEnabled())) {
                 ((ImageView) thumbnailView).setImageResource(
                         R.drawable.nsfw);
             } else {
@@ -198,7 +198,7 @@ public class MediaFragment extends Fragment {
             addClickFunctions(img, slideLayout, rootView, type, getActivity(), s);
         }
 
-        if (!s.isNsfw() || !SettingValues.getIsNSFWEnabled()) {
+        if (!s.isNsfw() || !SettingValues.isNSFWEnabled()) {
             if (type == ContentType.Type.EXTERNAL
                     || type == ContentType.Type.LINK
                     || type == ContentType.Type.VIDEO) {
@@ -388,7 +388,7 @@ public class MediaFragment extends Fragment {
                         case ALBUM:
                             if (SettingValues.album) {
                                 Intent i;
-                                if (SettingValues.albumSwipe) {
+                                if (SettingValues.INSTANCE.getAlbumSwipe()) {
                                     i = new Intent(contextActivity, AlbumPager.class);
                                     i.putExtra(Album.EXTRA_URL, submission.getUrl());
                                     i.putExtra(AlbumPager.SUBREDDIT, submission.getSubredditName());
@@ -406,7 +406,7 @@ public class MediaFragment extends Fragment {
                         case REDDIT_GALLERY:
                             if (SettingValues.album) {
                                 Intent i;
-                                if (SettingValues.albumSwipe) {
+                                if (SettingValues.INSTANCE.getAlbumSwipe()) {
                                     i = new Intent(contextActivity, RedditGalleryPager.class);
                                     i.putExtra(AlbumPager.SUBREDDIT,
                                             submission.getSubredditName());
@@ -440,7 +440,7 @@ public class MediaFragment extends Fragment {
                         case TUMBLR:
                             if (SettingValues.image) {
                                 Intent i;
-                                if (SettingValues.albumSwipe) {
+                                if (SettingValues.INSTANCE.getAlbumSwipe()) {
                                     i = new Intent(contextActivity, TumblrPager.class);
                                     i.putExtra(Album.EXTRA_URL, submission.getUrl());
                                     i.putExtra(TumblrPager.SUBREDDIT,

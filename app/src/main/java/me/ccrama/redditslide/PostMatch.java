@@ -78,7 +78,7 @@ public class PostMatch {
 
     public static boolean openExternal(String url) {
         try {
-            return isDomain(url.toLowerCase(Locale.ENGLISH), SettingValues.alwaysExternal);
+            return isDomain(url.toLowerCase(Locale.ENGLISH), SettingValues.INSTANCE.getAlwaysExternal());
         } catch (MalformedURLException e) {
             return false;
         }
@@ -95,18 +95,18 @@ public class PostMatch {
         String subreddit = s.getSubredditName();
         String flair = s.getSubmissionFlair().getText() != null ? s.getSubmissionFlair().getText() : "";
 
-        if (contains(title, SettingValues.titleFilters, false)) return true;
+        if (contains(title, SettingValues.INSTANCE.getTitleFilters(), false)) return true;
 
-        if (contains(body, SettingValues.textFilters, false)) return true;
+        if (contains(body, SettingValues.INSTANCE.getTextFilters(), false)) return true;
 
-        if (contains(s.getAuthor(), SettingValues.userFilters, false)) return true;
+        if (contains(s.getAuthor(), SettingValues.INSTANCE.getUserFilters(), false)) return true;
 
         try {
-            if (isDomain(domain.toLowerCase(Locale.ENGLISH), SettingValues.domainFilters)) return true;
+            if (isDomain(domain.toLowerCase(Locale.ENGLISH), SettingValues.INSTANCE.getDomainFilters())) return true;
         } catch (MalformedURLException ignored) {
         }
 
-        if (!subreddit.equalsIgnoreCase(baseSubreddit) && contains(subreddit, SettingValues.subredditFilters, true)) {
+        if (!subreddit.equalsIgnoreCase(baseSubreddit) && contains(subreddit, SettingValues.INSTANCE.getSubredditFilters(), true)) {
             return true;
         }
 
@@ -127,7 +127,7 @@ public class PostMatch {
 
 
         if (s.isNsfw()) {
-            if (!SettingValues.showNSFWContent) {
+            if (!SettingValues.INSTANCE.getShowNSFWContent()) {
                 contentMatch = true;
             }
             if (ignore18) {
@@ -180,7 +180,7 @@ public class PostMatch {
         }
 
         if (!flair.isEmpty())
-            for (String flairText : SettingValues.flairFilters) {
+            for (String flairText : SettingValues.INSTANCE.getFlairFilters()) {
                 if (flairText.toLowerCase(Locale.ENGLISH).startsWith(baseSubreddit)) {
                     String[] split = flairText.split(":");
                     if (split[0].equalsIgnoreCase(baseSubreddit)) {
@@ -203,16 +203,16 @@ public class PostMatch {
 
         boolean domainc = false;
 
-        boolean titlec = contains(title, SettingValues.titleFilters, false);
+        boolean titlec = contains(title, SettingValues.INSTANCE.getTitleFilters(), false);
 
-        boolean bodyc = contains(body, SettingValues.textFilters, false);
+        boolean bodyc = contains(body, SettingValues.INSTANCE.getTextFilters(), false);
 
         try {
-            domainc = isDomain(domain.toLowerCase(Locale.ENGLISH), SettingValues.domainFilters);
+            domainc = isDomain(domain.toLowerCase(Locale.ENGLISH), SettingValues.INSTANCE.getDomainFilters());
         } catch (MalformedURLException ignored) {
         }
 
-        boolean subredditc = subreddit != null && !subreddit.isEmpty() && contains(subreddit, SettingValues.subredditFilters, true);
+        boolean subredditc = subreddit != null && !subreddit.isEmpty() && contains(subreddit, SettingValues.INSTANCE.getSubredditFilters(), true);
 
         return (titlec || bodyc || domainc || subredditc);
     }

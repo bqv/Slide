@@ -66,14 +66,14 @@ public class ImageLoaderUtils {
 
         options = new DisplayImageOptions.Builder()
                 .cacheOnDisk(true)
-                .bitmapConfig(SettingValues.highColorspaceImages ? Bitmap.Config.ARGB_8888 : Bitmap.Config.RGB_565)
-                .imageScaleType(SettingValues.highColorspaceImages ? ImageScaleType.NONE_SAFE : ImageScaleType.IN_SAMPLE_POWER_OF_2)
+                .bitmapConfig(SettingValues.INSTANCE.getHighColorspaceImages() ? Bitmap.Config.ARGB_8888 : Bitmap.Config.RGB_565)
+                .imageScaleType(SettingValues.INSTANCE.getHighColorspaceImages() ? ImageScaleType.NONE_SAFE : ImageScaleType.IN_SAMPLE_POWER_OF_2)
                 .cacheInMemory(false)
                 .resetViewBeforeLoading(false)
                 .displayer(new FadeInBitmapDisplayer(250))
                 .build();
 
-        if(SettingValues.highColorspaceImages) {
+        if(SettingValues.INSTANCE.getHighColorspaceImages()) {
             SubsamplingScaleImageView.setPreferredBitmapConfig(Bitmap.Config.ARGB_8888);
         }
         ImageLoaderConfiguration config = new ImageLoaderConfiguration.Builder(context)

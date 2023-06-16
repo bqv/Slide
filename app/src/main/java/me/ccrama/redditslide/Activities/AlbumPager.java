@@ -99,8 +99,7 @@ public class AlbumPager extends FullScreenActivity
             onBackPressed();
         }
         if (id == R.id.vertical) {
-            SettingValues.albumSwipe = false;
-            SettingValues.prefs.edit().putBoolean(SettingValues.PREF_ALBUM_SWIPE, false).apply();
+            SettingValues.INSTANCE.setAlbumSwipe(false);
             Intent i = new Intent(AlbumPager.this, Album.class);
             if (getIntent().hasExtra(MediaView.SUBMISSION_URL)) {
                 i.putExtra(MediaView.SUBMISSION_URL,
@@ -398,7 +397,7 @@ public class AlbumPager extends FullScreenActivity
                     MediaView.doOnClick.run();
                 }
             });
-            if (!SettingValues.imageDownloadButton) {
+            if (!SettingValues.INSTANCE.getImageDownloadButton()) {
                 rootView.findViewById(R.id.save).setVisibility(View.INVISIBLE);
             }
             return rootView;
@@ -533,7 +532,7 @@ public class AlbumPager extends FullScreenActivity
                             }
 
                         });
-                        if (!SettingValues.imageDownloadButton) {
+                        if (!SettingValues.INSTANCE.getImageDownloadButton()) {
                             rootView.findViewById(R.id.save).setVisibility(View.INVISIBLE);
                         }
                     }

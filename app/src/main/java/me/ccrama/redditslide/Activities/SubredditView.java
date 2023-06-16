@@ -162,7 +162,7 @@ public class SubredditView extends BaseActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         overrideSwipeFromAnywhere();
-        if (SettingValues.commentPager && SettingValues.single) {
+        if (SettingValues.INSTANCE.getCommentPager() && SettingValues.INSTANCE.getSingle()) {
             disableSwipeBackLayout();
         }
         getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
@@ -185,9 +185,9 @@ public class SubredditView extends BaseActivity {
         setResult(3);
         mToolbar.setPopupTheme(new ColorPreferences(this).getFontStyle().getBaseId());
         pager = (ToggleSwipeViewPager) findViewById(R.id.content_view);
-        singleMode = SettingValues.single;
+        singleMode = SettingValues.INSTANCE.getSingle();
         commentPager = false;
-        if (singleMode) commentPager = SettingValues.commentPager;
+        if (singleMode) commentPager = SettingValues.INSTANCE.getCommentPager();
         if (commentPager) {
             adapter = new SubredditPagerAdapterComment(getSupportFragmentManager());
             pager.setSwipeLeftOnly(false);
@@ -240,13 +240,13 @@ public class SubredditView extends BaseActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
 
-        if (SettingValues.expandedToolbar) {
+        if (SettingValues.INSTANCE.getExpandedToolbar()) {
             inflater.inflate(R.menu.menu_single_subreddit_expanded, menu);
         } else {
             inflater.inflate(R.menu.menu_single_subreddit, menu);
         }
 
-        if (SettingValues.fab && SettingValues.fabType == Constants.FAB_DISMISS) {
+        if (SettingValues.INSTANCE.getFab() && SettingValues.INSTANCE.getFabType() == Constants.FAB_DISMISS) {
             menu.findItem(R.id.hide_posts).setVisible(false);
         }
 
@@ -471,7 +471,7 @@ public class SubredditView extends BaseActivity {
                 if (!Authentication.isLoggedIn || !Authentication.didOnline) {
                     submit.setVisibility(View.GONE);
                 }
-                if (SettingValues.fab && SettingValues.fabType == Constants.FAB_POST) {
+                if (SettingValues.INSTANCE.getFab() && SettingValues.INSTANCE.getFabType() == Constants.FAB_POST) {
                     submit.setVisibility(View.GONE);
                 }
 
@@ -568,8 +568,7 @@ public class SubredditView extends BaseActivity {
                             .setTitle(R.string.sorting_choose)
                             .setSingleChoiceItems(SortingUtil.getSortingStrings(), sortid, l2)
                             .setNegativeButton("Reset default sorting", (dialog, which) -> {
-                                SettingValues.prefs.edit().remove("defaultSort" + subreddit.toLowerCase(Locale.ENGLISH)).apply();
-                                SettingValues.prefs.edit().remove("defaultTime" + subreddit.toLowerCase(Locale.ENGLISH)).apply();
+                                SettingValues.clearSort(subreddit);
                                 final TextView sort1 = dialoglayout.findViewById(R.id.sort);
                                 if(SettingValues.hasSort(subreddit)) {
                                     Sorting sortingis1 = SettingValues.getBaseSubmissionSort(subreddit);
@@ -1839,7 +1838,7 @@ public class SubredditView extends BaseActivity {
                 }
 
                 // Over 18 interstitial for signed out users or those who haven't enabled NSFW content
-                if (subreddit.isNsfw() && (!SettingValues.showNSFWContent)) {
+                if (subreddit.isNsfw() && (!SettingValues.INSTANCE.getShowNSFWContent())) {
                     new AlertDialog.Builder(SubredditView.this)
                             .setTitle(getString(R.string.over18_title, subreddit.getDisplayName()))
                             .setMessage(getString(R.string.over18_desc) + "\n\n" + getString(

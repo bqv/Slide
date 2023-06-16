@@ -55,11 +55,11 @@ public class LayoutUtils {
         final int numColumns;
         boolean singleColumnMultiWindow = false;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            singleColumnMultiWindow = activity.isInMultiWindowMode() && SettingValues.singleColumnMultiWindow;
+            singleColumnMultiWindow = activity.isInMultiWindowMode() && SettingValues.INSTANCE.getSingleColumnMultiWindow();
         }
         if (orientation == Configuration.ORIENTATION_LANDSCAPE && SettingValues.isPro && !singleColumnMultiWindow) {
             numColumns = App.dpWidth;
-        } else if (orientation == Configuration.ORIENTATION_PORTRAIT && SettingValues.dualPortrait) {
+        } else if (orientation == Configuration.ORIENTATION_PORTRAIT && SettingValues.INSTANCE.getDualPortrait()) {
             numColumns = 2;
         } else {
             numColumns = 1;
