@@ -9,5 +9,5 @@ data class SiteView (
     @SerialName("local_site") val localSite: LocalSite,
     @SerialName("local_site_rate_limit") val localSiteRateLimit: LocalSiteRateLimit,
     val site: Site,
-    val taglines: List<Tagline>?,
+    val taglines: List<Tagline>? = null,
 )

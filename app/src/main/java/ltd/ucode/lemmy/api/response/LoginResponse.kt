@@ -6,7 +6,7 @@ import ltd.ucode.lemmy.data.LoginResult
 
 @Serializable
 data class LoginResponse(
-    val jwt: String?,
+    val jwt: String? = null,
     @SerialName("registration_created") val registrationCreated: Boolean,
     @SerialName("verify_email_sent") val verifyEmailSent: Boolean
 ) {

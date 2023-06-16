@@ -1,6 +1,6 @@
 package ltd.ucode.lemmy.data.type
 
-import kotlinx.datetime.Instant
+import kotlinx.datetime.LocalDateTime
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -16,10 +16,10 @@ data class LocalSiteRateLimit (
     @SerialName("message_per_second") val messagePerSecond: Int,
     val post: Int,
     @SerialName("post_per_second") val postPerSecond: Int,
-    val published: Instant,
+    val published: LocalDateTime,
     val register: Int,
     @SerialName("register_per_second") val registerPerSecond: Int,
     val search: Int,
     @SerialName("search_per_second") val searchPerSecond: Int,
-    val updated: Instant?,
+    val updated: LocalDateTime? = null,
 )

@@ -10,10 +10,13 @@ import retrofit2.http.QueryMap
 
 interface LemmyHttpApi {
 
-    @POST("/user/login")
+    @GET("/.well-known/nodeinfo")
+    suspend fun nodeinfo(): Response<String>
+
+    @POST("user/login")
     suspend fun login(@Body req: LoginRequest): Response<LoginResponse>
 
-    @GET("/site")
+    @GET("site")
     suspend fun getSite(@QueryMap form: Map<String, String>): Response<GetSiteResponse>
 
 }

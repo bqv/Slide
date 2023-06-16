@@ -8,7 +8,7 @@ data class LocalUserSettings (
     @SerialName("accepted_application") val isApplicationAccepted: Boolean,
     @SerialName("default_listing_type") val defaultListingType: Int,
     @SerialName("default_sort_type") val defaultSortType: Int,
-    val email: String?,
+    val email: String? = null,
     @SerialName("email_verified") val isEmailVerified: Boolean,
     val id: Int,
     @SerialName("interface_language") val interfaceLanguage: String,

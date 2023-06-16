@@ -2,6 +2,9 @@ package ltd.ucode.slide
 
 import android.content.Context
 import android.os.AsyncTask
+import android.util.Log
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import ltd.ucode.lemmy.api.LemmyHttp
 import ltd.ucode.slide.App.Companion.setDefaultErrorHandler
 import me.ccrama.redditslide.util.LogUtil
@@ -41,6 +44,7 @@ class Authentication(context: Context?) {
             api!!.retryLimit = 2
             didOnline = true
             val site = kotlinx.coroutines.runBlocking { api!!.getSite() }
+            Log.v(LogUtil.getTag(), "Site: ${Json.encodeToString(site)}")
             //VerifyCredentials(context).execute()
         } else {
             isLoggedIn = SettingValues.appRestart.getBoolean("loggedin", false)
@@ -202,7 +206,7 @@ class Authentication(context: Context?) {
             object : AsyncTask<Void?, Void?, Void?>() {
                 override fun doInBackground(vararg params: Void?): Void? {
                     if (httpAdapter != null && httpAdapter!!.nativeClient != null) {
-                        httpAdapter!!.nativeClient.connectionPool().evictAll()
+                        httpAdapter!!.nativeClient.connectionPool.evictAll()
                     }
                     return null
                 }

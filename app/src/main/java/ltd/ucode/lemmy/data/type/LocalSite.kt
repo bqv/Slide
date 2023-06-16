@@ -1,6 +1,6 @@
 package ltd.ucode.lemmy.data.type
 
-import kotlinx.datetime.Instant
+import kotlinx.datetime.LocalDateTime
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -8,7 +8,7 @@ import kotlinx.serialization.Serializable
 data class LocalSite (
     @SerialName("actor_name_max_length") val actorNameMaxLength: Int,
     @SerialName("application_email_admins") val isApplication: Boolean,
-    @SerialName("application_question") val applicationQuestion: String?,
+    @SerialName("application_question") val applicationQuestion: String? = null,
     @SerialName("captcha_difficulty") val captchaDifficulty: String,
     @SerialName("captcha_enabled") val isCaptchaEnabled: Boolean,
     @SerialName("community_creation_admin_only") val isCommunityCreationAdminOnly: Boolean,
@@ -21,14 +21,14 @@ data class LocalSite (
     @SerialName("federation_worker_count") val federationWorkerCount: Int,
     @SerialName("hide_modlog_mod_names") val isHiddenModlogModNames: Boolean,
     val id: Int,
-    @SerialName("legal_information") val legalInformation: String?,
+    @SerialName("legal_information") val legalInformation: String? = null,
     @SerialName("private_instance") val isPrivateInstance: Boolean,
-    val published: Instant,
+    val published: LocalDateTime,
     @SerialName("registration_mode") val registrationMode: RegistrationMode,
     @SerialName("reports_email_admins") val isReportingEmailedToAdmins: Boolean,
     @SerialName("require_email_verification") val isRequireEmailVerification: Boolean,
     @SerialName("site_id") val siteId: Int,
     @SerialName("site_setup") val isInSiteSetup: Boolean,
-    @SerialName("slur_filter_regex") val slurFilterRegex: String?,
-    val updated: Instant?,
+    @SerialName("slur_filter_regex") val slurFilterRegex: String? = null,
+    val updated: LocalDateTime? = null,
 )

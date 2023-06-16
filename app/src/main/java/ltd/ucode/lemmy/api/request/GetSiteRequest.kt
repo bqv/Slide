@@ -4,5 +4,5 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class GetSiteRequest (
-    val auth: String?
+    val auth: String? = null
 )

@@ -1,6 +1,6 @@
 package ltd.ucode.lemmy.data.type
 
-import kotlinx.datetime.Instant
+import kotlinx.datetime.LocalDateTime
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -13,11 +13,11 @@ data class Site (
     val id: Int,
     @SerialName("inbox_url") val inboxUrl: String,
     @SerialName("instance_id") val instanceId: Int,
-    @SerialName("last_refreshed_at") val lastRefreshedAt: Instant,
+    @SerialName("last_refreshed_at") val lastRefreshedAt: LocalDateTime,
     val name: String,
     @SerialName("private_key") val privateKey: String?,
     @SerialName("public_key") val publicKey: String,
-    val published: Instant,
+    val published: LocalDateTime,
     val sidebar: String?,
-    val updated: Instant?,
+    val updated: LocalDateTime?,
 )

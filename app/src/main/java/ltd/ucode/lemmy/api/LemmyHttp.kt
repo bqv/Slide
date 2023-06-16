@@ -15,8 +15,8 @@ import ltd.ucode.lemmy.data.GetSiteResult
 import ltd.ucode.lemmy.data.LoginResult
 import ltd.ucode.slide.BuildConfig
 import me.ccrama.redditslide.util.LogUtil
-import okhttp3.Headers
-import okhttp3.MediaType
+import okhttp3.Headers.Companion.toHeaders
+import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import retrofit2.Response
 import retrofit2.Retrofit
@@ -32,20 +32,23 @@ class LemmyHttp(val instance: String = "lemmy.ml",
         val client = OkHttpClient.Builder()
             .addInterceptor { chain ->
                 val request = chain.request()
+                if (BuildConfig.DEBUG) LogUtil.v("OkHttp: ${request.method} ${request.url}")
                 val reqBuilder = request.newBuilder()
-                    .headers(Headers.of(headers))
+                    .headers(headers.toHeaders())
                     .header(
                         "User-Agent",
                         "android:ltd.ucode.slide:v" + BuildConfig.VERSION_NAME
                     )
-                chain.proceed(reqBuilder.build())
+                val response = chain.proceed(reqBuilder.build())
+                if (BuildConfig.DEBUG) LogUtil.v("OkHttp: ${request.method} ${request.url} returned ${response.code}")
+                response
             }
             .build()
 
         val retrofit = Retrofit.Builder()
-            .baseUrl("https://${instance}/")
+            .baseUrl("https://${instance}/api/v3/")
             .client(client)
-            .addConverterFactory(Json.asConverterFactory(MediaType.get("application/json")))
+            .addConverterFactory(Json.asConverterFactory("application/json".toMediaType()))
             .build()
 
         return retrofit.create(LemmyHttpApi::class.java)
@@ -69,7 +72,7 @@ class LemmyHttp(val instance: String = "lemmy.ml",
     }
 }
 
-private fun Any.toForm(): Map<String, String> {
+private inline fun <reified T> T.toForm(): Map<String, String> {
     return Json { encodeDefaults = true }
         .encodeToJsonElement(this)
         .jsonObject
@@ -89,7 +92,7 @@ private fun <T> Response<T>.unwrap(): T {
     if (this.isSuccessful)
         return this.body()!!
     else {
-        val path = this.raw().request().url().encodedPath()
+        val path = this.raw().request.url.encodedPath
         throw ApiException(path, this.code(), this.errorBody()?.string().orEmpty())
     }
 }

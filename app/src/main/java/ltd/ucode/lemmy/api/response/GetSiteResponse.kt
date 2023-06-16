@@ -16,11 +16,11 @@ data class GetSiteResponse (
     val admins: List<PersonViewSafe>,
     val online: Int,
     val version: String,
-    @SerialName("my_user") val myUser: MyUserInfo?,
-    @SerialName("federated_instances") val federatedInstances: FederatedInstances?,
+    @SerialName("my_user") val myUser: MyUserInfo? = null,
+    @SerialName("federated_instances") val federatedInstances: FederatedInstances? = null,
     @SerialName("all_languages") val allLanguages: List<Language>,
     @SerialName("discussion_languages") val discussionLanguages: List<Int>,
-    val taglines: List<Tagline>?,
+    val taglines: List<Tagline>? = null,
 ) {
     fun toResult(): GetSiteResult {
         return this

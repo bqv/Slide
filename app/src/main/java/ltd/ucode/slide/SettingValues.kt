@@ -619,7 +619,7 @@ object SettingValues {
         set(value) {
             field = value
             this.settings.edit()
-                .putLong(PREF_COOKIES, value)
+                .putLong(PREF_SELECTED_DRAWER_ITEMS, value)
                 .apply()
         }
     var forcedNightModeState = ForcedState.NOT_FORCED
