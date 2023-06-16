@@ -22,19 +22,14 @@ import androidx.appcompat.widget.SwitchCompat
 import com.afollestad.materialdialogs.DialogAction
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.MaterialDialog.InputCallback
-import com.afollestad.materialdialogs.MaterialDialog.ListCallbackSingleChoice
 import com.afollestad.materialdialogs.MaterialDialog.SingleButtonCallback
 import com.google.android.material.snackbar.Snackbar
 import com.rey.material.widget.Slider
-import com.rey.material.widget.Slider.OnPositionChangeListener
 import ltd.ucode.slide.App
 import ltd.ucode.slide.App.Companion.isPackageInstalled
 import ltd.ucode.slide.Authentication
-import ltd.ucode.slide.Preferences.appRestart
-import ltd.ucode.slide.Preferences.colours
 import ltd.ucode.slide.R
 import ltd.ucode.slide.SettingValues
-import ltd.ucode.slide.SettingValues.immersiveMode
 import me.ccrama.redditslide.Constants
 import me.ccrama.redditslide.Constants.BackButtonBehaviorOptions
 import me.ccrama.redditslide.Fragments.DrawerItemsDialog
@@ -86,10 +81,10 @@ class SettingsGeneralFragment<ActivityType>(private val context: ActivityType) :
             val immersiveModeSwitch =
                 context!!.findViewById<SwitchCompat>(R.id.settings_general_immersivemode)
             if (immersiveModeSwitch != null) {
-                immersiveModeSwitch.isChecked = immersiveMode
+                immersiveModeSwitch.isChecked = SettingValues.immersiveMode
                 immersiveModeSwitch.setOnCheckedChangeListener(CompoundButton.OnCheckedChangeListener { buttonView: CompoundButton?, isChecked: Boolean ->
                     SettingsThemeFragment.changed = true
-                    immersiveMode = isChecked
+                    SettingValues.immersiveMode = isChecked
                 })
             }
         }
@@ -163,7 +158,7 @@ class SettingsGeneralFragment<ActivityType>(private val context: ActivityType) :
         val setSaveLocationView =
             context.findViewById<TextView>(R.id.settings_general_set_save_location_view)
         if (setSaveLocationView != null) {
-            val loc = appRestart.getString(
+            val loc = SettingValues.appRestart.getString(
                 "imagelocation",
                 context.getString(R.string.settings_image_location_unset)
             )
@@ -386,12 +381,12 @@ class SettingsGeneralFragment<ActivityType>(private val context: ActivityType) :
             }
         }
         if (Authentication.isLoggedIn) {
-            notifLayout?.setOnClickListener({ v: View? ->
+            notifLayout?.setOnClickListener { v: View? ->
                 val inflater: LayoutInflater = context.layoutInflater
                 val dialoglayout: View = inflater.inflate(R.layout.inboxfrequency, null)
                 setupNotificationSettings(dialoglayout, context)
-            })
-            subNotifLayout?.setOnClickListener({ v: View? -> showSelectDialog() })
+            }
+            subNotifLayout?.setOnClickListener { v: View? -> showSelectDialog() }
         } else {
             if (notifLayout != null) {
                 notifLayout.isEnabled = false
@@ -544,7 +539,7 @@ class SettingsGeneralFragment<ActivityType>(private val context: ActivityType) :
     }
 
     private fun setSubText() {
-        val rawSubs = StringUtil.stringToArray(appRestart.getString(CheckForMail.SUBS_TO_GET, ""))
+        val rawSubs = StringUtil.stringToArray(SettingValues.appRestart.getString(CheckForMail.SUBS_TO_GET, ""))
         var subText = context!!.getString(R.string.sub_post_notifs_settings_none)
         val subs = StringBuilder()
         for (s: String in rawSubs) {
@@ -566,7 +561,7 @@ class SettingsGeneralFragment<ActivityType>(private val context: ActivityType) :
     }
 
     private fun showSelectDialog() {
-        val rawSubs = StringUtil.stringToArray(appRestart.getString(CheckForMail.SUBS_TO_GET, ""))
+        val rawSubs = StringUtil.stringToArray(SettingValues.appRestart.getString(CheckForMail.SUBS_TO_GET, ""))
         val subThresholds = HashMap<String, Int>()
         for (s: String in rawSubs) {
             try {
@@ -647,27 +642,16 @@ class SettingsGeneralFragment<ActivityType>(private val context: ActivityType) :
                     .alwaysCallInputCallback()
                     .input(
                         context.getString(R.string.reorder_subreddit_name), null,
-                        false, object : InputCallback {
-                            override fun onInput(
-                                dialog: MaterialDialog,
-                                raw: CharSequence
-                            ) {
-                                input = raw.toString()
-                                    .replace(
-                                        "\\s".toRegex(),
-                                        ""
-                                    ) //remove whitespace from input
-                            }
-                        })
+                        false
+                    ) { dialog, raw ->
+                        input = raw.toString()
+                            .replace(
+                                "\\s".toRegex(),
+                                ""
+                            ) //remove whitespace from input
+                    }
                     .positiveText(R.string.btn_add)
-                    .onPositive(object : SingleButtonCallback {
-                        override fun onClick(
-                            dialog: MaterialDialog,
-                            which: DialogAction
-                        ) {
-                            AsyncGetSubreddit().execute(input)
-                        }
-                    })
+                    .onPositive { dialog, which -> AsyncGetSubreddit().execute(input) }
                     .negativeText(R.string.btn_cancel)
                     .show()
             }
@@ -675,7 +659,7 @@ class SettingsGeneralFragment<ActivityType>(private val context: ActivityType) :
     }
 
     private fun showThresholdDialog(strings: ArrayList<String?>, search: Boolean) {
-        val subsRaw = StringUtil.stringToArray(appRestart.getString(CheckForMail.SUBS_TO_GET, ""))
+        val subsRaw = StringUtil.stringToArray(SettingValues.appRestart.getString(CheckForMail.SUBS_TO_GET, ""))
         if (!search) {
             //NOT a sub searched for, was instead a list of all subs
             for (raw: String in ArrayList(subsRaw)) {
@@ -705,18 +689,14 @@ class SettingsGeneralFragment<ActivityType>(private val context: ActivityType) :
             )
                 .items(*arrayOf<String>("1", "5", "10", "20", "40", "50"))
                 .alwaysCallSingleChoiceCallback()
-                .itemsCallbackSingleChoice(0, object : ListCallbackSingleChoice {
-                    override fun onSelection(
-                        dialog: MaterialDialog, itemView: View, which: Int,
-                        text: CharSequence
-                    ): Boolean {
-                        for (s: String in toAdd) {
-                            subsRaw.add("$s:$text")
-                        }
-                        saveAndUpdateSubs(subsRaw)
-                        return true
+                .itemsCallbackSingleChoice(0
+                ) { dialog, itemView, which, text ->
+                    for (s: String in toAdd) {
+                        subsRaw.add("$s:$text")
                     }
-                })
+                    saveAndUpdateSubs(subsRaw)
+                    true
+                }
                 .cancelable(false)
                 .show()
         } else {
@@ -725,7 +705,7 @@ class SettingsGeneralFragment<ActivityType>(private val context: ActivityType) :
     }
 
     private fun saveAndUpdateSubs(subs: ArrayList<String>) {
-        appRestart.edit()
+        SettingValues.appRestart.edit()
             .putString(CheckForMail.SUBS_TO_GET, StringUtil.arrayToString(subs))
             .commit()
         setSubText()
@@ -735,7 +715,7 @@ class SettingsGeneralFragment<ActivityType>(private val context: ActivityType) :
         dialog: FolderChooserDialogCreate,
         folder: File, isSaveToLocation: Boolean
     ) {
-        appRestart.edit().putString("imagelocation", folder.absolutePath).apply()
+        SettingValues.appRestart.edit().putString("imagelocation", folder.absolutePath).apply()
         Toast.makeText(
             context,
             context!!.getString(R.string.settings_set_image_location, folder.absolutePath),
@@ -797,11 +777,9 @@ class SettingsGeneralFragment<ActivityType>(private val context: ActivityType) :
             val notifCurrentView =
                 context.findViewById<TextView>(R.id.settings_general_notifications_current)
             sound.isChecked = SettingValues.notifSound
-            sound.setOnCheckedChangeListener(object : CompoundButton.OnCheckedChangeListener {
-                override fun onCheckedChanged(buttonView: CompoundButton, isChecked: Boolean) {
-                    SettingValues.notifSound = isChecked
-                }
-            })
+            sound.setOnCheckedChangeListener { buttonView, isChecked ->
+                SettingValues.notifSound = isChecked
+            }
             if (App.notificationTime == -1) {
                 checkBox.isChecked = false
                 checkBox.text = context.getString(R.string.settings_mail_check)
@@ -816,42 +794,35 @@ class SettingsGeneralFragment<ActivityType>(private val context: ActivityType) :
                     )
                 )
             }
-            landscape.setOnPositionChangeListener(object : OnPositionChangeListener {
-                override fun onPositionChanged(
-                    slider: Slider, b: Boolean, v: Float, v1: Float, i: Int,
-                    i1: Int
-                ) {
-                    if (checkBox.isChecked) {
-                        checkBox.text = context.getString(
-                            R.string.settings_notification,
-                            TimeUtils.getTimeInHoursAndMins(i1 * 15, context.baseContext)
-                        )
-                    }
+            landscape.setOnPositionChangeListener { slider, b, v, v1, i, i1 ->
+                if (checkBox.isChecked) {
+                    checkBox.text = context.getString(
+                        R.string.settings_notification,
+                        TimeUtils.getTimeInHoursAndMins(i1 * 15, context.baseContext)
+                    )
                 }
-            })
-            checkBox.setOnCheckedChangeListener(object : CompoundButton.OnCheckedChangeListener {
-                override fun onCheckedChanged(buttonView: CompoundButton, isChecked: Boolean) {
-                    if (!isChecked) {
-                        App.notificationTime = -1
-                        colours.edit().putInt("notificationOverride", -1).apply()
-                        checkBox.text = context.getString(R.string.settings_mail_check)
-                        landscape.setValue(0f, true)
-                        if (App.notifications != null) {
-                            App.notifications!!.cancel()
-                        }
-                    } else {
-                        App.notificationTime = 60
-                        landscape.setValue(4f, true)
-                        checkBox.text = context.getString(
-                            R.string.settings_notification,
-                            TimeUtils.getTimeInHoursAndMins(
-                                App.notificationTime,
-                                context.baseContext
-                            )
-                        )
+            }
+            checkBox.setOnCheckedChangeListener { buttonView, isChecked ->
+                if (!isChecked) {
+                    App.notificationTime = -1
+                    SettingValues.colours.edit().putInt("notificationOverride", -1).apply()
+                    checkBox.text = context.getString(R.string.settings_mail_check)
+                    landscape.setValue(0f, true)
+                    if (App.notifications != null) {
+                        App.notifications!!.cancel()
                     }
+                } else {
+                    App.notificationTime = 60
+                    landscape.setValue(4f, true)
+                    checkBox.text = context.getString(
+                        R.string.settings_notification,
+                        TimeUtils.getTimeInHoursAndMins(
+                            App.notificationTime,
+                            context.baseContext
+                        )
+                    )
                 }
-            })
+            }
             dialoglayout.findViewById<View>(R.id.title)
                 .setBackgroundColor(Palette.getDefaultColor())
             //todo final Slider portrait = (Slider) dialoglayout.findViewById(R.id.portrait);
@@ -861,11 +832,24 @@ class SettingsGeneralFragment<ActivityType>(private val context: ActivityType) :
                 .setView(dialoglayout)
             val dialog: Dialog = builder.create()
             dialog.show()
-            dialog.setOnDismissListener(object : DialogInterface.OnDismissListener {
-                override fun onDismiss(dialog: DialogInterface) {
+            dialog.setOnDismissListener {
+                if (checkBox.isChecked) {
+                    App.notificationTime = landscape.value * 15
+                    SettingValues.colours.edit()
+                        .putInt("notificationOverride", landscape.value * 15)
+                        .apply()
+                    if (App.notifications == null) {
+                        App.notifications = NotificationJobScheduler(context.application)
+                    }
+                    App.notifications!!.cancel()
+                    App.notifications!!.start()
+                }
+            }
+            dialoglayout.findViewById<View>(R.id.save)
+                .setOnClickListener {
                     if (checkBox.isChecked) {
                         App.notificationTime = landscape.value * 15
-                        colours.edit()
+                        SettingValues.colours.edit()
                             .putInt("notificationOverride", landscape.value * 15)
                             .apply()
                         if (App.notifications == null) {
@@ -873,46 +857,29 @@ class SettingsGeneralFragment<ActivityType>(private val context: ActivityType) :
                         }
                         App.notifications!!.cancel()
                         App.notifications!!.start()
-                    }
-                }
-            })
-            dialoglayout.findViewById<View>(R.id.save)
-                .setOnClickListener(object : View.OnClickListener {
-                    override fun onClick(d: View) {
-                        if (checkBox.isChecked) {
-                            App.notificationTime = landscape.value * 15
-                            colours.edit()
-                                .putInt("notificationOverride", landscape.value * 15)
-                                .apply()
-                            if (App.notifications == null) {
-                                App.notifications = NotificationJobScheduler(context.application)
-                            }
-                            App.notifications!!.cancel()
-                            App.notifications!!.start()
-                            dialog.dismiss()
-                            if (context is SettingsGeneral) {
-                                notifCurrentView.text = context.getString(
-                                    R.string.settings_notification_short,
-                                    TimeUtils.getTimeInHoursAndMins(
-                                        App.notificationTime,
-                                        context.getBaseContext()
-                                    )
+                        dialog.dismiss()
+                        if (context is SettingsGeneral) {
+                            notifCurrentView.text = context.getString(
+                                R.string.settings_notification_short,
+                                TimeUtils.getTimeInHoursAndMins(
+                                    App.notificationTime,
+                                    context.getBaseContext()
                                 )
-                            }
-                        } else {
-                            App.notificationTime = -1
-                            colours.edit().putInt("notificationOverride", -1).apply()
-                            if (App.notifications == null) {
-                                App.notifications = NotificationJobScheduler(context.application)
-                            }
-                            App.notifications!!.cancel()
-                            dialog.dismiss()
-                            if (context is SettingsGeneral) {
-                                notifCurrentView.setText(R.string.settings_notifdisabled)
-                            }
+                            )
+                        }
+                    } else {
+                        App.notificationTime = -1
+                        SettingValues.colours.edit().putInt("notificationOverride", -1).apply()
+                        if (App.notifications == null) {
+                            App.notifications = NotificationJobScheduler(context.application)
+                        }
+                        App.notifications!!.cancel()
+                        dialog.dismiss()
+                        if (context is SettingsGeneral) {
+                            notifCurrentView.setText(R.string.settings_notifdisabled)
                         }
                     }
-                })
+                }
         }
 
         @JvmStatic
@@ -942,28 +909,18 @@ class SettingsGeneralFragment<ActivityType>(private val context: ActivityType) :
                             if (single != null) {
                                 single.isChecked = false
                                 single.isEnabled = true
-                                single.setOnCheckedChangeListener(object :
-                                    CompoundButton.OnCheckedChangeListener {
-                                    override fun onCheckedChanged(
-                                        compoundButton: CompoundButton,
-                                        b: Boolean
-                                    ) {
-                                        single.isChecked = false
-                                        val s = Snackbar.make(
-                                            single,
-                                            "Give Slide notification access",
-                                            Snackbar.LENGTH_LONG
-                                        )
-                                        s.setAction(
-                                            "Go to settings",
-                                            object : View.OnClickListener {
-                                                override fun onClick(view: View) {
-                                                    context.startActivity(Intent("android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS"))
-                                                }
-                                            })
-                                        s.show()
-                                    }
-                                })
+                                single.setOnCheckedChangeListener { compoundButton, b ->
+                                    single.isChecked = false
+                                    val s = Snackbar.make(
+                                        single,
+                                        "Give Slide notification access",
+                                        Snackbar.LENGTH_LONG
+                                    )
+                                    s.setAction(
+                                        "Go to settings"
+                                    ) { context.startActivity(Intent("android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS")) }
+                                    s.show()
+                                }
                             }
                         }
                     }

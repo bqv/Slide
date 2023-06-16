@@ -12,7 +12,7 @@ import androidx.annotation.RequiresApi;
 import androidx.core.content.ContextCompat;
 
 import ltd.ucode.slide.App;
-import ltd.ucode.slide.Preferences;
+import ltd.ucode.slide.SettingValues;
 
 /**
  * Collection of various network utility methods.
@@ -116,7 +116,7 @@ public class NetworkUtil {
      * @return true if the application is connected, false if otherwise.
      */
     public static boolean isConnected(final Context context) {
-        return !Preferences.INSTANCE.getAppRestart().contains("forceoffline")
+        return !SettingValues.INSTANCE.getAppRestart().contains("forceoffline")
                 && isConnectedNoOverride(context);
     }
 

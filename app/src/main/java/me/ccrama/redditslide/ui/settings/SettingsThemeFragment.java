@@ -33,7 +33,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import ltd.ucode.slide.Preferences;
 import me.ccrama.redditslide.Activities.BaseActivity;
 import ltd.ucode.slide.activity.Slide;
 import ltd.ucode.slide.R;
@@ -155,12 +154,12 @@ public class SettingsThemeFragment<ActivityType extends BaseActivity & RestartAc
 
                 setComponentState(
                         ColorPreferences.getIconName(context,
-                                Preferences.INSTANCE.getColours().getInt("DEFAULTCOLOR", 0)),
+                                SettingValues.INSTANCE.getColours().getInt("DEFAULTCOLOR", 0)),
                         PackageManager.COMPONENT_ENABLED_STATE_ENABLED);
             } else {
                 setComponentState(
                         ColorPreferences.getIconName(context,
-                                Preferences.INSTANCE.getColours().getInt("DEFAULTCOLOR", 0)),
+                                SettingValues.INSTANCE.getColours().getInt("DEFAULTCOLOR", 0)),
                         PackageManager.COMPONENT_ENABLED_STATE_DISABLED);
 
                 setComponentState(
@@ -220,14 +219,14 @@ public class SettingsThemeFragment<ActivityType extends BaseActivity & RestartAc
                 if (SettingValues.colorIcon) {
                     setComponentState(
                             ColorPreferences.getIconName(context,
-                                    Preferences.INSTANCE.getColours().getInt("DEFAULTCOLOR", 0)),
+                                    SettingValues.INSTANCE.getColours().getInt("DEFAULTCOLOR", 0)),
                             PackageManager.COMPONENT_ENABLED_STATE_DISABLED);
 
                     setComponentState(
                             ColorPreferences.getIconName(context, colorPicker2.getColor()),
                             PackageManager.COMPONENT_ENABLED_STATE_ENABLED);
                 }
-                Preferences.INSTANCE.getColours().edit()
+                SettingValues.INSTANCE.getColours().edit()
                         .putInt("DEFAULTCOLOR", colorPicker2.getColor())
                         .apply();
                 context.restartActivity();

@@ -105,7 +105,7 @@ class App : MultiDexApplication(), ActivityLifecycleCallbacks {
             builder.dns(GfycatIpv4Dns())
             client = builder.build()
         }
-        if (authentication != null && Authentication.didOnline && Preferences.authentication.getLong(
+        if (authentication != null && Authentication.didOnline && SettingValues.authentication.getLong(
                 "expires",
                 0
             ) <= Calendar.getInstance()
@@ -159,14 +159,14 @@ class App : MultiDexApplication(), ActivityLifecycleCallbacks {
             SettingValues.PREF_OVERRIDE_LANGUAGE,
             false
         )
-        AlbumUtils.albumRequests = Preferences.albums
-        TumblrUtils.tumblrRequests = Preferences.tumblr
-        cachedData = Preferences.cache
+        AlbumUtils.albumRequests = SettingValues.albums
+        TumblrUtils.tumblrRequests = SettingValues.tumblr
+        cachedData = SettingValues.cachedData
         if (!cachedData!!.contains("hasReset")) {
             cachedData!!.edit().clear().putBoolean("hasReset", true).apply()
         }
         registerActivityLifecycleCallbacks(this)
-        UserSubscriptions.subscriptions = Preferences.subscriptions
+        UserSubscriptions.subscriptions = SettingValues.subscriptions
         UserSubscriptions.multiNameToSubs = getSharedPreferences("MULTITONAME", 0)
         UserSubscriptions.newsNameToSubs = getSharedPreferences("NEWSMULTITONAME", 0)
         UserSubscriptions.news = getSharedPreferences("NEWS", 0)
@@ -175,37 +175,37 @@ class App : MultiDexApplication(), ActivityLifecycleCallbacks {
             .putString("news", "worldnews+news+politics")
             .apply()
         UserSubscriptions.pinned = getSharedPreferences("PINNED", 0)
-        PostMatch.filters = Preferences.filters
+        PostMatch.filters = SettingValues.filters
         ImageFlairs.flairs = getSharedPreferences("FLAIRS", 0)
-        SettingValues.setAllValues(Preferences.settings)
+        SettingValues.initialize()
         SortingUtil.defaultSorting = SettingValues.defaultSorting
         SortingUtil.timePeriod = SettingValues.timePeriod
         KVStore.init(this, "SEEN")
         doLanguages()
         lastPosition = ArrayList()
-        if (!Preferences.appRestart.contains("startScreen")) {
-            Authentication.isLoggedIn = Preferences.appRestart.getBoolean("loggedin", false)
-            Authentication.name = Preferences.appRestart.getString("name", "LOGGEDOUT")
+        if (!SettingValues.appRestart.contains("startScreen")) {
+            Authentication.isLoggedIn = SettingValues.appRestart.getBoolean("loggedin", false)
+            Authentication.name = SettingValues.appRestart.getString("name", "LOGGEDOUT")
             active = true
         } else {
-            Preferences.appRestart.edit().remove("startScreen").apply()
+            SettingValues.appRestart.edit().remove("startScreen").apply()
         }
         authentication = Authentication(this)
         AdBlocker.init(this)
-        Authentication.mod = Preferences.authentication.getBoolean(SHARED_PREF_IS_MOD, false)
+        Authentication.mod = SettingValues.authentication.getBoolean(SHARED_PREF_IS_MOD, false)
         enter_animation_time = enter_animation_time_original * enter_animation_time_multiplier
-        fabClear = Preferences.colours.getBoolean(SettingValues.PREF_FAB_CLEAR, false)
+        fabClear = SettingValues.colours.getBoolean(SettingValues.PREF_FAB_CLEAR, false)
         val widthDp = this.resources.configuration.screenWidthDp
         val heightDp = this.resources.configuration.screenHeightDp
         var fina = Math.max(widthDp, heightDp)
         fina += 99
-        if (Preferences.colours.contains("tabletOVERRIDE")) {
-            dpWidth = Preferences.colours.getInt("tabletOVERRIDE", fina / 300)
+        if (SettingValues.colours.contains("tabletOVERRIDE")) {
+            dpWidth = SettingValues.colours.getInt("tabletOVERRIDE", fina / 300)
         } else {
             dpWidth = fina / 300
         }
-        if (Preferences.colours.contains("notificationOverride")) {
-            notificationTime = Preferences.colours.getInt("notificationOverride", 360)
+        if (SettingValues.colours.contains("notificationOverride")) {
+            notificationTime = SettingValues.colours.getInt("notificationOverride", 360)
         } else {
             notificationTime = 360
         }
@@ -371,13 +371,13 @@ class App : MultiDexApplication(), ActivityLifecycleCallbacks {
         @JvmStatic
         fun forceRestart(context: Context?, forceLoadScreen: Boolean) {
             if (forceLoadScreen) {
-                Preferences.appRestart.edit().putString("startScreen", "").apply()
-                Preferences.appRestart.edit().putBoolean("isRestarting", true).apply()
+                SettingValues.appRestart.edit().putString("startScreen", "").apply()
+                SettingValues.appRestart.edit().putBoolean("isRestarting", true).apply()
             }
-            if (Preferences.appRestart.contains("back")) {
-                Preferences.appRestart.edit().remove("back").apply()
+            if (SettingValues.appRestart.contains("back")) {
+                SettingValues.appRestart.edit().remove("back").apply()
             }
-            Preferences.appRestart.edit().putBoolean("isRestarting", true).apply()
+            SettingValues.appRestart.edit().putBoolean("isRestarting", true).apply()
             isRestarting = true
             ProcessPhoenix.triggerRebirth(context, Intent(context, MainActivity::class.java))
         }
@@ -464,7 +464,7 @@ class App : MultiDexApplication(), ActivityLifecycleCallbacks {
                                         }
                                     }
                                     .setPositiveButton(R.string.btn_offline) { dialog: DialogInterface?, which: Int ->
-                                        Preferences.appRestart.edit()
+                                        SettingValues.appRestart.edit()
                                             .putBoolean("forceoffline", true)
                                             .apply()
                                         forceRestart(c, false)
@@ -537,7 +537,7 @@ class App : MultiDexApplication(), ActivityLifecycleCallbacks {
                     ) {
                         t.printStackTrace()
                     } else {
-                        Preferences.appRestart.edit()
+                        SettingValues.appRestart.edit()
                             .putString("startScreen", "a")
                             .apply() //Force reload of data after crash incase state was not saved
                         try {

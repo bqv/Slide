@@ -16,7 +16,6 @@ import net.dean.jraw.RedditClient
 import net.dean.jraw.http.LoggingMode
 import net.dean.jraw.http.NetworkException
 import net.dean.jraw.http.OkHttpAdapter
-import net.dean.jraw.http.UserAgent
 import net.dean.jraw.http.oauth.Credentials
 import net.dean.jraw.http.oauth.OAuthData
 import net.dean.jraw.models.LoggedInAccount
@@ -57,16 +56,16 @@ class Authentication(context: Context?) {
             didOnline = true
             VerifyCredentials(context).execute()
         } else {
-            isLoggedIn = Preferences.appRestart.getBoolean("loggedin", false)
-            name = Preferences.appRestart.getString("name", "")
-            if ((name!!.isEmpty() || !isLoggedIn) && !Preferences.authentication.getString("lasttoken", "")!!
+            isLoggedIn = SettingValues.appRestart.getBoolean("loggedin", false)
+            name = SettingValues.appRestart.getString("name", "")
+            if ((name!!.isEmpty() || !isLoggedIn) && !SettingValues.authentication.getString("lasttoken", "")!!
                     .isEmpty()
             ) {
-                for (s in Preferences.authentication.getStringSet(
+                for (s in SettingValues.authentication.getStringSet(
                     "accounts",
                     HashSet()
                 )!!) {
-                    if (s.contains(Preferences.authentication.getString("lasttoken", "")!!)) {
+                    if (s.contains(SettingValues.authentication.getString("lasttoken", "")!!)) {
                         name = s.split(":".toRegex()).dropLastWhile { it.isEmpty() }
                             .toTypedArray()[0]
                         break
@@ -90,27 +89,27 @@ class Authentication(context: Context?) {
                             val oAuthHelper = reddit!!.oAuthHelper
                             oAuthHelper.refreshToken = refresh
                             val finalData: OAuthData
-                            if (Preferences.authentication.contains("backedCreds")
-                                && Preferences.authentication.getLong("expires", 0) > Calendar.getInstance()
+                            if (SettingValues.authentication.contains("backedCreds")
+                                && SettingValues.authentication.getLong("expires", 0) > Calendar.getInstance()
                                     .timeInMillis
                             ) {
                                 finalData = oAuthHelper.refreshToken(
                                     credentials,
-                                    Preferences.authentication.getString(
+                                    SettingValues.authentication.getString(
                                         "backedCreds",
                                         ""
                                     )
                                 ) //does a request
                             } else {
                                 finalData = oAuthHelper.refreshToken(credentials) //does a request
-                                Preferences.authentication.edit()
+                                SettingValues.authentication.edit()
                                     .putLong(
                                         "expires",
                                         Calendar.getInstance().timeInMillis + 3000000
                                     )
                                     .commit()
                             }
-                            Preferences.authentication.edit()
+                            SettingValues.authentication.edit()
                                 .putString("backedCreds", finalData.dataNode.toString())
                                 .commit()
                             reddit!!.authenticate(finalData)
@@ -132,13 +131,13 @@ class Authentication(context: Context?) {
                         if (BuildConfig.DEBUG) LogUtil.v("Not logged in")
                         try {
                             authData = reddit!!.oAuthHelper.easyAuth(fcreds)
-                            Preferences.authentication.edit()
+                            SettingValues.authentication.edit()
                                 .putLong(
                                     "expires",
                                     Calendar.getInstance().timeInMillis + 3000000
                                 )
                                 .commit()
-                            Preferences.authentication.edit()
+                            SettingValues.authentication.edit()
                                 .putString("backedCreds", authData.dataNode.toString())
                                 .commit()
                             name = "LOGGEDOUT"
@@ -189,7 +188,7 @@ class Authentication(context: Context?) {
         var single = false
 
         init {
-            lastToken = Preferences.authentication.getString("lasttoken", "")
+            lastToken = SettingValues.authentication.getString("lasttoken", "")
         }
 
         protected override fun doInBackground(vararg subs: String?): Void? {
@@ -244,7 +243,7 @@ class Authentication(context: Context?) {
                     try {
                         val finalData: OAuthData
                         if ((!single
-                                    && Preferences.authentication.contains("backedCreds")) && Preferences.authentication.getLong(
+                                    && SettingValues.authentication.contains("backedCreds")) && SettingValues.authentication.getLong(
                                 "expires",
                                 0
                             ) > Calendar.getInstance()
@@ -252,12 +251,12 @@ class Authentication(context: Context?) {
                         ) {
                             finalData = oAuthHelper.refreshToken(
                                 credentials,
-                                Preferences.authentication.getString("backedCreds", "")
+                                SettingValues.authentication.getString("backedCreds", "")
                             )
                         } else {
                             finalData = oAuthHelper.refreshToken(credentials) //does a request
                             if (!single) {
-                                Preferences.authentication.edit()
+                                SettingValues.authentication.edit()
                                     .putLong(
                                         "expires",
                                         Calendar.getInstance().timeInMillis + 3000000
@@ -267,7 +266,7 @@ class Authentication(context: Context?) {
                         }
                         baseReddit.authenticate(finalData)
                         if (!single) {
-                            Preferences.authentication.edit()
+                            SettingValues.authentication.edit()
                                 .putString("backedCreds", finalData.dataNode.toString())
                                 .apply()
                             refresh = oAuthHelper.refreshToken
@@ -294,13 +293,13 @@ class Authentication(context: Context?) {
                     val authData: OAuthData
                     try {
                         authData = reddit!!.oAuthHelper.easyAuth(fcreds)
-                        Preferences.authentication.edit()
+                        SettingValues.authentication.edit()
                             .putLong(
                                 "expires",
                                 Calendar.getInstance().timeInMillis + 3000000
                             )
                             .apply()
-                        Preferences.authentication.edit()
+                        SettingValues.authentication.edit()
                             .putString("backedCreds", authData.dataNode.toString())
                             .apply()
                         reddit!!.authenticate(authData)

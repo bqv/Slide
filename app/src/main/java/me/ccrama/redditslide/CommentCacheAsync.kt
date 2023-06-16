@@ -11,7 +11,6 @@ import androidx.core.content.ContextCompat
 import com.fasterxml.jackson.databind.JsonNode
 import ltd.ucode.slide.App
 import ltd.ucode.slide.Authentication
-import ltd.ucode.slide.Preferences.authentication
 import ltd.ucode.slide.R
 import ltd.ucode.slide.SettingValues
 import ltd.ucode.slide.SettingValues.getCommentSorting
@@ -67,18 +66,18 @@ class CommentCacheAsync : AsyncTask<Any?, Any?, Any?> {
                 try {
                     Authentication.me = Authentication.reddit!!.me()
                     Authentication.mod = Authentication.me!!.isMod()
-                    authentication.edit()
+                    SettingValues.authentication.edit()
                         .putBoolean(App.SHARED_PREF_IS_MOD, Authentication.mod)
                         .apply()
                     val name = Authentication.me!!.getFullName()
                     Authentication.name = name
                     LogUtil.v("AUTHENTICATED")
                     if (Authentication.reddit!!.isAuthenticated) {
-                        val accounts = authentication.getStringSet("accounts", HashSet())
+                        val accounts = SettingValues.authentication.getStringSet("accounts", HashSet())
                         if (accounts!!.contains(name)) { //convert to new system
                             accounts.remove(name)
                             accounts.add(name + ":" + Authentication.refresh)
-                            authentication.edit().putStringSet("accounts", accounts)
+                            SettingValues.authentication.edit().putStringSet("accounts", accounts)
                                 .apply() //force commit
                         }
                         Authentication.isLoggedIn = true

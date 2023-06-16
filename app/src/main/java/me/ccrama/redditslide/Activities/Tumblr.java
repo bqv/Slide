@@ -25,7 +25,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import ltd.ucode.slide.Preferences;
 import me.ccrama.redditslide.Adapters.TumblrView;
 import me.ccrama.redditslide.Fragments.BlankFragment;
 import me.ccrama.redditslide.Fragments.FolderChooserDialogCreate;
@@ -57,7 +56,7 @@ public class Tumblr extends FullScreenActivity implements FolderChooserDialogCre
     @Override
     public void onFolderSelection(@NonNull FolderChooserDialogCreate dialog,
                                   @NonNull File folder, boolean isSaveToLocation) {
-        Preferences.INSTANCE.getAppRestart().edit().putString("imagelocation", folder.getAbsolutePath()).apply();
+        SettingValues.INSTANCE.getAppRestart().edit().putString("imagelocation", folder.getAbsolutePath()).apply();
         Toast.makeText(this,
                 getString(R.string.settings_set_image_location, folder.getAbsolutePath()),
                 Toast.LENGTH_LONG).show();
@@ -111,9 +110,9 @@ public class Tumblr extends FullScreenActivity implements FolderChooserDialogCre
 
     public void doImageSave(boolean isGif, String contentUrl) {
         if (!isGif) {
-            if (Preferences.INSTANCE.getAppRestart().getString("imagelocation", "").isEmpty()) {
+            if (SettingValues.INSTANCE.getAppRestart().getString("imagelocation", "").isEmpty()) {
                 DialogUtil.showFirstDialog(Tumblr.this);
-            } else if (!new File(Preferences.INSTANCE.getAppRestart().getString("imagelocation", "")).exists()) {
+            } else if (!new File(SettingValues.INSTANCE.getAppRestart().getString("imagelocation", "")).exists()) {
                 DialogUtil.showErrorDialog(Tumblr.this);
             } else {
                 Intent i = new Intent(this, ImageDownloadNotificationService.class);
@@ -181,7 +180,7 @@ public class Tumblr extends FullScreenActivity implements FolderChooserDialogCre
 
         );
 
-        if (!Preferences.INSTANCE.getAppRestart().contains("tutorialSwipe")) {
+        if (!SettingValues.INSTANCE.getAppRestart().contains("tutorialSwipe")) {
             startActivityForResult(new Intent(this, SwipeTutorial.class), 3);
         }
     }
@@ -190,7 +189,7 @@ public class Tumblr extends FullScreenActivity implements FolderChooserDialogCre
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == 3) {
-            Preferences.INSTANCE.getAppRestart().edit().putBoolean("tutorialSwipe", true).apply();
+            SettingValues.INSTANCE.getAppRestart().edit().putBoolean("tutorialSwipe", true).apply();
 
         }
     }

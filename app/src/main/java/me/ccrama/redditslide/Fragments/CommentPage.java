@@ -64,7 +64,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 
-import ltd.ucode.slide.Preferences;
 import me.ccrama.redditslide.Activities.Album;
 import me.ccrama.redditslide.Activities.AlbumPager;
 import me.ccrama.redditslide.Activities.CommentSearch;
@@ -378,7 +377,7 @@ public class CommentPage extends Fragment implements Toolbar.OnMenuItemClickList
                         public void onClick(View v) {
                             final HashMap<String, String> accounts = new HashMap<>();
 
-                            for (String s : Preferences.INSTANCE.getAuthentication().getStringSet("accounts",
+                            for (String s : SettingValues.INSTANCE.getAuthentication().getStringSet("accounts",
                                     new HashSet<String>())) {
                                 if (s.contains(":")) {
                                     accounts.put(s.split(":")[0], s.split(":")[1]);
@@ -726,7 +725,7 @@ public class CommentPage extends Fragment implements Toolbar.OnMenuItemClickList
                         }
                     })
                     .setPositiveButton(R.string.btn_offline, (dialog, which) -> {
-                        Preferences.INSTANCE.getAppRestart().edit().putBoolean("forceoffline", true).commit();
+                        SettingValues.INSTANCE.getAppRestart().edit().putBoolean("forceoffline", true).commit();
                         App.forceRestart(getActivity(), false);
                     })
                     .show();

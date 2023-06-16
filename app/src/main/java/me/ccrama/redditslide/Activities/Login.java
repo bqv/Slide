@@ -33,7 +33,7 @@ import java.util.Locale;
 import java.util.Set;
 
 import ltd.ucode.slide.Authentication;
-import ltd.ucode.slide.Preferences;
+import ltd.ucode.slide.SettingValues;
 import me.ccrama.redditslide.CaseInsensitiveArrayList;
 import ltd.ucode.slide.R;
 import ltd.ucode.slide.App;
@@ -219,20 +219,20 @@ public class Login extends BaseActivityAnim {
                     Authentication.reddit.authenticate(oAuthData);
                     Authentication.isLoggedIn = true;
                     String refreshToken = Authentication.reddit.getOAuthData().getRefreshToken();
-                    SharedPreferences.Editor editor = Preferences.INSTANCE.getAuthentication().edit();
-                    Set<String> accounts = Preferences.INSTANCE.getAuthentication().getStringSet("accounts",
+                    SharedPreferences.Editor editor = SettingValues.INSTANCE.getAuthentication().edit();
+                    Set<String> accounts = SettingValues.INSTANCE.getAuthentication().getStringSet("accounts",
                             new HashSet<String>());
                     LoggedInAccount me = Authentication.reddit.me();
                     accounts.add(me.getFullName() + ":" + refreshToken);
                     Authentication.name = me.getFullName();
                     editor.putStringSet("accounts", accounts);
-                    Set<String> tokens = Preferences.INSTANCE.getAuthentication().getStringSet("tokens",
+                    Set<String> tokens = SettingValues.INSTANCE.getAuthentication().getStringSet("tokens",
                             new HashSet<String>());
                     tokens.add(refreshToken);
                     editor.putStringSet("tokens", tokens);
                     editor.putString("lasttoken", refreshToken);
                     editor.remove("backedCreds");
-                    Preferences.INSTANCE.getAppRestart().edit().remove("back").commit();
+                    SettingValues.INSTANCE.getAppRestart().edit().remove("back").commit();
                     editor.commit();
                 } else {
                     Log.e(LogUtil.getTag(), "Passed in OAuthData was null");
@@ -252,7 +252,7 @@ public class Login extends BaseActivityAnim {
             mMaterialDialog.dismiss();
 
             if (oAuthData != null) {
-                Preferences.INSTANCE.getAppRestart().edit().putBoolean("firststarting", true).apply();
+                SettingValues.INSTANCE.getAppRestart().edit().putBoolean("firststarting", true).apply();
 
                 UserSubscriptions.switchAccounts();
                 d = new MaterialDialog.Builder(Login.this).cancelable(false)

@@ -33,7 +33,6 @@ import java.net.URL;
 import java.util.List;
 import java.util.Locale;
 
-import ltd.ucode.slide.Preferences;
 import me.ccrama.redditslide.Activities.DeleteFile;
 import ltd.ucode.slide.R;
 import ltd.ucode.slide.App;
@@ -181,7 +180,7 @@ public class ImageDownloadNotificationService extends Service {
 
         private String getFolderPath() {
             if (saveToLocation != null) return saveToLocation;
-            else return Preferences.INSTANCE.getAppRestart().getString("imagelocation", "");
+            else return SettingValues.INSTANCE.getAppRestart().getString("imagelocation", "");
         }
 
         @NonNull

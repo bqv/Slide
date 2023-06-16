@@ -24,7 +24,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 import ltd.ucode.slide.Authentication;
-import ltd.ucode.slide.Preferences;
 import me.ccrama.redditslide.Autocache.AutoCacheScheduler;
 import me.ccrama.redditslide.ContentGrabber;
 import me.ccrama.redditslide.Fragments.InboxPage;
@@ -134,7 +133,7 @@ public class Inbox extends BaseActivityAnim {
                         Authentication.me = Authentication.reddit.me();
                         Authentication.mod = Authentication.me.isMod();
 
-                        Preferences.INSTANCE.getAuthentication().edit()
+                        SettingValues.INSTANCE.getAuthentication().edit()
                                 .putBoolean(App.SHARED_PREF_IS_MOD, Authentication.mod)
                                 .apply();
 
@@ -155,11 +154,11 @@ public class Inbox extends BaseActivityAnim {
 
                         if (Authentication.reddit.isAuthenticated()) {
                             final Set<String> accounts =
-                                    Preferences.INSTANCE.getAuthentication().getStringSet("accounts", new HashSet<String>());
+                                    SettingValues.INSTANCE.getAuthentication().getStringSet("accounts", new HashSet<String>());
                             if (accounts.contains(name)) { //convert to new system
                                 accounts.remove(name);
                                 accounts.add(name + ":" + Authentication.refresh);
-                                Preferences.INSTANCE.getAuthentication().edit()
+                                SettingValues.INSTANCE.getAuthentication().edit()
                                         .putStringSet("accounts", accounts)
                                         .apply(); //force commit
                             }

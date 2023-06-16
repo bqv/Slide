@@ -15,8 +15,26 @@ import java.util.Calendar
 import java.util.Locale
 
 object SettingValues {
-    private var prefs: SharedPreferences? = null
     private var prefsListener: SharedPreferences.OnSharedPreferenceChangeListener? = null
+
+    private val settings: SharedPreferences by lazy { getSharedPreferences("SETTINGS") }
+    val authentication: SharedPreferences by lazy { getSharedPreferences("AUTHENTICATION") }
+    val colours: SharedPreferences by lazy { getSharedPreferences("COLOUR") }
+    val appRestart: SharedPreferences by lazy { getSharedPreferences("APP_RESTART") }
+    val tags: SharedPreferences by lazy { getSharedPreferences("TAGS") }
+    val seen: SharedPreferences by lazy { getSharedPreferences("SEEN") }
+    val hidden: SharedPreferences by lazy { getSharedPreferences("HIDDEN") }
+    val hiddenPosts: SharedPreferences by lazy { getSharedPreferences("HIDDEN_POSTS") }
+    val albums: SharedPreferences by lazy { getSharedPreferences("ALBUMS") }
+    val tumblr: SharedPreferences by lazy { getSharedPreferences("TUMBLR") }
+    val cachedData: SharedPreferences by lazy { getSharedPreferences("CACHE") }
+    val subscriptions: SharedPreferences by lazy { getSharedPreferences("SUBS") }
+    val filters: SharedPreferences by lazy { getSharedPreferences("FILTERS") }
+    val upgrade: SharedPreferences by lazy { getSharedPreferences("UPGRADE") }
+
+    private inline fun getSharedPreferences(name: String, mode: Int = 0): SharedPreferences {
+        return appContext.getSharedPreferences(name, mode)
+    }
 
     const val PREF_SINGLE = "Single"
     const val PREF_FAB = "Fab"
@@ -142,49 +160,49 @@ object SettingValues {
     var defaultCardView: CardEnum = CardEnum.LARGE
         set(value) {
             field = value
-            prefs!!.edit()
+            this.settings.edit()
                 .putString("defaultCardViewNew", value.name)
                 .apply()
         }
     var defaultSorting: Sorting = Sorting.HOT
         set(value) {
             field = value
-            prefs!!.edit()
+            this.settings.edit()
                 .putString("defaultSorting", value.name)
                 .apply()
         }
     var timePeriod: TimePeriod = TimePeriod.DAY
         set(value) {
             field = value
-            prefs!!.edit()
+            this.settings.edit()
                 .putString("timePeriod", value.name)
                 .apply()
         }
     var defaultCommentSorting: CommentSort = CommentSort.CONFIDENCE
         set(value) {
             field = value
-            prefs!!.edit()
+            this.settings.edit()
                 .putString("defaultCommentSortingNew", value.name)
                 .apply()
         }
     var middleImage = false
         set(value) {
             field = value
-            prefs!!.edit()
+            this.settings.edit()
                 .putBoolean(PREF_MIDDLE_IMAGE, value)
                 .apply()
         }
     var bigPicEnabled = false
         set(value) {
             field = value
-            prefs!!.edit()
+            this.settings.edit()
                 .putBoolean("bigPicEnabled", value)
                 .apply()
         }
     var bigPicCropped = false
         set(value) {
             field = value
-            prefs!!.edit()
+            this.settings.edit()
                 .putBoolean("bigPicCropped", value)
                 .apply()
         }
@@ -195,14 +213,14 @@ object SettingValues {
     var expandedToolbar = false
         set(value) {
             field = value
-            prefs!!.edit()
+            this.settings.edit()
                 .putBoolean(PREF_EXPANDED_TOOLBAR, value)
                 .apply()
         }
     var single = false
         set(value) {
             field = value
-            prefs!!.edit()
+            this.settings.edit()
                 .putBoolean(PREF_SINGLE, value)
                 .apply()
         }
@@ -221,14 +239,14 @@ object SettingValues {
     var actionbarVisible = false
         set(value) {
             field = value
-            prefs!!.edit()
+            this.settings.edit()
                 .putBoolean(PREF_ACTIONBAR_VISIBLE, value)
                 .apply()
         }
     var actionbarTap = false
         set(value) {
             field = value
-            prefs!!.edit()
+            this.settings.edit()
                 .putBoolean(PREF_ACTIONBAR_TAP, value)
                 .apply()
         }
@@ -237,7 +255,7 @@ object SettingValues {
     var fullCommentOverride = false
         set(value) {
             field = value
-            prefs!!.edit()
+            this.settings.edit()
                 .putBoolean(PREF_FULL_COMMENT_OVERRIDE, value)
                 .apply()
         }
@@ -250,14 +268,14 @@ object SettingValues {
     var commentLastVisit = false
         set(value) {
             field = value
-            prefs!!.edit().putBoolean(PREF_COMMENT_LAST_VISIT, value)
+            this.settings.edit().putBoolean(PREF_COMMENT_LAST_VISIT, value)
                 .apply()
         }
     @JvmField var storeHistory = false
     var showNSFWContent = false
         set(value) {
             field = value
-            prefs!!.edit().putBoolean(PREF_SHOW_NSFW_CONTENT, value)
+            this.settings.edit().putBoolean(PREF_SHOW_NSFW_CONTENT, value)
                 .apply()
         }
     @JvmField var storeNSFWHistory = false
@@ -265,7 +283,7 @@ object SettingValues {
     var saveButton = false
         set(value) {
             field = value
-            prefs!!.edit()
+            this.settings.edit()
                 .putBoolean(PREF_SAVE_BUTTON, value)
                 .apply()
         }
@@ -280,26 +298,26 @@ object SettingValues {
     var smallTag = false
         set(value) {
             field = value
-            prefs!!.edit()
+            this.settings.edit()
                 .putBoolean(PREF_SMALL_TAG, value)
                 .apply()
         }
     var typeInfoLine = false
         set(value) {
             field = value
-            prefs!!.edit().putBoolean(PREF_TYPE_INFO_LINE, value)
+            this.settings.edit().putBoolean(PREF_TYPE_INFO_LINE, value)
                 .apply()
         }
     var votesInfoLine = false
         set(value) {
             field = value
-            prefs!!.edit().putBoolean(PREF_VOTES_INFO_LINE, value)
+            this.settings.edit().putBoolean(PREF_VOTES_INFO_LINE, value)
                 .apply()
         }
     var readerMode = false
         set(value) {
             field = value
-            prefs!!.edit().putBoolean(PREF_READER_MODE, value)
+            this.settings.edit().putBoolean(PREF_READER_MODE, value)
                 .apply()
         }
     @JvmField var collapseComments = false
@@ -309,13 +327,13 @@ object SettingValues {
     var abbreviateScores = false
         set(value) {
             field = value
-            prefs!!.edit().putBoolean(PREF_ABBREVIATE_SCORES, value)
+            this.settings.edit().putBoolean(PREF_ABBREVIATE_SCORES, value)
                 .apply()
         }
     var hidePostAwards = false
         set(value) {
             field = value
-            prefs!!.edit().putBoolean(PREF_HIDE_POST_AWARDS, value)
+            this.settings.edit().putBoolean(PREF_HIDE_POST_AWARDS, value)
                 .apply()
         }
     @JvmField var hideCommentAwards = false
@@ -323,42 +341,42 @@ object SettingValues {
     var isMuted = false
         set(value) {
             field = value
-            prefs!!.edit()
+            this.settings.edit()
                 .putBoolean(PREF_MUTE, value)
                 .apply()
         }
     var subredditSearchMethod = 0
         set(value) {
             field = value
-            prefs!!.edit()
+            this.settings.edit()
                 .putInt(PREF_SUBREDDIT_SEARCH_METHOD, value)
                 .apply()
         }
     var backButtonBehavior = 0
         set(value) {
             field = value
-            prefs!!.edit()
+            this.settings.edit()
                 .putInt(PREF_BACK_BUTTON_BEHAVIOR, value)
                 .apply()
         }
     var nightStart = 0
         set(value) {
             field = value
-            prefs!!.edit()
+            this.settings.edit()
                 .putInt(PREF_NIGHT_START, value)
                 .apply()
         }
     var nightEnd = 0
         set(value) {
             field = value
-            prefs!!.edit()
+            this.settings.edit()
                 .putInt(PREF_NIGHT_END, value)
                 .apply()
         }
     var linkHandlingMode = 0
         set(value) {
             field = value
-            prefs!!.edit()
+            this.settings.edit()
                 .putInt(PREF_LINK_HANDLING_MODE, value)
                 .apply()
         }
@@ -368,49 +386,49 @@ object SettingValues {
     var titleFilters: Set<String> = emptySet()
         set(value) {
             field = value
-            prefs!!.edit()
+            this.settings.edit()
                 .putStringSet(PREF_TITLE_FILTERS, value)
                 .apply()
         }
     var textFilters: Set<String> = emptySet()
         set(value) {
             field = value
-            prefs!!.edit()
+            this.settings.edit()
                 .putStringSet(PREF_TEXT_FILTERS, value)
                 .apply()
         }
     var domainFilters: Set<String> = emptySet()
         set(value) {
             field = value
-            prefs!!.edit()
+            this.settings.edit()
                 .putStringSet(PREF_DOMAIN_FILTERS, value)
                 .apply()
         }
     var subredditFilters: Set<String> = emptySet()
         set(value) {
             field = value
-            prefs!!.edit()
+            this.settings.edit()
                 .putStringSet(PREF_SUBREDDIT_FILTERS, value)
                 .apply()
         }
     var flairFilters: Set<String> = emptySet()
         set(value) {
             field = value
-            prefs!!.edit()
+            this.settings.edit()
                 .putStringSet(PREF_FLAIR_FILTERS, value)
                 .apply()
         }
     var alwaysExternal: Set<String> = emptySet()
         set(value) {
             field = value
-            prefs!!.edit()
+            this.settings.edit()
                 .putStringSet(PREF_ALWAYS_EXTERNAL, value)
                 .apply()
         }
     var userFilters: Set<String> = emptySet()
         set(value) {
             field = value
-            prefs!!.edit()
+            this.settings.edit()
                 .putStringSet(PREF_USER_FILTERS, value)
                 .apply()
         }
@@ -420,7 +438,7 @@ object SettingValues {
     var highColorspaceImages = false
         set(value) {
             field = value
-            prefs!!.edit()
+            this.settings.edit()
                 .putBoolean(PREF_HIGH_COLORSPACE_IMAGES, value)
                 .apply()
         }
@@ -428,21 +446,21 @@ object SettingValues {
     var fab = true
         set(value) {
             field = value
-            prefs!!.edit()
+            this.settings.edit()
                 .putBoolean(PREF_FAB, value)
                 .apply()
         }
     var fabType = Constants.FAB_POST
         set(value) {
             field = value
-            prefs!!.edit()
+            this.settings.edit()
                 .putInt(PREF_FAB_TYPE, value)
                 .apply()
         }
     var hideButton = false
         set(value) {
             field = value
-            prefs!!.edit()
+            this.settings.edit()
                 .putBoolean(PREF_HIDEBUTTON, value)
                 .apply()
         }
@@ -451,78 +469,78 @@ object SettingValues {
     var titleTop = false
         set(value) {
             field = value
-            prefs!!.edit().putBoolean(PREF_TITLE_TOP, value)
+            this.settings.edit().putBoolean(PREF_TITLE_TOP, value)
                 .apply()
         }
     var dualPortrait = false
         set(value) {
             field = value
-            prefs!!.edit().putBoolean(PREF_DUAL_PORTRAIT, value)
+            this.settings.edit().putBoolean(PREF_DUAL_PORTRAIT, value)
                 .apply()
         }
     var singleColumnMultiWindow = false
         set(value) {
             field = value
-            prefs!!.edit()
+            this.settings.edit()
                 .putBoolean(PREF_SINGLE_COLUMN_MULTI, value)
                 .apply()
         }
     var nightModeState = 0
         set(value) {
             field = value
-            prefs!!.edit().putInt(PREF_NIGHT_MODE_STATE, value)
+            this.settings.edit().putInt(PREF_NIGHT_MODE_STATE, value)
                 .apply()
         }
     var imageSubfolders = false
         set(value) {
             field = value
-            prefs!!.edit().putBoolean(PREF_IMAGE_SUBFOLDERS, value)
+            this.settings.edit().putBoolean(PREF_IMAGE_SUBFOLDERS, value)
                 .apply()
         }
     var imageDownloadButton = false
         set(value) {
             field = value
-            prefs!!.edit().putBoolean(PREF_IMAGE_DOWNLOAD_BUTTON, value)
+            this.settings.edit().putBoolean(PREF_IMAGE_DOWNLOAD_BUTTON, value)
                 .apply()
         }
     var autoTime = false
     var albumSwipe = false
         set(value) {
             field = value
-            prefs!!.edit().putBoolean(PREF_ALBUM_SWIPE, value)
+            this.settings.edit().putBoolean(PREF_ALBUM_SWIPE, value)
                 .apply()
         }
     var switchThumb = false
         set(value) {
             field = value
-            prefs!!.edit().putBoolean(PREF_SWITCH_THUMB, value)
+            this.settings.edit().putBoolean(PREF_SWITCH_THUMB, value)
                 .apply()
         }
     var bigThumbnails = false
         set(value) {
             field = value
-            prefs!!.edit()
+            this.settings.edit()
                 .putBoolean("bigThumbnails", value)
                 .apply()
         }
     var noThumbnails = false
         set(value) {
             field = value
-            prefs!!.edit()
+            this.settings.edit()
                 .putBoolean("noThumbnails", value)
                 .apply()
         }
     var commentPager = false
         set(value) {
             field = value
-            prefs!!.edit()
+            this.settings.edit()
                 .putBoolean(PREF_COMMENT_PAGER, value)
                 .apply()
         }
     var alphabetizeOnSubscribe = false
         set(value) {
             field = value
-            prefs!!.edit()
+            this.settings.edit()
                 .putBoolean(PREF_ALPHABETIZE_SUBSCRIBE, value)
                 .apply()
         }
@@ -530,31 +548,31 @@ object SettingValues {
     var hideSelftextLeadImage = false
         set(value) {
             field = value
-            prefs!!.edit().putBoolean(PREF_SELFTEXT_IMAGE_COMMENT, value)
+            this.settings.edit().putBoolean(PREF_SELFTEXT_IMAGE_COMMENT, value)
                 .apply()
         }
     var overrideLanguage = false
         set(value) {
             field = value
-            prefs!!.edit().putBoolean(PREF_OVERRIDE_LANGUAGE, value)
+            this.settings.edit().putBoolean(PREF_OVERRIDE_LANGUAGE, value)
                 .apply()
         }
     var immersiveMode = false
         set(value) {
             field = value
-            prefs!!.edit().putBoolean(PREF_IMMERSIVE_MODE, value)
+            this.settings.edit().putBoolean(PREF_IMMERSIVE_MODE, value)
                 .apply()
         }
     var showDomain = false
         set(value) {
             field = value
-            prefs!!.edit().putBoolean(PREF_SHOW_DOMAIN, value)
+            this.settings.edit().putBoolean(PREF_SHOW_DOMAIN, value)
                 .apply()
         }
     var cardText = false
         set(value) {
             field = value
-            prefs!!.edit().putBoolean(PREF_CARD_TEXT, value)
+            this.settings.edit().putBoolean(PREF_CARD_TEXT, value)
                 .apply()
         }
     var alwaysZoom = false
@@ -566,7 +584,7 @@ object SettingValues {
     var nightTheme = 0
         set(value) {
             field = value
-            prefs!!.edit()
+            this.settings.edit()
                 .putInt(PREF_NIGHT_THEME, value)
                 .apply()
         }
@@ -574,14 +592,14 @@ object SettingValues {
     var notifSound = false
         set(value) {
             field = value
-            prefs!!.edit()
+            this.settings.edit()
                 .putBoolean(PREF_SOUND_NOTIFS, value)
                 .apply()
         }
     var cookies = false
         set(value) {
             field = value
-            prefs!!.edit()
+            this.settings.edit()
                 .putBoolean(PREF_COOKIES, value)
                 .apply()
         }
@@ -593,14 +611,14 @@ object SettingValues {
     var selectedBrowser: String = ""
         set(value) {
             field = value
-            prefs!!.edit()
+            this.settings.edit()
                 .putString(PREF_SELECTED_BROWSER, value)
                 .apply()
         }
     var selectedDrawerItems: Long = 0
         set(value) {
             field = value
-            prefs!!.edit()
+            this.settings.edit()
                 .putLong(PREF_COOKIES, value)
                 .apply()
         }
@@ -614,190 +632,191 @@ object SettingValues {
     var alwaysShowFAB = false
         set(value) {
             field = value
-            prefs!!.edit()
+            this.settings.edit()
                 .putBoolean(PREF_ALWAYS_SHOW_FAB, value)
                 .apply()
         }
 
-    fun setAllValues(settings: SharedPreferences) {
-        prefs = settings
+    fun initialize() {
+        this.settings
+
         defaultCardView = CardEnum.valueOf(
-            settings.getString("defaultCardViewNew", "LARGE")!!.uppercase(Locale.getDefault())
+            this.settings.getString("defaultCardViewNew", "LARGE")!!.uppercase(Locale.getDefault())
         )
-        middleImage = settings.getBoolean("middleCard", false)
-        bigPicCropped = settings.getBoolean("bigPicCropped", true)
-        bigPicEnabled = settings.getBoolean("bigPicEnabled", true)
-        alwaysShowFAB = settings.getBoolean("alwaysShowFAB", false)
+        middleImage = this.settings.getBoolean("middleCard", false)
+        bigPicCropped = this.settings.getBoolean("bigPicCropped", true)
+        bigPicEnabled = this.settings.getBoolean("bigPicEnabled", true)
+        alwaysShowFAB = this.settings.getBoolean("alwaysShowFAB", false)
         colorMatchingMode = ColorMatchingMode.valueOf(
-            settings.getString("ccolorMatchingModeNew", "MATCH_EXTERNALLY")!!
+            this.settings.getString("ccolorMatchingModeNew", "MATCH_EXTERNALLY")!!
         )
         colorIndicator = ColorIndicator.valueOf(
-            settings.getString("colorIndicatorNew", "CARD_BACKGROUND")!!
+            this.settings.getString("colorIndicatorNew", "CARD_BACKGROUND")!!
         )
-        defaultSorting = Sorting.valueOf(settings.getString("defaultSorting", "HOT")!!)
-        timePeriod = TimePeriod.valueOf(settings.getString("timePeriod", "DAY")!!)
+        defaultSorting = Sorting.valueOf(this.settings.getString("defaultSorting", "HOT")!!)
+        timePeriod = TimePeriod.valueOf(this.settings.getString("timePeriod", "DAY")!!)
         defaultCommentSorting =
-            CommentSort.valueOf(settings.getString("defaultCommentSortingNew", "CONFIDENCE")!!)
-        showNSFWContent = prefs!!.getBoolean(PREF_SHOW_NSFW_CONTENT, false)
-        hideNSFWCollection = prefs!!.getBoolean(PREF_HIDE_NSFW_COLLECTION, true)
-        ignoreSubSetting = prefs!!.getBoolean(PREF_IGNORE_SUB_SETTINGS, false)
-        single = prefs!!.getBoolean(PREF_SINGLE, false)
-        readerNight = prefs!!.getBoolean(PREF_READER_NIGHT, false)
-        blurCheck = prefs!!.getBoolean(PREF_BLUR, false)
-        overrideLanguage = prefs!!.getBoolean(PREF_OVERRIDE_LANGUAGE, false)
-        immersiveMode = prefs!!.getBoolean(PREF_IMMERSIVE_MODE, false)
-        largeDepth = prefs!!.getBoolean(PREF_LARGE_DEPTH, false)
-        readerMode = prefs!!.getBoolean(PREF_READER_MODE, false)
-        imageSubfolders = prefs!!.getBoolean(PREF_IMAGE_SUBFOLDERS, false)
-        imageDownloadButton = prefs!!.getBoolean(PREF_IMAGE_DOWNLOAD_BUTTON, true)
-        isMuted = prefs!!.getBoolean(PREF_MUTE, false)
-        commentVolumeNav = prefs!!.getBoolean(PREF_COMMENT_NAV, false)
+            CommentSort.valueOf(this.settings.getString("defaultCommentSortingNew", "CONFIDENCE")!!)
+        showNSFWContent = this.settings.getBoolean(PREF_SHOW_NSFW_CONTENT, false)
+        hideNSFWCollection = this.settings.getBoolean(PREF_HIDE_NSFW_COLLECTION, true)
+        ignoreSubSetting = this.settings.getBoolean(PREF_IGNORE_SUB_SETTINGS, false)
+        single = this.settings.getBoolean(PREF_SINGLE, false)
+        readerNight = this.settings.getBoolean(PREF_READER_NIGHT, false)
+        blurCheck = this.settings.getBoolean(PREF_BLUR, false)
+        overrideLanguage = this.settings.getBoolean(PREF_OVERRIDE_LANGUAGE, false)
+        immersiveMode = this.settings.getBoolean(PREF_IMMERSIVE_MODE, false)
+        largeDepth = this.settings.getBoolean(PREF_LARGE_DEPTH, false)
+        readerMode = this.settings.getBoolean(PREF_READER_MODE, false)
+        imageSubfolders = this.settings.getBoolean(PREF_IMAGE_SUBFOLDERS, false)
+        imageDownloadButton = this.settings.getBoolean(PREF_IMAGE_DOWNLOAD_BUTTON, true)
+        isMuted = this.settings.getBoolean(PREF_MUTE, false)
+        commentVolumeNav = this.settings.getBoolean(PREF_COMMENT_NAV, false)
         postNav = false
-        fab = prefs!!.getBoolean(PREF_FAB, true)
-        fabType = prefs!!.getInt(PREF_FAB_TYPE, Constants.FAB_DISMISS)
+        fab = this.settings.getBoolean(PREF_FAB, true)
+        fabType = this.settings.getInt(PREF_FAB_TYPE, Constants.FAB_DISMISS)
         if (fabType > 3 || fabType < 0) {
             fabType = Constants.FAB_DISMISS
-            prefs!!.edit().putInt(PREF_FAB_TYPE, Constants.FAB_DISMISS).apply()
+            this.settings.edit().putInt(PREF_FAB_TYPE, Constants.FAB_DISMISS).apply()
         }
-        subredditSearchMethod = prefs!!.getInt(
+        subredditSearchMethod = this.settings.getInt(
             PREF_SUBREDDIT_SEARCH_METHOD,
             Constants.SUBREDDIT_SEARCH_METHOD_DRAWER
         )
         if (subredditSearchMethod > 3 || subredditSearchMethod < 0) {
             subredditSearchMethod = 1
-            prefs!!.edit().putInt(PREF_SUBREDDIT_SEARCH_METHOD, 1).apply()
+            this.settings.edit().putInt(PREF_SUBREDDIT_SEARCH_METHOD, 1).apply()
         }
-        backButtonBehavior = prefs!!.getInt(
+        backButtonBehavior = this.settings.getInt(
             PREF_BACK_BUTTON_BEHAVIOR,
             Constants.BackButtonBehaviorOptions.ConfirmExit.value
         )
-        highlightTime = prefs!!.getBoolean(PREF_HIGHLIGHT_TIME, true)
+        highlightTime = this.settings.getBoolean(PREF_HIGHLIGHT_TIME, true)
 
         // TODO: Remove the old pref check in a later version
         // This handles forward migration from the old night_mode boolean state
-        nightModeState = prefs!!.getInt(
-            PREF_NIGHT_MODE_STATE, (if (prefs!!.getBoolean(
+        nightModeState = this.settings.getInt(
+            PREF_NIGHT_MODE_STATE, (if (this.settings.getBoolean(
                     PREF_NIGHT_MODE, false
                 )
             ) NightModeState.MANUAL else NightModeState.DISABLED).ordinal
         )
-        nightTheme = prefs!!.getInt(PREF_NIGHT_THEME, 0)
-        autoTime = prefs!!.getBoolean(PREF_AUTOTHEME, false)
-        colorBack = prefs!!.getBoolean(PREF_COLOR_BACK, false)
-        cardText = prefs!!.getBoolean(PREF_CARD_TEXT, false)
-        colorNavBar = prefs!!.getBoolean(PREF_COLOR_NAV_BAR, false)
-        shareLongLink = prefs!!.getBoolean(PREF_LONG_LINK, false)
-        colorEverywhere = prefs!!.getBoolean(PREF_COLOR_EVERYWHERE, true)
-        colorCommentDepth = prefs!!.getBoolean(PREF_COLOR_COMMENT_DEPTH, true)
-        alwaysZoom = prefs!!.getBoolean(PREF_ZOOM_DEFAULT, true)
-        collapseComments = prefs!!.getBoolean(PREF_COLLAPSE_COMMENTS, false)
-        collapseCommentsDefault = prefs!!.getBoolean(PREF_COLLAPSE_COMMENTS_DEFAULT, false)
-        collapseDeletedComments = prefs!!.getBoolean(PREF_COLLAPSE_DELETED_COMMENTS, false)
-        rightHandedCommentMenu = prefs!!.getBoolean(PREF_RIGHT_HANDED_COMMENT_MENU, false)
-        commentAutoHide = prefs!!.getBoolean(PREF_AUTOHIDE_COMMENTS, false)
-        showCollapseExpand = prefs!!.getBoolean(PREF_SHOW_COLLAPSE_EXPAND, false)
-        highlightCommentOP = prefs!!.getBoolean(PREF_HIGHLIGHT_COMMENT_OP, true)
-        typeInfoLine = prefs!!.getBoolean(PREF_TYPE_INFO_LINE, false)
-        votesInfoLine = prefs!!.getBoolean(PREF_VOTES_INFO_LINE, false)
-        titleTop = prefs!!.getBoolean(PREF_TITLE_TOP, true)
-        lqLow = prefs!!.getBoolean(PREF_LQ_LOW, false)
-        lqMid = prefs!!.getBoolean(PREF_LQ_MID, true)
-        lqHigh = prefs!!.getBoolean(PREF_LQ_HIGH, false)
-        lqVideos = prefs!!.getBoolean(PREF_LQ_VIDEOS, true)
-        highColorspaceImages = prefs!!.getBoolean(PREF_HIGH_COLORSPACE_IMAGES, false)
-        noImages = prefs!!.getBoolean(PREF_NO_IMAGES, false)
-        abbreviateScores = prefs!!.getBoolean(PREF_ABBREVIATE_SCORES, true)
-        hidePostAwards = prefs!!.getBoolean(PREF_HIDE_POST_AWARDS, false)
-        hideCommentAwards = prefs!!.getBoolean(PREF_HIDE_COMMENT_AWARDS, false)
-        lowResAlways = prefs!!.getBoolean(PREF_LOW_RES_ALWAYS, false)
-        lowResMobile = prefs!!.getBoolean(PREF_LOW_RES_MOBILE, false)
-        loadImageLq = prefs!!.getBoolean(PREF_IMAGE_LQ, false)
-        showDomain = prefs!!.getBoolean(PREF_SHOW_DOMAIN, false)
-        expandedToolbar = prefs!!.getBoolean(PREF_EXPANDED_TOOLBAR, false)
-        voteGestures = prefs!!.getBoolean(PREF_VOTE_GESTURES, false)
-        fullCommentOverride = prefs!!.getBoolean(PREF_FULL_COMMENT_OVERRIDE, false)
-        alphabetizeOnSubscribe = prefs!!.getBoolean(PREF_ALPHABETIZE_SUBSCRIBE, false)
-        commentPager = prefs!!.getBoolean(PREF_COMMENT_PAGER, false)
-        smallTag = prefs!!.getBoolean(PREF_SMALL_TAG, false)
-        swap = prefs!!.getBoolean(PREF_SWAP, false)
-        hideSelftextLeadImage = prefs!!.getBoolean(PREF_SELFTEXT_IMAGE_COMMENT, false)
-        image = prefs!!.getBoolean(PREF_IMAGE, true)
+        nightTheme = this.settings.getInt(PREF_NIGHT_THEME, 0)
+        autoTime = this.settings.getBoolean(PREF_AUTOTHEME, false)
+        colorBack = this.settings.getBoolean(PREF_COLOR_BACK, false)
+        cardText = this.settings.getBoolean(PREF_CARD_TEXT, false)
+        colorNavBar = this.settings.getBoolean(PREF_COLOR_NAV_BAR, false)
+        shareLongLink = this.settings.getBoolean(PREF_LONG_LINK, false)
+        colorEverywhere = this.settings.getBoolean(PREF_COLOR_EVERYWHERE, true)
+        colorCommentDepth = this.settings.getBoolean(PREF_COLOR_COMMENT_DEPTH, true)
+        alwaysZoom = this.settings.getBoolean(PREF_ZOOM_DEFAULT, true)
+        collapseComments = this.settings.getBoolean(PREF_COLLAPSE_COMMENTS, false)
+        collapseCommentsDefault = this.settings.getBoolean(PREF_COLLAPSE_COMMENTS_DEFAULT, false)
+        collapseDeletedComments = this.settings.getBoolean(PREF_COLLAPSE_DELETED_COMMENTS, false)
+        rightHandedCommentMenu = this.settings.getBoolean(PREF_RIGHT_HANDED_COMMENT_MENU, false)
+        commentAutoHide = this.settings.getBoolean(PREF_AUTOHIDE_COMMENTS, false)
+        showCollapseExpand = this.settings.getBoolean(PREF_SHOW_COLLAPSE_EXPAND, false)
+        highlightCommentOP = this.settings.getBoolean(PREF_HIGHLIGHT_COMMENT_OP, true)
+        typeInfoLine = this.settings.getBoolean(PREF_TYPE_INFO_LINE, false)
+        votesInfoLine = this.settings.getBoolean(PREF_VOTES_INFO_LINE, false)
+        titleTop = this.settings.getBoolean(PREF_TITLE_TOP, true)
+        lqLow = this.settings.getBoolean(PREF_LQ_LOW, false)
+        lqMid = this.settings.getBoolean(PREF_LQ_MID, true)
+        lqHigh = this.settings.getBoolean(PREF_LQ_HIGH, false)
+        lqVideos = this.settings.getBoolean(PREF_LQ_VIDEOS, true)
+        highColorspaceImages = this.settings.getBoolean(PREF_HIGH_COLORSPACE_IMAGES, false)
+        noImages = this.settings.getBoolean(PREF_NO_IMAGES, false)
+        abbreviateScores = this.settings.getBoolean(PREF_ABBREVIATE_SCORES, true)
+        hidePostAwards = this.settings.getBoolean(PREF_HIDE_POST_AWARDS, false)
+        hideCommentAwards = this.settings.getBoolean(PREF_HIDE_COMMENT_AWARDS, false)
+        lowResAlways = this.settings.getBoolean(PREF_LOW_RES_ALWAYS, false)
+        lowResMobile = this.settings.getBoolean(PREF_LOW_RES_MOBILE, false)
+        loadImageLq = this.settings.getBoolean(PREF_IMAGE_LQ, false)
+        showDomain = this.settings.getBoolean(PREF_SHOW_DOMAIN, false)
+        expandedToolbar = this.settings.getBoolean(PREF_EXPANDED_TOOLBAR, false)
+        voteGestures = this.settings.getBoolean(PREF_VOTE_GESTURES, false)
+        fullCommentOverride = this.settings.getBoolean(PREF_FULL_COMMENT_OVERRIDE, false)
+        alphabetizeOnSubscribe = this.settings.getBoolean(PREF_ALPHABETIZE_SUBSCRIBE, false)
+        commentPager = this.settings.getBoolean(PREF_COMMENT_PAGER, false)
+        smallTag = this.settings.getBoolean(PREF_SMALL_TAG, false)
+        swap = this.settings.getBoolean(PREF_SWAP, false)
+        hideSelftextLeadImage = this.settings.getBoolean(PREF_SELFTEXT_IMAGE_COMMENT, false)
+        image = this.settings.getBoolean(PREF_IMAGE, true)
         cache = true
         cacheDefault = false
-        storeHistory = prefs!!.getBoolean(PREF_STORE_HISTORY, true)
-        upvotePercentage = prefs!!.getBoolean(PREF_UPVOTE_PERCENTAGE, false)
-        storeNSFWHistory = prefs!!.getBoolean(PREF_STORE_NSFW_HISTORY, false)
-        scrollSeen = prefs!!.getBoolean(PREF_SCROLL_SEEN, false)
-        synccitName = prefs!!.getString(SYNCCIT_NAME, "")
-        synccitAuth = prefs!!.getString(SYNCCIT_AUTH, "")
-        notifSound = prefs!!.getBoolean(PREF_SOUND_NOTIFS, false)
-        cookies = prefs!!.getBoolean(PREF_COOKIES, true)
-        linkHandlingMode = prefs!!.getInt(
+        storeHistory = this.settings.getBoolean(PREF_STORE_HISTORY, true)
+        upvotePercentage = this.settings.getBoolean(PREF_UPVOTE_PERCENTAGE, false)
+        storeNSFWHistory = this.settings.getBoolean(PREF_STORE_NSFW_HISTORY, false)
+        scrollSeen = this.settings.getBoolean(PREF_SCROLL_SEEN, false)
+        synccitName = this.settings.getString(SYNCCIT_NAME, "")
+        synccitAuth = this.settings.getString(SYNCCIT_AUTH, "")
+        notifSound = this.settings.getBoolean(PREF_SOUND_NOTIFS, false)
+        cookies = this.settings.getBoolean(PREF_COOKIES, true)
+        linkHandlingMode = this.settings.getInt(
             PREF_LINK_HANDLING_MODE,
             SettingsHandlingFragment.LinkHandlingMode.EXTERNAL.value
         )
-        previews = prefs!!.getInt(PREVIEWS_LEFT, 10)
-        nightStart = prefs!!.getInt(PREF_NIGHT_START, 9)
-        nightEnd = prefs!!.getInt(PREF_NIGHT_END, 5)
-        fabComments = prefs!!.getBoolean(PREF_COMMENT_FAB, false)
-        largeLinks = prefs!!.getBoolean(PREF_LARGE_LINKS, false)
+        previews = this.settings.getInt(PREVIEWS_LEFT, 10)
+        nightStart = this.settings.getInt(PREF_NIGHT_START, 9)
+        nightEnd = this.settings.getInt(PREF_NIGHT_END, 5)
+        fabComments = this.settings.getBoolean(PREF_COMMENT_FAB, false)
+        largeLinks = this.settings.getBoolean(PREF_LARGE_LINKS, false)
 
         // SharedPreferences' StringSets should never be modified, so we duplicate them into a new HashSet
-        titleFilters = HashSet(prefs!!.getStringSet(PREF_TITLE_FILTERS, HashSet()))
-        textFilters = HashSet(prefs!!.getStringSet(PREF_TEXT_FILTERS, HashSet()))
-        domainFilters = HashSet(prefs!!.getStringSet(PREF_DOMAIN_FILTERS, HashSet()))
-        subredditFilters = HashSet(prefs!!.getStringSet(PREF_SUBREDDIT_FILTERS, HashSet()))
-        alwaysExternal = HashSet(prefs!!.getStringSet(PREF_ALWAYS_EXTERNAL, HashSet()))
-        flairFilters = HashSet(prefs!!.getStringSet(PREF_FLAIR_FILTERS, HashSet()))
-        userFilters = HashSet(prefs!!.getStringSet(PREF_USER_FILTERS, HashSet()))
-        dualPortrait = prefs!!.getBoolean(PREF_DUAL_PORTRAIT, false)
-        singleColumnMultiWindow = prefs!!.getBoolean(PREF_SINGLE_COLUMN_MULTI, false)
-        colorSubName = prefs!!.getBoolean(PREF_COLOR_SUB_NAME, false)
-        cropImage = prefs!!.getBoolean(PREF_CROP_IMAGE, true)
-        switchThumb = prefs!!.getBoolean(PREF_SWITCH_THUMB, true)
-        bigThumbnails = prefs!!.getBoolean(PREF_BIG_THUMBS, false)
-        noThumbnails = prefs!!.getBoolean(PREF_NO_THUMB, false)
+        titleFilters = HashSet(this.settings.getStringSet(PREF_TITLE_FILTERS, HashSet()))
+        textFilters = HashSet(this.settings.getStringSet(PREF_TEXT_FILTERS, HashSet()))
+        domainFilters = HashSet(this.settings.getStringSet(PREF_DOMAIN_FILTERS, HashSet()))
+        subredditFilters = HashSet(this.settings.getStringSet(PREF_SUBREDDIT_FILTERS, HashSet()))
+        alwaysExternal = HashSet(this.settings.getStringSet(PREF_ALWAYS_EXTERNAL, HashSet()))
+        flairFilters = HashSet(this.settings.getStringSet(PREF_FLAIR_FILTERS, HashSet()))
+        userFilters = HashSet(this.settings.getStringSet(PREF_USER_FILTERS, HashSet()))
+        dualPortrait = this.settings.getBoolean(PREF_DUAL_PORTRAIT, false)
+        singleColumnMultiWindow = this.settings.getBoolean(PREF_SINGLE_COLUMN_MULTI, false)
+        colorSubName = this.settings.getBoolean(PREF_COLOR_SUB_NAME, false)
+        cropImage = this.settings.getBoolean(PREF_CROP_IMAGE, true)
+        switchThumb = this.settings.getBoolean(PREF_SWITCH_THUMB, true)
+        bigThumbnails = this.settings.getBoolean(PREF_BIG_THUMBS, false)
+        noThumbnails = this.settings.getBoolean(PREF_NO_THUMB, false)
         swipeAnywhere = true //override this always now
-        album = prefs!!.getBoolean(PREF_ALBUM, true)
-        albumSwipe = prefs!!.getBoolean(PREF_ALBUM_SWIPE, true)
-        commentLastVisit = prefs!!.getBoolean(PREF_COMMENT_LAST_VISIT, false)
-        gif = prefs!!.getBoolean(PREF_GIF, true)
-        hqgif = prefs!!.getBoolean(PREF_HQGIF, false)
+        album = this.settings.getBoolean(PREF_ALBUM, true)
+        albumSwipe = this.settings.getBoolean(PREF_ALBUM_SWIPE, true)
+        commentLastVisit = this.settings.getBoolean(PREF_COMMENT_LAST_VISIT, false)
+        gif = this.settings.getBoolean(PREF_GIF, true)
+        hqgif = this.settings.getBoolean(PREF_HQGIF, false)
         video = true
-        fastscroll = prefs!!.getBoolean(PREF_FASTSCROLL, true)
-        typeInText = prefs!!.getBoolean(PREF_TYPE_IN_TEXT, false)
-        hideButton = prefs!!.getBoolean(PREF_HIDEBUTTON, false)
-        saveButton = prefs!!.getBoolean(PREF_SAVE_BUTTON, false)
-        actionbarVisible = prefs!!.getBoolean(PREF_ACTIONBAR_VISIBLE, true)
-        actionbarTap = prefs!!.getBoolean(PREF_ACTIONBAR_TAP, false)
-        colorIcon = prefs!!.getBoolean(PREF_COLOR_ICON, false)
-        peek = prefs!!.getBoolean(PREF_PEEK, false)
-        selectedBrowser = prefs!!.getString(PREF_SELECTED_BROWSER, "") ?: ""
-        selectedDrawerItems = prefs!!.getLong(PREF_SELECTED_DRAWER_ITEMS, -1)
-        toolboxEnabled = prefs!!.getBoolean(PREF_MOD_TOOLBOX_ENABLED, false)
-        removalReasonType = prefs!!.getInt(PREF_MOD_REMOVAL_TYPE, RemovalReasonType.SLIDE.ordinal)
+        fastscroll = this.settings.getBoolean(PREF_FASTSCROLL, true)
+        typeInText = this.settings.getBoolean(PREF_TYPE_IN_TEXT, false)
+        hideButton = this.settings.getBoolean(PREF_HIDEBUTTON, false)
+        saveButton = this.settings.getBoolean(PREF_SAVE_BUTTON, false)
+        actionbarVisible = this.settings.getBoolean(PREF_ACTIONBAR_VISIBLE, true)
+        actionbarTap = this.settings.getBoolean(PREF_ACTIONBAR_TAP, false)
+        colorIcon = this.settings.getBoolean(PREF_COLOR_ICON, false)
+        peek = this.settings.getBoolean(PREF_PEEK, false)
+        selectedBrowser = this.settings.getString(PREF_SELECTED_BROWSER, "") ?: ""
+        selectedDrawerItems = this.settings.getLong(PREF_SELECTED_DRAWER_ITEMS, -1)
+        toolboxEnabled = this.settings.getBoolean(PREF_MOD_TOOLBOX_ENABLED, false)
+        removalReasonType = this.settings.getInt(PREF_MOD_REMOVAL_TYPE, RemovalReasonType.SLIDE.ordinal)
         toolboxMessageType =
-            prefs!!.getInt(PREF_MOD_TOOLBOX_MESSAGE, ToolboxRemovalMessageType.COMMENT.ordinal)
-        toolboxSticky = prefs!!.getBoolean(PREF_MOD_TOOLBOX_STICKY, false)
-        toolboxLock = prefs!!.getBoolean(PREF_MOD_TOOLBOX_LOCK, false)
-        toolboxModmail = prefs!!.getBoolean(PREF_MOD_TOOLBOX_MODMAIL, false)
+            this.settings.getInt(PREF_MOD_TOOLBOX_MESSAGE, ToolboxRemovalMessageType.COMMENT.ordinal)
+        toolboxSticky = this.settings.getBoolean(PREF_MOD_TOOLBOX_STICKY, false)
+        toolboxLock = this.settings.getBoolean(PREF_MOD_TOOLBOX_LOCK, false)
+        toolboxModmail = this.settings.getBoolean(PREF_MOD_TOOLBOX_MODMAIL, false)
     }
 
     @JvmStatic fun hasPicsEnabled(sub: String): Boolean {
-        return prefs!!.contains("picsenabled" + sub.toLowerCase(Locale.ENGLISH))
+        return this.settings.contains("picsenabled" + sub.toLowerCase(Locale.ENGLISH))
     }
 
     @JvmStatic fun setPicsEnabled(sub: String, checked: Boolean) {
-        prefs!!.edit().putBoolean("picsenabled" + sub.lowercase(), checked).apply()
+        this.settings.edit().putBoolean("picsenabled" + sub.lowercase(), checked).apply()
     }
 
     @JvmStatic fun resetPicsEnabled(sub: String) {
-        prefs!!.edit().remove("picsenabled" + sub.lowercase()).apply()
+        this.settings.edit().remove("picsenabled" + sub.lowercase()).apply()
     }
 
     @JvmStatic fun resetPicsEnabledAll() {
-        val e = prefs!!.edit()
-        for ((key) in prefs!!.all) {
+        val e = this.settings.edit()
+        for ((key) in this.settings.all) {
             if (key.startsWith("picsenabled")) {
                 e.remove(key) //reset all overridden values
             }
@@ -806,34 +825,34 @@ object SettingValues {
     }
 
     @JvmStatic fun isPicsEnabled(subreddit: String?): Boolean {
-        return if (subreddit == null) bigPicEnabled else prefs!!.getBoolean(
+        return if (subreddit == null) bigPicEnabled else this.settings.getBoolean(
             "picsenabled" + subreddit.lowercase(),
             bigPicEnabled
         )
     }
 
     @JvmStatic fun isSelftextEnabled(subreddit: String?): Boolean {
-        return if (subreddit == null) cardText else prefs!!.getBoolean(
+        return if (subreddit == null) cardText else this.settings.getBoolean(
             "cardtextenabled" + subreddit.lowercase(),
             cardText
         )
     }
 
     @JvmStatic fun setSelftextEnabled(sub: String, checked: Boolean) {
-        prefs!!.edit()
+        this.settings.edit()
             .putBoolean("cardtextenabled" + sub.lowercase(), checked)
             .apply()
     }
 
     @JvmStatic val isNSFWEnabled: Boolean
-        get() = prefs!!.getBoolean(PREF_HIDE_NSFW_PREVIEW + Authentication.name, true)
+        get() = this.settings.getBoolean(PREF_HIDE_NSFW_PREVIEW + Authentication.name, true)
 
     @JvmStatic fun resetSelftextEnabled(subreddit: String) {
-        prefs!!.edit().remove("cardtextenabled" + subreddit.lowercase()).apply()
+        this.settings.edit().remove("cardtextenabled" + subreddit.lowercase()).apply()
     }
 
     @JvmStatic fun setDefaultCommentSorting(commentSorting: CommentSort, subreddit: String) {
-        prefs!!.edit()
+        this.settings.edit()
             .putString(
                 "defaultComment" + subreddit.lowercase(),
                 commentSorting.name
@@ -843,7 +862,7 @@ object SettingValues {
 
     @JvmStatic fun getCommentSorting(sub: String): CommentSort {
         return CommentSort.valueOf(
-            prefs!!.getString(
+            this.settings.getString(
                 "defaultComment" + sub.lowercase(),
                 defaultCommentSorting!!.name
             )!!
@@ -851,13 +870,13 @@ object SettingValues {
     }
 
     @JvmStatic fun setSubSorting(linkSorting: Sorting, time: TimePeriod, subreddit: String) {
-        prefs!!.edit()
+        this.settings.edit()
             .putString(
                 "defaultSort" + subreddit.lowercase(),
                 linkSorting.name
             )
             .apply()
-        prefs!!.edit()
+        this.settings.edit()
             .putString("defaultTime" + subreddit.lowercase(), time.name)
             .apply()
     }
@@ -868,7 +887,7 @@ object SettingValues {
             SortingUtil.sorting[subreddit]
         } else {
             Sorting.valueOf(
-                prefs!!.getString(
+                this.settings.getString(
                     "defaultSort" + sub.lowercase(),
                     SortingUtil.defaultSorting.name
                 )!!
@@ -882,7 +901,7 @@ object SettingValues {
             SortingUtil.times[subreddit]
         } else {
             TimePeriod.valueOf(
-                prefs!!.getString(
+                this.settings.getString(
                     "defaultTime" + sub.lowercase(),
                     SortingUtil.timePeriod.name
                 )!!
@@ -892,15 +911,15 @@ object SettingValues {
 
     @JvmStatic val lastInbox: Long
         get() {
-            val value = prefs!!.getLong(PREF_LAST_INBOX,
+            val value = this.settings.getLong(PREF_LAST_INBOX,
                 System.currentTimeMillis() - (60 * 1000 * 60))
-            prefs!!.edit().putLong(PREF_LAST_INBOX, System.currentTimeMillis()).apply()
+            this.settings.edit().putLong(PREF_LAST_INBOX, System.currentTimeMillis()).apply()
             return value
         }
 
     @JvmStatic var commentDepth: Int?
         get() {
-            val value = prefs!!.getString(COMMENT_DEPTH, "")!!
+            val value = this.settings.getString(COMMENT_DEPTH, "")!!
             return when (value.isBlank()) {
                 true -> null
                 false -> Integer.parseInt(value)
@@ -908,12 +927,12 @@ object SettingValues {
         }
         set(value) {
             if (value != null)
-                prefs!!.edit().putString(COMMENT_DEPTH, value.toString()).apply()
+                this.settings.edit().putString(COMMENT_DEPTH, value.toString()).apply()
         }
 
     @JvmStatic var commentCount: Int?
         get() {
-            val value = prefs!!.getString(COMMENT_COUNT, "")!!
+            val value = this.settings.getString(COMMENT_COUNT, "")!!
             return when (value.isBlank()) {
                 true -> null
                 false -> Integer.parseInt(value)
@@ -921,7 +940,7 @@ object SettingValues {
         }
         set(value) {
             if (value != null)
-                prefs!!.edit().putString(COMMENT_COUNT, value.toString()).apply()
+                this.settings.edit().putString(COMMENT_COUNT, value.toString()).apply()
         }
 
     /* Logic for the now rather complicated night mode:
@@ -976,7 +995,7 @@ object SettingValues {
 
     @JvmStatic fun getBaseSubmissionSort(sub: String): Sorting {
         return Sorting.valueOf(
-            prefs!!.getString(
+            this.settings.getString(
                 "defaultSort" + sub.lowercase(),
                 SortingUtil.defaultSorting.name
             )!!
@@ -985,7 +1004,7 @@ object SettingValues {
 
     @JvmStatic fun getBaseTimePeriod(sub: String): TimePeriod {
         return TimePeriod.valueOf(
-            prefs!!.getString(
+            this.settings.getString(
                 "defaultTime" + sub.lowercase(),
                 SortingUtil.timePeriod.name
             )!!
@@ -993,39 +1012,39 @@ object SettingValues {
     }
 
     @JvmStatic fun decreasePreviewsLeft(): Int {
-        prefs!!.edit()
+        this.settings.edit()
             .putInt(
                 PREVIEWS_LEFT,
                 previews - 1
             )
             .apply()
-        previews = prefs!!.getInt(
+        previews = this.settings.getInt(
             PREVIEWS_LEFT, 10
         )
         return previews
     }
 
     @JvmStatic fun hasSort(subreddit: String): Boolean {
-        return prefs!!.contains("defaultSort" + subreddit.lowercase())
+        return this.settings.contains("defaultSort" + subreddit.lowercase())
     }
 
     @JvmStatic fun clearSort(subreddit: String) {
-        prefs!!.edit().remove("defaultSort" + subreddit.lowercase())
+        this.settings.edit().remove("defaultSort" + subreddit.lowercase())
             .apply()
-        prefs!!.edit().remove("defaultTime" + subreddit.lowercase())
+        this.settings.edit().remove("defaultTime" + subreddit.lowercase())
             .apply()
     }
 
     @JvmStatic fun getLayoutSettings(subreddit: String): Boolean? {
-        return prefs!!.contains(PREF_LAYOUT + subreddit.lowercase(Locale.ENGLISH))
+        return this.settings.contains(PREF_LAYOUT + subreddit.lowercase(Locale.ENGLISH))
     }
 
     @JvmStatic fun setLayoutSettings(subreddit: String, state: Boolean) {
         if (state) {
-            prefs!!.edit().remove(PREF_LAYOUT + subreddit.lowercase(Locale.ENGLISH))
+            this.settings.edit().remove(PREF_LAYOUT + subreddit.lowercase(Locale.ENGLISH))
                 .apply()
         } else {
-            prefs!!.edit().putBoolean(PREF_LAYOUT + subreddit.lowercase(Locale.ENGLISH), true)
+            this.settings.edit().putBoolean(PREF_LAYOUT + subreddit.lowercase(Locale.ENGLISH), true)
                 .apply()
         }
     }
@@ -1034,22 +1053,22 @@ object SettingValues {
         clearListener()
 
         prefsListener = listener
-        prefs!!.registerOnSharedPreferenceChangeListener(prefsListener)
+        this.settings.registerOnSharedPreferenceChangeListener(prefsListener)
     }
 
     @JvmStatic fun clearListener() {
-        prefs!!.registerOnSharedPreferenceChangeListener(prefsListener)
+        this.settings.registerOnSharedPreferenceChangeListener(prefsListener)
         prefsListener = null
     }
 
     @Deprecated("use properties")
     @JvmStatic fun editInt(settingValueString: String, value: Int) {
-        prefs!!.edit().putInt(settingValueString, value).apply()
+        this.settings.edit().putInt(settingValueString, value).apply()
     }
 
     @Deprecated("use properties")
     @JvmStatic fun editBoolean(settingValueString: String, value: Boolean) {
-        prefs!!.edit().putBoolean(settingValueString, value).apply()
+        this.settings.edit().putBoolean(settingValueString, value).apply()
     }
 
     enum class RemovalReasonType {
@@ -1080,38 +1099,4 @@ object SettingValues {
     enum class ForcedState {
         NOT_FORCED, FORCED_ON, FORCED_OFF
     }
-}
-
-object Preferences {
-    val settings: SharedPreferences by lazy { getSharedPreferences("SETTINGS") }
-
-    val authentication: SharedPreferences by lazy { getSharedPreferences("AUTHENTICATION") }
-
-    val colours: SharedPreferences by lazy { getSharedPreferences("COLOUR") }
-
-    val appRestart: SharedPreferences by lazy { getSharedPreferences("APP_RESTART") }
-
-    val tags: SharedPreferences by lazy { getSharedPreferences("TAGS") }
-
-    val seen: SharedPreferences by lazy { getSharedPreferences("SEEN") }
-
-    val hidden: SharedPreferences by lazy { getSharedPreferences("HIDDEN") }
-
-    val hiddenPosts: SharedPreferences by lazy { getSharedPreferences("HIDDEN_POSTS") }
-
-    val albums: SharedPreferences by lazy { getSharedPreferences("ALBUMS") }
-
-    val tumblr: SharedPreferences by lazy { getSharedPreferences("TUMBLR") }
-
-    val cache: SharedPreferences by lazy { getSharedPreferences("CACHE") }
-
-    val subscriptions: SharedPreferences by lazy { getSharedPreferences("SUBS") }
-
-    val filters: SharedPreferences by lazy { getSharedPreferences("FILTERS") }
-
-    val upgrade: SharedPreferences by lazy { getSharedPreferences("UPGRADE") }
-}
-
-private fun getSharedPreferences(name: String, mode: Int = 0): SharedPreferences {
-    return appContext.getSharedPreferences(name, mode)
 }

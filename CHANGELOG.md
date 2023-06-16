@@ -941,7 +941,7 @@ UPCOMING / 202X-XX-XX
   * Added support for 'Continue this thread'
   * Added support for flairing submissions
   * Added support for reporting comments and submissions
-  * Added support for some Reddit preferences in Settings > Reddit preferences. Included is option to show thumbnails, nsfw content, and set the thumbnail type
+  * Added support for some Reddit preferences in Settings > Reddit SettingValues. Included is option to show thumbnails, nsfw content, and set the thumbnail type
   * Added trophies, gold expiry, and user since to the Profile info button
   * Added unmoderated panel to the Modqueue activity
   * Added user tagging

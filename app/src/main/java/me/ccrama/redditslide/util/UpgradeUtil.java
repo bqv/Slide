@@ -25,7 +25,6 @@ import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
 
-import ltd.ucode.slide.Preferences;
 import ltd.ucode.slide.SettingValues;
 
 public class UpgradeUtil {
@@ -39,8 +38,8 @@ public class UpgradeUtil {
      * Runs any upgrade actions required between versions in an organised way
      */
     public static void upgrade(Context context) {
-        SharedPreferences colors = Preferences.INSTANCE.getColours();
-        SharedPreferences upgradePrefs = Preferences.INSTANCE.getUpgrade();
+        SharedPreferences colors = SettingValues.INSTANCE.getColours();
+        SharedPreferences upgradePrefs = SettingValues.INSTANCE.getUpgrade();
 
         // Exit if this is the first start
         if (colors != null && !colors.contains("Tutorial")) {
@@ -54,7 +53,7 @@ public class UpgradeUtil {
         if (CURRENT == VERSION) return;
 
         if (CURRENT < 1) {
-            SharedPreferences prefs = Preferences.INSTANCE.getSettings();
+            SharedPreferences prefs = SettingValues.INSTANCE.getSettings();
             String domains = prefs.getString(SettingValues.PREF_ALWAYS_EXTERNAL, "");
 
             domains = domains
@@ -66,7 +65,7 @@ public class UpgradeUtil {
 
         // migrate old filters
         if (CURRENT < 2) {
-            SharedPreferences prefs = Preferences.INSTANCE.getSettings();
+            SharedPreferences prefs = SettingValues.INSTANCE.getSettings();
             SharedPreferences.Editor prefsEditor = prefs.edit();
             String titleFilterStr = prefs.getString(SettingValues.PREF_TITLE_FILTERS, "");
             String textFilterStr = prefs.getString(SettingValues.PREF_TEXT_FILTERS, "");

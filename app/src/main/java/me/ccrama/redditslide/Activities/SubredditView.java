@@ -68,7 +68,6 @@ import java.util.List;
 import java.util.Locale;
 
 import ltd.ucode.slide.Authentication;
-import ltd.ucode.slide.Preferences;
 import me.ccrama.redditslide.Constants;
 import me.ccrama.redditslide.Fragments.BlankFragment;
 import me.ccrama.redditslide.Fragments.CommentPage;
@@ -1185,7 +1184,7 @@ public class SubredditView extends BaseActivity {
 
                 //get all subs that have Notifications enabled
                 ArrayList<String> rawSubs = StringUtil.stringToArray(
-                        Preferences.INSTANCE.getAppRestart().getString(CheckForMail.SUBS_TO_GET, ""));
+                        SettingValues.INSTANCE.getAppRestart().getString(CheckForMail.SUBS_TO_GET, ""));
                 HashMap<String, Integer> subThresholds = new HashMap<>();
                 for (String s : rawSubs) {
                     try {
@@ -1485,14 +1484,14 @@ public class SubredditView extends BaseActivity {
                                                                                 ArrayList<String>
                                                                                         subs =
                                                                                         StringUtil.stringToArray(
-                                                                                                Preferences.INSTANCE.getAppRestart()
+                                                                                                SettingValues.INSTANCE.getAppRestart()
                                                                                                         .getString(
                                                                                                                 CheckForMail.SUBS_TO_GET,
                                                                                                                 ""));
                                                                                 subs.add(sub
                                                                                         + ":"
                                                                                         + text);
-                                                                                Preferences.INSTANCE.getAppRestart()
+                                                                                SettingValues.INSTANCE.getAppRestart()
                                                                                         .edit()
                                                                                         .putString(
                                                                                                 CheckForMail.SUBS_TO_GET,

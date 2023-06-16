@@ -27,7 +27,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import ltd.ucode.slide.Authentication;
-import ltd.ucode.slide.Preferences;
+import ltd.ucode.slide.SettingValues;
 import ltd.ucode.slide.R;
 import ltd.ucode.slide.App;
 import me.ccrama.redditslide.util.LogUtil;
@@ -118,8 +118,8 @@ public class Reauthenticate extends BaseActivityAnim {
                     Authentication.reddit.authenticate(oAuthData);
                     Authentication.isLoggedIn = true;
                     String refreshToken = Authentication.reddit.getOAuthData().getRefreshToken();
-                    SharedPreferences.Editor editor = Preferences.INSTANCE.getAuthentication().edit();
-                    Set<String> accounts = Preferences.INSTANCE.getAuthentication().getStringSet("accounts", new HashSet<String>());
+                    SharedPreferences.Editor editor = SettingValues.INSTANCE.getAuthentication().edit();
+                    Set<String> accounts = SettingValues.INSTANCE.getAuthentication().getStringSet("accounts", new HashSet<String>());
                     LoggedInAccount me = Authentication.reddit.me();
                     String toRemove = "";
                     for (String s : accounts) {
@@ -134,12 +134,12 @@ public class Reauthenticate extends BaseActivityAnim {
                     accounts.add(me.getFullName() + ":" + refreshToken);
                     Authentication.name = me.getFullName();
                     editor.putStringSet("accounts", accounts);
-                    Set<String> tokens = Preferences.INSTANCE.getAuthentication().getStringSet("tokens", new HashSet<String>());
+                    Set<String> tokens = SettingValues.INSTANCE.getAuthentication().getStringSet("tokens", new HashSet<String>());
                     tokens.add(refreshToken);
                     editor.putStringSet("tokens", tokens);
                     editor.putString("lasttoken", refreshToken);
                     editor.remove("backedCreds");
-                    Preferences.INSTANCE.getAppRestart().edit().remove("back").apply();
+                    SettingValues.INSTANCE.getAppRestart().edit().remove("back").apply();
                     editor.apply();
                 } else {
                     Log.e(LogUtil.getTag(), "Passed in OAuthData was null");

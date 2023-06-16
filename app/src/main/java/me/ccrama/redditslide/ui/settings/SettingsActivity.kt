@@ -26,7 +26,6 @@ import com.google.common.base.Strings
 import ltd.ucode.slide.App
 import ltd.ucode.slide.Authentication
 import ltd.ucode.slide.BuildConfig
-import ltd.ucode.slide.Preferences.colours
 import ltd.ucode.slide.R
 import ltd.ucode.slide.SettingValues
 import me.ccrama.redditslide.Activities.BaseActivity
@@ -434,7 +433,7 @@ class SettingsActivity : BaseActivity(), FolderChooserDialogCreate.FolderCallbac
                     dialog.setOnDismissListener(object : DialogInterface.OnDismissListener {
                         override fun onDismiss(dialog: DialogInterface) {
                             App.dpWidth = landscape.progress + 1
-                            colours.edit()
+                            SettingValues.colours.edit()
                                 .putInt("tabletOVERRIDE", landscape.progress + 1)
                                 .apply()
                         }

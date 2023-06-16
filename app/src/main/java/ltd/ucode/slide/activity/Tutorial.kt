@@ -14,7 +14,6 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.FragmentStatePagerAdapter
-import ltd.ucode.slide.Preferences
 import ltd.ucode.slide.databinding.ActivityTutorialBinding
 import ltd.ucode.slide.databinding.ChooseaccentBinding
 import ltd.ucode.slide.databinding.ChoosemainBinding
@@ -22,6 +21,7 @@ import ltd.ucode.slide.databinding.ChoosethemesmallBinding
 import ltd.ucode.slide.databinding.FragmentPersonalizeBinding
 import ltd.ucode.slide.databinding.FragmentWelcomeBinding
 import ltd.ucode.slide.App
+import ltd.ucode.slide.SettingValues
 import me.ccrama.redditslide.Visuals.ColorPreferences
 import me.ccrama.redditslide.Visuals.FontPreferences
 import me.ccrama.redditslide.Visuals.Palette
@@ -138,7 +138,7 @@ class Tutorial : AppCompatActivity() {
                     }
                 }
                 choosemainBinding.ok.setOnClickListener { v13: View? ->
-                    Preferences.colours.edit().putInt("DEFAULTCOLOR", choosemainBinding.picker2.color)
+                    SettingValues.colours.edit().putInt("DEFAULTCOLOR", choosemainBinding.picker2.color)
                         .apply()
                     finishDialogLayout()
                 }
@@ -212,8 +212,8 @@ class Tutorial : AppCompatActivity() {
                     .show()
             }
             personalizeBinding!!.done.setOnClickListener { v1: View? ->
-                Preferences.colours.edit().putString("Tutorial", "S").commit()
-                Preferences.appRestart.edit().putString("startScreen", "a").apply()
+                SettingValues.colours.edit().putString("Tutorial", "S").commit()
+                SettingValues.appRestart.edit().putString("startScreen", "a").apply()
                 App.forceRestart(activity, false)
             }
             return personalizeBinding!!.root

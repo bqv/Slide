@@ -22,7 +22,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-import ltd.ucode.slide.Preferences;
 import me.ccrama.redditslide.Adapters.MultiredditPosts;
 import me.ccrama.redditslide.Adapters.SubmissionDisplay;
 import me.ccrama.redditslide.Adapters.SubredditPosts;
@@ -94,10 +93,10 @@ public class CommentsScreen extends BaseActivityAnim implements SubmissionDispla
     public void onDestroy() {
         super.onDestroy();
 
-        if (!Preferences.INSTANCE.getAppRestart().contains("tutorialSwipeComment")) {
-            Preferences.INSTANCE.getAppRestart().edit().putBoolean("tutorialSwipeComment", true).apply();
-        } else if (!Preferences.INSTANCE.getAppRestart().contains("tutorial_comm")) {
-            Preferences.INSTANCE.getAppRestart().edit().putBoolean("tutorial_comm", true).apply();
+        if (!SettingValues.INSTANCE.getAppRestart().contains("tutorialSwipeComment")) {
+            SettingValues.INSTANCE.getAppRestart().edit().putBoolean("tutorialSwipeComment", true).apply();
+        } else if (!SettingValues.INSTANCE.getAppRestart().contains("tutorial_comm")) {
+            SettingValues.INSTANCE.getAppRestart().edit().putBoolean("tutorial_comm", true).apply();
 
         }
 
@@ -111,7 +110,7 @@ public class CommentsScreen extends BaseActivityAnim implements SubmissionDispla
             //todo make this work
         }
         if (requestCode == 333) {
-            Preferences.INSTANCE.getAppRestart().edit().putBoolean("tutorialSwipeComments", true).apply();
+            SettingValues.INSTANCE.getAppRestart().edit().putBoolean("tutorialSwipeComments", true).apply();
 
         }
     }
@@ -244,7 +243,7 @@ public class CommentsScreen extends BaseActivityAnim implements SubmissionDispla
             );
 
         }
-        if (!Preferences.INSTANCE.getAppRestart().contains("tutorialSwipeComments")) {
+        if (!SettingValues.INSTANCE.getAppRestart().contains("tutorialSwipeComments")) {
             Intent i = new Intent(this, SwipeTutorial.class);
             i.putExtra("subtitle",
                     "Swipe from the left edge to exit comments.\n\nYou can swipe in the middle to get to the previous/next submission.");

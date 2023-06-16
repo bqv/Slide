@@ -67,7 +67,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
 
-import ltd.ucode.slide.Preferences;
 import me.ccrama.redditslide.ActionStates;
 import me.ccrama.redditslide.Activities.BaseActivity;
 import ltd.ucode.slide.Authentication;
@@ -692,7 +691,7 @@ public class CommentAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                 public void onClick(View v) {
                     final HashMap<String, String> accounts = new HashMap<>();
 
-                    for (String s : Preferences.INSTANCE.getAuthentication().getStringSet("accounts",
+                    for (String s : SettingValues.INSTANCE.getAuthentication().getStringSet("accounts",
                             new HashSet<String>())) {
                         if (s.contains(":")) {
                             accounts.put(s.split(":")[0], s.split(":")[1]);
@@ -1227,7 +1226,7 @@ public class CommentAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                         public void onClick(View v) {
                             final HashMap<String, String> accounts = new HashMap<>();
 
-                            for (String s : Preferences.INSTANCE.getAuthentication().getStringSet("accounts",
+                            for (String s : SettingValues.INSTANCE.getAuthentication().getStringSet("accounts",
                                     new HashSet<String>())) {
                                 if (s.contains(":")) {
                                     accounts.put(s.split(":")[0], s.split(":")[1]);
@@ -1317,7 +1316,7 @@ public class CommentAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                             public void onClick(View v) {
                                 final HashMap<String, String> accounts = new HashMap<>();
 
-                                for (String s : Preferences.INSTANCE.getAuthentication().getStringSet(
+                                for (String s : SettingValues.INSTANCE.getAuthentication().getStringSet(
                                         "accounts", new HashSet<String>())) {
                                     if (s.contains(":")) {
                                         accounts.put(s.split(":")[0], s.split(":")[1]);
@@ -2347,7 +2346,7 @@ public class CommentAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                 UserAgent.of("android:ltd.ucode.slide:v" + BuildConfig.VERSION_NAME));
         final HashMap<String, String> accounts = new HashMap<>();
 
-        for (String s : Preferences.INSTANCE.getAuthentication().getStringSet("accounts",
+        for (String s : SettingValues.INSTANCE.getAuthentication().getStringSet("accounts",
                 new HashSet<String>())) {
             if (s.contains(":")) {
                 accounts.put(s.split(":")[0], s.split(":")[1]);
@@ -2360,7 +2359,7 @@ public class CommentAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             token = accounts.get(profileName);
         } else {
             ArrayList<String> tokens = new ArrayList<>(
-                    Preferences.INSTANCE.getAuthentication().getStringSet("tokens", new HashSet<String>()));
+                    SettingValues.INSTANCE.getAuthentication().getStringSet("tokens", new HashSet<String>()));
             int index = keys.indexOf(profileName);
             if (keys.indexOf(profileName) > tokens.size()) {
                 index -= 1;

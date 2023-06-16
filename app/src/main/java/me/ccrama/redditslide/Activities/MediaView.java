@@ -56,7 +56,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
-import ltd.ucode.slide.Preferences;
 import me.ccrama.redditslide.ContentType;
 import me.ccrama.redditslide.Fragments.FolderChooserDialogCreate;
 import me.ccrama.redditslide.Fragments.SubmissionsView;
@@ -236,9 +235,9 @@ public class MediaView extends FullScreenActivity
 
     public void doImageSave() {
         if (!isGif) {
-            if (Preferences.INSTANCE.getAppRestart().getString("imagelocation", "").isEmpty()) {
+            if (SettingValues.INSTANCE.getAppRestart().getString("imagelocation", "").isEmpty()) {
                 showFirstDialog();
-            } else if (!new File(Preferences.INSTANCE.getAppRestart().getString("imagelocation", "")).exists()) {
+            } else if (!new File(SettingValues.INSTANCE.getAppRestart().getString("imagelocation", "")).exists()) {
                 showErrorDialog();
             } else {
                 Intent i = new Intent(this, ImageDownloadNotificationService.class);
@@ -270,13 +269,13 @@ public class MediaView extends FullScreenActivity
         new AsyncTask<Void, Void, Void>() {
             @Override
             protected Void doInBackground(Void... params) {
-                if (Preferences.INSTANCE.getAppRestart().getString("imagelocation", "").isEmpty()) {
+                if (SettingValues.INSTANCE.getAppRestart().getString("imagelocation", "").isEmpty()) {
                     showFirstDialog();
-                } else if (!new File(Preferences.INSTANCE.getAppRestart().getString("imagelocation", "")).exists()) {
+                } else if (!new File(SettingValues.INSTANCE.getAppRestart().getString("imagelocation", "")).exists()) {
                     showErrorDialog();
                 } else {
                     final File f = new File(
-                            Preferences.INSTANCE.getAppRestart().getString("imagelocation", "") + File.separator + UUID
+                            SettingValues.INSTANCE.getAppRestart().getString("imagelocation", "") + File.separator + UUID
                                     .randomUUID()
                                     .toString() + baseUrl.substring(baseUrl.lastIndexOf(".")));
                     mNotifyManager =
@@ -356,13 +355,13 @@ public class MediaView extends FullScreenActivity
         new AsyncTask<Void, Void, Void>() {
             @Override
             protected Void doInBackground(Void... params) {
-                if (Preferences.INSTANCE.getAppRestart().getString("imagelocation", "").isEmpty()) {
+                if (SettingValues.INSTANCE.getAppRestart().getString("imagelocation", "").isEmpty()) {
                     showFirstDialog();
-                } else if (!new File(Preferences.INSTANCE.getAppRestart().getString("imagelocation", "")).exists()) {
+                } else if (!new File(SettingValues.INSTANCE.getAppRestart().getString("imagelocation", "")).exists()) {
                     showErrorDialog();
                 } else {
                     final File f = new File(
-                            Preferences.INSTANCE.getAppRestart().getString("imagelocation", "") + File.separator + UUID
+                            SettingValues.INSTANCE.getAppRestart().getString("imagelocation", "") + File.separator + UUID
                                     .randomUUID()
                                     .toString() + baseUrl.substring(baseUrl.lastIndexOf(".")));
                     mNotifyManager =
@@ -637,7 +636,7 @@ public class MediaView extends FullScreenActivity
             doLoad(contentUrl);
         }
 
-        if (!Preferences.INSTANCE.getAppRestart().contains("tutorialSwipe")) {
+        if (!SettingValues.INSTANCE.getAppRestart().contains("tutorialSwipe")) {
             startActivityForResult(new Intent(this, SwipeTutorial.class), 3);
         }
         findViewById(R.id.more).setOnClickListener(new View.OnClickListener() {
@@ -970,7 +969,7 @@ public class MediaView extends FullScreenActivity
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == 3) {
-            Preferences.INSTANCE.getAppRestart().edit().putBoolean("tutorialSwipe", true).apply();
+            SettingValues.INSTANCE.getAppRestart().edit().putBoolean("tutorialSwipe", true).apply();
         }
     }
 
@@ -1214,7 +1213,7 @@ public class MediaView extends FullScreenActivity
             i.putExtra("index", index);
             startService(i);
         } else {
-            Preferences.INSTANCE.getAppRestart().edit().putString("imagelocation", folder.getAbsolutePath()).apply();
+            SettingValues.INSTANCE.getAppRestart().edit().putString("imagelocation", folder.getAbsolutePath()).apply();
             Toast.makeText(this,
                     getString(R.string.settings_set_image_location, folder.getAbsolutePath()),
                     Toast.LENGTH_LONG).show();

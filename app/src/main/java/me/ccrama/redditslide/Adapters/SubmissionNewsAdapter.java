@@ -23,7 +23,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-import ltd.ucode.slide.Preferences;
 import me.ccrama.redditslide.Activities.CommentsScreen;
 import ltd.ucode.slide.activity.MainActivity;
 import me.ccrama.redditslide.Activities.SubredditView;
@@ -240,13 +239,13 @@ public class SubmissionNewsAdapter extends RecyclerView.Adapter<RecyclerView.Vie
                             }
                         }
                     } else {
-                        if (!Preferences.INSTANCE.getAppRestart().contains("offlinepopup")) {
+                        if (!SettingValues.INSTANCE.getAppRestart().contains("offlinepopup")) {
                             new AlertDialog.Builder(context)
                                     .setTitle(R.string.cache_no_comments_found)
                                     .setMessage(R.string.cache_no_comments_found_message)
                                     .setCancelable(false)
                                     .setPositiveButton(R.string.btn_ok, (dialog, which) ->
-                                            Preferences.INSTANCE.getAppRestart().edit()
+                                            SettingValues.INSTANCE.getAppRestart().edit()
                                                     .putString("offlinepopup", "")
                                                     .apply())
                                     .show();
@@ -262,7 +261,7 @@ public class SubmissionNewsAdapter extends RecyclerView.Adapter<RecyclerView.Vie
                                             .setMessage(R.string.cache_no_comments_found_message)
                                             .setCancelable(false)
                                             .setPositiveButton(R.string.btn_ok, (dialog, which) ->
-                                                    Preferences.INSTANCE.getAppRestart().edit()
+                                                    SettingValues.INSTANCE.getAppRestart().edit()
                                                             .putString("offlinepopup", "")
                                                             .apply())
                                             .show();

@@ -25,7 +25,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
-import ltd.ucode.slide.Preferences;
+import ltd.ucode.slide.SettingValues;
 import ltd.ucode.slide.R;
 import ltd.ucode.slide.App;
 import me.ccrama.redditslide.Views.CanvasView;
@@ -67,7 +67,7 @@ public class Draw extends BaseActivity implements ColorChooserDialog.ColorCallba
     }
 
     public int getLastColor() {
-        return Preferences.INSTANCE.getColours().getInt("drawColor", Palette.getDefaultAccent());
+        return SettingValues.INSTANCE.getColours().getInt("drawColor", Palette.getDefaultAccent());
     }
 
     @Override
@@ -154,7 +154,7 @@ public class Draw extends BaseActivity implements ColorChooserDialog.ColorCallba
         drawView.setPaintStrokeColor(selectedColor);
         BlendModeUtil.tintDrawableAsModulate(color.getBackground(), selectedColor);
 
-        Preferences.INSTANCE.getColours().edit().putInt("drawColor", selectedColor).commit();
+        SettingValues.INSTANCE.getColours().edit().putInt("drawColor", selectedColor).commit();
     }
 
     @Override

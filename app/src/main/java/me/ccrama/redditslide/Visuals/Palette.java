@@ -6,15 +6,15 @@ import android.util.TypedValue;
 
 import java.util.Locale;
 
-import ltd.ucode.slide.Preferences;
+import ltd.ucode.slide.SettingValues;
 import ltd.ucode.slide.R;
 import ltd.ucode.slide.App;
 
 public class Palette {
 
     public static int getDefaultColor() {
-        if (Preferences.INSTANCE.getColours().contains("DEFAULTCOLOR")) {
-            return Preferences.INSTANCE.getColours().getInt("DEFAULTCOLOR", Color.parseColor("#e64a19"));
+        if (SettingValues.INSTANCE.getColours().contains("DEFAULTCOLOR")) {
+            return SettingValues.INSTANCE.getColours().getInt("DEFAULTCOLOR", Color.parseColor("#e64a19"));
         } else {
             return Color.parseColor("#e64a19");
         }
@@ -47,16 +47,16 @@ public class Palette {
     }
 
     public static int getDefaultAccent() {
-        if (Preferences.INSTANCE.getColours().contains("ACCENTCOLOR")) {
-            return Preferences.INSTANCE.getColours().getInt("ACCENTCOLOR", Color.parseColor("#ff6e40"));
+        if (SettingValues.INSTANCE.getColours().contains("ACCENTCOLOR")) {
+            return SettingValues.INSTANCE.getColours().getInt("ACCENTCOLOR", Color.parseColor("#ff6e40"));
         } else {
             return Color.parseColor("#ff6e40");
         }
     }
 
     public static int getFontColorUser(final String subreddit) {
-        if (Preferences.INSTANCE.getColours().contains("USER" + subreddit.toLowerCase(Locale.ENGLISH))) {
-            final int color = Preferences.INSTANCE.getColours().getInt("USER" + subreddit.toLowerCase(Locale.ENGLISH), getDefaultColor());
+        if (SettingValues.INSTANCE.getColours().contains("USER" + subreddit.toLowerCase(Locale.ENGLISH))) {
+            final int color = SettingValues.INSTANCE.getColours().getInt("USER" + subreddit.toLowerCase(Locale.ENGLISH), getDefaultColor());
 
             if (color == getDefaultColor()) {
                 return 0;
@@ -100,34 +100,34 @@ public class Palette {
     }
 
     public static int getColor(final String subreddit) {
-        if (subreddit != null && Preferences.INSTANCE.getColours().contains(subreddit.toLowerCase(Locale.ENGLISH))) {
-            return Preferences.INSTANCE.getColours().getInt(subreddit.toLowerCase(Locale.ENGLISH), getDefaultColor());
+        if (subreddit != null && SettingValues.INSTANCE.getColours().contains(subreddit.toLowerCase(Locale.ENGLISH))) {
+            return SettingValues.INSTANCE.getColours().getInt(subreddit.toLowerCase(Locale.ENGLISH), getDefaultColor());
         }
         return getDefaultColor();
     }
 
     public static void setColor(final String subreddit, int color) {
-         Preferences.INSTANCE.getColours().edit().putInt(subreddit.toLowerCase(Locale.ENGLISH), color).apply();
+         SettingValues.INSTANCE.getColours().edit().putInt(subreddit.toLowerCase(Locale.ENGLISH), color).apply();
     }
 
     public static void removeColor(final String subreddit) {
-        Preferences.INSTANCE.getColours().edit().remove(subreddit.toLowerCase(Locale.ENGLISH)).apply();
+        SettingValues.INSTANCE.getColours().edit().remove(subreddit.toLowerCase(Locale.ENGLISH)).apply();
     }
 
     public static int getColorUser(final String username) {
-        if (Preferences.INSTANCE.getColours().contains("USER" + username.toLowerCase(Locale.ENGLISH))) {
-            return Preferences.INSTANCE.getColours().getInt("USER" + username.toLowerCase(Locale.ENGLISH), getDefaultColor());
+        if (SettingValues.INSTANCE.getColours().contains("USER" + username.toLowerCase(Locale.ENGLISH))) {
+            return SettingValues.INSTANCE.getColours().getInt("USER" + username.toLowerCase(Locale.ENGLISH), getDefaultColor());
         } else {
             return getDefaultColor();
         }
     }
 
     public static void setColorUser(final String username, int color) {
-        Preferences.INSTANCE.getColours().edit().putInt("USER" + username.toLowerCase(Locale.ENGLISH), color).apply();
+        SettingValues.INSTANCE.getColours().edit().putInt("USER" + username.toLowerCase(Locale.ENGLISH), color).apply();
     }
 
     public static void removeUserColor(final String username) {
-        Preferences.INSTANCE.getColours().edit().remove("USER" + username.toLowerCase(Locale.ENGLISH)).apply();
+        SettingValues.INSTANCE.getColours().edit().remove("USER" + username.toLowerCase(Locale.ENGLISH)).apply();
     }
 
     public static int getDarkerColor(String s) {

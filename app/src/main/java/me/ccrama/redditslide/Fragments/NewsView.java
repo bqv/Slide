@@ -32,7 +32,6 @@ import net.dean.jraw.models.Submission;
 import java.util.List;
 import java.util.Locale;
 
-import ltd.ucode.slide.Preferences;
 import me.ccrama.redditslide.Activities.BaseActivity;
 import ltd.ucode.slide.activity.MainActivity;
 import me.ccrama.redditslide.Activities.Submit;
@@ -169,7 +168,7 @@ public class NewsView extends Fragment implements SubmissionDisplay {
                                     .setTitle(R.string.settings_fabclear)
                                     .setMessage(R.string.settings_fabclear_msg)
                                     .setPositiveButton(R.string.btn_ok, (dialog, which) -> {
-                                        Preferences.INSTANCE.getColours().edit()
+                                        SettingValues.INSTANCE.getColours().edit()
                                                 .putBoolean(SettingValues.PREF_FAB_CLEAR, true)
                                                 .apply();
                                         App.fabClear = true;
@@ -208,7 +207,7 @@ public class NewsView extends Fragment implements SubmissionDisplay {
                                     .setTitle(R.string.settings_fabclear)
                                     .setMessage(R.string.settings_fabclear_msg)
                                     .setPositiveButton(R.string.btn_ok, (dialog, which) -> {
-                                        Preferences.INSTANCE.getColours().edit()
+                                        SettingValues.INSTANCE.getColours().edit()
                                                 .putBoolean(SettingValues.PREF_FAB_CLEAR, true)
                                                 .apply();
                                         App.fabClear = true;

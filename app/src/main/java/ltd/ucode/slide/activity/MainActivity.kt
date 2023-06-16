@@ -83,7 +83,6 @@ import com.lusfold.androidkeyvaluestore.KVStore
 import ltd.ucode.slide.App
 import ltd.ucode.slide.Authentication
 import ltd.ucode.slide.BuildConfig
-import ltd.ucode.slide.Preferences
 import ltd.ucode.slide.R
 import ltd.ucode.slide.SettingValues
 import me.ccrama.redditslide.Activities.Announcement
@@ -807,7 +806,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             requestPermission()
         }
         var first = false
-        if (!Preferences.colours.contains("Tutorial")) {
+        if (!SettingValues.colours.contains("Tutorial")) {
             first = true
             val i = Intent(this, Tutorial::class.java)
             doForcePrefs()
@@ -824,7 +823,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                             AsyncTask.THREAD_POOL_EXECUTOR
                         )
                     }
-                    if (!Preferences.appRestart.getString(CheckForMail.SUBS_TO_GET, "")!!.isEmpty()) {
+                    if (!SettingValues.appRestart.getString(CheckForMail.SUBS_TO_GET, "")!!.isEmpty()) {
                         AsyncGetSubs(this@MainActivity).executeOnExecutor(
                             AsyncTask.THREAD_POOL_EXECUTOR
                         )
@@ -847,12 +846,12 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                                     if (s.isStickied && s.submissionFlair.text != null && s.submissionFlair
                                             .text
                                             .equals("Announcement", ignoreCase = true)
-                                        && !Preferences.appRestart.contains(
+                                        && !SettingValues.appRestart.contains(
                                             "announcement" + s.fullName
                                         )
                                         && s.title.contains(version)
                                     ) {
-                                        Preferences.appRestart.edit()
+                                        SettingValues.appRestart.edit()
                                             .putBoolean(
                                                 "announcement" + s.fullName,
                                                 true
@@ -863,13 +862,13 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                                                 && s.isStickied) && s.submissionFlair.text != null && s.submissionFlair
                                             .text
                                             .equals("Alpha", ignoreCase = true)
-                                        && !Preferences.appRestart.contains(
+                                        && !SettingValues.appRestart.contains(
                                             "announcement" + s.fullName
                                         )
                                         && s.title
                                             .contains(BuildConfig.VERSION_NAME)
                                     ) {
-                                        Preferences.appRestart.edit()
+                                        SettingValues.appRestart.edit()
                                             .putBoolean(
                                                 "announcement" + s.fullName,
                                                 true
@@ -881,11 +880,11 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                                             .text
                                             .equals("PRO", ignoreCase = true)
                                         && !SettingValues.isPro
-                                        && !Preferences.appRestart.contains(
+                                        && !SettingValues.appRestart.contains(
                                             "announcement" + s.fullName
                                         )
                                     ) {
-                                        Preferences.appRestart.edit()
+                                        SettingValues.appRestart.edit()
                                             .putBoolean(
                                                 "announcement" + s.fullName,
                                                 true
@@ -903,16 +902,16 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                         override fun onPostExecute(s: Submission?) {
                             checkedPopups = true
                             if (s != null) {
-                                Preferences.appRestart.edit()
+                                SettingValues.appRestart.edit()
                                     .putString(
                                         "page",
                                         s.dataNode["selftext_html"].asText()
                                     )
                                     .apply()
-                                Preferences.appRestart.edit()
+                                SettingValues.appRestart.edit()
                                     .putString("title", s.title)
                                     .apply()
-                                Preferences.appRestart.edit().putString("url", s.url).apply()
+                                SettingValues.appRestart.edit().putString("url", s.url).apply()
                                 val title: String
                                 title = if (s.title.lowercase().contains("release")) {
                                     getString(R.string.btn_changelog)
@@ -989,44 +988,44 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
         }
         sidebarBody = findViewById<SpoilerRobotoTextView>(R.id.sidebar_text)
         sidebarOverflow = findViewById<CommentOverflow>(R.id.commentOverflow)
-        if (!Preferences.appRestart.getBoolean("isRestarting", false) && Preferences.colours.contains(
+        if (!SettingValues.appRestart.getBoolean("isRestarting", false) && SettingValues.colours.contains(
                 "Tutorial"
             )
         ) {
             LogUtil.v("Starting main " + Authentication.name)
-            Authentication.isLoggedIn = Preferences.appRestart.getBoolean("loggedin", false)
-            Authentication.name = Preferences.appRestart.getString("name", "LOGGEDOUT")
+            Authentication.isLoggedIn = SettingValues.appRestart.getBoolean("loggedin", false)
+            Authentication.name = SettingValues.appRestart.getString("name", "LOGGEDOUT")
             UserSubscriptions.doMainActivitySubs(this)
         } else if (!first) {
             LogUtil.v("Starting main 2 " + Authentication.name)
-            Authentication.isLoggedIn = Preferences.appRestart.getBoolean("loggedin", false)
-            Authentication.name = Preferences.appRestart.getString("name", "LOGGEDOUT")
-            Preferences.appRestart.edit().putBoolean("isRestarting", false).commit()
+            Authentication.isLoggedIn = SettingValues.appRestart.getBoolean("loggedin", false)
+            Authentication.name = SettingValues.appRestart.getString("name", "LOGGEDOUT")
+            SettingValues.appRestart.edit().putBoolean("isRestarting", false).commit()
             App.isRestarting = false
             UserSubscriptions.doMainActivitySubs(this)
         }
-        if (!Preferences.seen.contains("isCleared") && !Preferences.seen.all.isEmpty()
-            || !Preferences.appRestart.contains("hasCleared")
+        if (!SettingValues.seen.contains("isCleared") && !SettingValues.seen.all.isEmpty()
+            || !SettingValues.appRestart.contains("hasCleared")
         ) {
             object : AsyncTask<Void?, Void?, Void?>() {
                 protected override fun doInBackground(vararg params: Void?): Void? {
                     val m = KVStore.getInstance()
-                    val values = Preferences.seen.all
+                    val values = SettingValues.seen.all
                     for ((key, value) in values) {
                         if (key.length == 6 && value is Boolean) {
                             m.insert(key, "true")
                         } else if (value is Long) {
-                            m.insert(key, Preferences.seen.getLong(key, 0).toString())
+                            m.insert(key, SettingValues.seen.getLong(key, 0).toString())
                         }
                     }
-                    Preferences.seen.edit().clear().putBoolean("isCleared", true).apply()
-                    if (Preferences.hiddenPosts.all.isNotEmpty()) {
-                        Preferences.hidden.edit().clear().apply()
-                        Preferences.hiddenPosts.edit().clear().apply()
+                    SettingValues.seen.edit().clear().putBoolean("isCleared", true).apply()
+                    if (SettingValues.hiddenPosts.all.isNotEmpty()) {
+                        SettingValues.hidden.edit().clear().apply()
+                        SettingValues.hiddenPosts.edit().clear().apply()
                     }
-                    if (!Preferences.appRestart.contains("hasCleared")) {
-                        val e = Preferences.appRestart.edit()
-                        val toClear = Preferences.appRestart.all
+                    if (!SettingValues.appRestart.contains("hasCleared")) {
+                        val e = SettingValues.appRestart.edit()
+                        val toClear = SettingValues.appRestart.all
                         for ((key, value) in toClear) {
                             if (value is String
                                 && value.length > 300
@@ -1384,7 +1383,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                     AnimatorUtil.flipAnimator(true, header.findViewById(R.id.headerflip)).start()
                 }
             }
-            for (s in Preferences.authentication!!.getStringSet("accounts", HashSet())!!) {
+            for (s in SettingValues.authentication!!.getStringSet("accounts", HashSet())!!) {
                 if (s.contains(":")) {
                     accounts[s.split(":".toRegex()).dropLastWhile { it.isEmpty() }
                         .toTypedArray()[0]] = s.split(":".toRegex()).dropLastWhile { it.isEmpty() }
@@ -1408,7 +1407,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                         .setTitle(R.string.profile_remove)
                         .setMessage(R.string.profile_remove_account)
                         .setNegativeButton(R.string.btn_delete) { dialog2: DialogInterface, which2: Int ->
-                            val accounts2 = Preferences.authentication.getStringSet(
+                            val accounts2 = SettingValues.authentication.getStringSet(
                                 "accounts", HashSet()
                             )
                             val done: MutableSet<String> = HashSet()
@@ -1417,7 +1416,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                                     done.add(s)
                                 }
                             }
-                            Preferences.authentication.edit()
+                            SettingValues.authentication.edit()
                                 .putStringSet("accounts", done)
                                 .commit()
                             dialog2.dismiss()
@@ -1434,13 +1433,13 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                                         if (accounts.containsKey(s) && !accounts[s]
                                                 !!.isEmpty()
                                         ) {
-                                            Preferences.authentication.edit()
+                                            SettingValues.authentication.edit()
                                                 .putString("lasttoken", accounts[s])
                                                 .remove("backedCreds")
                                                 .commit()
                                         } else {
                                             val tokens = ArrayList(
-                                                Preferences.authentication.getStringSet(
+                                                SettingValues.authentication.getStringSet(
                                                     "tokens", HashSet()
                                                 )
                                             )
@@ -1448,7 +1447,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                                             if (keys.indexOf(s) > tokens.size) {
                                                 index -= 1
                                             }
-                                            Preferences.authentication.edit()
+                                            SettingValues.authentication.edit()
                                                 .putString(
                                                     "lasttoken",
                                                     tokens[index]
@@ -1465,7 +1464,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                                 if (!d) {
                                     Authentication.name = "LOGGEDOUT"
                                     Authentication.isLoggedIn = false
-                                    Preferences.authentication.edit()
+                                    SettingValues.authentication.edit()
                                         .remove("lasttoken")
                                         .remove("backedCreds")
                                         .commit()
@@ -1487,15 +1486,15 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                         LogUtil.v("Switching to $accName")
                         if (!accounts[accName]!!.isEmpty()) {
                             LogUtil.v("Using token " + accounts[accName])
-                            Preferences.authentication.edit()
+                            SettingValues.authentication.edit()
                                 .putString("lasttoken", accounts[accName])
                                 .remove("backedCreds")
                                 .apply()
                         } else {
                             val tokens = ArrayList(
-                                Preferences.authentication.getStringSet("tokens", HashSet())
+                                SettingValues.authentication.getStringSet("tokens", HashSet())
                             )
-                            Preferences.authentication.edit()
+                            SettingValues.authentication.edit()
                                 .putString("lasttoken", tokens[keys.indexOf(accName)])
                                 .remove("backedCreds")
                                 .apply()
@@ -1526,7 +1525,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                     override fun onSingleClick(v: View) {
                         Authentication.name = "LOGGEDOUT"
                         Authentication.isLoggedIn = false
-                        Preferences.authentication.edit()
+                        SettingValues.authentication.edit()
                             .remove("lasttoken")
                             .remove("backedCreds")
                             .apply()
@@ -1544,7 +1543,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             header.findViewById<View>(R.id.offline)
                 .setOnClickListener(object : OnSingleClickListener() {
                     override fun onSingleClick(view: View) {
-                        Preferences.appRestart.edit().putBoolean("forceoffline", true).commit()
+                        SettingValues.appRestart.edit().putBoolean("forceoffline", true).commit()
                         App.forceRestart(this@MainActivity, false)
                     }
                 })
@@ -1580,7 +1579,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                 }
             }
             val accounts = HashMap<String, String>()
-            for (s in Preferences.authentication.getStringSet("accounts", HashSet())!!) {
+            for (s in SettingValues.authentication.getStringSet("accounts", HashSet())!!) {
                 if (s.contains(":")) {
                     accounts[s.split(":".toRegex()).dropLastWhile { it.isEmpty() }
                         .toTypedArray()[0]] = s.split(":".toRegex()).dropLastWhile { it.isEmpty() }
@@ -1603,7 +1602,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                         .setTitle(R.string.profile_remove)
                         .setMessage(R.string.profile_remove_account)
                         .setNegativeButton(R.string.btn_delete) { dialog2: DialogInterface, which2: Int ->
-                            val accounts2 = Preferences.authentication.getStringSet(
+                            val accounts2 = SettingValues.authentication.getStringSet(
                                 "accounts", HashSet()
                             )
                             val done: MutableSet<String> = HashSet()
@@ -1612,7 +1611,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                                     done.add(s)
                                 }
                             }
-                            Preferences.authentication.edit()
+                            SettingValues.authentication.edit()
                                 .putStringSet("accounts", done)
                                 .commit()
                             dialog2.dismiss()
@@ -1624,17 +1623,17 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                                         d = true
                                         LogUtil.v("Switching to $s")
                                         if (!accounts[s]!!.isEmpty()) {
-                                            Preferences.authentication.edit()
+                                            SettingValues.authentication.edit()
                                                 .putString("lasttoken", accounts[s])
                                                 .remove("backedCreds")
                                                 .commit()
                                         } else {
                                             val tokens = ArrayList(
-                                                Preferences.authentication.getStringSet(
+                                                SettingValues.authentication.getStringSet(
                                                     "tokens", HashSet()
                                                 )
                                             )
-                                            Preferences.authentication.edit()
+                                            SettingValues.authentication.edit()
                                                 .putString("lasttoken", tokens[keys.indexOf(s)])
                                                 .remove("backedCreds")
                                                 .commit()
@@ -1647,7 +1646,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                                 if (!d) {
                                     Authentication.name = "LOGGEDOUT"
                                     Authentication.isLoggedIn = false
-                                    Preferences.authentication.edit()
+                                    SettingValues.authentication.edit()
                                         .remove("lasttoken")
                                         .remove("backedCreds")
                                         .commit()
@@ -1666,15 +1665,15 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                     override fun onSingleClick(v: View) {
                         if (!accName.equals(Authentication.name, ignoreCase = true)) {
                             if (!accounts[accName]!!.isEmpty()) {
-                                Preferences.authentication.edit()
+                                SettingValues.authentication.edit()
                                     .putString("lasttoken", accounts[accName])
                                     .remove("backedCreds")
                                     .commit()
                             } else {
                                 val tokens = ArrayList(
-                                    Preferences.authentication.getStringSet("tokens", HashSet())
+                                    SettingValues.authentication.getStringSet("tokens", HashSet())
                                 )
-                                Preferences.authentication.edit()
+                                SettingValues.authentication.edit()
                                     .putString("lasttoken", tokens[keys.indexOf(accName)])
                                     .remove("backedCreds")
                                     .commit()
@@ -1698,7 +1697,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             header.findViewById<View>(R.id.offline)
                 .setOnClickListener(object : OnSingleClickListener() {
                     override fun onSingleClick(view: View) {
-                        Preferences.appRestart.edit().putBoolean("forceoffline", true).commit()
+                        SettingValues.appRestart.edit().putBoolean("forceoffline", true).commit()
                         App.forceRestart(this@MainActivity, false)
                     }
                 })
@@ -1738,7 +1737,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             header.findViewById<View>(R.id.online)
                 .setOnClickListener(object : OnSingleClickListener() {
                     override fun onSingleClick(view: View) {
-                        Preferences.appRestart.edit().remove("forceoffline").commit()
+                        SettingValues.appRestart.edit().remove("forceoffline").commit()
                         App.forceRestart(this@MainActivity, false)
                     }
                 })
@@ -2027,7 +2026,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
 
             //get all subs that have Notifications enabled
             val rawSubs =
-                StringUtil.stringToArray(Preferences.appRestart.getString(CheckForMail.SUBS_TO_GET, ""))
+                StringUtil.stringToArray(SettingValues.appRestart.getString(CheckForMail.SUBS_TO_GET, ""))
             val subThresholds = HashMap<String, Int>()
             for (s in rawSubs) {
                 try {
@@ -2176,7 +2175,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                                         0
                                     ) { dialog, itemView, which, text ->
                                         val subs = StringUtil.stringToArray(
-                                            Preferences.appRestart
+                                            SettingValues.appRestart
                                                 .getString(
                                                     CheckForMail.SUBS_TO_GET,
                                                     ""
@@ -2187,7 +2186,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                                                     + ":"
                                                     + text
                                         )
-                                        Preferences.appRestart
+                                        SettingValues.appRestart
                                             .edit()
                                             .putString(
                                                 CheckForMail.SUBS_TO_GET,
@@ -3515,7 +3514,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                 .cancelable(false)
                 .onNegative { dialog, which -> finish() }
                 .onPositive { dialog, which ->
-                    Preferences.appRestart.edit().remove("forceoffline").commit()
+                    SettingValues.appRestart.edit().remove("forceoffline").commit()
                     App.forceRestart(this@MainActivity, false)
                 }
                 .show()
@@ -3967,12 +3966,12 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                     me = Authentication.me!!
                     if (Authentication.name.equals("loggedout", ignoreCase = true)) {
                         Authentication.name = me.fullName
-                        Preferences.appRestart.edit().putString("name", Authentication.name).apply()
+                        SettingValues.appRestart.edit().putString("name", Authentication.name).apply()
                         restart = true
                         return null
                     }
                     Authentication.mod = me.isMod
-                    Preferences.authentication.edit()
+                    SettingValues.authentication.edit()
                         .putBoolean(App.SHARED_PREF_IS_MOD, Authentication.mod)
                         .apply()
                     if (App.notificationTime != -1) {
@@ -3987,14 +3986,14 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                     Authentication.name = name
                     LogUtil.v("AUTHENTICATED")
                     if (Authentication.reddit!!.isAuthenticated) {
-                        val accounts = Preferences.authentication.getStringSet(
+                        val accounts = SettingValues.authentication.getStringSet(
                             "accounts",
                             HashSet()
                         )
                         if (accounts!!.contains(name)) { //convert to new system
                             accounts.remove(name)
                             accounts.add(name + ":" + Authentication.refresh)
-                            Preferences.authentication.edit()
+                            SettingValues.authentication.edit()
                                 .putStringSet("accounts", accounts)
                                 .commit() //force commit
                         }
@@ -4031,7 +4030,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                 })
             }
             if (count != -1) {
-                val oldCount = Preferences.appRestart.getInt("inbox", 0)
+                val oldCount = SettingValues.appRestart.getInt("inbox", 0)
                 if (count > oldCount) {
                     val s = Snackbar.make(
                         mToolbar!!,
@@ -4049,7 +4048,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                         })
                     LayoutUtils.showSnackbar(s)
                 }
-                Preferences.appRestart.edit().putInt("inbox", count).apply()
+                SettingValues.appRestart.edit().putInt("inbox", count).apply()
             }
             val badge = headerMain!!.findViewById<View>(R.id.count)
             if (count == 0) {

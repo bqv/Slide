@@ -61,7 +61,6 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
-import ltd.ucode.slide.Preferences;
 import me.ccrama.redditslide.Activities.MediaView;
 import me.ccrama.redditslide.Activities.Website;
 import ltd.ucode.slide.R;
@@ -132,9 +131,9 @@ public class GifUtils {
             }
         }
 
-        if (Preferences.INSTANCE.getAppRestart().getString("imagelocation", "").isEmpty()) {
+        if (SettingValues.INSTANCE.getAppRestart().getString("imagelocation", "").isEmpty()) {
             showFirstDialog(a);
-        } else if (!new File(Preferences.INSTANCE.getAppRestart().getString("imagelocation", "")).exists()) {
+        } else if (!new File(SettingValues.INSTANCE.getAppRestart().getString("imagelocation", "")).exists()) {
             showErrorDialog(a);
         } else {
             new AsyncTask<Void, Integer, Boolean>() {
@@ -158,7 +157,7 @@ public class GifUtils {
 
                 @Override
                 protected Boolean doInBackground(Void... voids) {
-                    String folderPath = Preferences.INSTANCE.getAppRestart().getString("imagelocation", "");
+                    String folderPath = SettingValues.INSTANCE.getAppRestart().getString("imagelocation", "");
 
                     String subFolderPath = "";
                     if (SettingValues.INSTANCE.getImageSubfolders() && !subreddit.isEmpty()) {

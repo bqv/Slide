@@ -8,7 +8,6 @@ import android.os.AsyncTask;
 import android.widget.Toast;
 
 import ltd.ucode.slide.Authentication;
-import ltd.ucode.slide.Preferences;
 import ltd.ucode.slide.R;
 
 import net.dean.jraw.ApiException;
@@ -383,10 +382,10 @@ public class UserSubscriptions {
     }
 
     public static void switchAccounts() {
-        SharedPreferences.Editor editor = Preferences.INSTANCE.getAppRestart().edit();
+        SharedPreferences.Editor editor = SettingValues.INSTANCE.getAppRestart().edit();
         editor.putBoolean("back", true);
         editor.putString("subs", "");
-        Preferences.INSTANCE.getAuthentication().edit().remove("backedCreds").remove("expires").commit();
+        SettingValues.INSTANCE.getAuthentication().edit().remove("backedCreds").remove("expires").commit();
         editor.putBoolean("loggedin", Authentication.isLoggedIn);
         editor.putString("name", Authentication.name);
         editor.commit();

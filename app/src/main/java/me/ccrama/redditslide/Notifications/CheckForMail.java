@@ -35,7 +35,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 
-import ltd.ucode.slide.Preferences;
 import me.ccrama.redditslide.Activities.CancelSubNotifs;
 import me.ccrama.redditslide.Activities.Inbox;
 import me.ccrama.redditslide.Activities.ModQueue;
@@ -68,7 +67,7 @@ public class CheckForMail extends BroadcastReceiver {
         if (Authentication.mod) {
             new AsyncGetModmail().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
         }
-        if (!Preferences.INSTANCE.getAppRestart().getString(SUBS_TO_GET, "").isEmpty()) {
+        if (!SettingValues.INSTANCE.getAppRestart().getString(SUBS_TO_GET, "").isEmpty()) {
             new AsyncGetSubs(c).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
         }
 
@@ -440,7 +439,7 @@ public class CheckForMail extends BroadcastReceiver {
                 long lastTime = (System.currentTimeMillis() - (60000L * App.notificationTime));
                 ArrayList<Submission> toReturn = new ArrayList<>();
                 ArrayList<String> rawSubs =
-                        StringUtil.stringToArray(Preferences.INSTANCE.getAppRestart().getString(SUBS_TO_GET, ""));
+                        StringUtil.stringToArray(SettingValues.INSTANCE.getAppRestart().getString(SUBS_TO_GET, ""));
                 subThresholds = new HashMap<>();
                 for (String s : rawSubs) {
                     try {

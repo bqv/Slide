@@ -33,7 +33,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import ltd.ucode.slide.Preferences;
 import me.ccrama.redditslide.Adapters.ImageGridAdapter;
 import me.ccrama.redditslide.Fragments.BlankFragment;
 import me.ccrama.redditslide.Fragments.FolderChooserDialogCreate;
@@ -118,7 +117,7 @@ public class RedditGalleryPager extends FullScreenActivity
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == 3) {
-            Preferences.INSTANCE.getAppRestart().edit().putBoolean("tutorialSwipe", true).apply();
+            SettingValues.INSTANCE.getAppRestart().edit().putBoolean("tutorialSwipe", true).apply();
         }
     }
 
@@ -157,7 +156,7 @@ public class RedditGalleryPager extends FullScreenActivity
         String url = getIntent().getExtras().getString("url", "");
         setShareUrl(url);
 
-        if (!Preferences.INSTANCE.getAppRestart().contains("tutorialSwipe")) {
+        if (!SettingValues.INSTANCE.getAppRestart().contains("tutorialSwipe")) {
             startActivityForResult(new Intent(this, SwipeTutorial.class), 3);
         }
 
@@ -311,9 +310,9 @@ public class RedditGalleryPager extends FullScreenActivity
 
     public void doImageSave(boolean isGif, String contentUrl, int index) {
         if (!isGif) {
-            if (Preferences.INSTANCE.getAppRestart().getString("imagelocation", "").isEmpty()) {
+            if (SettingValues.INSTANCE.getAppRestart().getString("imagelocation", "").isEmpty()) {
                 showFirstDialog();
-            } else if (!new File(Preferences.INSTANCE.getAppRestart().getString("imagelocation", "")).exists()) {
+            } else if (!new File(SettingValues.INSTANCE.getAppRestart().getString("imagelocation", "")).exists()) {
                 showErrorDialog();
             } else {
                 Intent i = new Intent(this, ImageDownloadNotificationService.class);
@@ -418,7 +417,7 @@ public class RedditGalleryPager extends FullScreenActivity
     @Override
     public void onFolderSelection(@NonNull FolderChooserDialogCreate dialog,
                                   @NonNull File folder, boolean isSaveToLocation) {
-        Preferences.INSTANCE.getAppRestart().edit().putString("imagelocation", folder.getAbsolutePath()).apply();
+        SettingValues.INSTANCE.getAppRestart().edit().putString("imagelocation", folder.getAbsolutePath()).apply();
         Toast.makeText(this,
                 getString(R.string.settings_set_image_location, folder.getAbsolutePath())
                         + folder.getAbsolutePath(), Toast.LENGTH_LONG).show();
