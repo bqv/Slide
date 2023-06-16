@@ -1,32 +1,21 @@
 package ltd.ucode.slide
 
-import android.app.Activity
 import android.content.Context
-import android.content.DialogInterface
 import android.os.AsyncTask
-import android.util.Log
-import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
-import ltd.ucode.slide.App.Companion.forceRestart
+import ltd.ucode.lemmy.api.LemmyHttp
 import ltd.ucode.slide.App.Companion.setDefaultErrorHandler
-import me.ccrama.redditslide.UserSubscriptions
 import me.ccrama.redditslide.util.LogUtil
 import me.ccrama.redditslide.util.NetworkUtil
 import net.dean.jraw.RedditClient
-import net.dean.jraw.http.LoggingMode
-import net.dean.jraw.http.NetworkException
 import net.dean.jraw.http.OkHttpAdapter
-import net.dean.jraw.http.oauth.Credentials
-import net.dean.jraw.http.oauth.OAuthData
 import net.dean.jraw.models.LoggedInAccount
 import okhttp3.Protocol
-import java.util.Calendar
-import java.util.UUID
 
 class Authentication(context: Context?) {
     var hasDone = false
     fun updateToken(c: Context) {
         if (BuildConfig.DEBUG) LogUtil.v("Executing update token")
+        /*
         if (reddit == null) {
             hasDone = true
             isLoggedIn = false
@@ -39,6 +28,7 @@ class Authentication(context: Context?) {
         } else {
             UpdateToken(c).execute()
         }
+         */
     }
 
     init {
@@ -47,14 +37,11 @@ class Authentication(context: Context?) {
             hasDone = true
             httpAdapter = OkHttpAdapter(App.client, Protocol.HTTP_2)
             isLoggedIn = false
-            //reddit = RedditClient(
-            //    UserAgent.of("android:ltd.ucode.slide:v" + BuildConfig.VERSION_NAME),
-            //    httpAdapter
-            //)
-            reddit!!.retryLimit = 2
-            if (BuildConfig.DEBUG) reddit!!.loggingMode = LoggingMode.ALWAYS
+            api = LemmyHttp()
+            api!!.retryLimit = 2
             didOnline = true
-            VerifyCredentials(context).execute()
+            val site = kotlinx.coroutines.runBlocking { api!!.getSite() }
+            //VerifyCredentials(context).execute()
         } else {
             isLoggedIn = SettingValues.appRestart.getBoolean("loggedin", false)
             name = SettingValues.appRestart.getString("name", "")
@@ -76,6 +63,7 @@ class Authentication(context: Context?) {
         }
     }
 
+    /*
     class UpdateToken(var context: Context) : AsyncTask<Void?, Void?, Void?>() {
         protected override fun doInBackground(vararg params: Void?): Void? {
             if (authedOnce && NetworkUtil.isConnected(context)) {
@@ -182,6 +170,7 @@ class Authentication(context: Context?) {
             return null
         }
     }
+     */
 
     class VerifyCredentials(var mContext: Context?) : AsyncTask<String?, Void?, Void?>() {
         var lastToken: String?
@@ -191,8 +180,8 @@ class Authentication(context: Context?) {
             lastToken = SettingValues.authentication.getString("lasttoken", "")
         }
 
-        protected override fun doInBackground(vararg subs: String?): Void? {
-            doVerify(lastToken, reddit, single, mContext)
+        override fun doInBackground(vararg subs: String?): Void? {
+            doVerify(lastToken, api, single, mContext)
             return null
         }
     }
@@ -200,24 +189,18 @@ class Authentication(context: Context?) {
     companion object {
         private const val CLIENT_ID = ""
         private const val REDIRECT_URL = "http://slide.ucode.ltd"
-        @JvmField
-        var isLoggedIn = false
-        @JvmField
-        var reddit: RedditClient? = null
-        @JvmField
-        var me: LoggedInAccount? = null
-        @JvmField
-        var mod = false
-        @JvmField
-        var name: String? = null
-        @JvmField
-        var refresh: String? = null
-        @JvmField
-        var didOnline = false
+        @JvmField val reddit: RedditClient? = null
+        @JvmField var isLoggedIn = false
+        @JvmField var api: LemmyHttp? = null
+        @JvmField var me: LoggedInAccount? = null
+        @JvmField var mod = false
+        @JvmField var name: String? = null
+        @JvmField var refresh: String? = null
+        @JvmField var didOnline = false
         private var httpAdapter: OkHttpAdapter? = null
         fun resetAdapter() {
             object : AsyncTask<Void?, Void?, Void?>() {
-                protected override fun doInBackground(vararg params: Void?): Void? {
+                override fun doInBackground(vararg params: Void?): Void? {
                     if (httpAdapter != null && httpAdapter!!.nativeClient != null) {
                         httpAdapter!!.nativeClient.connectionPool().evictAll()
                     }
@@ -227,16 +210,16 @@ class Authentication(context: Context?) {
         }
 
         var authedOnce = false
-        @JvmStatic
-        fun doVerify(
+        @JvmStatic fun doVerify(
             lastToken: String?,
-            baseReddit: RedditClient?,
+            api: LemmyHttp?,
             single: Boolean,
             mContext: Context?
         ) {
             try {
                 if (BuildConfig.DEBUG) LogUtil.v("TOKEN IS $lastToken")
                 if (!lastToken!!.isEmpty()) {
+                    /*
                     val credentials = Credentials.installedApp(CLIENT_ID, REDIRECT_URL)
                     val oAuthHelper = baseReddit!!.oAuthHelper
                     oAuthHelper.refreshToken = lastToken
@@ -287,8 +270,10 @@ class Authentication(context: Context?) {
                         }
                     }
                     didOnline = true
+                     */ throw Exception()
                 } else if (!single) {
                     if (BuildConfig.DEBUG) LogUtil.v("NOT LOGGED IN")
+                    /*
                     val fcreds = Credentials.userlessApp(CLIENT_ID, UUID.randomUUID())
                     val authData: OAuthData
                     try {
@@ -316,6 +301,7 @@ class Authentication(context: Context?) {
                             ).show()
                         }
                     }
+                     */ throw Exception()
                 }
                 if (!single) authedOnce = true
             } catch (e: Exception) {

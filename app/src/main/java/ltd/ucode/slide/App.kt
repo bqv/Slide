@@ -183,12 +183,12 @@ class App : MultiDexApplication(), ActivityLifecycleCallbacks {
         KVStore.init(this, "SEEN")
         doLanguages()
         lastPosition = ArrayList()
-        if (!SettingValues.appRestart.contains("startScreen")) {
+        if (SettingValues.appRestart.contains("startScreen")) {
+            SettingValues.appRestart.edit().remove("startScreen").apply()
+        } else {
             Authentication.isLoggedIn = SettingValues.appRestart.getBoolean("loggedin", false)
             Authentication.name = SettingValues.appRestart.getString("name", "LOGGEDOUT")
             active = true
-        } else {
-            SettingValues.appRestart.edit().remove("startScreen").apply()
         }
         authentication = Authentication(this)
         AdBlocker.init(this)

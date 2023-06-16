@@ -17,7 +17,7 @@ import java.util.Locale
 object SettingValues {
     private var prefsListener: SharedPreferences.OnSharedPreferenceChangeListener? = null
 
-    private val settings: SharedPreferences by lazy { getSharedPreferences("SETTINGS") }
+    val settings: SharedPreferences by lazy { getSharedPreferences("SETTINGS") }
     val authentication: SharedPreferences by lazy { getSharedPreferences("AUTHENTICATION") }
     val colours: SharedPreferences by lazy { getSharedPreferences("COLOUR") }
     val appRestart: SharedPreferences by lazy { getSharedPreferences("APP_RESTART") }

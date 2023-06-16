@@ -67,6 +67,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
 
+import ltd.ucode.lemmy.api.LemmyHttp;
 import me.ccrama.redditslide.ActionStates;
 import me.ccrama.redditslide.Activities.BaseActivity;
 import ltd.ucode.slide.Authentication;
@@ -2366,7 +2367,7 @@ public class CommentAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             }
             token = tokens.get(index);
         }
-        Authentication.doVerify(token, reddit, true, mContext);
+        Authentication.doVerify(token, null, true, mContext);
         return reddit;
     }
 }

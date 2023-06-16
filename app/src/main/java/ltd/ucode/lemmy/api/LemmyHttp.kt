@@ -1,36 +1,49 @@
 package ltd.ucode.lemmy.api
 
-import ltd.ucode.lemmy.data.LoginResult
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonNull
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.encodeToJsonElement
+import kotlinx.serialization.json.jsonObject
+import ltd.ucode.Util.filterNotNullValues
+import ltd.ucode.lemmy.api.request.GetSiteRequest
 import ltd.ucode.lemmy.api.request.LoginRequest
+import ltd.ucode.lemmy.data.GetSiteResult
+import ltd.ucode.lemmy.data.LoginResult
 import ltd.ucode.slide.BuildConfig
-import okhttp3.Interceptor
-import retrofit2.Retrofit
+import me.ccrama.redditslide.util.LogUtil
+import okhttp3.Headers
 import okhttp3.MediaType
 import okhttp3.OkHttpClient
-import okhttp3.Response
+import retrofit2.Response
+import retrofit2.Retrofit
 
-class LemmyHttp(val apiUrl: String, val headers: Map<String, String> = mapOf()) {
-    private val api: LemmyHttpApi by lazy {
-        createApi()
-    }
+class LemmyHttp(val instance: String = "lemmy.ml",
+                private val headers: Map<String, String> = mapOf()) {
+    private val api: LemmyHttpApi by lazy { createApi() }
+
+    var retryLimit: Int = -1 // TODO: use
 
     private fun createApi(): LemmyHttpApi {
+        if (BuildConfig.DEBUG) LogUtil.v("Creating API Object")
         val client = OkHttpClient.Builder()
-            .addInterceptor(object: Interceptor {
-                override fun intercept(chain: Interceptor.Chain): Response {
-                    val request = chain.request()
-                    val reqBuilder = request.newBuilder()
-                        .header("User-Agent",
-                            "android:ltd.ucode.slide:v" + BuildConfig.VERSION_NAME)
-                    return chain.proceed(reqBuilder.build())
-                }
-            })
+            .addInterceptor { chain ->
+                val request = chain.request()
+                val reqBuilder = request.newBuilder()
+                    .headers(Headers.of(headers))
+                    .header(
+                        "User-Agent",
+                        "android:ltd.ucode.slide:v" + BuildConfig.VERSION_NAME
+                    )
+                chain.proceed(reqBuilder.build())
+            }
             .build()
 
         val retrofit = Retrofit.Builder()
-            .baseUrl(apiUrl)
+            .baseUrl("https://${instance}/")
             .client(client)
             .addConverterFactory(Json.asConverterFactory(MediaType.get("application/json")))
             .build()
@@ -39,16 +52,44 @@ class LemmyHttp(val apiUrl: String, val headers: Map<String, String> = mapOf()) 
     }
 
     suspend fun login(user: String, password: String): LoginResult {
-        val response = api.login(LoginRequest(user, password))
+        val response = api.login(LoginRequest(
+            usernameOrEmail = user,
+            password = password
+        )).unwrap()
 
-        if (response.verifyEmailSent) {
-            return LoginResult.EmailNotVerified
-        } else if (response.registrationCreated) {
-            return LoginResult.WaitApproval
-        } else if (response.jwt.isNullOrBlank()) {
-            return LoginResult.Failure
-        }
+        return response.toResult()
+    }
 
-        return LoginResult.Success(response.jwt)
+    suspend fun getSite(auth: String? = null): GetSiteResult {
+        val response = api.getSite(GetSiteRequest(
+            auth = auth
+        ).toForm()).unwrap()
+
+        return response.toResult()
+    }
+}
+
+private fun Any.toForm(): Map<String, String> {
+    return Json { encodeDefaults = true }
+        .encodeToJsonElement(this)
+        .jsonObject
+        .toMap()
+        .mapValues { (_, element) -> when (element) {
+            is JsonNull -> null
+            is JsonPrimitive -> element.content
+            is JsonArray -> TODO()
+            is JsonObject -> TODO()
+        } }
+        .filterNotNullValues()
+}
+
+private fun <T> Response<T>.unwrap(): T {
+    if (BuildConfig.DEBUG) LogUtil.v("Response received: ${this.code()}")
+
+    if (this.isSuccessful)
+        return this.body()!!
+    else {
+        val path = this.raw().request().url().encodedPath()
+        throw ApiException(path, this.code(), this.errorBody()?.string().orEmpty())
     }
 }

@@ -109,6 +109,7 @@ dependencies {
     implementation 'androidx.recyclerview:recyclerview:1.2.1'
     implementation 'androidx.webkit:webkit:1.4.0'
     implementation 'com.google.android.material:material:1.4.0'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.1'
 
 /** ExoPlayer **/
     // Application level media player
@@ -206,6 +207,7 @@ dependencies {
     implementation "com.squareup.retrofit2:retrofit:${versions.retrofit}"
     implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:${versions.serialization}"
     implementation 'com.jakewharton.retrofit:retrofit2-kotlinx-serialization-converter:1.0.0'
+    implementation "org.jetbrains.kotlinx:kotlinx-datetime:0.3.2"
 
     // WebSocket client
     implementation 'com.neovisionaries:nv-websocket-client:2.14'
