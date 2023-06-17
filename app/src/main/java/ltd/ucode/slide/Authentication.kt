@@ -45,6 +45,8 @@ class Authentication(context: Context?) {
             didOnline = true
             val site = kotlinx.coroutines.runBlocking { api!!.getSite() }
             Log.v(LogUtil.getTag(), "Site: ${Json.encodeToString(site)}")
+            val nodeinfo = kotlinx.coroutines.runBlocking { api!!.nodeInfo() }?.nodeInfo
+            Log.v(LogUtil.getTag(), "NodeInfo: ${nodeinfo?.software?.name} ${nodeinfo?.software?.version}")
             //VerifyCredentials(context).execute()
         } else {
             isLoggedIn = SettingValues.appRestart.getBoolean("loggedin", false)

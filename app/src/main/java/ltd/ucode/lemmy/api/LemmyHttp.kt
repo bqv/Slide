@@ -9,10 +9,20 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.encodeToJsonElement
 import kotlinx.serialization.json.jsonObject
 import ltd.ucode.Util.filterNotNullValues
+import ltd.ucode.lemmy.api.iter.PagedData
+import ltd.ucode.lemmy.api.request.GetPostRequest
+import ltd.ucode.lemmy.api.request.GetPostsRequest
 import ltd.ucode.lemmy.api.request.GetSiteRequest
+import ltd.ucode.lemmy.api.request.ListCommunitiesRequest
 import ltd.ucode.lemmy.api.request.LoginRequest
-import ltd.ucode.lemmy.data.GetSiteResult
+import ltd.ucode.lemmy.api.response.GetPostResponse
+import ltd.ucode.lemmy.api.response.GetSiteResponse
 import ltd.ucode.lemmy.data.LoginResult
+import ltd.ucode.lemmy.data.type.CommunityView
+import ltd.ucode.lemmy.data.type.ListingType
+import ltd.ucode.lemmy.data.type.NodeInfoResult
+import ltd.ucode.lemmy.data.type.PostView
+import ltd.ucode.lemmy.data.type.SortType
 import ltd.ucode.slide.BuildConfig
 import me.ccrama.redditslide.util.LogUtil
 import okhttp3.Headers.Companion.toHeaders
@@ -25,11 +35,7 @@ class LemmyHttp(val instance: String = "lemmy.ml",
                 private val headers: Map<String, String> = mapOf()) {
     private val api: LemmyHttpApi by lazy { createApi() }
 
-    var retryLimit: Int = -1 // TODO: use
-
-    private fun createApi(): LemmyHttpApi {
-        if (BuildConfig.DEBUG) LogUtil.v("Creating API Object")
-        val client = OkHttpClient.Builder()
+    private var client: OkHttpClient = OkHttpClient.Builder()
             .addInterceptor { chain ->
                 val request = chain.request()
                 if (BuildConfig.DEBUG) LogUtil.v("OkHttp: ${request.method} ${request.url}")
@@ -45,6 +51,11 @@ class LemmyHttp(val instance: String = "lemmy.ml",
             }
             .build()
 
+    var retryLimit: Int = -1 // TODO: use
+
+    private fun createApi(): LemmyHttpApi {
+        if (BuildConfig.DEBUG) LogUtil.v("Creating API Object")
+
         val retrofit = Retrofit.Builder()
             .baseUrl("https://${instance}/api/v3/")
             .client(client)
@@ -52,6 +63,15 @@ class LemmyHttp(val instance: String = "lemmy.ml",
             .build()
 
         return retrofit.create(LemmyHttpApi::class.java)
+    }
+
+    suspend fun nodeInfo(): NodeInfoResult? {
+        val response = api.nodeInfo().unwrap()
+
+        val url = response.links.firstOrNull()?.href
+
+        return url?.let { api.nodeInfo20(it) }?.unwrap()
+            ?.let { NodeInfoResult(response, it) }
     }
 
     suspend fun login(user: String, password: String): LoginResult {
@@ -63,9 +83,67 @@ class LemmyHttp(val instance: String = "lemmy.ml",
         return response.toResult()
     }
 
-    suspend fun getSite(auth: String? = null): GetSiteResult {
+    suspend fun getSite(auth: String? = null): GetSiteResponse {
         val response = api.getSite(GetSiteRequest(
             auth = auth
+        ).toForm()).unwrap()
+
+        return response.toResult()
+    }
+
+    fun getPosts(auth: String? = null,
+                 communityId: Int? = null,
+                 communityName: String? = null, // community, or community@instance.tld
+                 limit: Int? = null,
+                 fromPage: Int? = null,
+                 savedOnly: Boolean? = null,
+                 sort: SortType? = null,
+                 type: ListingType? = null
+    ): PagedData<PostView> {
+        return PagedData(fromPage ?: 0) { page: Int -> {
+                val response = api.getPosts(
+                    GetPostsRequest(
+                        auth = auth,
+                        communityId = communityId,
+                        communityName = communityName,
+                        limit = limit,
+                        page = page,
+                        savedOnly = savedOnly,
+                        sort = sort,
+                        type = type
+                    ).toForm()
+                ).unwrap()
+
+                response.toResult()
+            }
+        }
+    }
+
+    suspend fun getPost(auth: String? = null,
+                        id: Int? = null,
+                        commentId: Int? = null
+    ): GetPostResponse {
+        val response = api.getPost(GetPostRequest(
+            auth = auth,
+            id = id,
+            commentId = commentId
+        ).toForm()).unwrap()
+
+        return response.toResult()
+    }
+
+    suspend fun listCommunities(auth: String? = null,
+                                limit: Int? = null, // <= 50
+                                page: Int? = null,
+                                sort: SortType? = null,
+                                type: ListingType? = null
+    ): List<CommunityView> {
+        val response = api.listCommunities(ListCommunitiesRequest(
+            auth = auth,
+            limit = limit,
+            page = page,
+            sort = sort,
+            type = type
         ).toForm()).unwrap()
 
         return response.toResult()

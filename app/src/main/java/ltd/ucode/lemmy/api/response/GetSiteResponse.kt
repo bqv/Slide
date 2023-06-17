@@ -2,7 +2,6 @@ package ltd.ucode.lemmy.api.response
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import ltd.ucode.lemmy.data.GetSiteResult
 import ltd.ucode.lemmy.data.type.FederatedInstances
 import ltd.ucode.lemmy.data.type.Language
 import ltd.ucode.lemmy.data.type.MyUserInfo
@@ -22,7 +21,7 @@ data class GetSiteResponse (
     @SerialName("discussion_languages") val discussionLanguages: List<Int>,
     val taglines: List<Tagline>? = null,
 ) {
-    fun toResult(): GetSiteResult {
+    fun toResult(): GetSiteResponse {
         return this
     }
 }

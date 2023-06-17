@@ -829,7 +829,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                         )
                     }
                     object : AsyncTask<Void?, Void?, Submission?>() {
-                        protected override fun doInBackground(vararg params: Void?): Submission? {
+                        override fun doInBackground(vararg params: Void?): Submission? {
                             if (Authentication.isLoggedIn) UserSubscriptions.doOnlineSyncing()
                             try {
                                 val p = SubredditPaginator(
