@@ -183,6 +183,10 @@ import java.util.Locale
 import java.util.concurrent.Executors
 
 class MainActivity : BaseActivity(), NetworkStateReceiverListener {
+    var menu: Menu? = null
+    var mTabLayout: TabLayout? = null
+    var drawerSubList: ListView? = null
+
     val ANIMATE_DURATION: Long = 250 //duration of animations
     private val ANIMATE_DURATION_OFFSET: Long = 45 //offset for smoothing out the exit animations
     @JvmField
@@ -202,8 +206,6 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
     var adapter: MainPagerAdapter? = null
     var toGoto = 0
     var first = true
-    var mTabLayout: TabLayout? = null
-    var drawerSubList: ListView? = null
     @JvmField
     var selectedSub //currently selected subreddit
             : String? = null
@@ -234,7 +236,6 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
     var sidebarOverflow: CommentOverflow? = null
     var accountsArea: View? = null
     var sideArrayAdapter: SideArrayAdapter? = null
-    var menu: Menu? = null
     var caching: AsyncTask<*, *, *>? = null
     var currentlySubbed = false
     var back = 0
@@ -246,9 +247,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         if (requestCode == SETTINGS_RESULT) {
             var current = pager!!.currentItem
-            if (commentPager && current == currentComment) {
-                current = current - 1
-            }
+            if (commentPager && current == currentComment) current -= 1
             if (current < 0) current = 0
             adapter = MainPagerAdapter(supportFragmentManager)
             pager!!.adapter = adapter
@@ -283,20 +282,20 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             if (adapter != null && adapter!!.currentFragment != null) {
                 if (resultCode == RESULT_OK) {
                     val posts = data!!.getIntegerArrayListExtra("seen")
-                    (adapter!!.currentFragment as SubmissionsView?)!!.adapter.refreshView(posts)
+                    (adapter!!.currentFragment as SubmissionsView?)!!.adapter!!.refreshView(posts!!)
                     if (data.hasExtra("lastPage") && data.getIntExtra(
                             "lastPage",
                             0
-                        ) != 0 && (adapter!!.currentFragment as SubmissionsView?)!!.rv.layoutManager is LinearLayoutManager
+                        ) != 0 && (adapter!!.currentFragment as SubmissionsView?)!!.rv!!.layoutManager is LinearLayoutManager
                     ) {
-                        ((adapter!!.currentFragment as SubmissionsView?)!!.rv.layoutManager as LinearLayoutManager?)
+                        ((adapter!!.currentFragment as SubmissionsView?)!!.rv!!.layoutManager as LinearLayoutManager?)
                             ?.scrollToPositionWithOffset(
                                 data.getIntExtra("lastPage", 0) + 1,
                                 mToolbar!!.height
                             )
                     }
                 } else {
-                    (adapter!!.currentFragment as SubmissionsView?)!!.adapter.refreshView()
+                    (adapter!!.currentFragment as SubmissionsView?)!!.adapter!!.refreshView()
                 }
             }
         } else if (requestCode == RESET_ADAPTER_RESULT) {
@@ -658,8 +657,8 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
 
             R.id.save -> {
                 saveOffline(
-                    (adapter!!.currentFragment as SubmissionsView?)!!.posts.posts.map(::RedditSubmission),
-                    (adapter!!.currentFragment as SubmissionsView?)!!.posts.subreddit
+                    (adapter!!.currentFragment as SubmissionsView?)!!.posts!!.posts.map(::RedditSubmission),
+                    (adapter!!.currentFragment as SubmissionsView?)!!.posts!!.subreddit
                 )
                 true
             }
@@ -689,18 +688,18 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
 
             R.id.gallery -> {
                 if (SettingValues.isPro) {
-                    val posts = (adapter!!.currentFragment as SubmissionsView?)!!.posts.posts
+                    val posts = (adapter!!.currentFragment as SubmissionsView?)!!.posts!!.posts
                     if (posts != null && !posts.isEmpty()) {
                         val i2 = Intent(this, Gallery::class.java)
                         i2.putExtra(
                             "offline",
-                            if ((adapter!!.currentFragment as SubmissionsView?)!!.posts.cached
+                            if ((adapter!!.currentFragment as SubmissionsView?)!!.posts!!.cached
                                 != null
-                            ) (adapter!!.currentFragment as SubmissionsView?)!!.posts.cached.time else 0L
+                            ) (adapter!!.currentFragment as SubmissionsView?)!!.posts!!.cached!!.time else 0L
                         )
                         i2.putExtra(
                             Gallery.EXTRA_SUBREDDIT,
-                            (adapter!!.currentFragment as SubmissionsView?)!!.posts.subreddit
+                            (adapter!!.currentFragment as SubmissionsView?)!!.posts!!.subreddit
                         )
                         startActivity(i2)
                     }
@@ -713,18 +712,18 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                         ) { dialog: DialogInterface?, which: Int ->
                             SettingValues.decreasePreviewsLeft()
                             val posts =
-                                (adapter!!.currentFragment as SubmissionsView?)!!.posts.posts
+                                (adapter!!.currentFragment as SubmissionsView?)!!.posts!!.posts
                             if (posts != null && !posts.isEmpty()) {
                                 val i2 = Intent(this@MainActivity, Gallery::class.java)
                                 i2.putExtra(
                                     "offline",
-                                    if ((adapter!!.currentFragment as SubmissionsView?)!!.posts.cached
+                                    if ((adapter!!.currentFragment as SubmissionsView?)!!.posts!!.cached
                                         != null
-                                    ) (adapter!!.currentFragment as SubmissionsView?)!!.posts.cached.time else 0L
+                                    ) (adapter!!.currentFragment as SubmissionsView?)!!.posts!!.cached!!.time else 0L
                                 )
                                 i2.putExtra(
                                     Gallery.EXTRA_SUBREDDIT,
-                                    (adapter!!.currentFragment as SubmissionsView?)!!.posts.subreddit
+                                    (adapter!!.currentFragment as SubmissionsView?)!!.posts!!.subreddit
                                 )
                                 startActivity(i2)
                             }
@@ -737,19 +736,19 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
 
             R.id.action_shadowbox -> {
                 if (SettingValues.isPro) {
-                    val posts = (adapter!!.currentFragment as SubmissionsView?)!!.posts.posts
+                    val posts = (adapter!!.currentFragment as SubmissionsView?)!!.posts!!.posts
                     if (posts != null && !posts.isEmpty()) {
                         val i2 = Intent(this, Shadowbox::class.java)
                         i2.putExtra(Shadowbox.EXTRA_PAGE, currentPage)
                         i2.putExtra(
                             "offline",
-                            if ((adapter!!.currentFragment as SubmissionsView?)!!.posts.cached
+                            if ((adapter!!.currentFragment as SubmissionsView?)!!.posts!!.cached
                                 != null
-                            ) (adapter!!.currentFragment as SubmissionsView?)!!.posts.cached.time else 0L
+                            ) (adapter!!.currentFragment as SubmissionsView?)!!.posts!!.cached!!.time else 0L
                         )
                         i2.putExtra(
                             Shadowbox.EXTRA_SUBREDDIT,
-                            (adapter!!.currentFragment as SubmissionsView?)!!.posts.subreddit
+                            (adapter!!.currentFragment as SubmissionsView?)!!.posts!!.subreddit
                         )
                         startActivity(i2)
                     }
@@ -762,19 +761,19 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                         ) { dialog: DialogInterface?, which: Int ->
                             SettingValues.decreasePreviewsLeft()
                             val posts =
-                                (adapter!!.currentFragment as SubmissionsView?)!!.posts.posts
+                                (adapter!!.currentFragment as SubmissionsView?)!!.posts!!.posts
                             if (posts != null && !posts.isEmpty()) {
                                 val i2 = Intent(this@MainActivity, Shadowbox::class.java)
                                 i2.putExtra(Shadowbox.EXTRA_PAGE, currentPage)
                                 i2.putExtra(
                                     "offline",
-                                    if ((adapter!!.currentFragment as SubmissionsView?)!!.posts.cached
+                                    if ((adapter!!.currentFragment as SubmissionsView?)!!.posts!!.cached
                                         != null
-                                    ) (adapter!!.currentFragment as SubmissionsView?)!!.posts.cached.time else 0L
+                                    ) (adapter!!.currentFragment as SubmissionsView?)!!.posts!!.cached!!.time else 0L
                                 )
                                 i2.putExtra(
                                     Shadowbox.EXTRA_SUBREDDIT,
-                                    (adapter!!.currentFragment as SubmissionsView?)!!.posts.subreddit
+                                    (adapter!!.currentFragment as SubmissionsView?)!!.posts!!.subreddit
                                 )
                                 startActivity(i2)
                             }
@@ -1881,13 +1880,13 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                     }
                     val compare = usedArray!![current]
                     if (compare == "random" || compare == "myrandom" || compare == "randnsfw") {
-                        if (adapter != null && adapter!!.currentFragment != null && ((adapter!!.currentFragment as SubmissionsView?)!!.adapter.dataSet.subredditRandom
+                        if (adapter != null && adapter!!.currentFragment != null && ((adapter!!.currentFragment as SubmissionsView?)!!.adapter!!.dataSet.subredditRandom
                                     != null)
                         ) {
                             val sub =
-                                (adapter!!.currentFragment as SubmissionsView?)!!.adapter.dataSet.subredditRandom
-                            doSubSidebarNoLoad(sub)
-                            doSubSidebar(sub)
+                                (adapter!!.currentFragment as SubmissionsView?)!!.adapter!!.dataSet.subredditRandom
+                            doSubSidebarNoLoad(sub!!)
+                            doSubSidebar(sub!!)
                         }
                     } else {
                         doSubSidebar(usedArray!![current])
@@ -1977,12 +1976,12 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
         }
         val page = adapter!!.currentFragment as SubmissionsView?
         if (page != null && page.adapter != null) {
-            val p = page.adapter.dataSet
+            val p = page.adapter!!.dataSet
             if (p.offline && p.cached != null) {
                 Toast.makeText(
                     this@MainActivity, getString(
                         R.string.offline_last_update,
-                        TimeUtils.getTimeAgo(p.cached.time, this@MainActivity)
+                        TimeUtils.getTimeAgo(p.cached!!.time, this@MainActivity)
                     ), Toast.LENGTH_LONG
                 )
                     .show()
@@ -3018,16 +3017,16 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             if (adapter!!.currentFragment == null) {
                 return 0
             }
-            if ((adapter!!.currentFragment as SubmissionsView?)!!.rv.layoutManager is LinearLayoutManager
+            if ((adapter!!.currentFragment as SubmissionsView?)!!.rv!!.layoutManager is LinearLayoutManager
                 && currentOrientation == Configuration.ORIENTATION_LANDSCAPE
             ) {
                 position =
-                    ((adapter!!.currentFragment as SubmissionsView?)!!.rv.layoutManager as LinearLayoutManager?)!!
+                    ((adapter!!.currentFragment as SubmissionsView?)!!.rv!!.layoutManager as LinearLayoutManager?)!!
                         .findFirstCompletelyVisibleItemPosition() - 1
-            } else if ((adapter!!.currentFragment as SubmissionsView?)!!.rv.layoutManager is CatchStaggeredGridLayoutManager) {
+            } else if ((adapter!!.currentFragment as SubmissionsView?)!!.rv!!.layoutManager is CatchStaggeredGridLayoutManager) {
                 var firstVisibleItems: IntArray? = null
                 firstVisibleItems = ((adapter!!.currentFragment as SubmissionsView?)!!.rv
-                    .layoutManager as CatchStaggeredGridLayoutManager?)!!.findFirstCompletelyVisibleItemPositions(
+                    !!.layoutManager as CatchStaggeredGridLayoutManager?)!!.findFirstCompletelyVisibleItemPositions(
                     firstVisibleItems
                 )
                 if (firstVisibleItems != null && firstVisibleItems.size > 0) {
@@ -3035,7 +3034,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                 }
             } else {
                 position =
-                    ((adapter!!.currentFragment as SubmissionsView?)!!.rv.layoutManager as PreCachingLayoutManager?)!!
+                    ((adapter!!.currentFragment as SubmissionsView?)!!.rv!!.layoutManager as PreCachingLayoutManager?)!!
                         .findFirstCompletelyVisibleItemPosition() - 1
             }
             return position
@@ -3287,19 +3286,19 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
         var pastVisiblesItems = 0
         if (adapter!!.currentFragment == null) return
         val firstVisibleItems = ((adapter!!.currentFragment as SubmissionsView?)!!.rv
-            .layoutManager as CatchStaggeredGridLayoutManager?)!!.findFirstVisibleItemPositions(null)
+            !!.layoutManager as CatchStaggeredGridLayoutManager?)!!.findFirstVisibleItemPositions(null)
         if (firstVisibleItems != null && firstVisibleItems.size > 0) {
             for (firstVisibleItem in firstVisibleItems) {
                 pastVisiblesItems = firstVisibleItem
             }
         }
         if (pastVisiblesItems > 8) {
-            (adapter!!.currentFragment as SubmissionsView?)!!.rv.scrollToPosition(0)
+            (adapter!!.currentFragment as SubmissionsView?)!!.rv!!.scrollToPosition(0)
             header!!.animate()
                 .translationY(header!!.height.toFloat())
                 .setInterpolator(LinearInterpolator()).duration = 0
         } else {
-            (adapter!!.currentFragment as SubmissionsView?)!!.rv.smoothScrollToPosition(0)
+            (adapter!!.currentFragment as SubmissionsView?)!!.rv!!.smoothScrollToPosition(0)
         }
         (adapter!!.currentFragment as SubmissionsView?)!!.resetScroll()
     }
@@ -4151,7 +4150,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                         )
                     }
                     if (page != null && page.adapter != null) {
-                        val p = page.adapter.dataSet
+                        val p = page.adapter!!.dataSet
                         if (p.offline && !isRestart) {
                             p.doMainActivityOffline(this@MainActivity, p.displayer)
                         }
@@ -4258,7 +4257,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                             if (position == toOpenComments - 1 && adapter != null && adapter!!.currentFragment != null) {
                                 val page = adapter!!.currentFragment as SubmissionsView?
                                 if (page != null && page.adapter != null) {
-                                    page.adapter.refreshView()
+                                    page.adapter!!.refreshView()
                                 }
                             }
                         } else {
@@ -4281,8 +4280,8 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                     if (position == toOpenComments - 1 && adapter != null && adapter!!.currentFragment != null) {
                         val page = adapter!!.currentFragment as SubmissionsView?
                         if (page != null && page.adapter != null) {
-                            page.adapter.refreshView()
-                            val p = page.adapter.dataSet
+                            page.adapter!!.refreshView()
+                            val p = page.adapter!!.dataSet
                             if (p.offline && !isRestart) {
                                 p.doMainActivityOffline(this@MainActivity, p.displayer)
                             }
@@ -4290,7 +4289,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                     } else {
                         val page = adapter!!.currentFragment as SubmissionsView?
                         if (page != null && page.adapter != null) {
-                            val p = page.adapter.dataSet
+                            val p = page.adapter!!.dataSet
                             if (p.offline && !isRestart) {
                                 p.doMainActivityOffline(this@MainActivity, p.displayer)
                             }
