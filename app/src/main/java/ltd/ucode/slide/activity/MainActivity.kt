@@ -80,11 +80,13 @@ import com.afollestad.materialdialogs.MaterialDialog
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.tabs.TabLayout
 import com.lusfold.androidkeyvaluestore.KVStore
+import ltd.ucode.reddit.data.RedditSubmission
 import ltd.ucode.slide.App
 import ltd.ucode.slide.Authentication
 import ltd.ucode.slide.BuildConfig
 import ltd.ucode.slide.R
 import ltd.ucode.slide.SettingValues
+import ltd.ucode.slide.data.IPost
 import me.ccrama.redditslide.Activities.Announcement
 import me.ccrama.redditslide.Activities.BaseActivity
 import me.ccrama.redditslide.Activities.CancelSubNotifs
@@ -163,7 +165,6 @@ import net.dean.jraw.managers.MultiRedditManager
 import net.dean.jraw.models.FlairTemplate
 import net.dean.jraw.models.LoggedInAccount
 import net.dean.jraw.models.MultiReddit
-import net.dean.jraw.models.Submission
 import net.dean.jraw.models.Subreddit
 import net.dean.jraw.models.UserRecord
 import net.dean.jraw.paginators.Sorting
@@ -220,7 +221,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
     @JvmField
     var currentComment = 0
     @JvmField
-    var openingComments: Submission? = null
+    var openingComments: IPost? = null
     @JvmField
     var toOpenComments = -1
     var inNightMode = false
@@ -657,7 +658,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
 
             R.id.save -> {
                 saveOffline(
-                    (adapter!!.currentFragment as SubmissionsView?)!!.posts.posts,
+                    (adapter!!.currentFragment as SubmissionsView?)!!.posts.posts.map(::RedditSubmission),
                     (adapter!!.currentFragment as SubmissionsView?)!!.posts.subreddit
                 )
                 true
@@ -823,13 +824,13 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                             AsyncTask.THREAD_POOL_EXECUTOR
                         )
                     }
-                    if (!SettingValues.appRestart.getString(CheckForMail.SUBS_TO_GET, "")!!.isEmpty()) {
+                    if (SettingValues.appRestart.getString(CheckForMail.SUBS_TO_GET, "")!!.isNotEmpty()) {
                         AsyncGetSubs(this@MainActivity).executeOnExecutor(
                             AsyncTask.THREAD_POOL_EXECUTOR
                         )
                     }
-                    object : AsyncTask<Void?, Void?, Submission?>() {
-                        override fun doInBackground(vararg params: Void?): Submission? {
+                    object : AsyncTask<Void?, Void?, IPost?>() {
+                        override fun doInBackground(vararg params: Void?): IPost? {
                             if (Authentication.isLoggedIn) UserSubscriptions.doOnlineSyncing()
                             try {
                                 val p = SubredditPaginator(
@@ -857,7 +858,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                                                 true
                                             )
                                             .apply()
-                                        return s
+                                        return RedditSubmission(s)
                                     } else if ((BuildConfig.VERSION_NAME.contains("alpha")
                                                 && s.isStickied) && s.submissionFlair.text != null && s.submissionFlair
                                             .text
@@ -874,7 +875,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                                                 true
                                             )
                                             .apply()
-                                        return s
+                                        return RedditSubmission(s)
                                     } else if (s.isStickied
                                         && s.submissionFlair
                                             .text
@@ -890,7 +891,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                                                 true
                                             )
                                             .apply()
-                                        return s
+                                        return RedditSubmission(s)
                                     }
                                 }
                             } catch (e: Exception) {
@@ -899,13 +900,13 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                             return null
                         }
 
-                        override fun onPostExecute(s: Submission?) {
+                        override fun onPostExecute(s: IPost?) {
                             checkedPopups = true
                             if (s != null) {
                                 SettingValues.appRestart.edit()
                                     .putString(
                                         "page",
-                                        s.dataNode["selftext_html"].asText()
+                                        s.body
                                     )
                                     .apply()
                                 SettingValues.appRestart.edit()
@@ -3256,7 +3257,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
         overridePendingTransition(R.anim.fade_in_real, R.anim.fading_out_real)
     }
 
-    fun saveOffline(submissions: List<Submission>?, subreddit: String) {
+    fun saveOffline(submissions: List<IPost>?, subreddit: String) {
         val chosen = BooleanArray(2)
         AlertDialog.Builder(this)
             .setTitle(R.string.save_for_offline_viewing)
@@ -3268,14 +3269,14 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             }
             .setPositiveButton(R.string.btn_save) { dialog: DialogInterface?, which: Int ->
                 caching = CommentCacheAsync(
-                    submissions, this@MainActivity, subreddit,
+                    submissions?.map { it.submission }, this@MainActivity, subreddit,
                     chosen
                 ).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR)
             }
             .setPositiveButton(R.string.btn_save) { dialog: DialogInterface?, which: Int ->
                 val service = Executors.newSingleThreadExecutor()
                 CommentCacheAsync(
-                    submissions, this@MainActivity, subreddit,
+                    submissions?.map { it.submission }, this@MainActivity, subreddit,
                     chosen
                 ).executeOnExecutor(service)
             }
@@ -4270,8 +4271,8 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                                     .setInterpolator(LinearInterpolator()).duration = 180
                             }
                             pager!!.setSwipeLeftOnly(true)
-                            themeSystemBars(openingComments!!.subredditName.lowercase())
-                            setRecentBar(openingComments!!.subredditName.lowercase())
+                            themeSystemBars(openingComments!!.groupName.lowercase())
+                            setRecentBar(openingComments!!.groupName.lowercase())
                         }
                     }
                 }
@@ -4325,16 +4326,16 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             } else {
                 val f: Fragment = CommentPage()
                 val args = Bundle()
-                val name = openingComments!!.fullName
+                val name = openingComments!!.permalink
                 args.putString("id", name.substring(3))
                 args.putBoolean("archived", openingComments!!.isArchived)
                 args.putBoolean(
                     "contest",
-                    openingComments!!.dataNode["contest_mode"].asBoolean()
+                    openingComments!!.isContest
                 )
                 args.putBoolean("locked", openingComments!!.isLocked)
                 args.putInt("page", currentComment)
-                args.putString("subreddit", openingComments!!.subredditName)
+                args.putString("subreddit", openingComments!!.groupName)
                 args.putString("baseSubreddit", subToDo)
                 f.arguments = args
                 f

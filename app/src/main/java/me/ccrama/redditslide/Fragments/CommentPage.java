@@ -1618,7 +1618,7 @@ public class CommentPage extends Fragment implements Toolbar.OnMenuItemClickList
         } else if (getActivity() instanceof MainActivity) {
             if (Authentication.didOnline) {
                 comments = new SubmissionComments(fullname, this, mSwipeRefreshLayout);
-                Submission s = ((MainActivity) getActivity()).openingComments;
+                Submission s = ((MainActivity) getActivity()).openingComments.getSubmission();
                 if (s != null && s.getDataNode().has("suggested_sort") && !s.getDataNode()
                         .get("suggested_sort")
                         .asText()
@@ -1635,7 +1635,7 @@ public class CommentPage extends Fragment implements Toolbar.OnMenuItemClickList
                     rv.setAdapter(adapter);
                 }
             } else {
-                Submission s = ((MainActivity) getActivity()).openingComments;
+                Submission s = ((MainActivity) getActivity()).openingComments.getSubmission();
                 doRefresh(false);
                 comments = new SubmissionComments(fullname, this, mSwipeRefreshLayout, s);
                 if (adapter == null) {
@@ -1700,7 +1700,7 @@ public class CommentPage extends Fragment implements Toolbar.OnMenuItemClickList
         } else if (!b) {
             try {
                 adapter.reset(getContext(), comments, rv, (getActivity() instanceof MainActivity)
-                        ? ((MainActivity) getActivity()).openingComments : comments.submission, b);
+                        ? ((MainActivity) getActivity()).openingComments.getSubmission() : comments.submission, b);
                 if (SettingValues.collapseCommentsDefault) {
                     adapter.collapseAll();
                 }

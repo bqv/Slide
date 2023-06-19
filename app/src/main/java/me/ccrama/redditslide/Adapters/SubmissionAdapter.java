@@ -216,9 +216,9 @@ public class SubmissionAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
                                                                        && a.commentPager
                                                                        && a.adapter instanceof MainActivity.MainPagerAdapterComment) {
 
-                                                                   if (a.openingComments != submission) {
+                                                                   if (a.openingComments.equals(submission)) {
                                                                        clicked = holder2.getBindingAdapterPosition();
-                                                                       a.openingComments = submission;
+                                                                       a.openingComments.equals(submission);
                                                                        a.toOpenComments = a.pager.getCurrentItem() + 1;
                                                                        a.currentComment = holder.getBindingAdapterPosition() - 1;
                                                                        ((MainActivity.MainPagerAdapterComment) (a).adapter).storedFragment =
