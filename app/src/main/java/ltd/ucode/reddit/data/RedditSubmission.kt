@@ -1,9 +1,14 @@
 package ltd.ucode.reddit.data
 
+import kotlinx.datetime.Instant
 import ltd.ucode.slide.data.IPost
+import net.dean.jraw.models.CommentNode
 import net.dean.jraw.models.Submission
 
 class RedditSubmission(val data: Submission) : IPost() {
+    override val id: String
+        get() = data.id
+
     override val title: String
         get() = data.title
 
@@ -27,4 +32,10 @@ class RedditSubmission(val data: Submission) : IPost() {
 
     override val isContest: Boolean
         get() = data.dataNode["contest_mode"].asBoolean()
+
+    override val published: Instant
+        get() = Instant.fromEpochMilliseconds(data.created.time)
+
+    override val comments: Iterable<CommentNode>
+        get() = data.comments
 }

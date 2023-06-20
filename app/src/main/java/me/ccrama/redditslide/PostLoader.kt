@@ -1,38 +1,34 @@
-package me.ccrama.redditslide;
+package me.ccrama.redditslide
 
-import android.content.Context;
-
-import net.dean.jraw.models.Submission;
-
-import java.util.List;
-
-import me.ccrama.redditslide.Adapters.SubmissionDisplay;
+import android.content.Context
+import ltd.ucode.slide.data.IPost
+import me.ccrama.redditslide.Adapters.SubmissionDisplay
 
 /**
  * This interface provides methods for loading and retrieving submissions (such
  * as subreddit or multireddit submissions) to be called by views which require
  * a minimal amount of functionality.
  */
-public interface PostLoader {
+interface PostLoader {
     /**
-     * Load more submissions, which will be available in the {@link #getPosts()}
+     * Load more submissions, which will be available in the [.getPosts]
      * method.
      *
      * @param context   context to get connectivity information
      * @param display   the object that is displaying the view
      * @param reset     whether to reset the posts or add onto the existing set
      */
-    void loadMore(Context context, SubmissionDisplay display, boolean reset);
+    fun loadMore(context: Context, display: SubmissionDisplay, reset: Boolean)
 
     /**
      * Get all currently loaded posts
      * @return
      */
-    List<Submission> getPosts();
+    val posts: MutableList<IPost>
 
     /**
      * Returns whether there are more posts to load.
      * @return
      */
-    boolean hasMore();
+    fun hasMore(): Boolean
 }

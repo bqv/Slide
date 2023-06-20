@@ -1,6 +1,7 @@
 package ltd.ucode.lemmy.api.iter
 
-class PagedData<T>(private var page: Int = 0, private val fetcher: (page: Int) -> suspend () -> List<T>) {
+class PagedData<out T>(private var page: Int = 0,
+                       private val fetcher: (page: Int) -> suspend () -> List<T>) {
     var hasNext = true
         private set
 

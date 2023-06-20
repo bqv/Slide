@@ -657,7 +657,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
 
             R.id.save -> {
                 saveOffline(
-                    (adapter!!.currentFragment as SubmissionsView?)!!.posts!!.posts.map(::RedditSubmission),
+                    (adapter!!.currentFragment as SubmissionsView?)!!.posts!!.posts,
                     (adapter!!.currentFragment as SubmissionsView?)!!.posts!!.subreddit
                 )
                 true

@@ -40,6 +40,7 @@ import ltd.ucode.slide.SettingValues.fabType
 import ltd.ucode.slide.SettingValues.single
 import ltd.ucode.slide.SettingValues.subredditSearchMethod
 import ltd.ucode.slide.activity.MainActivity
+import ltd.ucode.slide.data.IPost
 import me.ccrama.redditslide.Activities.BaseActivity
 import me.ccrama.redditslide.Activities.Search
 import me.ccrama.redditslide.Activities.Submit
@@ -57,7 +58,6 @@ import me.ccrama.redditslide.Visuals.ColorPreferences
 import me.ccrama.redditslide.Visuals.Palette
 import me.ccrama.redditslide.handler.ToolbarScrollHideHandler
 import me.ccrama.redditslide.util.LayoutUtils
-import net.dean.jraw.models.Submission
 
 class SubmissionsView : Fragment(), SubmissionDisplay {
     @JvmField
@@ -350,17 +350,17 @@ class SubmissionsView : Fragment(), SubmissionDisplay {
         mSwipeRefreshLayout!!.setOnRefreshListener { refresh() }
     }
 
-    fun clearSeenPosts(forever: Boolean): List<Submission>? {
+    fun clearSeenPosts(forever: Boolean): List<IPost>? {
         if (adapter!!.dataSet.posts != null) {
-            val originalDataSetPosts: List<Submission> = adapter!!.dataSet.posts
+            val originalDataSetPosts: List<IPost> = adapter!!.dataSet.posts
             val o = OfflineSubreddit.getSubreddit(id!!.lowercase(), false, activity)
             for (i in adapter!!.dataSet.posts.size downTo -1 + 1) {
                 try {
-                    if (HasSeen.getSeen(adapter!!.dataSet.posts[i])) {
+                    if (HasSeen.getSeen(adapter!!.dataSet.posts[i].submission)) {
                         if (forever) {
-                            Hidden.setHidden(adapter!!.dataSet.posts[i])
+                            Hidden.setHidden(adapter!!.dataSet.posts[i].submission)
                         }
-                        o.clearPost(adapter!!.dataSet.posts[i])
+                        o.clearPost(adapter!!.dataSet.posts[i].submission)
                         adapter!!.dataSet.posts.removeAt(i)
                         if (adapter!!.dataSet.posts.isEmpty()) {
                             adapter!!.notifyDataSetChanged()
@@ -393,8 +393,8 @@ class SubmissionsView : Fragment(), SubmissionDisplay {
     override fun onResume() {
         super.onResume()
         if (adapter != null && adapterPosition > 0 && currentPosition == adapterPosition) {
-            if (adapter!!.dataSet.getPosts().size >= adapterPosition - 1
-                && adapter!!.dataSet.getPosts()[adapterPosition - 1] === currentSubmission
+            if (adapter!!.dataSet.posts.size >= adapterPosition - 1
+                && adapter!!.dataSet.posts[adapterPosition - 1] === currentSubmission
             ) {
                 adapter!!.performClick(adapterPosition)
                 adapterPosition = -1
@@ -418,7 +418,7 @@ class SubmissionsView : Fragment(), SubmissionDisplay {
         mSwipeRefreshLayout!!.isRefreshing = false
     }
 
-    override fun updateSuccess(submissions: List<Submission>, startIndex: Int) {
+    override fun updateSuccess(submissions: List<IPost>, startIndex: Int) {
         if (activity != null) {
             if (activity is MainActivity) {
                 if ((activity as MainActivity?)!!.runAfterLoad != null) {
@@ -446,7 +446,7 @@ class SubmissionsView : Fragment(), SubmissionDisplay {
         }
     }
 
-    override fun updateOffline(submissions: List<Submission>, cacheTime: Long) {
+    override fun updateOffline(submissions: List<IPost>, cacheTime: Long) {
         if (activity is MainActivity) {
             if ((activity as MainActivity?)!!.runAfterLoad != null) {
                 Handler().post((activity as MainActivity?)!!.runAfterLoad!!)
@@ -483,7 +483,7 @@ class SubmissionsView : Fragment(), SubmissionDisplay {
         if (adapter!!.dataSet.posts != null) {
             for (i in adapter!!.dataSet.posts.size downTo -1 + 1) {
                 try {
-                    if (HasSeen.getSeen(adapter!!.dataSet.posts[i])) {
+                    if (HasSeen.getSeen(adapter!!.dataSet.posts[i].submission)) {
                         adapter!!.notifyItemChanged(i + 1)
                     }
                 } catch (e: IndexOutOfBoundsException) {
@@ -518,8 +518,7 @@ class SubmissionsView : Fragment(), SubmissionDisplay {
                                                 ) && SettingValues.storeHistory)
                                     ) {
                                         HasSeen.addSeenScrolling(
-                                            posts!!.posts[pastVisiblesItems - 1]
-                                                .fullName
+                                            posts!!.posts[pastVisiblesItems - 1].permalink
                                         )
                                     }
                                 }
@@ -603,7 +602,7 @@ class SubmissionsView : Fragment(), SubmissionDisplay {
     companion object {
         private var adapterPosition = 0
         private var currentPosition = 0
-        private var currentSubmission: Submission? = null
+        private var currentSubmission: IPost? = null
         @JvmStatic
         fun createLayoutManager(numColumns: Int): RecyclerView.LayoutManager {
             return CatchStaggeredGridLayoutManager(
@@ -623,7 +622,7 @@ class SubmissionsView : Fragment(), SubmissionDisplay {
         }
 
         @JvmStatic
-        fun currentSubmission(current: Submission?) {
+        fun currentSubmission(current: IPost?) {
             currentSubmission = current
         }
     }

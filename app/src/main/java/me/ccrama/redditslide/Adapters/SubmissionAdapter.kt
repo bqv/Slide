@@ -18,6 +18,7 @@ import ltd.ucode.slide.SettingValues.appRestart
 import ltd.ucode.slide.SettingValues.getLayoutSettings
 import ltd.ucode.slide.activity.MainActivity
 import ltd.ucode.slide.activity.MainActivity.MainPagerAdapterComment
+import ltd.ucode.slide.data.IPost
 import me.ccrama.redditslide.Activities.CommentsScreen
 import me.ccrama.redditslide.Activities.SubredditView
 import me.ccrama.redditslide.Activities.SubredditView.SubredditPagerAdapterComment
@@ -29,7 +30,6 @@ import me.ccrama.redditslide.Views.CreateCardView.CreateView
 import me.ccrama.redditslide.Views.CreateCardView.colorCard
 import me.ccrama.redditslide.util.LayoutUtils
 import me.ccrama.redditslide.util.OnSingleClickListener
-import net.dean.jraw.models.Submission
 
 class SubmissionAdapter(
     context: Activity, dataSet: SubredditPosts, listView: RecyclerView?,
@@ -40,7 +40,7 @@ class SubmissionAdapter(
     var context: Activity
     private val custom: Boolean
     var dataSet: SubredditPosts
-    var seen: List<Submission>
+    var seen: List<IPost>
     private val LOADING_SPINNER = 5
     private val NO_MORE = 3
     private val SPACER = 6
@@ -71,7 +71,7 @@ class SubmissionAdapter(
         } else if (position == dataSet.posts.size && (dataSet.offline || dataSet.nomore)) {
             return NO_MORE.toLong()
         }
-        return dataSet.posts[position].created.time
+        return dataSet.posts[position].published.toEpochMilliseconds()
     }
 
     override fun undoSetError() {
@@ -169,7 +169,7 @@ class SubmissionAdapter(
             val holder = holder2
             val submission = dataSet.posts[i]
             colorCard(
-                submission.subredditName.lowercase(), holder.itemView,
+                submission.groupName.lowercase(), holder.itemView,
                 subreddit,
                 subreddit == "frontpage" || subreddit == "mod" || subreddit == "friends" || subreddit == "all"
                         || subreddit.contains(".")
@@ -213,16 +213,16 @@ class SubmissionAdapter(
                                     holder2.getBindingAdapterPosition() - 1
                                 )
                                 i2.putExtra(CommentsScreen.EXTRA_SUBREDDIT, subreddit)
-                                i2.putExtra("fullname", submission.fullName)
+                                i2.putExtra("fullname", submission.permalink)
                                 context.startActivityForResult(i2, 940)
                                 clicked = holder2.getBindingAdapterPosition()
                             }
                         } else if (context is SubredditView) {
                             val a = context as SubredditView
                             if (a.singleMode && a.commentPager) {
-                                if (a.openingComments !== submission) {
+                                if (a.openingComments !== submission.submission) {
                                     clicked = holder2.getBindingAdapterPosition()
-                                    a.openingComments = submission
+                                    a.openingComments = submission.submission
                                     a.currentComment = holder.bindingAdapterPosition - 1
                                     (a.adapter as SubredditPagerAdapterComment).storedFragment =
                                         a.adapter.currentFragment
@@ -242,7 +242,7 @@ class SubmissionAdapter(
                                     holder2.getBindingAdapterPosition() - 1
                                 )
                                 i2.putExtra(CommentsScreen.EXTRA_SUBREDDIT, subreddit)
-                                i2.putExtra("fullname", submission.fullName)
+                                i2.putExtra("fullname", submission.permalink)
                                 context.startActivityForResult(i2, 940)
                                 clicked = holder2.getBindingAdapterPosition()
                             }
@@ -284,8 +284,8 @@ class SubmissionAdapter(
             }
             )
             PopulateSubmissionViewHolder().populateSubmissionViewHolder(
-                holder, submission,
-                context, false, false, dataSet.posts, listView!!, custom, dataSet.offline,
+                holder, submission.submission,
+                context, false, false, dataSet.posts.map { it.submission }.toMutableList(), listView!!, custom, dataSet.offline,
                 dataSet.subreddit.lowercase(), null
             )
         }

@@ -5,17 +5,20 @@ import android.os.AsyncTask
 import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.ActionBar
+import kotlinx.coroutines.runBlocking
+import ltd.ucode.lemmy.api.iter.PagedData
+import ltd.ucode.lemmy.data.LemmyPost
+import ltd.ucode.lemmy.data.type.PostView
+import ltd.ucode.reddit.data.RedditSubmission
 import ltd.ucode.slide.App
 import ltd.ucode.slide.Authentication
 import ltd.ucode.slide.BuildConfig
 import ltd.ucode.slide.R
 import ltd.ucode.slide.SettingValues
-import ltd.ucode.slide.SettingValues.getSubmissionSort
-import ltd.ucode.slide.SettingValues.getSubmissionTimePeriod
 import ltd.ucode.slide.activity.MainActivity
+import ltd.ucode.slide.data.IPost
 import me.ccrama.redditslide.Activities.BaseActivity
 import me.ccrama.redditslide.Activities.SubredditView
-import me.ccrama.redditslide.Constants
 import me.ccrama.redditslide.Fragments.SubmissionsView
 import me.ccrama.redditslide.HasSeen
 import me.ccrama.redditslide.LastComments
@@ -29,10 +32,6 @@ import me.ccrama.redditslide.util.NetworkUtil
 import me.ccrama.redditslide.util.PhotoLoader
 import me.ccrama.redditslide.util.TimeUtils
 import net.dean.jraw.http.NetworkException
-import net.dean.jraw.models.Submission
-import net.dean.jraw.paginators.DomainPaginator
-import net.dean.jraw.paginators.Paginator
-import net.dean.jraw.paginators.SubredditPaginator
 import java.util.Collections
 
 /**
@@ -43,8 +42,8 @@ class SubredditPosts @JvmOverloads constructor(
     c: Context,
     force18: Boolean = false
 ) : PostLoader {
-    @JvmField
-    var posts: MutableList<Submission>
+    override var posts: MutableList<IPost> = mutableListOf()
+
     @JvmField
     var subreddit: String
     var subredditRandom: String? = null
@@ -58,7 +57,7 @@ class SubredditPosts @JvmOverloads constructor(
     var loading = false
     @JvmField
     var error = false
-    private var paginator: Paginator<Submission>? = null
+    private var paginator: PagedData<PostView>? = null
     @JvmField
     var cached: OfflineSubreddit? = null
     var c: Context
@@ -80,9 +79,6 @@ class SubredditPosts @JvmOverloads constructor(
     }
 
     var all: ArrayList<String?>? = null
-    override fun getPosts(): List<Submission> {
-        return posts
-    }
 
     override fun hasMore(): Boolean {
         return !nomore
@@ -107,7 +103,7 @@ class SubredditPosts @JvmOverloads constructor(
         var context: Context,
         display: SubmissionDisplay?,
         reset: Boolean
-    ) : AsyncTask<String?, Void?, List<Submission?>?>() {
+    ) : AsyncTask<String?, Void?, List<IPost?>?>() {
         val reset: Boolean
         var start = 0
         public override fun onPreExecute() {
@@ -117,7 +113,7 @@ class SubredditPosts @JvmOverloads constructor(
             }
         }
 
-        public override fun onPostExecute(submissions: List<Submission?>?) {
+        public override fun onPostExecute(submissions: List<IPost?>?) {
             var success = true
             loading = false
             if (error != null) {
@@ -164,7 +160,7 @@ class SubredditPosts @JvmOverloads constructor(
                     (c as BaseActivity).shareUrl = "https://reddit.com/r/$subreddit"
                 }
                 if (subreddit == "random" || subreddit == "myrandom" || subreddit == "randnsfw") {
-                    subredditRandom = submissions[0]!!.subredditName
+                    subredditRandom = submissions[0]!!.groupName
                 }
                 MainActivity.randomoverride = subredditRandom
                 if (context is SubredditView && (subreddit == "random" || subreddit == "myrandom" || subreddit == "randnsfw")) {
@@ -183,7 +179,7 @@ class SubredditPosts @JvmOverloads constructor(
                 cached = OfflineSubreddit.getSubreddit(subreddit, 0L, true, c)
                 for (s in cached!!.submissions) {
                     if (!PostMatch.doesMatch(s, subreddit, force18)) {
-                        posts.add(s)
+                        posts.add(RedditSubmission(s))
                     }
                 }
                 offline = false
@@ -203,7 +199,7 @@ class SubredditPosts @JvmOverloads constructor(
             this@SubredditPosts.error = !success
         }
 
-        override fun doInBackground(vararg subredditPaginators: String?): List<Submission?>? {
+        override fun doInBackground(vararg subredditPaginators: String?): List<IPost?>? {
             if (BuildConfig.DEBUG) LogUtil.v("Loading data")
             if (!NetworkUtil.isConnected(context) && !Authentication.didOnline
                 || MainActivity.isRestart
@@ -226,27 +222,30 @@ class SubredditPosts @JvmOverloads constructor(
                     MainActivity.randomoverride = ""
                 }
                 paginator = if (sub == "frontpage") {
-                    SubredditPaginator(Authentication.reddit)
+                    //SubredditPaginator(Authentication.reddit)
+                    Authentication.api!!.getPosts()
                 } else if (!sub.contains(".")) {
-                    SubredditPaginator(Authentication.reddit, sub)
+                    //SubredditPaginator(Authentication.reddit, sub)
+                    Authentication.api!!.getPosts(communityName = sub)
                 } else {
-                    DomainPaginator(Authentication.reddit, sub)
+                    //DomainPaginator(Authentication.reddit, sub)
+                    Authentication.api!!.getPosts(communityName = sub)
                 }
-                paginator!!.sorting = getSubmissionSort(subreddit)
-                paginator!!.timePeriod = getSubmissionTimePeriod(subreddit)
-                paginator!!.setLimit(Constants.PAGINATOR_POST_LIMIT)
+                //paginator!!.sorting = getSubmissionSort(subreddit)
+                //paginator!!.timePeriod = getSubmissionTimePeriod(subreddit)
+                //paginator!!.setLimit(Constants.PAGINATOR_POST_LIMIT)
             }
-            val filteredSubmissions: List<Submission?> = nextFiltered
+            val filteredSubmissions: List<IPost> = nextFiltered
             if (!(SettingValues.noImages && ((!NetworkUtil.isConnectedWifi(c)
                         && SettingValues.lowResMobile) || SettingValues.lowResAlways))
             ) {
-                PhotoLoader.loadPhotos(c, filteredSubmissions)
+                PhotoLoader.loadPhotos(c, filteredSubmissions.map { it.submission })
             }
             if (SettingValues.storeHistory) {
-                HasSeen.setHasSeenSubmission(filteredSubmissions)
-                LastComments.setCommentsSince(filteredSubmissions)
+                HasSeen.setHasSeenSubmission(filteredSubmissions.map { it.submission })
+                LastComments.setCommentsSince(filteredSubmissions.map { it.submission })
             }
-            SubmissionCache.cacheSubmissions(filteredSubmissions, context, subreddit)
+            SubmissionCache.cacheSubmissions(filteredSubmissions.map { it.submission }, context, subreddit)
             if (reset || offline || posts == null) {
                 posts = filteredSubmissions.filterNotNull().toHashSet().toMutableList()
                 start = -1
@@ -257,7 +256,7 @@ class SubredditPosts @JvmOverloads constructor(
             }
             if (!usedOffline) {
                 OfflineSubreddit.getSubNoLoad(subreddit.lowercase())
-                    .overwriteSubmissions(posts)
+                    .overwriteSubmissions(posts.map { it.submission })
                     .writeToMemory(context)
             }
             start = 0
@@ -267,30 +266,31 @@ class SubredditPosts @JvmOverloads constructor(
             return filteredSubmissions
         }
 
-        val nextFiltered: ArrayList<Submission?>
+        val nextFiltered: ArrayList<IPost>
             get() {
-                val filteredSubmissions = ArrayList<Submission?>()
-                val adding = ArrayList<Submission>()
+                val filteredSubmissions = ArrayList<IPost>()
+                val adding = ArrayList<LemmyPost>()
                 try {
-                    if (paginator != null && paginator!!.hasNext()) {
-                        if (force18 && paginator is SubredditPaginator) {
-                            (paginator as SubredditPaginator).setObeyOver18(false)
-                        }
-                        adding.addAll(paginator!!.next())
+                    if (paginator != null && paginator!!.hasNext) {
+                        //if (force18 && paginator is SubredditPaginator) {
+                        //    (paginator as SubredditPaginator).setObeyOver18(false)
+                        //}
+                        val page = runBlocking { paginator!!.next() }
+                        adding.addAll(page.map { LemmyPost(Authentication.api!!.instance, it) })
                     } else {
                         nomore = true
                     }
                     for (s in adding) {
                         if (!PostMatch.doesMatch(
-                                s,
-                                if (paginator is SubredditPaginator) (paginator as SubredditPaginator).subreddit else (paginator as DomainPaginator?)!!.domain,
+                                s.submission,
+                                "",//if (paginator is SubredditPaginator) (paginator as SubredditPaginator).subreddit else (paginator as DomainPaginator?)!!.domain,
                                 force18
                             )
                         ) {
                             filteredSubmissions.add(s)
                         }
                     }
-                    if (paginator != null && paginator!!.hasNext() && filteredSubmissions.isEmpty()) {
+                    if (paginator != null && paginator!!.hasNext && filteredSubmissions.isEmpty()) {
                         filteredSubmissions.addAll(nextFiltered)
                     }
                 } catch (e: Exception) {
@@ -349,10 +349,10 @@ class SubredditPosts @JvmOverloads constructor(
                                 subreddit,
                                 java.lang.Long.valueOf(s2[1]), true, c
                             )
-                            val finalSubs: MutableList<Submission> = ArrayList()
+                            val finalSubs: MutableList<IPost> = ArrayList()
                             for (s in cached!!.submissions) {
                                 if (!PostMatch.doesMatch(s, subreddit, force18)) {
-                                    finalSubs.add(s)
+                                    finalSubs.add(RedditSubmission(s))
                                 }
                             }
                             posts = finalSubs

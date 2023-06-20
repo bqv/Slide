@@ -1,39 +1,35 @@
-package me.ccrama.redditslide.Adapters;
+package me.ccrama.redditslide.Adapters
 
-import net.dean.jraw.models.Submission;
-
-import java.util.List;
+import ltd.ucode.slide.data.IPost
 
 /**
  * Interface to provide methods for updating an object when new submissions
  * have been loaded.
  */
-public interface SubmissionDisplay {
+interface SubmissionDisplay {
     /**
      * Called when the update was done online.
      * @param submissions   the updated list of submissions
      * @param startIndex    the index of the first new submission
      */
-    void updateSuccess(List<Submission> submissions, int startIndex);
+    fun updateSuccess(submissions: List<IPost>, startIndex: Int)
 
     /**
      * Called when the update was offline.
      * @param submissions   the updated list of submissions
      * @param cacheTime     the last time updated (unix time?)
      */
-    void updateOffline(List<Submission> submissions, long cacheTime);
+    fun updateOffline(submissions: List<IPost>, cacheTime: Long)
 
     /**
      * Called when the update was offline but failed (e.g. no subreddit was cached).
      */
-    void updateOfflineError();
+    fun updateOfflineError()
 
     /**
      * Called when the update was done online but failed (e.g. network connection).
      */
-    void updateError();
-
-    void updateViews();
-
-    void onAdapterUpdated();
+    fun updateError()
+    fun updateViews()
+    fun onAdapterUpdated()
 }
