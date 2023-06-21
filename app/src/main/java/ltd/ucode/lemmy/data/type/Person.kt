@@ -4,7 +4,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class PersonSafe (
+data class Person (
     @SerialName("actor_id") val actorId: String,
     @SerialName("admin") val isAdmin: Boolean,
     val avatar: String? = null,
@@ -15,9 +15,9 @@ data class PersonSafe (
     @SerialName("bot_account") val isBotAccount: Boolean,
     @SerialName("deleted") val isDeleted: Boolean,
     @SerialName("display_name") val displayName: String? = null,
-    val id: Int,
+    val id: PersonId,
     @SerialName("inbox_url") val inboxUrl: String,
-    @SerialName("instance_id") val instanceId: Int,
+    @SerialName("instance_id") val instanceId: InstanceId,
     @SerialName("local") val isLocal: Boolean,
     @SerialName("matrix_user_id") val matrixUserId: String? = null,
     val name: String,

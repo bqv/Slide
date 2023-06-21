@@ -4,6 +4,6 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class CommunityBlockView (
-    val community: CommunitySafe,
-    val person: PersonSafe,
+    val community: Community,
+    val person: Person,
 )

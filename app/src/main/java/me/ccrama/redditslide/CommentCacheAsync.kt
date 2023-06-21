@@ -9,6 +9,7 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import com.fasterxml.jackson.databind.JsonNode
+import ltd.ucode.reddit.data.RedditSubmission
 import ltd.ucode.slide.App
 import ltd.ucode.slide.Authentication
 import ltd.ucode.slide.R
@@ -151,7 +152,7 @@ class CommentCacheAsync : AsyncTask<Any?, Any?, Any?> {
                         val s2 = SubmissionSerializer.withComments(n, CommentSort.CONFIDENCE)
                         OfflineSubreddit.writeSubmission(n, s2, context)
                         newFullnames.add(s2.fullName)
-                        if (!SettingValues.noImages) PhotoLoader.loadPhoto(context, s)
+                        if (!SettingValues.noImages) PhotoLoader.loadPhoto(context, RedditSubmission(s))
                         when (ContentType.getContentType(s)) {
                             ContentType.Type.VREDDIT_DIRECT, ContentType.Type.VREDDIT_REDIRECT, ContentType.Type.GIF -> if (otherChoices[0]) {
                                 if (context is Activity) {

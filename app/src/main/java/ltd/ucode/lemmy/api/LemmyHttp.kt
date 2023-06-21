@@ -10,17 +10,23 @@ import kotlinx.serialization.json.encodeToJsonElement
 import kotlinx.serialization.json.jsonObject
 import ltd.ucode.Util.filterNotNullValues
 import ltd.ucode.lemmy.api.iter.PagedData
+import ltd.ucode.lemmy.api.request.GetPersonDetailsRequest
 import ltd.ucode.lemmy.api.request.GetPostRequest
 import ltd.ucode.lemmy.api.request.GetPostsRequest
 import ltd.ucode.lemmy.api.request.GetSiteRequest
 import ltd.ucode.lemmy.api.request.ListCommunitiesRequest
 import ltd.ucode.lemmy.api.request.LoginRequest
+import ltd.ucode.lemmy.api.response.GetPersonDetailsResponse
 import ltd.ucode.lemmy.api.response.GetPostResponse
 import ltd.ucode.lemmy.api.response.GetSiteResponse
 import ltd.ucode.lemmy.data.LoginResult
+import ltd.ucode.lemmy.data.type.CommentId
+import ltd.ucode.lemmy.data.type.CommunityId
 import ltd.ucode.lemmy.data.type.CommunityView
 import ltd.ucode.lemmy.data.type.ListingType
 import ltd.ucode.lemmy.data.type.NodeInfoResult
+import ltd.ucode.lemmy.data.type.PersonId
+import ltd.ucode.lemmy.data.type.PostId
 import ltd.ucode.lemmy.data.type.PostView
 import ltd.ucode.lemmy.data.type.SortType
 import ltd.ucode.slide.BuildConfig
@@ -92,7 +98,7 @@ class LemmyHttp(val instance: String = "lemmy.ml",
     }
 
     fun getPosts(auth: String? = null,
-                 communityId: Int? = null,
+                 communityId: CommunityId? = null,
                  communityName: String? = null, // community, or community@instance.tld
                  limit: Int? = null,
                  fromPage: Int? = null,
@@ -100,7 +106,7 @@ class LemmyHttp(val instance: String = "lemmy.ml",
                  sort: SortType? = null,
                  type: ListingType? = null
     ): PagedData<PostView> {
-        return PagedData(fromPage ?: 0) { page: Int -> {
+        return PagedData(fromPage ?: 1) { page: Int -> {
                 val response = api.getPosts(
                     GetPostsRequest(
                         auth = auth,
@@ -120,8 +126,8 @@ class LemmyHttp(val instance: String = "lemmy.ml",
     }
 
     suspend fun getPost(auth: String? = null,
-                        id: Int? = null,
-                        commentId: Int? = null
+                        id: PostId? = null,
+                        commentId: CommentId? = null
     ): GetPostResponse {
         val response = api.getPost(GetPostRequest(
             auth = auth,
@@ -144,6 +150,29 @@ class LemmyHttp(val instance: String = "lemmy.ml",
             page = page,
             sort = sort,
             type = type
+        ).toForm()).unwrap()
+
+        return response.toResult()
+    }
+
+    suspend fun getPersonDetails(auth: String? = null,
+                                 communityId: CommunityId? = null,
+                                 limit: Int? = null,
+                                 page: Int? = null,
+                                 personId: PersonId? = null,
+                                 savedOnly: Boolean? = null,
+                                 sort: SortType? = null,
+                                 username: String? = null
+    ): GetPersonDetailsResponse {
+        val response = api.getPersonDetails(GetPersonDetailsRequest(
+            auth = auth,
+            communityId = communityId,
+            limit = limit,
+            page = page,
+            personId = personId,
+            savedOnly = savedOnly,
+            sort = sort,
+            username = username
         ).toForm()).unwrap()
 
         return response.toResult()

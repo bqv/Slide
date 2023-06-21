@@ -1,11 +1,14 @@
 package ltd.ucode.lemmy.data
 
+import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.Instant
 import kotlinx.datetime.UtcOffset
 import kotlinx.datetime.toInstant
 import ltd.ucode.lemmy.data.type.PostView
+import ltd.ucode.slide.Authentication
 import ltd.ucode.slide.data.IPost
-import net.dean.jraw.models.CommentNode
+import ltd.ucode.slide.data.IUser
+import net.dean.jraw.models.VoteDirection
 
 class LemmyPost(val instance: String, val data: PostView) : IPost() {
     override val id: String
@@ -23,6 +26,9 @@ class LemmyPost(val instance: String, val data: PostView) : IPost() {
     override val isLocked: Boolean
         get() = data.post.isLocked
 
+    override val isNsfw: Boolean
+        get() = data.post.isNsfw
+
     override val groupName: String
         get() = data.community.name
 
@@ -32,6 +38,26 @@ class LemmyPost(val instance: String, val data: PostView) : IPost() {
     override val published: Instant
         get() = data.post.published.toInstant(UtcOffset.ZERO)
 
-    override val comments: Iterable<CommentNode>
-        get() = emptyList()
+    override val creator: IUser by lazy {
+        val user = runBlocking {
+            Authentication.api!!.getPersonDetails(personId = data.post.creatorId)
+        }
+        LemmyUser(instance, user.personView)
+    }
+
+    override val score: Int
+        get() = data.counts.score
+
+    override val myVote: VoteDirection
+        get() = when (data.myVote?.let { it > 0 }) {
+            null -> { VoteDirection.NO_VOTE }
+            true -> { VoteDirection.UPVOTE }
+            false -> { VoteDirection.DOWNVOTE }
+        }
+
+    override val upvoteRatio: Double
+        get() = data.counts.run { upvotes.toDouble() / (upvotes + downvotes) }
+
+    override val commentCount: Int
+        get() = data.counts.comments
 }

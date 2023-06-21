@@ -8,7 +8,7 @@ import kotlinx.serialization.Serializable
 data class Tagline (
     val content: String,
     val id: Int,
-    @SerialName("local_site_id") val localSiteId: Int,
+    @SerialName("local_site_id") val localSiteId: LocalSiteId,
     val published: LocalDateTime,
     val updated: LocalDateTime?,
 )

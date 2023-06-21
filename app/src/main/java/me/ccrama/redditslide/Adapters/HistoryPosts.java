@@ -17,6 +17,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 
+import ltd.ucode.reddit.data.RedditSubmission;
 import ltd.ucode.slide.Authentication;
 import me.ccrama.redditslide.PostMatch;
 
@@ -70,7 +71,7 @@ public class HistoryPosts extends GeneralPosts {
                 ArrayList<Contribution> filteredSubmissions = new ArrayList<>();
                 for (Contribution c : submissions) {
                     if (c instanceof Submission) {
-                        if (!PostMatch.doesMatch((Submission) c)) {
+                        if (!PostMatch.doesMatch(new RedditSubmission((Submission) c))) {
                             filteredSubmissions.add(c);
                         }
                     } else {

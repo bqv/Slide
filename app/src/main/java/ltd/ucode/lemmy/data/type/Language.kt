@@ -4,7 +4,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class Language (
-    val code: String,
-    val id: Int,
+    val id: LanguageId,
+    val code: LanguageCode,
     val name: String,
 )

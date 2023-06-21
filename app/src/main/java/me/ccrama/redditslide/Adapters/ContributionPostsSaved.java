@@ -6,6 +6,7 @@ import net.dean.jraw.paginators.UserSavedPaginator;
 
 import java.util.ArrayList;
 
+import ltd.ucode.reddit.data.RedditSubmission;
 import ltd.ucode.slide.Authentication;
 import me.ccrama.redditslide.HasSeen;
 import me.ccrama.redditslide.PostMatch;
@@ -59,7 +60,7 @@ public class ContributionPostsSaved extends ContributionPosts {
                 for (Contribution c : paginator.next()) {
                     if (c instanceof Submission) {
                         Submission s = (Submission) c;
-                        if (!PostMatch.doesMatch(s)) {
+                        if (!PostMatch.doesMatch(new RedditSubmission(s))) {
                             newData.add(s);
                         }
                     } else {

@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class CommunityAggregates (
     val comments: Int,
-    @SerialName("community_id") val communityId: Int,
+    @SerialName("community_id") val communityId: CommunityId,
     val id: Int,
     val posts: Int,
     val subscribers: Int,
@@ -14,4 +14,5 @@ data class CommunityAggregates (
     @SerialName("users_active_week") val usersActiveWeek: Int,
     @SerialName("users_active_month") val usersActiveMonth: Int,
     @SerialName("users_active_half_year") val usersActiveHalfYear: Int,
+    @SerialName("hot_rank") val hotRank: Int = Int.MAX_VALUE, // ADDED in 0.17.4
 )

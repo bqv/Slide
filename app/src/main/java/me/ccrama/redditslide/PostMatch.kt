@@ -1,20 +1,19 @@
-package me.ccrama.redditslide;
+package me.ccrama.redditslide
 
-import android.content.SharedPreferences;
+import android.content.SharedPreferences
+import ltd.ucode.slide.SettingValues.alwaysExternal
+import ltd.ucode.slide.SettingValues.domainFilters
+import ltd.ucode.slide.SettingValues.flairFilters
+import ltd.ucode.slide.SettingValues.showNSFWContent
+import ltd.ucode.slide.SettingValues.subredditFilters
+import ltd.ucode.slide.SettingValues.textFilters
+import ltd.ucode.slide.SettingValues.titleFilters
+import ltd.ucode.slide.SettingValues.userFilters
+import ltd.ucode.slide.data.IPost
+import java.net.MalformedURLException
+import java.net.URL
 
-import net.dean.jraw.models.Submission;
-
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.Locale;
-import java.util.Set;
-
-import ltd.ucode.slide.SettingValues;
-
-/**
- * Created by carlo_000 on 1/13/2016.
- */
-public class PostMatch {
+object PostMatch {
     /**
      * Checks if a string is totally or partially contained in a set of strings
      *
@@ -23,19 +22,20 @@ public class PostMatch {
      * @param totalMatch only allow total match, no partial matches
      * @return if the string is contained in the set of strings
      */
-    public static boolean contains(String target, Set<String> strings, boolean totalMatch) {
+    @JvmStatic
+    fun contains(target: String, strings: Set<String?>, totalMatch: Boolean): Boolean {
         // filters are always stored lowercase
-        if (totalMatch) {
-            return strings.contains(target.toLowerCase(Locale.ENGLISH).trim());
-        } else if (strings.contains(target.toLowerCase(Locale.ENGLISH).trim())) {
-            return true;
+        return if (totalMatch) {
+            strings.contains(target.lowercase().trim { it <= ' ' })
+        } else if (strings.contains(target.lowercase().trim { it <= ' ' })) {
+            true
         } else {
-            for (String s : strings) {
-                if (target.toLowerCase(Locale.ENGLISH).trim().contains(s)) {
-                    return true;
+            for (s in strings) {
+                if (target.lowercase().trim { it <= ' ' }.contains(s!!)) {
+                    return true
                 }
             }
-            return false;
+            false
         }
     }
 
@@ -48,213 +48,189 @@ public class PostMatch {
      * @return If the target is covered by any strings
      * @throws MalformedURLException
      */
-    public static boolean isDomain(String target, Set<String> strings) throws MalformedURLException {
-        URL domain = new URL(target);
-        for (String s : strings) {
+    @Throws(MalformedURLException::class)
+    fun isDomain(target: String?, strings: Set<String>): Boolean {
+        val domain = URL(target)
+        for (s in strings) {
             if (!s.contains("/")) {
-                if (ContentType.hostContains(domain.getHost(), s)) {
-                    return true;
+                return if (ContentType.hostContains(domain.host, s)) {
+                    true
                 } else {
-                    continue;
+                    continue
                 }
             }
-
-            if (!s.contains("://")) {
-                s = "http://" + s;
-            }
-
             try {
-                URL comparison = new URL(s.toLowerCase(Locale.ENGLISH));
-
-                if (ContentType.hostContains(domain.getHost(), comparison.getHost())
-                        && domain.getPath().startsWith(comparison.getPath())) {
-                    return true;
+                val url = if (!s.contains("://")) {
+                    "http://$s"
+                } else {
+                    s
                 }
-            } catch (MalformedURLException ignored) {
+                val comparison = URL(url.lowercase())
+                if (ContentType.hostContains(domain.host, comparison.host)
+                    && domain.path.startsWith(comparison.path)
+                ) {
+                    return true
+                }
+            } catch (ignored: MalformedURLException) {
             }
         }
-        return false;
+        return false
     }
 
-    public static boolean openExternal(String url) {
-        try {
-            return isDomain(url.toLowerCase(Locale.ENGLISH), SettingValues.INSTANCE.getAlwaysExternal());
-        } catch (MalformedURLException e) {
-            return false;
+    @JvmStatic
+    fun openExternal(url: String): Boolean {
+        return try {
+            isDomain(url.lowercase(), alwaysExternal)
+        } catch (e: MalformedURLException) {
+            false
         }
     }
 
-    public static SharedPreferences filters;
-
-    public static boolean doesMatch(Submission s, String baseSubreddit, boolean ignore18) {
-        if (Hidden.id.contains(s.getFullName())) return true; // if it's hidden we're not going to show it regardless
-
-        String title = s.getTitle();
-        String body = s.getSelftext();
-        String domain = s.getUrl();
-        String subreddit = s.getSubredditName();
-        String flair = s.getSubmissionFlair().getText() != null ? s.getSubmissionFlair().getText() : "";
-
-        if (contains(title, SettingValues.INSTANCE.getTitleFilters(), false)) return true;
-
-        if (contains(body, SettingValues.INSTANCE.getTextFilters(), false)) return true;
-
-        if (contains(s.getAuthor(), SettingValues.INSTANCE.getUserFilters(), false)) return true;
-
+    var filters: SharedPreferences? = null
+    fun doesMatch(s: IPost, baseSubreddit: String?, ignore18: Boolean): Boolean {
+        var baseSubreddit = baseSubreddit
+        if (Hidden.id.contains(s.permalink)) return true // if it's hidden we're not going to show it regardless
+        val title = s.title
+        val body = s.body
+        val domain = s.url
+        val subreddit = s.groupName
+        val flair = if (s.flair.text != null) s.flair.text else ""
+        if (contains(title, titleFilters, false)) return true
+        if (contains(body.orEmpty(), textFilters, false)) return true
+        if (contains(s.creator.name, userFilters, false)) return true
         try {
-            if (isDomain(domain.toLowerCase(Locale.ENGLISH), SettingValues.INSTANCE.getDomainFilters())) return true;
-        } catch (MalformedURLException ignored) {
+            if (isDomain(domain.orEmpty().lowercase(), domainFilters)) return true
+        } catch (ignored: MalformedURLException) {
         }
-
-        if (!subreddit.equalsIgnoreCase(baseSubreddit) && contains(subreddit, SettingValues.INSTANCE.getSubredditFilters(), true)) {
-            return true;
+        if (!subreddit.equals(baseSubreddit, ignoreCase = true) && contains(
+                subreddit,
+                subredditFilters,
+                true
+            )
+        ) {
+            return true
         }
-
-        boolean contentMatch = false;
-
+        var contentMatch = false
         if (baseSubreddit == null || baseSubreddit.isEmpty()) {
-            baseSubreddit = "frontpage";
+            baseSubreddit = "frontpage"
         }
-
-        baseSubreddit = baseSubreddit.toLowerCase(Locale.ENGLISH);
-        boolean gifs = isGif(baseSubreddit);
-        boolean images = isImage(baseSubreddit);
-        boolean nsfw = isNsfw(baseSubreddit);
-        boolean albums = isAlbums(baseSubreddit);
-        boolean urls = isUrls(baseSubreddit);
-        boolean selftext = isSelftext(baseSubreddit);
-        boolean videos = isVideo(baseSubreddit);
-
-
-        if (s.isNsfw()) {
-            if (!SettingValues.INSTANCE.getShowNSFWContent()) {
-                contentMatch = true;
+        baseSubreddit = baseSubreddit.lowercase()
+        val gifs = isGif(baseSubreddit)
+        val images = isImage(baseSubreddit)
+        val nsfw = isNsfw(baseSubreddit)
+        val albums = isAlbums(baseSubreddit)
+        val urls = isUrls(baseSubreddit)
+        val selftext = isSelftext(baseSubreddit)
+        val videos = isVideo(baseSubreddit)
+        if (s.isNsfw) {
+            if (!showNSFWContent) {
+                contentMatch = true
             }
             if (ignore18) {
-                contentMatch = false;
+                contentMatch = false
             }
             if (nsfw) {
-                contentMatch = true;
+                contentMatch = true
             }
         }
-        switch (ContentType.getContentType(s)) {
-            case REDDIT:
-            case EMBEDDED:
-            case LINK:
-                if (urls) {
-                    contentMatch = true;
-                }
-                break;
-            case SELF:
-            case NONE:
-                if (selftext) {
-                    contentMatch = true;
-                }
-                break;
-            case REDDIT_GALLERY:
-            case ALBUM:
-                if (albums) {
-                    contentMatch = true;
-                }
-                break;
-            case IMAGE:
-            case DEVIANTART:
-            case IMGUR:
-            case XKCD:
-                if (images) {
-                    contentMatch = true;
-                }
-                break;
-            case VREDDIT_REDIRECT:
-            case GIF:
-                if (gifs) {
-                    contentMatch = true;
-                }
-                break;
-            case STREAMABLE:
-            case VIDEO:
-                if (videos) {
-                    contentMatch = true;
-                }
-                break;
-        }
+        when (s.contentType) {
+            ContentType.Type.REDDIT, ContentType.Type.EMBEDDED, ContentType.Type.LINK -> if (urls) {
+                contentMatch = true
+            }
 
-        if (!flair.isEmpty())
-            for (String flairText : SettingValues.INSTANCE.getFlairFilters()) {
-                if (flairText.toLowerCase(Locale.ENGLISH).startsWith(baseSubreddit)) {
-                    String[] split = flairText.split(":");
-                    if (split[0].equalsIgnoreCase(baseSubreddit)) {
-                        if (flair.equalsIgnoreCase(split[1].trim())) {
-                            contentMatch = true;
-                            break;
-                        }
+            ContentType.Type.SELF, ContentType.Type.NONE -> if (selftext) {
+                contentMatch = true
+            }
+
+            ContentType.Type.REDDIT_GALLERY, ContentType.Type.ALBUM -> if (albums) {
+                contentMatch = true
+            }
+
+            ContentType.Type.IMAGE, ContentType.Type.DEVIANTART, ContentType.Type.IMGUR, ContentType.Type.XKCD -> if (images) {
+                contentMatch = true
+            }
+
+            ContentType.Type.VREDDIT_REDIRECT, ContentType.Type.GIF -> if (gifs) {
+                contentMatch = true
+            }
+
+            ContentType.Type.STREAMABLE, ContentType.Type.VIDEO -> if (videos) {
+                contentMatch = true
+            }
+
+            else -> {}
+        }
+        if (flair.isNotEmpty()) for (flairText in flairFilters) {
+            if (flairText.lowercase().startsWith(baseSubreddit)) {
+                val split =
+                    flairText.split(":".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
+                if (split[0].equals(baseSubreddit, ignoreCase = true)) {
+                    if (flair.equals(split[1].trim { it <= ' ' }, ignoreCase = true)) {
+                        contentMatch = true
+                        break
                     }
                 }
             }
-
-        return contentMatch;
-    }
-
-    public static boolean doesMatch(Submission s) {
-        String title = s.getTitle();
-        String body = s.getSelftext();
-        String domain = s.getUrl();
-        String subreddit = s.getSubredditName();
-
-        boolean domainc = false;
-
-        boolean titlec = contains(title, SettingValues.INSTANCE.getTitleFilters(), false);
-
-        boolean bodyc = contains(body, SettingValues.INSTANCE.getTextFilters(), false);
-
-        try {
-            domainc = isDomain(domain.toLowerCase(Locale.ENGLISH), SettingValues.INSTANCE.getDomainFilters());
-        } catch (MalformedURLException ignored) {
         }
-
-        boolean subredditc = subreddit != null && !subreddit.isEmpty() && contains(subreddit, SettingValues.INSTANCE.getSubredditFilters(), true);
-
-        return (titlec || bodyc || domainc || subredditc);
+        return contentMatch
     }
 
-    public static void setChosen(boolean[] values, String subreddit) {
-        subreddit = subreddit.toLowerCase(Locale.ENGLISH);
-        SharedPreferences.Editor e = filters.edit();
-        e.putBoolean(subreddit + "_gifsFilter", values[2]);
-        e.putBoolean(subreddit + "_albumsFilter", values[1]);
-        e.putBoolean(subreddit + "_imagesFilter", values[0]);
-        e.putBoolean(subreddit + "_nsfwFilter", values[6]);
-        e.putBoolean(subreddit + "_selftextFilter", values[5]);
-        e.putBoolean(subreddit + "_urlsFilter", values[4]);
-        e.putBoolean(subreddit + "_videoFilter", values[3]);
-        e.apply();
+    @JvmStatic
+    fun doesMatch(s: IPost): Boolean {
+        val title = s.title
+        val body = s.body
+        val domain = s.url
+        val subreddit = s.groupName
+        var domainc = false
+        val titlec = contains(title, titleFilters, false)
+        val bodyc = contains(body.orEmpty(), textFilters, false)
+        try {
+            domainc = isDomain(domain.orEmpty().lowercase(), domainFilters)
+        } catch (ignored: MalformedURLException) {
+        }
+        val subredditc =
+            subreddit.isNotEmpty() && contains(subreddit, subredditFilters, true)
+        return titlec || bodyc || domainc || subredditc
     }
 
-    public static boolean isGif(String baseSubreddit) {
-        return filters.getBoolean(baseSubreddit + "_gifsFilter", false);
+    fun setChosen(values: BooleanArray, subreddit: String) {
+        val subreddit = subreddit.lowercase()
+        val e = filters!!.edit()
+        e.putBoolean(subreddit + "_gifsFilter", values[2])
+        e.putBoolean(subreddit + "_albumsFilter", values[1])
+        e.putBoolean(subreddit + "_imagesFilter", values[0])
+        e.putBoolean(subreddit + "_nsfwFilter", values[6])
+        e.putBoolean(subreddit + "_selftextFilter", values[5])
+        e.putBoolean(subreddit + "_urlsFilter", values[4])
+        e.putBoolean(subreddit + "_videoFilter", values[3])
+        e.apply()
     }
 
-    public static boolean isImage(String baseSubreddit) {
-        return filters.getBoolean(baseSubreddit + "_imagesFilter", false);
+    fun isGif(baseSubreddit: String): Boolean {
+        return filters!!.getBoolean(baseSubreddit + "_gifsFilter", false)
     }
 
-    public static boolean isAlbums(String baseSubreddit) {
-        return filters.getBoolean(baseSubreddit + "_albumsFilter", false);
+    fun isImage(baseSubreddit: String): Boolean {
+        return filters!!.getBoolean(baseSubreddit + "_imagesFilter", false)
     }
 
-    public static boolean isNsfw(String baseSubreddit) {
-        return filters.getBoolean(baseSubreddit + "_nsfwFilter", false);
+    fun isAlbums(baseSubreddit: String): Boolean {
+        return filters!!.getBoolean(baseSubreddit + "_albumsFilter", false)
     }
 
-    public static boolean isSelftext(String baseSubreddit) {
-        return filters.getBoolean(baseSubreddit + "_selftextFilter", false);
+    fun isNsfw(baseSubreddit: String): Boolean {
+        return filters!!.getBoolean(baseSubreddit + "_nsfwFilter", false)
     }
 
-    public static boolean isUrls(String baseSubreddit) {
-        return filters.getBoolean(baseSubreddit + "_urlsFilter", false);
+    fun isSelftext(baseSubreddit: String): Boolean {
+        return filters!!.getBoolean(baseSubreddit + "_selftextFilter", false)
     }
 
-    public static boolean isVideo(String baseSubreddit) {
-        return filters.getBoolean(baseSubreddit + "_videoFilter", false);
+    fun isUrls(baseSubreddit: String): Boolean {
+        return filters!!.getBoolean(baseSubreddit + "_urlsFilter", false)
+    }
+
+    fun isVideo(baseSubreddit: String): Boolean {
+        return filters!!.getBoolean(baseSubreddit + "_videoFilter", false)
     }
 }

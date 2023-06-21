@@ -368,7 +368,7 @@ open class BaseActivity : PeekViewActivity(), SwipeBackActivityBase {
         setSupportActionBar(mToolbar)
         if (supportActionBar != null) {
             supportActionBar!!.setDisplayHomeAsUpEnabled(enableUpButton)
-            supportActionBar!!.setTitle(title)
+            supportActionBar!!.title = title
         }
         themeSystemBars(subreddit)
         setRecentBar(title, Palette.getSubredditStatusBarColor(subreddit))
@@ -409,7 +409,7 @@ open class BaseActivity : PeekViewActivity(), SwipeBackActivityBase {
     var shareUrl: String? = null
         set(url: String?) {
             if (url != null) {
-                shareUrl = url
+                field = url
                 mNfcAdapter = null
                 Log.i("LinkDetails", "NFC is not available on this device")
             }

@@ -11,7 +11,7 @@ data class LocalSiteRateLimit (
     val id: Int,
     val image: Int,
     @SerialName("image_per_second") val imagePerSecond: Int,
-    @SerialName("local_site_id") val localSiteId: Int,
+    @SerialName("local_site_id") val localSiteId: LocalSiteId,
     val message: Int,
     @SerialName("message_per_second") val messagePerSecond: Int,
     val post: Int,

@@ -225,13 +225,13 @@ class SubmissionAdapter(
                                     a.openingComments = submission.submission
                                     a.currentComment = holder.bindingAdapterPosition - 1
                                     (a.adapter as SubredditPagerAdapterComment).storedFragment =
-                                        a.adapter.currentFragment
+                                        a.adapter!!.currentFragment
                                     (a.adapter as SubredditPagerAdapterComment).size = 3
-                                    a.adapter.notifyDataSetChanged()
+                                    a.adapter!!.notifyDataSetChanged()
                                 }
-                                a.pager.postDelayed({
-                                    a.pager.setCurrentItem(
-                                        a.pager.currentItem + 1,
+                                a.pager!!.postDelayed({
+                                    a.pager!!.setCurrentItem(
+                                        a.pager!!.currentItem + 1,
                                         true
                                     )
                                 }, 400)
@@ -284,8 +284,8 @@ class SubmissionAdapter(
             }
             )
             PopulateSubmissionViewHolder().populateSubmissionViewHolder(
-                holder, submission.submission,
-                context, false, false, dataSet.posts.map { it.submission }.toMutableList(), listView!!, custom, dataSet.offline,
+                holder, submission,
+                context, false, false, dataSet.posts, listView!!, custom, dataSet.offline,
                 dataSet.subreddit.lowercase(), null
             )
         }

@@ -20,12 +20,9 @@ import ltd.ucode.slide.data.IPost
 import me.ccrama.redditslide.Activities.BaseActivity
 import me.ccrama.redditslide.Activities.SubredditView
 import me.ccrama.redditslide.Fragments.SubmissionsView
-import me.ccrama.redditslide.HasSeen
-import me.ccrama.redditslide.LastComments
 import me.ccrama.redditslide.OfflineSubreddit
 import me.ccrama.redditslide.PostLoader
 import me.ccrama.redditslide.PostMatch
-import me.ccrama.redditslide.SubmissionCache
 import me.ccrama.redditslide.Synccit.MySynccitReadTask
 import me.ccrama.redditslide.util.LogUtil
 import me.ccrama.redditslide.util.NetworkUtil
@@ -156,9 +153,7 @@ class SubredditPosts @JvmOverloads constructor(
                 displayer!!.updateSuccess(posts, start)
                 currentid = 0
                 OfflineSubreddit.currentid = currentid
-                if (c is BaseActivity) {
-                    (c as BaseActivity).shareUrl = "https://reddit.com/r/$subreddit"
-                }
+                (c as? BaseActivity)?.let { it.shareUrl = "https://reddit.com/r/$subreddit" }
                 if (subreddit == "random" || subreddit == "myrandom" || subreddit == "randnsfw") {
                     subredditRandom = submissions[0]!!.groupName
                 }
@@ -178,7 +173,7 @@ class SubredditPosts @JvmOverloads constructor(
                 posts = ArrayList()
                 cached = OfflineSubreddit.getSubreddit(subreddit, 0L, true, c)
                 for (s in cached!!.submissions) {
-                    if (!PostMatch.doesMatch(s, subreddit, force18)) {
+                    if (!PostMatch.doesMatch(RedditSubmission(s), subreddit, force18)) {
                         posts.add(RedditSubmission(s))
                     }
                 }
@@ -239,25 +234,27 @@ class SubredditPosts @JvmOverloads constructor(
             if (!(SettingValues.noImages && ((!NetworkUtil.isConnectedWifi(c)
                         && SettingValues.lowResMobile) || SettingValues.lowResAlways))
             ) {
-                PhotoLoader.loadPhotos(c, filteredSubmissions.map { it.submission })
+                PhotoLoader.loadPhotos(c, filteredSubmissions)
             }
             if (SettingValues.storeHistory) {
-                HasSeen.setHasSeenSubmission(filteredSubmissions.map { it.submission })
-                LastComments.setCommentsSince(filteredSubmissions.map { it.submission })
+                //HasSeen.setHasSeenSubmission(filteredSubmissions.map { it.submission })
+                //LastComments.setCommentsSince(filteredSubmissions.map { it.submission })
             }
-            SubmissionCache.cacheSubmissions(filteredSubmissions.map { it.submission }, context, subreddit)
+            //SubmissionCache.cacheSubmissions(filteredSubmissions.map { it.submission }, context, subreddit)
             if (reset || offline || posts == null) {
-                posts = filteredSubmissions.filterNotNull().toHashSet().toMutableList()
+                posts = filteredSubmissions.toHashSet().toMutableList()
                 start = -1
             } else {
-                posts.addAll(filteredSubmissions.filterNotNull())
+                posts.addAll(filteredSubmissions)
                 posts = posts.toHashSet().toMutableList()
                 offline = false
             }
             if (!usedOffline) {
+                /*
                 OfflineSubreddit.getSubNoLoad(subreddit.lowercase())
                     .overwriteSubmissions(posts.map { it.submission })
                     .writeToMemory(context)
+                 */
             }
             start = 0
             if (posts != null) {
@@ -282,7 +279,7 @@ class SubredditPosts @JvmOverloads constructor(
                     }
                     for (s in adding) {
                         if (!PostMatch.doesMatch(
-                                s.submission,
+                                s,
                                 "",//if (paginator is SubredditPaginator) (paginator as SubredditPaginator).subreddit else (paginator as DomainPaginator?)!!.domain,
                                 force18
                             )
@@ -351,7 +348,7 @@ class SubredditPosts @JvmOverloads constructor(
                             )
                             val finalSubs: MutableList<IPost> = ArrayList()
                             for (s in cached!!.submissions) {
-                                if (!PostMatch.doesMatch(s, subreddit, force18)) {
+                                if (!PostMatch.doesMatch(RedditSubmission(s), subreddit, force18)) {
                                     finalSubs.add(RedditSubmission(s))
                                 }
                             }

@@ -4,6 +4,6 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class PersonBlockView (
-    val person: PersonSafe,
-    val target: PersonSafe,
+    val person: Person,
+    val target: Person,
 )

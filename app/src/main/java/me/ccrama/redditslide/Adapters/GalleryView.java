@@ -56,9 +56,9 @@ public class GalleryView extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     public ArrayList<Submission> posts;
     public String subreddit;
 
-    public GalleryView(final Gallery context, ArrayList<Submission> displayer, String subreddit) {
+    public GalleryView(final Gallery context, List<Submission> displayer, String subreddit) {
         main = context;
-        this.posts = displayer;
+        this.posts = new ArrayList(displayer);
         this.subreddit = subreddit;
     }
 

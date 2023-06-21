@@ -3268,14 +3268,14 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             }
             .setPositiveButton(R.string.btn_save) { dialog: DialogInterface?, which: Int ->
                 caching = CommentCacheAsync(
-                    submissions?.map { it.submission }, this@MainActivity, subreddit,
+                    submissions?.map { it.submission!! }, this@MainActivity, subreddit,
                     chosen
                 ).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR)
             }
             .setPositiveButton(R.string.btn_save) { dialog: DialogInterface?, which: Int ->
                 val service = Executors.newSingleThreadExecutor()
                 CommentCacheAsync(
-                    submissions?.map { it.submission }, this@MainActivity, subreddit,
+                    submissions?.map { it.submission!! }, this@MainActivity, subreddit,
                     chosen
                 ).executeOnExecutor(service)
             }

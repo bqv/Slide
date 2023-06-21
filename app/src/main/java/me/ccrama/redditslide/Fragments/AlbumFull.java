@@ -190,7 +190,7 @@ public class AlbumFull extends Fragment {
                 "page", 0)) {
             getActivity().finish();
         } else {
-            s = ((Shadowbox) getActivity()).subredditPosts.getPosts().get(bundle.getInt("page", 0));
+            s = ((Shadowbox) getActivity()).subredditPosts.getPosts().get(bundle.getInt("page", 0)).getSubmission();
         }
     }
 

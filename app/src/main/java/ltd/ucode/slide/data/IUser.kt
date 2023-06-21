@@ -1,4 +1,5 @@
 package ltd.ucode.slide.data
 
-interface IUser {
+abstract class IUser {
+    abstract val name: String
 }

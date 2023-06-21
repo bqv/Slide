@@ -10,6 +10,7 @@ import net.dean.jraw.ApiException;
 import net.dean.jraw.managers.AccountManager;
 import net.dean.jraw.models.Submission;
 
+import ltd.ucode.reddit.data.RedditSubmission;
 import me.ccrama.redditslide.Activities.MediaView;
 import ltd.ucode.slide.Authentication;
 import me.ccrama.redditslide.Fragments.SubmissionsView;
@@ -26,7 +27,7 @@ public class PopulateBase {
             myIntent.putExtra(MediaView.SUBMISSION_URL, submission.getPermalink());
         }
         SubmissionsView.currentPosition(adapterPosition);
-        SubmissionsView.currentSubmission(submission);
+        SubmissionsView.currentSubmission(new RedditSubmission(submission));
 
     }
 

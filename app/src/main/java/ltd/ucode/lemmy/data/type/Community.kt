@@ -5,15 +5,15 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class CommunitySafe (
+data class Community (
     @SerialName("actor_id") val actorId: String,
     val banner: String? = null,
     @SerialName("deleted") val isDeleted: Boolean,
     val description: String? = null,
     @SerialName("hidden") val isHidden: Boolean,
     val icon: String? = null,
-    val id: Int,
-    @SerialName("instance_id") val instanceId: Int,
+    val id: CommunityId,
+    @SerialName("instance_id") val instanceId: InstanceId,
     @SerialName("local") val isLocal: Boolean,
     val name: String,
     @SerialName("nsfw") val isNsfw: Boolean,

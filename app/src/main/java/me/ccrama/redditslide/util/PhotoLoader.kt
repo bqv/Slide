@@ -1,107 +1,78 @@
-package me.ccrama.redditslide.util;
+package me.ccrama.redditslide.util
 
-import android.content.Context;
+import android.content.Context
+import ltd.ucode.slide.App
+import ltd.ucode.slide.SettingValues
+import ltd.ucode.slide.data.IPost
+import me.ccrama.redditslide.ContentType
+import net.dean.jraw.models.Submission.ThumbnailType
+import net.dean.jraw.models.Thumbnails
 
-import net.dean.jraw.models.Submission;
-import net.dean.jraw.models.Thumbnails;
-
-import java.util.List;
-
-import me.ccrama.redditslide.ContentType;
-import ltd.ucode.slide.App;
-import ltd.ucode.slide.SettingValues;
-
-/**
- * Created by TacoTheDank on 12/11/2020.
- */
-public class PhotoLoader {
-
-    public static void loadPhoto(final Context c, final Submission submission) {
-        String url;
-        final ContentType.Type type = ContentType.getContentType(submission);
-        final Thumbnails thumbnails = submission.getThumbnails();
-        final Submission.ThumbnailType thumbnailType = submission.getThumbnailType();
-
+object PhotoLoader {
+    fun loadPhoto(c: Context, submission: IPost) {
+        val url: String
+        val type = submission.contentType
+        val thumbnails = submission.thumbnails
+        val thumbnailType = submission.thumbnailType
         if (thumbnails != null) {
-
-            if (type == ContentType.Type.IMAGE
-                    || type == ContentType.Type.SELF
-                    || thumbnailType == Submission.ThumbnailType.URL) {
-                if (type == ContentType.Type.IMAGE) {
+            if (type == ContentType.Type.IMAGE || type == ContentType.Type.SELF || thumbnailType == ThumbnailType.URL) {
+                url = if (type == ContentType.Type.IMAGE) {
                     if ((!NetworkUtil.isConnectedWifi(c) && SettingValues.lowResMobile
-                            || SettingValues.lowResAlways)
-                            && thumbnails.getVariations() != null
-                            && thumbnails.getVariations().length > 0) {
-
-                        final int length = thumbnails.getVariations().length;
+                                || SettingValues.lowResAlways) && thumbnails.variations != null && thumbnails.variations.isNotEmpty()
+                    ) {
+                        val length = thumbnails.variations.size
                         if (SettingValues.lqLow && length >= 3) {
-                            url = getThumbnailUrl(thumbnails.getVariations()[2]);
+                            getThumbnailUrl(thumbnails.variations[2])
                         } else if (SettingValues.lqMid && length >= 4) {
-                            url = getThumbnailUrl(thumbnails.getVariations()[3]);
+                            getThumbnailUrl(thumbnails.variations[3])
                         } else if (length >= 5) {
-                            url = getThumbnailUrl(thumbnails.getVariations()[length - 1]);
+                            getThumbnailUrl(thumbnails.variations[length - 1])
                         } else {
-                            url = getThumbnailUrl(thumbnails.getSource());
+                            getThumbnailUrl(thumbnails.source)
                         }
-
                     } else {
-                        if (submission.getDataNode().has("preview") && submission.getDataNode()
-                                .get("preview")
-                                .get("images")
-                                .get(0)
-                                .get("source")
-                                .has("height")) { //Load the preview image which has probably already been cached in memory instead of the direct link
-                            url = submission.getDataNode()
-                                    .get("preview")
-                                    .get("images")
-                                    .get(0)
-                                    .get("source")
-                                    .get("url")
-                                    .asText();
+                        if (submission.hasPreview) { //Load the preview image which has probably already been cached in memory instead of the direct link
+                            submission.preview!!
                         } else {
-                            url = submission.getUrl();
+                            submission.url!!
                         }
                     }
-
                 } else {
-
                     if ((!NetworkUtil.isConnectedWifi(c) && SettingValues.lowResMobile
-                            || SettingValues.lowResAlways)
-                            && thumbnails.getVariations().length != 0) {
-
-                        final int length = thumbnails.getVariations().length;
+                                || SettingValues.lowResAlways)
+                        && thumbnails.variations.isNotEmpty()
+                    ) {
+                        val length = thumbnails.variations.size
                         if (SettingValues.lqLow && length >= 3) {
-                            url = getThumbnailUrl(thumbnails.getVariations()[2]);
+                            getThumbnailUrl(thumbnails.variations[2])
                         } else if (SettingValues.lqMid && length >= 4) {
-                            url = getThumbnailUrl(thumbnails.getVariations()[3]);
+                            getThumbnailUrl(thumbnails.variations[3])
                         } else if (length >= 5) {
-                            url = getThumbnailUrl(thumbnails.getVariations()[length - 1]);
+                            getThumbnailUrl(thumbnails.variations[length - 1])
                         } else {
-                            url = getThumbnailUrl(thumbnails.getSource());
+                            getThumbnailUrl(thumbnails.source)
                         }
                     } else {
-                        url = getThumbnailUrl(thumbnails.getSource());
+                        getThumbnailUrl(thumbnails.source)
                     }
                 }
-                loadImage(c, url);
+                loadImage(c, url)
             }
         }
     }
 
-    private static String getThumbnailUrl(final Thumbnails.Image thumbnail) {
-        return CompatUtil.fromHtml(thumbnail.getUrl()).toString(); //unescape url characters
+    private fun getThumbnailUrl(thumbnail: Thumbnails.Image): String {
+        return CompatUtil.fromHtml(thumbnail.url).toString() //unescape url characters
     }
 
-    private static void loadImage(final Context context, final String url) {
-        final App appContext = (App) context.getApplicationContext();
-
-        appContext.getImageLoader()
-                .loadImage(url, null);
+    private fun loadImage(context: Context, url: String) {
+        val appContext = context.applicationContext as App
+        appContext.imageLoader!!.loadImage(url, null)
     }
 
-    public static void loadPhotos(final Context c, final List<Submission> submissions) {
-        for (final Submission submission : submissions) {
-            loadPhoto(c, submission);
+    fun loadPhotos(c: Context, submissions: List<IPost>) {
+        for (submission in submissions) {
+            loadPhoto(c, submission)
         }
     }
 }

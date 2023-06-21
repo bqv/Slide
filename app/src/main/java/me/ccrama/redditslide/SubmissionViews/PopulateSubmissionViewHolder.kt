@@ -5,7 +5,6 @@ import android.app.Dialog
 import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
-import android.content.SharedPreferences
 import android.graphics.Color
 import android.graphics.Typeface
 import android.os.AsyncTask
@@ -35,6 +34,7 @@ import com.afollestad.materialdialogs.MaterialDialog.SingleButtonCallback
 import com.cocosw.bottomsheet.BottomSheet
 import com.devspark.robototextview.RobotoTypefaces
 import com.google.android.material.snackbar.Snackbar
+import ltd.ucode.reddit.data.RedditSubmission
 import ltd.ucode.slide.App
 import ltd.ucode.slide.App.Companion.defaultShareText
 import ltd.ucode.slide.Authentication
@@ -42,6 +42,7 @@ import ltd.ucode.slide.R
 import ltd.ucode.slide.SettingValues
 import ltd.ucode.slide.SettingValues.isSelftextEnabled
 import ltd.ucode.slide.activity.MainActivity
+import ltd.ucode.slide.data.IPost
 import me.ccrama.redditslide.ActionStates
 import me.ccrama.redditslide.Activities.Album
 import me.ccrama.redditslide.Activities.AlbumPager
@@ -99,13 +100,10 @@ import net.dean.jraw.http.NetworkException
 import net.dean.jraw.http.oauth.InvalidScopeException
 import net.dean.jraw.managers.AccountManager
 import net.dean.jraw.managers.ModerationManager
-import net.dean.jraw.models.Contribution
 import net.dean.jraw.models.DistinguishedStatus
 import net.dean.jraw.models.FlairTemplate
 import net.dean.jraw.models.Ruleset
-import net.dean.jraw.models.Submission
 import net.dean.jraw.models.SubredditRule
-import net.dean.jraw.models.Thing
 import net.dean.jraw.models.VoteDirection
 import org.apache.commons.text.StringEscapeUtils
 import java.util.Arrays
@@ -115,9 +113,9 @@ class PopulateSubmissionViewHolder() {
     var reason: String? = null
     var chosen = booleanArrayOf(false, false, false)
     var oldChosen = booleanArrayOf(false, false, false)
-    fun <T : Contribution?> showBottomSheet(
+    private fun showBottomSheet(
         mContext: Activity,
-        submission: Submission, holder: SubmissionViewHolder, posts: MutableList<T>,
+        submission: IPost, holder: SubmissionViewHolder, posts: MutableList<IPost>,
         baseSub: String?, recyclerview: RecyclerView, full: Boolean
     ) {
         val attrs = intArrayOf(R.attr.tintColor)
@@ -158,12 +156,12 @@ class PopulateSubmissionViewHolder() {
         ta.recycle()
         val b = BottomSheet.Builder(mContext).title(CompatUtil.fromHtml(submission.title))
         val isReadLater = mContext is PostReadLater
-        val isAddedToReadLaterList = ReadLater.isToBeReadLater(submission)
+        val isAddedToReadLaterList = false//ReadLater.isToBeReadLater(submission)
         if (Authentication.didOnline) {
-            b.sheet(1, (profile)!!, "/u/" + submission.author)
-                .sheet(2, (sub)!!, "/r/" + submission.subredditName)
+            b.sheet(1, (profile)!!, "/u/" + submission.creator.name)
+                .sheet(2, (sub)!!, "/r/" + submission.groupName)
             var save: String = mContext.getString(R.string.btn_save)
-            if (ActionStates.isSaved(submission)) {
+            if (false /*ActionStates.isSaved(submission)*/) {
                 save = mContext.getString(R.string.comment_unsave)
             }
             if (Authentication.isLoggedIn) {
@@ -181,7 +179,7 @@ class PopulateSubmissionViewHolder() {
                 b.sheet(13, (crosspost)!!, mContext.getString(R.string.btn_crosspost))
             }
         }
-        if ((submission.selftext != null) && !submission.selftext.isEmpty() && full) {
+        if (submission.body?.isNotEmpty() == true && full) {
             b.sheet(25, (copy)!!, mContext.getString(R.string.submission_copy_text))
         }
         val hidden = submission.isHidden
@@ -203,29 +201,29 @@ class PopulateSubmissionViewHolder() {
                 when (which) {
                     1 -> {
                         val i = Intent(mContext, Profile::class.java)
-                        i.putExtra(Profile.EXTRA_PROFILE, submission.author)
+                        i.putExtra(Profile.EXTRA_PROFILE, submission.creator.name)
                         mContext.startActivity(i)
                     }
 
                     2 -> {
                         val i = Intent(mContext, SubredditView::class.java)
-                        i.putExtra(SubredditView.EXTRA_SUBREDDIT, submission.subredditName)
+                        i.putExtra(SubredditView.EXTRA_SUBREDDIT, submission.groupName)
                         mContext.startActivityForResult(i, 14)
                     }
 
                     10 -> {
                         val choices: Array<String>
                         val flair =
-                            if (submission.submissionFlair.text != null) submission.submissionFlair.text else ""
+                            if (submission.flair.text != null) submission.flair.text else ""
                         if (flair.isEmpty()) {
                             choices = arrayOf(
                                 mContext.getString(
                                     R.string.filter_posts_sub,
-                                    submission.subredditName
+                                    submission.groupName
                                 ),
                                 mContext.getString(
                                     R.string.filter_posts_user,
-                                    submission.author
+                                    submission.creator.name
                                 ),
                                 mContext.getString(
                                     R.string.filter_posts_urls,
@@ -238,16 +236,16 @@ class PopulateSubmissionViewHolder() {
                             )
                             chosen = booleanArrayOf(
                                 SettingValues.subredditFilters.contains(
-                                    submission.subredditName.lowercase()
+                                    submission.groupName.lowercase()
                                 ),
                                 SettingValues.userFilters.contains(
-                                    submission.author.lowercase()
+                                    submission.creator.name.lowercase()
                                 ),
                                 SettingValues.domainFilters.contains(
-                                    submission.domain.lowercase()
+                                    submission.domain!!.lowercase()
                                 ),
                                 SettingValues.alwaysExternal.contains(
-                                    submission.domain.lowercase()
+                                    submission.domain!!.lowercase()
                                 )
                             )
                             oldChosen = chosen.clone()
@@ -255,11 +253,11 @@ class PopulateSubmissionViewHolder() {
                             choices = arrayOf(
                                 mContext.getString(
                                     R.string.filter_posts_sub,
-                                    submission.subredditName
+                                    submission.groupName
                                 ),
                                 mContext.getString(
                                     R.string.filter_posts_user,
-                                    submission.author
+                                    submission.creator.name
                                 ),
                                 mContext.getString(
                                     R.string.filter_posts_urls,
@@ -274,16 +272,16 @@ class PopulateSubmissionViewHolder() {
                         }
                         chosen = booleanArrayOf(
                             SettingValues.subredditFilters.contains(
-                                submission.subredditName.lowercase()
+                                submission.groupName.lowercase()
                             ),
                             SettingValues.userFilters.contains(
-                                submission.author.lowercase()
+                                submission.creator.name.lowercase()
                             ),
                             SettingValues.domainFilters.contains(
-                                submission.domain.lowercase()
+                                submission.domain!!.lowercase()
                             ),
                             SettingValues.alwaysExternal.contains(
-                                submission.domain.lowercase()
+                                submission.domain!!.lowercase()
                             ),
                             SettingValues.flairFilters.contains(
                                 baseSub + ":" + flair.lowercase().trim { it <= ' ' })
@@ -302,58 +300,53 @@ class PopulateSubmissionViewHolder() {
                             ) { dialog12: DialogInterface?, which12: Int ->
                                 var filtered: Boolean = false
                                 if (chosen[0] && chosen[0] != oldChosen[0]) {
-                                    SettingValues.subredditFilters += submission.getSubredditName()
+                                    SettingValues.subredditFilters += submission.groupName
                                         .lowercase().trim { it <= ' ' }
                                     filtered = true
-                                } else if (!chosen.get(0) && chosen.get(0) != oldChosen.get(0)) {
-                                    SettingValues.subredditFilters -= submission.getSubredditName()
+                                } else if (!chosen[0] && chosen[0] != oldChosen[0]) {
+                                    SettingValues.subredditFilters -= submission.groupName
                                         .lowercase().trim { it <= ' ' }
                                     filtered = false
                                 }
-                                if (chosen.get(1) && chosen.get(1) != oldChosen.get(1)) {
-                                    SettingValues.userFilters += submission.getAuthor()
+                                if (chosen[1] && chosen[1] != oldChosen[1]) {
+                                    SettingValues.userFilters += submission.creator.name
                                         .lowercase().trim { it <= ' ' }
                                     filtered = true
-                                } else if (!chosen.get(1) && chosen.get(1) != oldChosen.get(1)) {
-                                    SettingValues.userFilters -= submission.getAuthor()
+                                } else if (!chosen[1] && chosen[1] != oldChosen[1]) {
+                                    SettingValues.userFilters -= submission.creator.name
                                         .lowercase().trim { it <= ' ' }
                                     filtered = false
                                 }
-                                if (chosen.get(2) && chosen.get(2) != oldChosen.get(2)) {
-                                    SettingValues.domainFilters += submission.getDomain()
+                                if (chosen[2] && chosen[2] != oldChosen[2]) {
+                                    SettingValues.domainFilters += submission.domain!!
                                         .lowercase().trim { it <= ' ' }
                                     filtered = true
-                                } else if (!chosen.get(2) && chosen.get(2) != oldChosen.get(2)) {
-                                    SettingValues.domainFilters -= submission.getDomain()
+                                } else if (!chosen[2] && chosen[2] != oldChosen[2]) {
+                                    SettingValues.domainFilters -= submission.domain!!
                                         .lowercase().trim { it <= ' ' }
                                     filtered = false
                                 }
-                                if (chosen.get(3) && chosen.get(3) != oldChosen.get(3)) {
-                                    SettingValues.alwaysExternal += submission.getDomain()
+                                if (chosen[3] && chosen[3] != oldChosen[3]) {
+                                    SettingValues.alwaysExternal += submission.domain!!
                                         .lowercase().trim { it <= ' ' }
-                                } else if (!chosen.get(3) && chosen.get(3) != oldChosen.get(3)) {
-                                    SettingValues.alwaysExternal -= submission.getDomain()
+                                } else if (!chosen[3] && chosen[3] != oldChosen[3]) {
+                                    SettingValues.alwaysExternal -= submission.domain!!
                                         .lowercase().trim { it <= ' ' }
                                 }
                                 if (chosen.size > 4) {
-                                    val s: String = (baseSub + ":" + flair)
+                                    val s: String = ("$baseSub:$flair")
                                         .lowercase().trim { it <= ' ' }
-                                    if (chosen.get(4) && chosen.get(4) != oldChosen.get(4)) {
+                                    if (chosen[4] && chosen[4] != oldChosen[4]) {
                                         SettingValues.flairFilters += s
                                         filtered = true
-                                    } else if (!chosen.get(4) && chosen.get(4) != oldChosen.get(
-                                            4
-                                        )
-                                    ) {
+                                    } else if (!chosen[4] && chosen[4] != oldChosen[4]) {
                                         SettingValues.flairFilters -= s
                                     }
                                 }
                                 if (filtered) {
-                                    val toRemove: ArrayList<Contribution> = ArrayList()
-                                    for (s: Contribution? in posts) {
-                                        if ((s is Submission
-                                                    && PostMatch.doesMatch(s as Submission?))
-                                        ) {
+                                    val toRemove: ArrayList<IPost> = ArrayList()
+                                    for (s: IPost? in posts) {
+                                        if (s is IPost && PostMatch.doesMatch(RedditSubmission(s))) {
                                             toRemove.add(s)
                                         }
                                     }
@@ -361,7 +354,7 @@ class PopulateSubmissionViewHolder() {
                                         baseSub,
                                         false, mContext
                                     )
-                                    for (remove: Contribution? in toRemove) {
+                                    for (remove: IPost? in toRemove) {
                                         val pos: Int = posts.indexOf(remove)
                                         posts.removeAt(pos)
                                         if (baseSub != null) {
@@ -387,7 +380,7 @@ class PopulateSubmissionViewHolder() {
                         if (submission.isNsfw && !SettingValues.storeNSFWHistory) {
                             //Do nothing if the post is NSFW and storeNSFWHistory is not enabled
                         } else if (SettingValues.storeHistory) {
-                            HasSeen.addSeen(submission.fullName)
+                            HasSeen.addSeen(submission.permalink)
                         }
                     }
 
@@ -423,8 +416,8 @@ class PopulateSubmissionViewHolder() {
                     } else {
                         ReadLater.setReadLater(submission, false)
                         if (isReadLater || !Authentication.didOnline) {
-                            val pos = posts.indexOf(submission as T)
-                            posts.remove(submission as T)
+                            val pos = posts.indexOf(submission)
+                            posts.remove(submission)
                             recyclerview.adapter!!
                                 .notifyItemRemoved(holder.bindingAdapterPosition)
                             val s2 = Snackbar.make(
@@ -436,12 +429,10 @@ class PopulateSubmissionViewHolder() {
                                 com.google.android.material.R.id.snackbar_text
                             )
                             tv2.setTextColor(Color.WHITE)
-                            s2.setAction(R.string.btn_undo, object : View.OnClickListener {
-                                override fun onClick(view: View) {
-                                    posts.add(pos, submission as T)
-                                    recyclerview.adapter!!.notifyDataSetChanged()
-                                }
-                            })
+                            s2.setAction(R.string.btn_undo) {
+                                posts.add(pos, submission)
+                                recyclerview.adapter!!.notifyDataSetChanged()
+                            }
                         } else {
                             val s2 = Snackbar.make(
                                 holder.itemView, "Removed from read later",
@@ -454,7 +445,7 @@ class PopulateSubmissionViewHolder() {
                             s2.show()
                         }
                         OfflineSubreddit.newSubreddit(CommentCacheAsync.SAVED_SUBMISSIONS)
-                            .deleteFromMemory(submission.fullName)
+                            .deleteFromMemory(submission.permalink)
                     }
 
                     4 -> defaultShareText(
@@ -468,26 +459,24 @@ class PopulateSubmissionViewHolder() {
                             .title(R.string.report_post)
                             .positiveText(R.string.btn_report)
                             .negativeText(R.string.btn_cancel)
-                            .onPositive(object : SingleButtonCallback {
-                                override fun onClick(dialog: MaterialDialog, which: DialogAction) {
-                                    val reasonGroup = dialog.customView!!
-                                        .findViewById<RadioGroup>(R.id.report_reasons)
-                                    val reportReason: String
-                                    if (reasonGroup.checkedRadioButtonId == R.id.report_other) {
-                                        reportReason = (dialog.customView!!
-                                            .findViewById<View>(R.id.input_report_reason) as EditText).text.toString()
-                                    } else {
-                                        reportReason = (reasonGroup
-                                            .findViewById<View>(reasonGroup.checkedRadioButtonId) as RadioButton)
-                                            .text.toString()
-                                    }
-                                    AsyncReportTask(submission, holder.itemView)
-                                        .executeOnExecutor(
-                                            AsyncTask.THREAD_POOL_EXECUTOR,
-                                            reportReason
-                                        )
+                            .onPositive { dialog, which ->
+                                val reasonGroup = dialog.customView!!
+                                    .findViewById<RadioGroup>(R.id.report_reasons)
+                                val reportReason: String
+                                if (reasonGroup.checkedRadioButtonId == R.id.report_other) {
+                                    reportReason = (dialog.customView!!
+                                        .findViewById<View>(R.id.input_report_reason) as EditText).text.toString()
+                                } else {
+                                    reportReason = (reasonGroup
+                                        .findViewById<View>(reasonGroup.checkedRadioButtonId) as RadioButton)
+                                        .text.toString()
                                 }
-                            }).build()
+                                AsyncReportTask(submission, holder.itemView)
+                                    .executeOnExecutor(
+                                        AsyncTask.THREAD_POOL_EXECUTOR,
+                                        reportReason
+                                    )
+                            }.build()
                         val reasonGroup =
                             reportDialog.customView!!.findViewById<RadioGroup>(R.id.report_reasons)
                         reasonGroup.setOnCheckedChangeListener { group, checkedId ->
@@ -501,7 +490,7 @@ class PopulateSubmissionViewHolder() {
                         // Load sub's report reasons and show the appropriate ones
                         object : AsyncTask<Void?, Void?, Ruleset>() {
                             override fun doInBackground(vararg voids: Void?): Ruleset {
-                                return Authentication.reddit!!.getRules(submission.subredditName)
+                                return Authentication.reddit!!.getRules(submission.groupName)
                             }
 
                             override fun onPostExecute(rules: Ruleset) {
@@ -511,7 +500,7 @@ class PopulateSubmissionViewHolder() {
                                     val subHeader = TextView(mContext)
                                     subHeader.text = mContext.getString(
                                         R.string.report_sub_rules,
-                                        submission.subredditName
+                                        submission.groupName
                                     )
                                     reasonGroup.addView(subHeader, reasonGroup.childCount - 2)
                                 }
@@ -551,7 +540,7 @@ class PopulateSubmissionViewHolder() {
                     } else {
                         defaultShareText(
                             submission.title,
-                            "https://redd.it/" + submission.id,
+                            submission.permalink,
                             mContext
                         )
                     }
@@ -567,7 +556,7 @@ class PopulateSubmissionViewHolder() {
                     25 -> {
                         val showText = TextView(mContext)
                         showText.text = StringEscapeUtils.unescapeHtml4(
-                            submission.title + "\n\n" + submission.selftext
+                            submission.title + "\n\n" + submission.body
                         )
                         showText.setTextIsSelectable(true)
                         val sixteen = DisplayUtil.dpToPxVertical(24)
@@ -579,13 +568,13 @@ class PopulateSubmissionViewHolder() {
                             .setPositiveButton(
                                 "COPY SELECTED"
                             ) { dialog13: DialogInterface?, which13: Int ->
-                                val selected: String = showText.getText()
+                                val selected: String = showText.text
                                     .toString()
                                     .substring(
-                                        showText.getSelectionStart(),
-                                        showText.getSelectionEnd()
+                                        showText.selectionStart,
+                                        showText.selectionEnd
                                     )
-                                if (!selected.isEmpty()) {
+                                if (selected.isNotEmpty()) {
                                     ClipboardUtil.copyToClipboard(
                                         mContext,
                                         "Selftext",
@@ -595,9 +584,9 @@ class PopulateSubmissionViewHolder() {
                                     ClipboardUtil.copyToClipboard(
                                         mContext, "Selftext",
                                         CompatUtil.fromHtml(
-                                            (submission.getTitle()
+                                            (submission.title
                                                     + "\n\n"
-                                                    + submission.getSelftext())
+                                                    + submission.body)
                                         )
                                     )
                                 }
@@ -614,9 +603,9 @@ class PopulateSubmissionViewHolder() {
                                 ClipboardUtil.copyToClipboard(
                                     mContext, "Selftext",
                                     StringEscapeUtils.unescapeHtml4(
-                                        (submission.getTitle()
+                                        (submission.title
                                                 + "\n\n"
-                                                + submission.getSelftext())
+                                                + submission.body)
                                     )
                                 )
                                 Toast.makeText(
@@ -634,7 +623,7 @@ class PopulateSubmissionViewHolder() {
     }
 
     private fun saveSubmission(
-        submission: Submission, mContext: Activity,
+        submission: IPost, mContext: Activity,
         holder: SubmissionViewHolder, full: Boolean
     ) {
         object : AsyncTask<Void?, Void?, Void?>() {
@@ -668,12 +657,8 @@ class PopulateSubmissionViewHolder() {
                         )
                         if (Authentication.me!!.hasGold()) {
                             s.setAction(
-                                R.string.category_categorize,
-                                object : View.OnClickListener {
-                                    override fun onClick(v: View) {
-                                        categorizeSaved(submission, holder.itemView, mContext)
-                                    }
-                                })
+                                R.string.category_categorize
+                            ) { categorizeSaved(submission, holder.itemView, mContext) }
                         }
                         AnimatorUtil.setFlashAnimation(
                             holder.itemView, holder.save,
@@ -702,7 +687,7 @@ class PopulateSubmissionViewHolder() {
     }
 
     private fun categorizeSaved(
-        submission: Submission, itemView: View,
+        submission: IPost, itemView: View,
         mContext: Context
     ) {
         object : AsyncTask<Void?, Void?, List<String?>>() {
@@ -715,15 +700,15 @@ class PopulateSubmissionViewHolder() {
             }
 
             override fun doInBackground(vararg params: Void?): List<String?> {
-                try {
+                return try {
                     val categories: MutableList<String?> = ArrayList(
                         AccountManager(Authentication.reddit).savedCategories
                     )
                     categories.add("New category")
-                    return categories
+                    categories
                 } catch (e: Exception) {
                     e.printStackTrace()
-                    return object : ArrayList<String?>() {
+                    object : ArrayList<String?>() {
                         init {
                             add("New category")
                         }
@@ -750,8 +735,8 @@ class PopulateSubmissionViewHolder() {
                                             R.string.category_set_name_hint
                                         ),
                                             null,
-                                            false,
-                                            { dialog1: MaterialDialog?, input: CharSequence? -> })
+                                            false
+                                        ) { dialog1: MaterialDialog?, input: CharSequence? -> }
                                         .positiveText(R.string.btn_set)
                                         .onPositive(
                                             object : SingleButtonCallback {
@@ -760,7 +745,7 @@ class PopulateSubmissionViewHolder() {
                                                     which: DialogAction
                                                 ) {
                                                     val flair = dialog.inputEditText!!
-                                                        .getText()
+                                                        .text
                                                         .toString()
                                                     object : AsyncTask<Void?, Void?, Boolean>() {
                                                         override fun doInBackground(
@@ -815,14 +800,14 @@ class PopulateSubmissionViewHolder() {
                                 } else {
                                     object : AsyncTask<Void?, Void?, Boolean>() {
                                         override fun doInBackground(vararg params: Void?): Boolean {
-                                            try {
+                                            return try {
                                                 AccountManager(Authentication.reddit).save(
                                                     submission, t
                                                 )
-                                                return true
+                                                true
                                             } catch (e: ApiException) {
                                                 e.printStackTrace()
-                                                return false
+                                                false
                                             }
                                         }
 
@@ -862,11 +847,11 @@ class PopulateSubmissionViewHolder() {
         }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR)
     }
 
-    fun <T : Contribution?> hideSubmission(
-        submission: Submission,
-        posts: MutableList<T>, baseSub: String?, recyclerview: RecyclerView, c: Context?
+    fun hideSubmission(
+        submission: IPost,
+        posts: MutableList<IPost>, baseSub: String?, recyclerview: RecyclerView, c: Context?
     ) {
-        val pos = posts.indexOf(submission as T)
+        val pos = posts.indexOf(submission)
         if (pos != -1) {
             if (submission.isHidden) {
                 posts.removeAt(pos)
@@ -900,24 +885,22 @@ class PopulateSubmissionViewHolder() {
                     recyclerview, R.string.submission_info_hidden,
                     Snackbar.LENGTH_LONG
                 )
-                    .setAction(R.string.btn_undo, object : View.OnClickListener {
-                        override fun onClick(v: View) {
-                            if ((baseSub != null) && (s != null) && finalSuccess) {
-                                s.unhideLast()
-                            }
-                            posts.add(pos, t)
-                            recyclerview.adapter!!.notifyItemInserted(pos + 1)
-                            Hidden.undoHidden(t)
+                    .setAction(R.string.btn_undo) {
+                        if ((baseSub != null) && (s != null) && finalSuccess) {
+                            s.unhideLast()
                         }
-                    })
+                        posts.add(pos, t)
+                        recyclerview.adapter!!.notifyItemInserted(pos + 1)
+                        Hidden.undoHidden(t)
+                    }
                 LayoutUtils.showSnackbar(snack)
             }
         }
     }
 
-    fun <T : Contribution?> showModBottomSheet(
+    private fun showModBottomSheet(
         mContext: Activity,
-        submission: Submission, posts: MutableList<T>, holder: SubmissionViewHolder,
+        submission: IPost, posts: MutableList<IPost>, holder: SubmissionViewHolder,
         recyclerview: RecyclerView, reports: Map<String, Int>,
         reports2: Map<String, String>
     ) {
@@ -994,7 +977,7 @@ class PopulateSubmissionViewHolder() {
             b.sheet(9, (lock)!!, res.getString(R.string.mod_btn_lock_thread))
         }
         val stickied = submission.isStickied
-        if (!SubmissionCache.removed.contains(submission.fullName)) {
+        if (!SubmissionCache.removed.contains(submission.permalink)) {
             if (stickied) {
                 b.sheet(4, (pin)!!, res.getString(R.string.mod_btn_unpin))
             } else {
@@ -1003,7 +986,7 @@ class PopulateSubmissionViewHolder() {
         }
         val distinguished = (submission.distinguishedStatus == DistinguishedStatus.MODERATOR
                 || submission.distinguishedStatus == DistinguishedStatus.ADMIN)
-        if (submission.author.equals(Authentication.name, ignoreCase = true)) {
+        if (submission.creator.name.equals(Authentication.name, ignoreCase = true)) {
             if (distinguished) {
                 b.sheet(5, (distinguish)!!, "Undistingiush")
             } else {
@@ -1012,7 +995,7 @@ class PopulateSubmissionViewHolder() {
         }
         val finalWhoApproved = whoApproved
         val finalApproved = approved
-        b.sheet(8, (profile)!!, res.getString(R.string.mod_btn_author))
+        b.sheet(8, (profile)!!, res.getString(R.string.mod_btn.creator.name))
         b.sheet(23, (ban)!!, mContext.getString(R.string.mod_ban_user))
         b.listener(object : DialogInterface.OnClickListener {
             override fun onClick(dialog: DialogInterface, which: Int) {
@@ -1081,42 +1064,40 @@ class PopulateSubmissionViewHolder() {
 
                     6 -> removeSubmission(mContext, submission, posts, recyclerview, holder, false)
                     7 -> if ((SettingValues.removalReasonType == SettingValues.RemovalReasonType.TOOLBOX.ordinal
-                                && ToolboxUI.canShowRemoval(submission.subredditName))
+                                && ToolboxUI.canShowRemoval(submission.groupName))
                     ) {
                         ToolboxUI.showRemoval(
                             mContext,
                             submission,
-                            object : CompletedRemovalCallback {
-                                override fun onComplete(success: Boolean) {
-                                    if (success) {
-                                        SubmissionCache.removed.add(submission.fullName)
-                                        SubmissionCache.approved.remove(submission.fullName)
-                                        SubmissionCache.updateInfoSpannable(
-                                            submission, mContext,
-                                            submission.subredditName
-                                        )
-                                        if (mContext is ModQueue) {
-                                            val pos = posts.indexOf(submission as T)
-                                            posts.remove(submission as T)
-                                            if (pos == 0) {
-                                                recyclerview.adapter!!.notifyDataSetChanged()
-                                            } else {
-                                                recyclerview.adapter!!.notifyItemRemoved(pos + 1)
-                                            }
+                            CompletedRemovalCallback { success ->
+                                if (success) {
+                                    SubmissionCache.removed.add(submission.permalink)
+                                    SubmissionCache.approved.remove(submission.permalink)
+                                    SubmissionCache.updateInfoSpannable(
+                                        submission, mContext,
+                                        submission.groupName
+                                    )
+                                    if (mContext is ModQueue) {
+                                        val pos = posts.indexOf(submission)
+                                        posts.remove(submission)
+                                        if (pos == 0) {
+                                            recyclerview.adapter!!.notifyDataSetChanged()
                                         } else {
-                                            recyclerview.adapter!!.notifyItemChanged(holder.bindingAdapterPosition)
+                                            recyclerview.adapter!!.notifyItemRemoved(pos + 1)
                                         }
-                                        val s = Snackbar.make(
-                                            holder.itemView, R.string.submission_removed,
-                                            Snackbar.LENGTH_LONG
-                                        )
-                                        LayoutUtils.showSnackbar(s)
                                     } else {
-                                        AlertDialog.Builder(mContext)
-                                            .setTitle(R.string.err_general)
-                                            .setMessage(R.string.err_retry_later)
-                                            .show()
+                                        recyclerview.adapter!!.notifyItemChanged(holder.bindingAdapterPosition)
                                     }
+                                    val s = Snackbar.make(
+                                        holder.itemView, R.string.submission_removed,
+                                        Snackbar.LENGTH_LONG
+                                    )
+                                    LayoutUtils.showSnackbar(s)
+                                } else {
+                                    AlertDialog.Builder(mContext)
+                                        .setTitle(R.string.err_general)
+                                        .setMessage(R.string.err_retry_later)
+                                        .show()
                                 }
                             })
                     } else { // Show a Slide reason dialog if we can't show a toolbox or reddit one
@@ -1126,7 +1107,7 @@ class PopulateSubmissionViewHolder() {
                     30 -> removeSubmission(mContext, submission, posts, recyclerview, holder, true)
                     8 -> {
                         val i = Intent(mContext, Profile::class.java)
-                        i.putExtra(Profile.EXTRA_PROFILE, submission.author)
+                        i.putExtra(Profile.EXTRA_PROFILE, submission.creator.name)
                         mContext.startActivity(i)
                     }
 
@@ -1135,7 +1116,7 @@ class PopulateSubmissionViewHolder() {
                         showBan(mContext, holder.itemView, submission, "", "", "", "")
 
                     24 -> ToolboxUI.showUsernotes(
-                        mContext, submission.author, submission.subredditName,
+                        mContext, submission.creator.name, submission.groupName,
                         "l," + submission.id
                     )
                 }
@@ -1144,9 +1125,9 @@ class PopulateSubmissionViewHolder() {
         b.show()
     }
 
-    private fun <T : Contribution?> doRemoveSubmissionReason(
+    private fun doRemoveSubmissionReason(
         mContext: Activity,
-        submission: Submission, posts: MutableList<T>, recyclerview: RecyclerView,
+        submission: IPost, posts: MutableList<IPost>, recyclerview: RecyclerView,
         holder: SubmissionViewHolder
     ) {
         reason = ""
@@ -1154,44 +1135,38 @@ class PopulateSubmissionViewHolder() {
             .positiveText(R.string.btn_remove)
             .alwaysCallInputCallback()
             .input(mContext.getString(R.string.mod_remove_hint),
-                mContext.getString(R.string.mod_remove_template), false,
-                object : InputCallback {
-                    override fun onInput(dialog: MaterialDialog, input: CharSequence) {
-                        reason = input.toString()
-                    }
-                })
+                mContext.getString(R.string.mod_remove_template), false
+            ) { dialog, input -> reason = input.toString() }
             .inputType(InputType.TYPE_TEXT_FLAG_CAP_SENTENCES)
             .neutralText(R.string.mod_remove_insert_draft)
-            .onPositive(object : SingleButtonCallback {
-                override fun onClick(dialog: MaterialDialog, which: DialogAction) {
-                    removeSubmissionReason(
-                        submission, mContext, posts, reason!!, holder,
-                        recyclerview
-                    )
-                }
-            })
+            .onPositive { dialog, which ->
+                removeSubmissionReason(
+                    submission, mContext, posts, reason!!, holder,
+                    recyclerview
+                )
+            }
             .negativeText(R.string.btn_cancel)
             .onNegative {_, _ -> }
             .show()
     }
 
-    private fun <T : Contribution?> removeSubmissionReason(
-        submission: Submission,
-        mContext: Activity, posts: MutableList<T>, reason: String,
+    private fun removeSubmissionReason(
+        submission: IPost,
+        mContext: Activity, posts: MutableList<IPost>, reason: String,
         holder: SubmissionViewHolder, recyclerview: RecyclerView
     ) {
         object : AsyncTask<Void?, Void?, Boolean>() {
             public override fun onPostExecute(b: Boolean) {
                 if (b) {
-                    SubmissionCache.removed.add(submission.fullName)
-                    SubmissionCache.approved.remove(submission.fullName)
+                    SubmissionCache.removed.add(submission.permalink)
+                    SubmissionCache.approved.remove(submission.permalink)
                     SubmissionCache.updateInfoSpannable(
                         submission, mContext,
-                        submission.subredditName
+                        submission.groupName
                     )
                     if (mContext is ModQueue) {
-                        val pos = posts.indexOf(submission as T)
-                        posts.remove(submission as T)
+                        val pos = posts.indexOf(submission)
+                        posts.remove(submission)
                         if (pos == 0) {
                             recyclerview.adapter!!.notifyDataSetChanged()
                         } else {
@@ -1231,23 +1206,23 @@ class PopulateSubmissionViewHolder() {
         }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR)
     }
 
-    private fun <T : Contribution?> removeSubmission(
+    private fun removeSubmission(
         mContext: Activity,
-        submission: Submission, posts: MutableList<T>, recyclerview: RecyclerView,
+        submission: IPost, posts: MutableList<IPost>, recyclerview: RecyclerView,
         holder: SubmissionViewHolder, spam: Boolean
     ) {
         object : AsyncTask<Void?, Void?, Boolean>() {
             public override fun onPostExecute(b: Boolean) {
-                SubmissionCache.removed.add(submission.fullName)
-                SubmissionCache.approved.remove(submission.fullName)
+                SubmissionCache.removed.add(submission.permalink)
+                SubmissionCache.approved.remove(submission.permalink)
                 SubmissionCache.updateInfoSpannable(
                     submission, mContext,
-                    submission.subredditName
+                    submission.groupName
                 )
                 if (b) {
                     if (mContext is ModQueue) {
-                        val pos = posts.indexOf(submission as T)
-                        posts.remove(submission as T)
+                        val pos = posts.indexOf(submission)
+                        posts.remove(submission)
                         if (pos == 0) {
                             recyclerview.adapter!!.notifyDataSetChanged()
                         } else {
@@ -1269,7 +1244,7 @@ class PopulateSubmissionViewHolder() {
                 }
             }
 
-            protected override fun doInBackground(vararg params: Void?): Boolean {
+            override fun doInBackground(vararg params: Void?): Boolean {
                 try {
                     ModerationManager(Authentication.reddit).remove(submission, spam)
                 } catch (e: ApiException) {
@@ -1285,14 +1260,14 @@ class PopulateSubmissionViewHolder() {
     }
 
     private fun doSetFlair(
-        mContext: Activity, submission: Submission,
+        mContext: Activity, submission: IPost,
         holder: SubmissionViewHolder
     ) {
         object : AsyncTask<Void?, Void?, ArrayList<String?>?>() {
             var flair: ArrayList<FlairTemplate>? = null
             protected override fun doInBackground(vararg params: Void?): ArrayList<String?>? {
                 val allFlairs = FluentRedditClient(Authentication.reddit).subreddit(
-                    submission.subredditName
+                    submission.groupName
                 ).flair()
                 try {
                     flair = ArrayList(allFlairs.options(submission))
@@ -1325,60 +1300,53 @@ class PopulateSubmissionViewHolder() {
     }
 
     private fun showFlairSelectionDialog(
-        mContext: Activity, submission: Submission,
+        mContext: Activity, submission: IPost,
         data: ArrayList<String?>?, flair: ArrayList<FlairTemplate>?,
         holder: SubmissionViewHolder
     ) {
         MaterialDialog.Builder(mContext).items((data)!!)
             .title(R.string.sidebar_select_flair)
-            .itemsCallback(object : ListCallback {
-                override fun onSelection(
-                    dialog: MaterialDialog, itemView: View, which: Int,
-                    text: CharSequence
-                ) {
-                    val t = flair!![which]
-                    if (t.isTextEditable) {
-                        showFlairEditDialog(mContext, submission, t, holder)
-                    } else {
-                        setFlair(mContext, null, submission, t, holder)
-                    }
+            .itemsCallback { dialog, itemView, which, text ->
+                val t = flair!![which]
+                if (t.isTextEditable) {
+                    showFlairEditDialog(mContext, submission, t, holder)
+                } else {
+                    setFlair(mContext, null, submission, t, holder)
                 }
-            })
+            }
             .show()
     }
 
     private fun showFlairEditDialog(
-        mContext: Activity, submission: Submission,
+        mContext: Activity, submission: IPost,
         t: FlairTemplate, holder: SubmissionViewHolder
     ) {
         MaterialDialog.Builder(mContext).title(R.string.sidebar_select_flair_text)
-            .input(mContext.getString(R.string.mod_flair_hint), t.text, true,
-                { dialog: MaterialDialog?, input: CharSequence? -> })
+            .input(mContext.getString(R.string.mod_flair_hint), t.text, true
+            ) { dialog: MaterialDialog?, input: CharSequence? -> }
             .positiveText(R.string.btn_set)
-            .onPositive(object : SingleButtonCallback {
-                override fun onClick(dialog: MaterialDialog, which: DialogAction) {
-                    val flair = dialog.inputEditText!!.text.toString()
-                    setFlair(mContext, flair, submission, t, holder)
-                }
-            })
+            .onPositive { dialog, which ->
+                val flair = dialog.inputEditText!!.text.toString()
+                setFlair(mContext, flair, submission, t, holder)
+            }
             .negativeText(R.string.btn_cancel)
             .show()
     }
 
     private fun setFlair(
-        mContext: Context, flair: String?, submission: Submission,
+        mContext: Context, flair: String?, submission: IPost,
         t: FlairTemplate, holder: SubmissionViewHolder
     ) {
         object : AsyncTask<Void?, Void?, Boolean>() {
-            protected override fun doInBackground(vararg params: Void?): Boolean {
-                try {
+            override fun doInBackground(vararg params: Void?): Boolean {
+                return try {
                     ModerationManager(Authentication.reddit).setFlair(
-                        submission.subredditName, t, flair, submission
+                        submission.groupName, t, flair, submission
                     )
-                    return true
+                    true
                 } catch (e: ApiException) {
                     e.printStackTrace()
-                    return false
+                    false
                 }
             }
 
@@ -1393,7 +1361,7 @@ class PopulateSubmissionViewHolder() {
                     }
                     if (holder.itemView != null) {
                         SubmissionCache.updateTitleFlair(submission, flair, mContext)
-                        doText(holder, submission, mContext, submission.subredditName, false)
+                        doText(holder, submission, mContext, submission.groupName, false)
                     }
                 } else {
                     if (holder.itemView != null) {
@@ -1411,7 +1379,7 @@ class PopulateSubmissionViewHolder() {
     }
 
     fun doText(
-        holder: SubmissionViewHolder, submission: Submission?, mContext: Context,
+        holder: SubmissionViewHolder, submission: IPost?, mContext: Context,
         baseSub: String?, full: Boolean
     ) {
         val t = SubmissionCache.getTitleLine(submission, mContext)
@@ -1443,7 +1411,7 @@ class PopulateSubmissionViewHolder() {
     }
 
     private fun stickySubmission(
-        mContext: Activity, submission: Submission,
+        mContext: Activity, submission: IPost,
         holder: SubmissionViewHolder
     ) {
         object : AsyncTask<Void?, Void?, Boolean>() {
@@ -1478,7 +1446,7 @@ class PopulateSubmissionViewHolder() {
     }
 
     private fun unStickySubmission(
-        mContext: Activity, submission: Submission,
+        mContext: Activity, submission: IPost,
         holder: SubmissionViewHolder
     ) {
         object : AsyncTask<Void?, Void?, Boolean>() {
@@ -1510,7 +1478,7 @@ class PopulateSubmissionViewHolder() {
     }
 
     private fun lockSubmission(
-        mContext: Activity, submission: Submission,
+        mContext: Activity, submission: IPost,
         holder: SubmissionViewHolder
     ) {
         object : AsyncTask<Void?, Void?, Boolean>() {
@@ -1540,7 +1508,7 @@ class PopulateSubmissionViewHolder() {
     }
 
     private fun unLockSubmission(
-        mContext: Activity, submission: Submission,
+        mContext: Activity, submission: IPost,
         holder: SubmissionViewHolder
     ) {
         object : AsyncTask<Void?, Void?, Boolean>() {
@@ -1570,14 +1538,14 @@ class PopulateSubmissionViewHolder() {
     }
 
     private fun distinguishSubmission(
-        mContext: Activity, submission: Submission,
+        mContext: Activity, submission: IPost,
         holder: SubmissionViewHolder
     ) {
         object : AsyncTask<Void?, Void?, Boolean>() {
             public override fun onPostExecute(b: Boolean) {
                 if (b) {
                     val s = Snackbar.make(
-                        holder.itemView, "Submission distinguished",
+                        holder.itemView, "IPost distinguished",
                         Snackbar.LENGTH_LONG
                     )
                     LayoutUtils.showSnackbar(s)
@@ -1605,14 +1573,14 @@ class PopulateSubmissionViewHolder() {
     }
 
     private fun unDistinguishSubmission(
-        mContext: Activity, submission: Submission,
+        mContext: Activity, submission: IPost,
         holder: SubmissionViewHolder
     ) {
         object : AsyncTask<Void?, Void?, Boolean>() {
             public override fun onPostExecute(b: Boolean) {
                 if (b) {
                     val s = Snackbar.make(
-                        holder.itemView, "Submission distinguish removed",
+                        holder.itemView, "IPost distinguish removed",
                         Snackbar.LENGTH_LONG
                     )
                     LayoutUtils.showSnackbar(s)
@@ -1640,7 +1608,7 @@ class PopulateSubmissionViewHolder() {
     }
 
     private fun setPostNsfw(
-        mContext: Activity, submission: Submission,
+        mContext: Activity, submission: IPost,
         holder: SubmissionViewHolder
     ) {
         object : AsyncTask<Void?, Void?, Boolean>() {
@@ -1669,7 +1637,7 @@ class PopulateSubmissionViewHolder() {
     }
 
     private fun unNsfwSubmission(
-        mContext: Context, submission: Submission,
+        mContext: Context, submission: IPost,
         holder: SubmissionViewHolder
     ) {
         //todo update view with NSFW tag
@@ -1702,7 +1670,7 @@ class PopulateSubmissionViewHolder() {
     }
 
     private fun setSpoiler(
-        mContext: Activity, submission: Submission,
+        mContext: Activity, submission: IPost,
         holder: SubmissionViewHolder
     ) {
         object : AsyncTask<Void?, Void?, Boolean>() {
@@ -1734,7 +1702,7 @@ class PopulateSubmissionViewHolder() {
     }
 
     private fun unSpoiler(
-        mContext: Context, submission: Submission,
+        mContext: Context, submission: IPost,
         holder: SubmissionViewHolder
     ) {
         //todo update view with NSFW tag
@@ -1766,23 +1734,23 @@ class PopulateSubmissionViewHolder() {
         }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR)
     }
 
-    private fun <T : Thing?> approveSubmission(
-        mContext: Context, posts: MutableList<T>,
-        submission: Submission, recyclerview: RecyclerView,
+    private fun approveSubmission(
+        mContext: Context, posts: MutableList<IPost>,
+        submission: IPost, recyclerview: RecyclerView,
         holder: SubmissionViewHolder
     ) {
         object : AsyncTask<Void?, Void?, Boolean>() {
             public override fun onPostExecute(b: Boolean) {
                 if (b) {
-                    SubmissionCache.approved.add(submission.fullName)
-                    SubmissionCache.removed.remove(submission.fullName)
+                    SubmissionCache.approved.add(submission.permalink)
+                    SubmissionCache.removed.remove(submission.permalink)
                     SubmissionCache.updateInfoSpannable(
                         submission, mContext,
-                        submission.subredditName
+                        submission.groupName
                     )
                     if (mContext is ModQueue) {
-                        val pos = posts.indexOf(submission as T)
-                        posts.remove(submission as T)
+                        val pos = posts.indexOf(submission)
+                        posts.remove(submission)
                         if (pos == 0) {
                             recyclerview.adapter!!.notifyDataSetChanged()
                         } else {
@@ -1820,7 +1788,7 @@ class PopulateSubmissionViewHolder() {
     }
 
     fun showBan(
-        mContext: Context, mToolbar: View?, submission: Submission,
+        mContext: Context, mToolbar: View?, submission: IPost,
         rs: String?, nt: String?, msg: String?, t: String?
     ) {
         val l = LinearLayout(mContext)
@@ -1849,12 +1817,12 @@ class PopulateSubmissionViewHolder() {
         l.addView(time)
         AlertDialog.Builder(mContext)
             .setView(l)
-            .setTitle(mContext.getString(R.string.mod_ban_title, submission.author))
+            .setTitle(mContext.getString(R.string.mod_ban_title, submission.creator.name))
             .setCancelable(true)
             .setPositiveButton(R.string.mod_btn_ban
             ) { dialog: DialogInterface?, which: Int ->
                 //to ban
-                if (reason.getText().toString().isEmpty()) {
+                if (reason.text.toString().isEmpty()) {
                     AlertDialog.Builder(mContext)
                         .setTitle(R.string.mod_ban_reason_required)
                         .setMessage(R.string.misc_please_try_again)
@@ -1863,10 +1831,10 @@ class PopulateSubmissionViewHolder() {
                             DialogInterface.OnClickListener { dialog1: DialogInterface?, which1: Int ->
                                 showBan(
                                     mContext, mToolbar, submission,
-                                    reason.getText().toString(),
-                                    note.getText().toString(),
-                                    message.getText().toString(),
-                                    time.getText().toString()
+                                    reason.text.toString(),
+                                    note.text.toString(),
+                                    message.text.toString(),
+                                    time.text.toString()
                                 )
                             })
                         .setCancelable(false)
@@ -1875,30 +1843,30 @@ class PopulateSubmissionViewHolder() {
                     object : AsyncTask<Void?, Void?, Boolean>() {
                         protected override fun doInBackground(vararg params: Void?): Boolean {
                             try {
-                                var n: String? = note.getText().toString()
-                                var m: String? = message.getText().toString()
+                                var n: String? = note.text.toString()
+                                var m: String? = message.text.toString()
                                 if (n!!.isEmpty()) {
                                     n = null
                                 }
                                 if (m!!.isEmpty()) {
                                     m = null
                                 }
-                                if (time.getText().toString().isEmpty()) {
+                                if (time.text.toString().isEmpty()) {
                                     ModerationManager(
                                         Authentication.reddit
                                     ).banUserPermanently(
-                                        submission.getSubredditName(),
-                                        submission.getAuthor(),
-                                        reason.getText().toString(), n, m
+                                        submission.groupName,
+                                        submission.creator.name,
+                                        reason.text.toString(), n, m
                                     )
                                 } else {
                                     ModerationManager(Authentication.reddit).banUser(
-                                        submission.getSubredditName(),
-                                        submission.getAuthor(),
-                                        reason.getText().toString(),
+                                        submission.groupName,
+                                        submission.creator.name,
+                                        reason.text.toString(),
                                         n,
                                         m,
-                                        time.getText().toString().toInt()
+                                        time.text.toString().toInt()
                                     )
                                 }
                                 return true
@@ -1939,20 +1907,18 @@ class PopulateSubmissionViewHolder() {
                                     (mToolbar)!!, R.string.mod_ban_fail,
                                     Snackbar.LENGTH_INDEFINITE
                                 )
-                                    .setAction(R.string.misc_try_again,
-                                        object : View.OnClickListener {
-                                            override fun onClick(v: View) {
-                                                showBan(
-                                                    mContext, mToolbar,
-                                                    submission,
-                                                    reason.getText().toString(),
-                                                    note.getText().toString(),
-                                                    message.getText()
-                                                        .toString(),
-                                                    time.getText().toString()
-                                                )
-                                            }
-                                        })
+                                    .setAction(R.string.misc_try_again
+                                    ) {
+                                        showBan(
+                                            mContext, mToolbar,
+                                            submission,
+                                            reason.text.toString(),
+                                            note.text.toString(),
+                                            message.text
+                                                .toString(),
+                                            time.text.toString()
+                                        )
+                                    }
                             }
                             if (s != null) {
                                 LayoutUtils.showSnackbar(s)
@@ -1965,18 +1931,18 @@ class PopulateSubmissionViewHolder() {
             .show()
     }
 
-    fun <T : Contribution?> populateSubmissionViewHolder(
-        holder: SubmissionViewHolder, submission: Submission, mContext: Activity,
-        fullscreen: Boolean, full: Boolean, posts: MutableList<T>,
+    fun populateSubmissionViewHolder(
+        holder: SubmissionViewHolder, submission: IPost, mContext: Activity,
+        fullscreen: Boolean, full: Boolean, posts: MutableList<IPost>,
         recyclerview: RecyclerView, same: Boolean, offline: Boolean,
         baseSub: String?, adapter: CommentAdapter?
     ) {
-        holder.itemView.findViewById<View>(R.id.vote).visibility = View.GONE
+        holder.itemView.findViewById<View>(R.id.myVote).visibility = View.GONE
         if ((!offline
                     && (UserSubscriptions.modOf != null
-                    ) && (submission.subredditName != null
+                    ) && (submission.groupName != null
                     ) && UserSubscriptions.modOf.contains(
-                submission.subredditName.lowercase()
+                submission.groupName.lowercase()
             ))
         ) {
             holder.mod.visibility = View.VISIBLE
@@ -1994,22 +1960,26 @@ class PopulateSubmissionViewHolder() {
                 ) Palette.getCurrentTintColor(mContext) else Palette.getWhiteTintColor()
                 BlendModeUtil.tintImageViewAsSrcAtop((holder.mod as ImageView), getTintColor)
             }
-            holder.mod.setOnClickListener(object : View.OnClickListener {
-                override fun onClick(v: View) {
-                    showModBottomSheet(
-                        mContext, submission, posts, holder, recyclerview, reports,
-                        reports2
-                    )
-                }
-            })
+            holder.mod.setOnClickListener {
+                showModBottomSheet(
+                    mContext, submission, posts, holder, recyclerview, reports,
+                    reports2
+                )
+            }
         } else {
             holder.mod.visibility = View.GONE
         }
-        holder.menu.setOnClickListener(object : View.OnClickListener {
-            override fun onClick(view: View) {
-                showBottomSheet(mContext, submission, holder, posts, baseSub, recyclerview, full)
-            }
-        })
+        holder.menu.setOnClickListener {
+            showBottomSheet(
+                mContext,
+                submission,
+                holder,
+                posts,
+                baseSub,
+                recyclerview,
+                full
+            )
+        }
 
         //Use this to offset the submission score
         var submissionScore = submission.score
@@ -2071,8 +2041,8 @@ class PopulateSubmissionViewHolder() {
                 ) Palette.getCurrentTintColor(mContext) else Palette.getWhiteTintColor()
                 BlendModeUtil.tintImageViewAsSrcAtop(downvotebutton, getTintColor)
                 downvotebutton.contentDescription = mContext.getString(R.string.btn_downvote)
-                if (submission.vote != VoteDirection.UPVOTE) {
-                    if (submission.vote == VoteDirection.DOWNVOTE) ++submissionScore
+                if (submission.myVote != VoteDirection.UPVOTE) {
+                    if (submission.myVote == VoteDirection.DOWNVOTE) ++submissionScore
                     ++submissionScore //offset the score by +1
                 }
             }
@@ -2091,8 +2061,8 @@ class PopulateSubmissionViewHolder() {
                 ) Palette.getCurrentTintColor(mContext) else Palette.getWhiteTintColor()
                 BlendModeUtil.tintImageViewAsSrcAtop(upvotebutton, getTintColor)
                 upvotebutton.contentDescription = mContext.getString(R.string.btn_upvote)
-                if (submission.vote != VoteDirection.DOWNVOTE) {
-                    if (submission.vote == VoteDirection.UPVOTE) --submissionScore
+                if (submission.myVote != VoteDirection.DOWNVOTE) {
+                    if (submission.myVote == VoteDirection.UPVOTE) --submissionScore
                     --submissionScore //offset the score by +1
                 }
             }
@@ -2168,7 +2138,7 @@ class PopulateSubmissionViewHolder() {
         if (holder.leadImage.thumbImage2 == null) {
             holder.leadImage.setThumbnail(thumbImage2)
         }
-        val type = ContentType.getContentType(submission)
+        val type = submission.contentType
         addClickFunctions(holder.leadImage, type, mContext, submission, holder, full)
         if (thumbImage2 != null) {
             addClickFunctions(thumbImage2, type, mContext, submission, holder, full)
@@ -2197,40 +2167,36 @@ class PopulateSubmissionViewHolder() {
                     (holder.itemView.findViewById<View>(R.id.crossthumb) as ImageView)
                 )
             holder.itemView.findViewById<View>(R.id.crosspost)
-                .setOnClickListener(object : View.OnClickListener {
-                    override fun onClick(v: View) {
-                        OpenRedditLink.openUrl(
-                            mContext,
-                            submission.dataNode["crosspost_parent_list"][0]["permalink"].asText(),
-                            true
-                        )
-                    }
-                })
+                .setOnClickListener {
+                    OpenRedditLink.openUrl(
+                        mContext,
+                        submission.dataNode["crosspost_parent_list"][0]["permalink"].asText(),
+                        true
+                    )
+                }
         }
         holder.leadImage.setSubmission(submission, full, baseSub, type)
-        holder.itemView.setOnLongClickListener(object : View.OnLongClickListener {
-            override fun onLongClick(v: View): Boolean {
-                if (offline) {
-                    val s = Snackbar.make(
-                        holder.itemView, mContext.getString(R.string.offline_msg),
-                        Snackbar.LENGTH_SHORT
-                    )
-                    LayoutUtils.showSnackbar(s)
+        holder.itemView.setOnLongClickListener {
+            if (offline) {
+                val s = Snackbar.make(
+                    holder.itemView, mContext.getString(R.string.offline_msg),
+                    Snackbar.LENGTH_SHORT
+                )
+                LayoutUtils.showSnackbar(s)
+            } else {
+                if (SettingValues.actionbarTap && !full) {
+                    CreateCardView.toggleActionbar(holder.itemView)
                 } else {
-                    if (SettingValues.actionbarTap && !full) {
-                        CreateCardView.toggleActionbar(holder.itemView)
-                    } else {
-                        holder.itemView.findViewById<View>(R.id.menu).callOnClick()
-                    }
+                    holder.itemView.findViewById<View>(R.id.menu).callOnClick()
                 }
-                return true
             }
-        })
+            true
+        }
         doText(holder, submission, mContext, baseSub, full)
         if ((!full
                     && isSelftextEnabled(baseSub)
-                    && submission.isSelfPost
-                    && !submission.selftext.isEmpty()
+                    && submission.url == null
+                    && submission.body.orEmpty().isNotEmpty()
                     && !submission.isNsfw
                     && !submission.dataNode["spoiler"].asBoolean()
                     && !submission.dataNode["selftext_html"].asText().trim { it <= ' ' }.isEmpty())
@@ -2253,33 +2219,26 @@ class PopulateSubmissionViewHolder() {
                     .replace("<sup>", "<sup><small>")
                     .replace("</sup>", "</small></sup>"), "none "
             )
-            holder.body.setOnClickListener(object : View.OnClickListener {
-                override fun onClick(v: View) {
-                    holder.itemView.callOnClick()
-                }
-            })
-            holder.body.setOnLongClickListener(object : View.OnLongClickListener {
-                override fun onLongClick(v: View): Boolean {
-                    holder.menu.callOnClick()
-                    return true
-                }
-            })
+            holder.body.setOnClickListener { holder.itemView.callOnClick() }
+            holder.body.setOnLongClickListener {
+                holder.menu.callOnClick()
+                true
+            }
         } else if (!full) {
             holder.body.visibility = View.GONE
         }
         if (full) {
-            if (!submission.selftext.isEmpty()) {
+            if (submission.body?.isNotEmpty() == true) {
                 val typef = FontPreferences(mContext).fontTypeComment.typeface
-                val typeface: Typeface
-                if (typef >= 0) {
-                    typeface = RobotoTypefaces.obtainTypeface(mContext, typef)
+                val typeface = if (typef >= 0) {
+                    RobotoTypefaces.obtainTypeface(mContext, typef)
                 } else {
-                    typeface = Typeface.DEFAULT
+                    Typeface.DEFAULT
                 }
                 holder.firstTextView.setTypeface(typeface)
                 setViews(
                     submission.dataNode["selftext_html"].asText(),
-                    if (submission.subredditName == null) "all" else submission.subredditName,
+                    if (submission.groupName == null) "all" else submission.groupName,
                     holder
                 )
                 holder.itemView.findViewById<View>(R.id.body_area).visibility = View.VISIBLE
@@ -2292,117 +2251,113 @@ class PopulateSubmissionViewHolder() {
             val comments = holder.comments
             if (Authentication.isLoggedIn && !offline && Authentication.didOnline) {
                 run {
-                    downvotebutton.setOnClickListener(object : View.OnClickListener {
-                        override fun onClick(view: View) {
-                            if (SettingValues.storeHistory && !full) {
-                                if (!submission.isNsfw() || SettingValues.storeNSFWHistory) {
-                                    HasSeen.addSeen(submission.getFullName())
-                                    if (mContext is MainActivity) {
-                                        holder.title.setAlpha(0.54f)
-                                        holder.body.setAlpha(0.54f)
-                                    }
+                    downvotebutton.setOnClickListener {
+                        if (SettingValues.storeHistory && !full) {
+                            if (!submission.isNsfw || SettingValues.storeNSFWHistory) {
+                                HasSeen.addSeen(submission.permalink)
+                                if (mContext is MainActivity) {
+                                    holder.title.setAlpha(0.54f)
+                                    holder.body.setAlpha(0.54f)
                                 }
                             }
-                            val getTintColor: Int =
-                                if ((holder.itemView.getTag(holder.itemView.getId()) != null
-                                            && (holder.itemView.getTag(holder.itemView.getId()) == "none")
-                                            || full)
-                                ) Palette.getCurrentTintColor(mContext) else Palette.getWhiteTintColor()
-                            if ((ActionStates.getVoteDirection(submission)
-                                        != VoteDirection.DOWNVOTE)
-                            ) { //has not been downvoted
-                                points.setTextColor(
-                                    ContextCompat.getColor(mContext, R.color.md_blue_500)
-                                )
-                                BlendModeUtil.tintImageViewAsSrcAtop(
-                                    downvotebutton,
-                                    ContextCompat.getColor(mContext, R.color.md_blue_500)
-                                )
-                                BlendModeUtil.tintImageViewAsSrcAtop(upvotebutton, getTintColor)
-                                downvotebutton.setContentDescription(mContext.getString(R.string.btn_downvoted))
-                                AnimatorUtil.setFlashAnimation(
-                                    holder.itemView, downvotebutton,
-                                    ContextCompat.getColor(mContext, R.color.md_blue_500)
-                                )
-                                holder.score.setTypeface(null, Typeface.BOLD)
-                                val DOWNVOTE_SCORE: Int =
-                                    if ((SUBMISSION_SCORE == 0)) 0 else (SUBMISSION_SCORE
-                                            - 1) //if a post is at 0 votes, keep it at 0 when downvoting
-                                Vote(false, points, mContext).execute(submission)
-                                ActionStates.setVoteDirection(submission, VoteDirection.DOWNVOTE)
-                            } else { //un-downvoted a post
-                                points.setTextColor(comments.getCurrentTextColor())
-                                Vote(points, mContext).execute(submission)
-                                holder.score.setTypeface(null, Typeface.NORMAL)
-                                ActionStates.setVoteDirection(submission, VoteDirection.NO_VOTE)
-                                BlendModeUtil.tintImageViewAsSrcAtop(downvotebutton, getTintColor)
-                                downvotebutton.setContentDescription(mContext.getString(R.string.btn_downvote))
-                            }
-                            setSubmissionScoreText(submission, holder)
-                            if ((!full
-                                        && !SettingValues.actionbarVisible
-                                        && ((SettingValues.defaultCardView
-                                        != CreateCardView.CardEnum.DESKTOP)))
-                            ) {
-                                CreateCardView.toggleActionbar(holder.itemView)
-                            }
                         }
-                    })
+                        val getTintColor: Int =
+                            if ((holder.itemView.getTag(holder.itemView.getId()) != null
+                                        && (holder.itemView.getTag(holder.itemView.getId()) == "none")
+                                        || full)
+                            ) Palette.getCurrentTintColor(mContext) else Palette.getWhiteTintColor()
+                        if ((ActionStates.getVoteDirection(submission)
+                                    != VoteDirection.DOWNVOTE)
+                        ) { //has not been downvoted
+                            points.setTextColor(
+                                ContextCompat.getColor(mContext, R.color.md_blue_500)
+                            )
+                            BlendModeUtil.tintImageViewAsSrcAtop(
+                                downvotebutton,
+                                ContextCompat.getColor(mContext, R.color.md_blue_500)
+                            )
+                            BlendModeUtil.tintImageViewAsSrcAtop(upvotebutton, getTintColor)
+                            downvotebutton.setContentDescription(mContext.getString(R.string.btn_downvoted))
+                            AnimatorUtil.setFlashAnimation(
+                                holder.itemView, downvotebutton,
+                                ContextCompat.getColor(mContext, R.color.md_blue_500)
+                            )
+                            holder.score.setTypeface(null, Typeface.BOLD)
+                            val DOWNVOTE_SCORE: Int =
+                                if ((SUBMISSION_SCORE == 0)) 0 else (SUBMISSION_SCORE
+                                        - 1) //if a post is at 0 votes, keep it at 0 when downvoting
+                            Vote(false, points, mContext).execute(submission)
+                            ActionStates.setVoteDirection(submission, VoteDirection.DOWNVOTE)
+                        } else { //un-downvoted a post
+                            points.setTextColor(comments.getCurrentTextColor())
+                            Vote(points, mContext).execute(submission)
+                            holder.score.setTypeface(null, Typeface.NORMAL)
+                            ActionStates.setVoteDirection(submission, VoteDirection.NO_VOTE)
+                            BlendModeUtil.tintImageViewAsSrcAtop(downvotebutton, getTintColor)
+                            downvotebutton.setContentDescription(mContext.getString(R.string.btn_downvote))
+                        }
+                        setSubmissionScoreText(submission, holder)
+                        if ((!full
+                                    && !SettingValues.actionbarVisible
+                                    && ((SettingValues.defaultCardView
+                                    != CreateCardView.CardEnum.DESKTOP)))
+                        ) {
+                            CreateCardView.toggleActionbar(holder.itemView)
+                        }
+                    }
                 }
                 run {
-                    upvotebutton.setOnClickListener(object : View.OnClickListener {
-                        override fun onClick(view: View) {
-                            if (SettingValues.storeHistory && !full) {
-                                if (!submission.isNsfw() || SettingValues.storeNSFWHistory) {
-                                    HasSeen.addSeen(submission.getFullName())
-                                    if (mContext is MainActivity) {
-                                        holder.title.setAlpha(0.54f)
-                                        holder.body.setAlpha(0.54f)
-                                    }
+                    upvotebutton.setOnClickListener {
+                        if (SettingValues.storeHistory && !full) {
+                            if (!submission.isNsfw || SettingValues.storeNSFWHistory) {
+                                HasSeen.addSeen(submission.permalink)
+                                if (mContext is MainActivity) {
+                                    holder.title.setAlpha(0.54f)
+                                    holder.body.setAlpha(0.54f)
                                 }
                             }
-                            val getTintColor: Int =
-                                if ((holder.itemView.getTag(holder.itemView.getId()) != null
-                                            && (holder.itemView.getTag(holder.itemView.getId()) == "none")
-                                            || full)
-                                ) Palette.getCurrentTintColor(mContext) else Palette.getWhiteTintColor()
-                            if ((ActionStates.getVoteDirection(submission)
-                                        != VoteDirection.UPVOTE)
-                            ) { //has not been upvoted
-                                points.setTextColor(
-                                    ContextCompat.getColor(mContext, R.color.md_orange_500)
-                                )
-                                BlendModeUtil.tintImageViewAsSrcAtop(
-                                    upvotebutton,
-                                    ContextCompat.getColor(mContext, R.color.md_orange_500)
-                                )
-                                BlendModeUtil.tintImageViewAsSrcAtop(downvotebutton, getTintColor)
-                                upvotebutton.setContentDescription(mContext.getString(R.string.btn_upvoted))
-                                AnimatorUtil.setFlashAnimation(
-                                    holder.itemView, upvotebutton,
-                                    ContextCompat.getColor(mContext, R.color.md_orange_500)
-                                )
-                                holder.score.setTypeface(null, Typeface.BOLD)
-                                Vote(true, points, mContext).execute(submission)
-                                ActionStates.setVoteDirection(submission, VoteDirection.UPVOTE)
-                            } else { //un-upvoted a post
-                                points.setTextColor(comments.getCurrentTextColor())
-                                Vote(points, mContext).execute(submission)
-                                holder.score.setTypeface(null, Typeface.NORMAL)
-                                ActionStates.setVoteDirection(submission, VoteDirection.NO_VOTE)
-                                BlendModeUtil.tintImageViewAsSrcAtop(upvotebutton, getTintColor)
-                                upvotebutton.setContentDescription(mContext.getString(R.string.btn_upvote))
-                            }
-                            setSubmissionScoreText(submission, holder)
-                            if ((!full
-                                        && !SettingValues.actionbarVisible
-                                        && ((SettingValues.defaultCardView
-                                        != CreateCardView.CardEnum.DESKTOP)))
-                            ) {
-                                CreateCardView.toggleActionbar(holder.itemView)
-                            }
                         }
-                    })
+                        val getTintColor: Int =
+                            if ((holder.itemView.getTag(holder.itemView.getId()) != null
+                                        && (holder.itemView.getTag(holder.itemView.getId()) == "none")
+                                        || full)
+                            ) Palette.getCurrentTintColor(mContext) else Palette.getWhiteTintColor()
+                        if ((ActionStates.getVoteDirection(submission)
+                                    != VoteDirection.UPVOTE)
+                        ) { //has not been upvoted
+                            points.setTextColor(
+                                ContextCompat.getColor(mContext, R.color.md_orange_500)
+                            )
+                            BlendModeUtil.tintImageViewAsSrcAtop(
+                                upvotebutton,
+                                ContextCompat.getColor(mContext, R.color.md_orange_500)
+                            )
+                            BlendModeUtil.tintImageViewAsSrcAtop(downvotebutton, getTintColor)
+                            upvotebutton.setContentDescription(mContext.getString(R.string.btn_upvoted))
+                            AnimatorUtil.setFlashAnimation(
+                                holder.itemView, upvotebutton,
+                                ContextCompat.getColor(mContext, R.color.md_orange_500)
+                            )
+                            holder.score.setTypeface(null, Typeface.BOLD)
+                            Vote(true, points, mContext).execute(submission)
+                            ActionStates.setVoteDirection(submission, VoteDirection.UPVOTE)
+                        } else { //un-upvoted a post
+                            points.setTextColor(comments.getCurrentTextColor())
+                            Vote(points, mContext).execute(submission)
+                            holder.score.setTypeface(null, Typeface.NORMAL)
+                            ActionStates.setVoteDirection(submission, VoteDirection.NO_VOTE)
+                            BlendModeUtil.tintImageViewAsSrcAtop(upvotebutton, getTintColor)
+                            upvotebutton.setContentDescription(mContext.getString(R.string.btn_upvote))
+                        }
+                        setSubmissionScoreText(submission, holder)
+                        if ((!full
+                                    && !SettingValues.actionbarVisible
+                                    && ((SettingValues.defaultCardView
+                                    != CreateCardView.CardEnum.DESKTOP)))
+                        ) {
+                            CreateCardView.toggleActionbar(holder.itemView)
+                        }
+                    }
                 }
             } else {
                 upvotebutton.visibility = View.GONE
@@ -2414,7 +2369,7 @@ class PopulateSubmissionViewHolder() {
         val edit = holder.edit
         if (((Authentication.name != null
                     ) && (Authentication.name!!.lowercase()
-                    == submission.author.lowercase()) && Authentication.didOnline)
+                    == submission.creator.name.lowercase()) && Authentication.didOnline)
         ) {
             edit.visibility = View.VISIBLE
             edit.setOnClickListener(object : OnSingleClickListener() {
@@ -2424,7 +2379,7 @@ class PopulateSubmissionViewHolder() {
 
                         override fun doInBackground(vararg params: Void?): ArrayList<String?>? {
                             val allFlairs = FluentRedditClient(Authentication.reddit).subreddit(
-                                submission.subredditName
+                                submission.groupName
                             ).flair()
                             try {
                                 flairlist = allFlairs.options(submission)
@@ -2460,7 +2415,7 @@ class PopulateSubmissionViewHolder() {
                             val b = BottomSheet.Builder(mContext).title(
                                 CompatUtil.fromHtml(submission.title)
                             )
-                            if (submission.isSelfPost) {
+                            if (submission.url == null) {
                                 b.sheet(
                                     1, edit_drawable,
                                     mContext.getString(R.string.edit_selftext)
@@ -2512,7 +2467,7 @@ class PopulateSubmissionViewHolder() {
                                             )
                                             e.setText(
                                                 StringEscapeUtils.unescapeHtml4(
-                                                    submission.selftext
+                                                    submission.body
                                                 )
                                             )
                                             DoEditorActions.doActions(
@@ -2530,11 +2485,7 @@ class PopulateSubmissionViewHolder() {
                                                 )
                                             d.show()
                                             dialoglayout.findViewById<View>(R.id.cancel)
-                                                .setOnClickListener(object : View.OnClickListener {
-                                                    override fun onClick(v: View) {
-                                                        d.dismiss()
-                                                    }
-                                                })
+                                                .setOnClickListener { d.dismiss() }
                                             dialoglayout.findViewById<View>(R.id.submit)
                                                 .setOnClickListener(object : View.OnClickListener {
                                                     override fun onClick(v: View) {
@@ -2556,26 +2507,23 @@ class PopulateSubmissionViewHolder() {
                                                                     )
                                                                     d.dismiss()
                                                                 } catch (e: Exception) {
-                                                                    (mContext).runOnUiThread(
-                                                                        object : Runnable {
-                                                                            override fun run() {
-                                                                                AlertDialog.Builder(
-                                                                                    mContext
-                                                                                )
-                                                                                    .setTitle(R.string.comment_delete_err)
-                                                                                    .setMessage(R.string.comment_delete_err_msg)
-                                                                                    .setPositiveButton(
-                                                                                        R.string.btn_yes,
-                                                                                        { dialog1: DialogInterface, which1: Int ->
-                                                                                            dialog1.dismiss()
-                                                                                            doInBackground()
-                                                                                        })
-                                                                                    .setNegativeButton(
-                                                                                        R.string.btn_no,
-                                                                                        { dialog12: DialogInterface, which12: Int -> dialog12.dismiss() })
-                                                                                    .show()
+                                                                    (mContext).runOnUiThread {
+                                                                        AlertDialog.Builder(
+                                                                            mContext
+                                                                        )
+                                                                            .setTitle(R.string.comment_delete_err)
+                                                                            .setMessage(R.string.comment_delete_err_msg)
+                                                                            .setPositiveButton(
+                                                                                R.string.btn_yes
+                                                                            ) { dialog1: DialogInterface, which1: Int ->
+                                                                                dialog1.dismiss()
+                                                                                doInBackground()
                                                                             }
-                                                                        })
+                                                                            .setNegativeButton(
+                                                                                R.string.btn_no
+                                                                            ) { dialog12: DialogInterface, which12: Int -> dialog12.dismiss() }
+                                                                            .show()
+                                                                    }
                                                                 }
                                                                 return null
                                                             }
@@ -2618,44 +2566,41 @@ class PopulateSubmissionViewHolder() {
                                                         override fun onPostExecute(
                                                             aVoid: Void
                                                         ) {
-                                                            (mContext).runOnUiThread(
-                                                                object : Runnable {
-                                                                    override fun run() {
-                                                                        (holder.title)
-                                                                            .setTextHtml(
-                                                                                mContext.getString(
-                                                                                    R.string.content_deleted
-                                                                                )
+                                                            (mContext).runOnUiThread {
+                                                                (holder.title)
+                                                                    .setTextHtml(
+                                                                        mContext.getString(
+                                                                            R.string.content_deleted
+                                                                        )
+                                                                    )
+                                                                if ((holder.firstTextView
+                                                                            != null)
+                                                                ) {
+                                                                    holder.firstTextView
+                                                                        .setText(
+                                                                            R.string.content_deleted
+                                                                        )
+                                                                    holder.commentOverflow
+                                                                        .setVisibility(
+                                                                            View.GONE
+                                                                        )
+                                                                } else {
+                                                                    if ((holder.itemView
+                                                                            .findViewById<View?>(
+                                                                                R.id.body
                                                                             )
-                                                                        if ((holder.firstTextView
-                                                                                    != null)
-                                                                        ) {
-                                                                            holder.firstTextView
-                                                                                .setText(
-                                                                                    R.string.content_deleted
-                                                                                )
-                                                                            holder.commentOverflow
-                                                                                .setVisibility(
-                                                                                    View.GONE
-                                                                                )
-                                                                        } else {
-                                                                            if ((holder.itemView
-                                                                                    .findViewById<View?>(
-                                                                                        R.id.body
-                                                                                    )
-                                                                                        != null)
-                                                                            ) {
-                                                                                (holder.itemView
-                                                                                    .findViewById<View>(
-                                                                                        R.id.body
-                                                                                    ) as TextView)
-                                                                                    .setText(
-                                                                                        R.string.content_deleted
-                                                                                    )
-                                                                            }
-                                                                        }
+                                                                                != null)
+                                                                    ) {
+                                                                        (holder.itemView
+                                                                            .findViewById<View>(
+                                                                                R.id.body
+                                                                            ) as TextView)
+                                                                            .setText(
+                                                                                R.string.content_deleted
+                                                                            )
                                                                     }
-                                                                })
+                                                                }
+                                                            }
                                                         }
                                                     }.executeOnExecutor(
                                                         THREAD_POOL_EXECUTOR
@@ -2686,8 +2631,8 @@ class PopulateSubmissionViewHolder() {
                                                                         R.string.mod_flair_hint
                                                                     ),
                                                                         t.text,
-                                                                        true,
-                                                                        { dialog14: MaterialDialog?, input: CharSequence? -> })
+                                                                        true
+                                                                    ) { dialog14: MaterialDialog?, input: CharSequence? -> }
                                                                     .positiveText(
                                                                         R.string.btn_set
                                                                     )
@@ -2700,7 +2645,7 @@ class PopulateSubmissionViewHolder() {
                                                                             ) {
                                                                                 val flair =
                                                                                     dialog.inputEditText!!
-                                                                                        .getText()
+                                                                                        .text
                                                                                         .toString()
                                                                                 object :
                                                                                     AsyncTask<Void?, Void?, Boolean>() {
@@ -2713,7 +2658,7 @@ class PopulateSubmissionViewHolder() {
                                                                                             )
                                                                                                 .setFlair(
                                                                                                     submission
-                                                                                                        .subredditName,
+                                                                                                        .groupName,
                                                                                                     t,
                                                                                                     flair,
                                                                                                     submission
@@ -2792,7 +2737,7 @@ class PopulateSubmissionViewHolder() {
                                                                             )
                                                                                 .setFlair(
                                                                                     submission
-                                                                                        .subredditName,
+                                                                                        .groupName,
                                                                                     t,
                                                                                     null,
                                                                                     submission
@@ -2888,24 +2833,24 @@ class PopulateSubmissionViewHolder() {
         }
     }
 
-    private fun setSubmissionScoreText(submission: Submission, holder: SubmissionViewHolder) {
+    private fun setSubmissionScoreText(submission: IPost, holder: SubmissionViewHolder) {
         var submissionScore = submission.score
         when (ActionStates.getVoteDirection(submission)) {
             VoteDirection.UPVOTE -> {
-                if (submission.vote != VoteDirection.UPVOTE) {
-                    if (submission.vote == VoteDirection.DOWNVOTE) ++submissionScore
+                if (submission.myVote != VoteDirection.UPVOTE) {
+                    if (submission.myVote == VoteDirection.DOWNVOTE) ++submissionScore
                     ++submissionScore //offset the score by +1
                 }
             }
 
             VoteDirection.DOWNVOTE -> {
-                if (submission.vote != VoteDirection.DOWNVOTE) {
-                    if (submission.vote == VoteDirection.UPVOTE) --submissionScore
+                if (submission.myVote != VoteDirection.DOWNVOTE) {
+                    if (submission.myVote == VoteDirection.UPVOTE) --submissionScore
                     --submissionScore //offset the score by +1
                 }
             }
 
-            VoteDirection.NO_VOTE -> if (submission.vote == VoteDirection.UPVOTE && submission.author
+            VoteDirection.NO_VOTE -> if (submission.myVote == VoteDirection.UPVOTE && submission.creator.name
                     .equals(Authentication.name, ignoreCase = true)
             ) {
                 submissionScore--
@@ -2947,7 +2892,7 @@ class PopulateSubmissionViewHolder() {
         }
     }
 
-    class AsyncReportTask(private val submission: Submission, private val contextView: View?) :
+    class AsyncReportTask(private val submission: IPost, private val contextView: View?) :
         AsyncTask<String?, Void?, Void?>() {
         override fun doInBackground(vararg reason: String?): Void? {
             try {
@@ -2975,7 +2920,7 @@ class PopulateSubmissionViewHolder() {
     companion object {
         private fun addClickFunctions(
             base: View, type: ContentType.Type,
-            contextActivity: Activity, submission: Submission,
+            contextActivity: Activity, submission: IPost,
             holder: SubmissionViewHolder?, full: Boolean
         ) {
             base.setOnClickListener(object : OnSingleClickListener() {
@@ -2986,7 +2931,7 @@ class PopulateSubmissionViewHolder() {
                     ) {
                         if (SettingValues.storeHistory && !full) {
                             if (!submission.isNsfw || SettingValues.storeNSFWHistory) {
-                                HasSeen.addSeen(submission.fullName)
+                                HasSeen.addSeen(submission.permalink)
                                 if ((contextActivity is MainActivity
                                             || contextActivity is MultiredditOverview
                                             || contextActivity is SubredditView
@@ -3003,7 +2948,7 @@ class PopulateSubmissionViewHolder() {
                                     || ((base is HeaderImageLinkView
                                     && base.popped)))
                         ) {
-                            if ((!PostMatch.openExternal(submission.url)
+                            if ((!PostMatch.openExternal(submission.url!!)
                                         || type == ContentType.Type.VIDEO)
                             ) {
                                 when (type) {
@@ -3012,7 +2957,7 @@ class PopulateSubmissionViewHolder() {
                                             Intent(contextActivity, MediaView::class.java)
                                         myIntent.putExtra(
                                             MediaView.SUBREDDIT,
-                                            submission.subredditName
+                                            submission.groupName
                                         )
                                         myIntent.putExtra(MediaView.EXTRA_URL, submission.url)
                                         myIntent.putExtra(
@@ -3064,13 +3009,13 @@ class PopulateSubmissionViewHolder() {
                                             )
                                             i.putExtra(
                                                 AlbumPager.SUBREDDIT,
-                                                submission.subredditName
+                                                submission.groupName
                                             )
                                         } else {
                                             i = Intent(contextActivity, RedditGallery::class.java)
                                             i.putExtra(
                                                 Album.SUBREDDIT,
-                                                submission.subredditName
+                                                submission.groupName
                                             )
                                         }
                                         i.putExtra(
@@ -3079,7 +3024,7 @@ class PopulateSubmissionViewHolder() {
                                         )
                                         i.putExtra(
                                             RedditGallery.SUBREDDIT,
-                                            submission.subredditName
+                                            submission.groupName
                                         )
                                         val urls = ArrayList<GalleryImage>()
                                         val dataNode = submission.dataNode
@@ -3109,8 +3054,8 @@ class PopulateSubmissionViewHolder() {
                                     }
 
                                     ContentType.Type.LINK -> LinkUtil.openUrl(
-                                        submission.url,
-                                        Palette.getColor(submission.subredditName),
+                                        submission.url!!,
+                                        Palette.getColor(submission.groupName),
                                         contextActivity, holder!!.bindingAdapterPosition,
                                         submission
                                     )
@@ -3126,13 +3071,13 @@ class PopulateSubmissionViewHolder() {
                                             i = Intent(contextActivity, AlbumPager::class.java)
                                             i.putExtra(
                                                 AlbumPager.SUBREDDIT,
-                                                submission.subredditName
+                                                submission.groupName
                                             )
                                         } else {
                                             i = Intent(contextActivity, Album::class.java)
                                             i.putExtra(
                                                 Album.SUBREDDIT,
-                                                submission.subredditName
+                                                submission.groupName
                                             )
                                         }
                                         i.putExtra(
@@ -3159,13 +3104,13 @@ class PopulateSubmissionViewHolder() {
                                             i = Intent(contextActivity, TumblrPager::class.java)
                                             i.putExtra(
                                                 TumblrPager.SUBREDDIT,
-                                                submission.subredditName
+                                                submission.groupName
                                             )
                                         } else {
                                             i = Intent(contextActivity, Tumblr::class.java)
                                             i.putExtra(
                                                 Tumblr.SUBREDDIT,
-                                                submission.subredditName
+                                                submission.groupName
                                             )
                                         }
                                         i.putExtra(Album.EXTRA_URL, submission.url)
@@ -3189,11 +3134,11 @@ class PopulateSubmissionViewHolder() {
 
                                     ContentType.Type.NONE -> holder?.itemView?.performClick()
                                     ContentType.Type.VIDEO -> if (!LinkUtil.tryOpenWithVideoPlugin(
-                                            submission.url
+                                            submission.url!!
                                         )
                                     ) {
                                         LinkUtil.openUrl(
-                                            submission.url,
+                                            submission.url!!,
                                             Palette.getStatusBarColor(), contextActivity
                                         )
                                     }
@@ -3227,11 +3172,11 @@ class PopulateSubmissionViewHolder() {
         @JvmStatic
         fun openImage(
             type: ContentType.Type, contextActivity: Activity,
-            submission: Submission, baseView: HeaderImageLinkView?, adapterPosition: Int
+            submission: IPost, baseView: HeaderImageLinkView?, adapterPosition: Int
         ) {
             if (SettingValues.image) {
                 val myIntent = Intent(contextActivity, MediaView::class.java)
-                myIntent.putExtra(MediaView.SUBREDDIT, submission.subredditName)
+                myIntent.putExtra(MediaView.SUBREDDIT, submission.groupName)
                 myIntent.putExtra(
                     ImageDownloadNotificationService.EXTRA_SUBMISSION_TITLE,
                     submission.title
@@ -3245,14 +3190,9 @@ class PopulateSubmissionViewHolder() {
                 ) {
                     myIntent.putExtra(MediaView.EXTRA_LQ, true)
                     myIntent.putExtra(MediaView.EXTRA_DISPLAY_URL, baseView.loadedUrl)
-                } else if ((submission.dataNode.has("preview")
-                            && submission.dataNode["preview"]["images"][0]["source"]
-                        .has("height")
-                            && ((type
-                            != ContentType.Type.XKCD)))
+                } else if ((submission.hasPreview && ((type != ContentType.Type.XKCD)))
                 ) { //Load the preview image which has probably already been cached in memory instead of the direct link
-                    previewUrl = submission.dataNode["preview"]["images"][0]["source"]["url"]
-                        .asText()
+                    previewUrl = submission.preview!!
                     if (baseView == null || (!SettingValues.loadImageLq && baseView.lq)) {
                         myIntent.putExtra(MediaView.EXTRA_DISPLAY_URL, previewUrl)
                     } else {
@@ -3270,63 +3210,23 @@ class PopulateSubmissionViewHolder() {
 
         @JvmStatic
         fun openGif(
-            contextActivity: Activity, submission: Submission,
+            contextActivity: Activity, submission: IPost,
             adapterPosition: Int
         ) {
             if (SettingValues.gif) {
                 DataShare.sharedSubmission = submission
                 val myIntent = Intent(contextActivity, MediaView::class.java)
-                myIntent.putExtra(MediaView.SUBREDDIT, submission.subredditName)
+                myIntent.putExtra(MediaView.SUBREDDIT, submission.groupName)
                 myIntent.putExtra(
                     ImageDownloadNotificationService.EXTRA_SUBMISSION_TITLE,
                     submission.title
                 )
                 val t = AsyncLoadGif.getVideoType(submission.url)
-                if (t == AsyncLoadGif.VideoType.VREDDIT) {
-                    if (submission.dataNode.has("media") && submission.dataNode["media"]
-                            .has("reddit_video") && submission.dataNode["media"]["reddit_video"].has(
-                            "hls_url"
-                        )
-                    ) {
-                        myIntent.putExtra(
-                            MediaView.EXTRA_URL, StringEscapeUtils.unescapeJson(
-                                submission
-                                    .dataNode["media"]["reddit_video"]["dash_url"] //In the future, we could load the HLS url as well
-                                    .asText()
-                            ).replace("&amp;", "&")
-                        )
-                    } else if (submission.dataNode.has("media") && submission.dataNode["media"]
-                            .has("reddit_video")
-                    ) {
-                        myIntent.putExtra(
-                            MediaView.EXTRA_URL, StringEscapeUtils.unescapeJson(
-                                submission
-                                    .dataNode["media"]["reddit_video"]["fallback_url"]
-                                    .asText()
-                            ).replace("&amp;", "&")
-                        )
-                    } else if (submission.dataNode.has("crosspost_parent_list")) {
-                        myIntent.putExtra(
-                            MediaView.EXTRA_URL, StringEscapeUtils.unescapeJson(
-                                submission
-                                    .dataNode["crosspost_parent_list"][0]["media"]["reddit_video"]["dash_url"]
-                                    .asText()
-                            ).replace("&amp;", "&")
-                        )
-                    } else {
-                        OpenVRedditTask(
-                            contextActivity,
-                            submission.subredditName
-                        ).executeOnExecutor(
-                            AsyncTask.THREAD_POOL_EXECUTOR, submission.url
-                        )
-                        return
-                    }
-                } else if ((t.shouldLoadPreview()
+                /*
+                if ((t.shouldLoadPreview()
                             && submission.dataNode.has("preview")
                             && submission.dataNode["preview"]["images"][0].has("variants")
-                            && submission.dataNode["preview"]["images"][0]["variants"]
-                        .has("mp4"))
+                            && submission.dataNode["preview"]["images"][0]["variants"].has("mp4"))
                 ) {
                     myIntent.putExtra(
                         MediaView.EXTRA_URL, StringEscapeUtils.unescapeJson(
@@ -3361,17 +3261,15 @@ class PopulateSubmissionViewHolder() {
                     myIntent.putExtra(MediaView.EXTRA_URL, submission.url)
                 } else {
                     LinkUtil.openUrl(
-                        submission.url,
-                        Palette.getColor(submission.subredditName), contextActivity,
+                        submission.url!!,
+                        Palette.getColor(submission.groupName), contextActivity,
                         adapterPosition, submission
                     )
                     return
                 }
-                if (submission.dataNode.has("preview") && submission.dataNode["preview"]["images"][0]["source"]
-                        .has("height")
-                ) { //Load the preview image which has probably already been cached in memory instead of the direct link
-                    val previewUrl = submission.dataNode["preview"]["images"][0]["source"]["url"]
-                        .asText()
+                 */
+                if (submission.hasPreview) { //Load the preview image which has probably already been cached in memory instead of the direct link
+                    val previewUrl = submission.preview
                     myIntent.putExtra(MediaView.EXTRA_DISPLAY_URL, previewUrl)
                 }
                 PopulateBase.addAdaptorPosition(myIntent, submission, adapterPosition)

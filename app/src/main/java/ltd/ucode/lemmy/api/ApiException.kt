@@ -1,12 +1,21 @@
 package ltd.ucode.lemmy.api
 
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
-import org.json.JSONObject
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 
-class ApiException(val path: String,
-                   val statusCode: Int,
-                   val errorBody: String,
-                   val content: JSONObject = Json.decodeFromString(errorBody)
-) : Exception(content.optString("error", null) ?: errorBody) {
+data class ApiException(val path: String,
+                        val statusCode: Int,
+                        @Transient val errorBody: String,
+                        val content: JsonElement = Json.parseToJsonElement(errorBody)
+) : Exception(readError(content) ?: "") {
+}
+
+private fun readError(error: JsonElement): String? {
+    return error.jsonObject["error"]?.jsonPrimitive?.contentOrNull ?.let {
+        it.replace('_', ' ')
+            .replaceFirstChar(Char::titlecase)
+    }
 }

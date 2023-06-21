@@ -17,6 +17,7 @@ import net.dean.jraw.paginators.TimePeriod;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 
+import ltd.ucode.reddit.data.RedditSubmission;
 import me.ccrama.redditslide.Activities.MultiredditOverview;
 import ltd.ucode.slide.Authentication;
 import me.ccrama.redditslide.PostMatch;
@@ -108,7 +109,7 @@ public class SubredditSearchPosts extends GeneralPosts {
                 ArrayList<Contribution> filteredSubmissions = new ArrayList<>();
                 for (Contribution c : submissions) {
                     if (c instanceof Submission) {
-                        if (!PostMatch.doesMatch((Submission) c)) {
+                        if (!PostMatch.doesMatch(new RedditSubmission((Submission) c))) {
                             filteredSubmissions.add(c);
                         }
                     } else {

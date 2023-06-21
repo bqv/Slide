@@ -9,7 +9,7 @@ data class SiteAggregates (
     val communities: Int,
     val id: Int,
     val posts: Int,
-    @SerialName("site_id") val siteId: Int,
+    @SerialName("site_id") val siteId: SiteId,
     val users: Int,
     @SerialName("users_active_day") val usersActiveDay: Int,
     @SerialName("users_active_week") val usersActiveWeek: Int,

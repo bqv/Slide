@@ -7,5 +7,5 @@ import kotlinx.serialization.Serializable
 data class LocalUserSettingsView (
     val counts: PersonAggregates,
     @SerialName("local_user") val localUser: LocalUserSettings,
-    val person: PersonSafe,
+    val person: Person,
 )

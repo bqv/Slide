@@ -25,6 +25,7 @@ import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.MaterialDialog.SingleButtonCallback
 import com.cocosw.bottomsheet.BottomSheet
 import com.google.android.material.snackbar.Snackbar
+import ltd.ucode.reddit.data.RedditSubmission
 import ltd.ucode.slide.App.Companion.defaultShareText
 import ltd.ucode.slide.Authentication
 import ltd.ucode.slide.R
@@ -315,11 +316,7 @@ class PopulateNewsViewHolder() {
                                 if (filtered) {
                                     val toRemove: ArrayList<Contribution> = ArrayList()
                                     for (s: Contribution? in posts) {
-                                        if ((s is Submission
-                                                    && PostMatch.doesMatch(
-                                                s as Submission?
-                                            ))
-                                        ) {
+                                        if (s is Submission && PostMatch.doesMatch(RedditSubmission(s))) {
                                             toRemove.add(s)
                                         }
                                     }

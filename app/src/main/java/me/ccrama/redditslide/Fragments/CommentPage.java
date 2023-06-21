@@ -1599,7 +1599,7 @@ public class CommentPage extends Fragment implements Toolbar.OnMenuItemClickList
             } catch(IndexOutOfBoundsException e){
                 return;
             }
-            Submission s = ((CommentsScreen) getActivity()).currentPosts.get(page);
+            Submission s = ((CommentsScreen) getActivity()).currentPosts.get(page).getSubmission();
             if (s != null && s.getDataNode().has("suggested_sort") && !s.getDataNode()
                     .get("suggested_sort")
                     .asText()

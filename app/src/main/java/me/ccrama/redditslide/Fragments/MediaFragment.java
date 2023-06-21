@@ -292,7 +292,7 @@ public class MediaFragment extends Fragment {
         sub = ((Shadowbox) getActivity()).subreddit;
         i = bundle.getInt("page");
         if (((Shadowbox) getActivity()).subredditPosts.getPosts().size() != 0) {
-            s = ((Shadowbox) getActivity()).subredditPosts.getPosts().get(i);
+            s = ((Shadowbox) getActivity()).subredditPosts.getPosts().get(i).getSubmission();
         } else {
             getActivity().finish();
         }
