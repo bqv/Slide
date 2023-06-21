@@ -4,6 +4,7 @@ import kotlinx.datetime.Instant
 import net.dean.jraw.models.VoteDirection
 
 interface IItem {
+    val link: String
     val permalink: String
     val published: Instant
     val updated: Instant?

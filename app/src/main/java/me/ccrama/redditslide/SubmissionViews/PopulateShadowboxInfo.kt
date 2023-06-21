@@ -69,7 +69,7 @@ object PopulateShadowboxInfo {
             title.text = CompatUtil.fromHtml(s.title)
             val spacer = c.getString(R.string.submission_properties_seperator)
             val titleString = SpannableStringBuilder()
-            val subreddit = SpannableStringBuilder(" /r/" + s.groupName + " ")
+            val subreddit = SpannableStringBuilder(" /c/" + s.groupName + " ")
             val subname = s.groupName.lowercase()
             if ((SettingValues.colorSubName && Palette.getColor(subname) != Palette.getDefaultColor())) {
                 subreddit.setSpan(

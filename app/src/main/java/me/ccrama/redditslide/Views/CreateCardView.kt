@@ -17,9 +17,6 @@ import me.ccrama.redditslide.util.AnimatorUtil
 import me.ccrama.redditslide.util.BlendModeUtil
 import me.ccrama.redditslide.util.DisplayUtil
 
-/**
- * Created by ccrama on 9/18/2015.
- */
 object CreateCardView {
     @JvmStatic
     fun CreateViewNews(viewGroup: ViewGroup): View {

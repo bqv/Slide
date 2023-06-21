@@ -23,9 +23,6 @@ import me.ccrama.redditslide.Views.CreateCardView.colorCard
 import me.ccrama.redditslide.util.LayoutUtils
 import net.dean.jraw.models.Submission
 
-/**
- * Created by ccrama on 3/22/2015.
- */
 class MultiredditAdapter(
     var context: Activity,
     var dataSet: MultiredditPosts,

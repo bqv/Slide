@@ -30,6 +30,9 @@ class RedditSubmission(val data: Submission) : IPost() {
     override val groupName: String
         get() = data.subredditName
 
+    override val link: String
+        get() = data.fullName // on reddit: Kind + UniqueId
+
     override val permalink: String
         get() = data.fullName // on reddit: Kind + UniqueId
 

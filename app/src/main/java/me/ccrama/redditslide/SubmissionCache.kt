@@ -138,7 +138,7 @@ object SubmissionCache {
             )
             titleString.append(pinned)
         }
-        if (UserSubscriptions.friends.contains(s.creator.name)) {
+        if (UserSubscriptions.friends!!.contains(s.creator.name)) {
             val pinned = SpannableStringBuilder(
                 " " + mContext.getString(R.string.profile_friend) + " "
             )
@@ -160,7 +160,7 @@ object SubmissionCache {
         var baseSub: String? = baseSub
         val spacer = mContext.getString(R.string.submission_properties_seperator)
         val titleString = SpannableStringBuilder()
-        var subreddit = SpannableStringBuilder(" /r/" + submission.groupName + " ")
+        var subreddit = SpannableStringBuilder(" /c/" + submission.groupName + " ")
         if (submission.groupName == null) {
             subreddit = SpannableStringBuilder("Promoted ")
         }
@@ -263,7 +263,7 @@ object SubmissionCache {
             titleString.append(" ")
             titleString.append(pinned)
         }
-        if (UserSubscriptions.friends.contains(submission.creator.name)) {
+        if (UserSubscriptions.friends!!.contains(submission.creator.name)) {
             val pinned = SpannableStringBuilder(
                 " " + mContext.getString(R.string.profile_friend) + " "
             )

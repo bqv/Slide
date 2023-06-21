@@ -170,10 +170,12 @@ class App : MultiDexApplication(), ActivityLifecycleCallbacks {
         UserSubscriptions.multiNameToSubs = getSharedPreferences("MULTITONAME", 0)
         UserSubscriptions.newsNameToSubs = getSharedPreferences("NEWSMULTITONAME", 0)
         UserSubscriptions.news = getSharedPreferences("NEWS", 0)
-        UserSubscriptions.newsNameToSubs.edit()
-            .putString("android", "android+androidapps+googlepixel")
-            .putString("news", "worldnews+news+politics")
-            .apply()
+        UserSubscriptions.newsNameToSubs?.run {
+            edit()
+                .putString("android", "android+androidapps+googlepixel")
+                .putString("news", "worldnews+news+politics")
+                .apply()
+        }
         UserSubscriptions.pinned = getSharedPreferences("PINNED", 0)
         PostMatch.filters = SettingValues.filters
         ImageFlairs.flairs = getSharedPreferences("FLAIRS", 0)

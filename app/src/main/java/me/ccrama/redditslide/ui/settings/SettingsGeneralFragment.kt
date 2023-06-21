@@ -52,9 +52,6 @@ import java.io.File
 import java.util.Arrays
 import java.util.Locale
 
-/**
- * Created by ccrama on 3/5/2015.
- */
 class SettingsGeneralFragment<ActivityType>(private val context: ActivityType) :
     FolderChooserDialogCreate.FolderCallback where ActivityType : AppCompatActivity?, ActivityType : FolderChooserDialogCreate.FolderCallback? {
     private var input: String? = null
@@ -575,6 +572,7 @@ class SettingsGeneralFragment<ActivityType>(private val context: ActivityType) :
         val subs = UserSubscriptions.getSubscriptions(context)
         // Add any subs that the user has notifications for but isn't subscribed to
         for (s: String in subThresholds.keys) {
+            if (subs == null) break // TODO: stopgap
             if (!subs.contains(s)) {
                 subs.add(s)
             }

@@ -8,7 +8,9 @@ import androidx.appcompat.app.ActionBar
 import kotlinx.coroutines.runBlocking
 import ltd.ucode.lemmy.api.iter.PagedData
 import ltd.ucode.lemmy.data.LemmyPost
+import ltd.ucode.lemmy.data.type.ListingType
 import ltd.ucode.lemmy.data.type.PostView
+import ltd.ucode.lemmy.data.type.SortType
 import ltd.ucode.reddit.data.RedditSubmission
 import ltd.ucode.slide.App
 import ltd.ucode.slide.Authentication
@@ -19,6 +21,7 @@ import ltd.ucode.slide.activity.MainActivity
 import ltd.ucode.slide.data.IPost
 import me.ccrama.redditslide.Activities.BaseActivity
 import me.ccrama.redditslide.Activities.SubredditView
+import me.ccrama.redditslide.Constants
 import me.ccrama.redditslide.Fragments.SubmissionsView
 import me.ccrama.redditslide.OfflineSubreddit
 import me.ccrama.redditslide.PostLoader
@@ -216,19 +219,42 @@ class SubredditPosts @JvmOverloads constructor(
                     sub = MainActivity.randomoverride!!
                     MainActivity.randomoverride = ""
                 }
-                paginator = if (sub == "frontpage") {
+                paginator = if (sub == "subscribed") {
                     //SubredditPaginator(Authentication.reddit)
-                    Authentication.api!!.getPosts()
+                    Authentication.api!!.getPosts(
+                        type = ListingType.Subscribed,
+                        sort = SortType.forSubreddit(subreddit),
+                        limit = Constants.PAGINATOR_POST_LIMIT
+                    )
+                } else if (sub == "local") {
+                    //SubredditPaginator(Authentication.reddit)
+                    Authentication.api!!.getPosts(
+                        type = ListingType.Local,
+                        sort = SortType.forSubreddit(subreddit),
+                        limit = Constants.PAGINATOR_POST_LIMIT
+                    )
+                } else if (sub == "all") {
+                    //SubredditPaginator(Authentication.reddit)
+                    Authentication.api!!.getPosts(
+                        type = ListingType.All,
+                        sort = SortType.forSubreddit(subreddit),
+                        limit = Constants.PAGINATOR_POST_LIMIT
+                    )
                 } else if (!sub.contains(".")) {
                     //SubredditPaginator(Authentication.reddit, sub)
-                    Authentication.api!!.getPosts(communityName = sub)
+                    Authentication.api!!.getPosts(
+                        communityName = sub,
+                        sort = SortType.forSubreddit(subreddit),
+                        limit = Constants.PAGINATOR_POST_LIMIT
+                    )
                 } else {
                     //DomainPaginator(Authentication.reddit, sub)
-                    Authentication.api!!.getPosts(communityName = sub)
+                    Authentication.api!!.getPosts(
+                        communityName = sub,
+                        sort = SortType.forSubreddit(subreddit),
+                        limit = Constants.PAGINATOR_POST_LIMIT
+                    )
                 }
-                //paginator!!.sorting = getSubmissionSort(subreddit)
-                //paginator!!.timePeriod = getSubmissionTimePeriod(subreddit)
-                //paginator!!.setLimit(Constants.PAGINATOR_POST_LIMIT)
             }
             val filteredSubmissions: List<IPost> = nextFiltered
             if (!(SettingValues.noImages && ((!NetworkUtil.isConnectedWifi(c)

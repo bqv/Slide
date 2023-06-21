@@ -40,9 +40,6 @@ import java.io.File
 import java.util.Arrays
 import java.util.Locale
 
-/**
- * Created by ccrama on 3/5/2015.
- */
 class SettingsActivity : BaseActivity(), FolderChooserDialogCreate.FolderCallback, RestartActivity {
     private var scrollY = 0
     private var prev_text: String? = null

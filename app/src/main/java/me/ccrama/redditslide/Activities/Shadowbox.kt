@@ -26,9 +26,6 @@ import me.ccrama.redditslide.LastComments
 import me.ccrama.redditslide.OfflineSubreddit
 import me.ccrama.redditslide.PostLoader
 
-/**
- * Created by ccrama on 9/17/2015.
- */
 class Shadowbox : FullScreenActivity(), SubmissionDisplay {
     @JvmField
     var subredditPosts: PostLoader? = null

@@ -6,9 +6,6 @@ import ltd.ucode.slide.SettingValues
 import java.net.MalformedURLException
 import java.net.URL
 
-/**
- * Created by ccrama on 9/28/2015.
- */
 class MakeExternal : Activity() {
     public override fun onCreate(savedInstance: Bundle?) {
         super.onCreate(savedInstance)

@@ -81,8 +81,10 @@ import com.afollestad.materialdialogs.MaterialDialog
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.tabs.TabLayout
 import com.lusfold.androidkeyvaluestore.KVStore
+import kotlinx.coroutines.runBlocking
 import ltd.ucode.Util.executeAsyncTask
-import ltd.ucode.reddit.data.RedditSubmission
+import ltd.ucode.lemmy.data.LemmyPost
+import ltd.ucode.lemmy.data.type.SortType
 import ltd.ucode.slide.App
 import ltd.ucode.slide.Authentication
 import ltd.ucode.slide.BuildConfig
@@ -170,7 +172,6 @@ import net.dean.jraw.models.MultiReddit
 import net.dean.jraw.models.Subreddit
 import net.dean.jraw.models.UserRecord
 import net.dean.jraw.paginators.Sorting
-import net.dean.jraw.paginators.SubredditPaginator
 import net.dean.jraw.paginators.TimePeriod
 import net.dean.jraw.paginators.UserRecordPaginator
 import org.ligi.snackengage.SnackEngage
@@ -834,65 +835,43 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                         override fun doInBackground(vararg params: Void?): IPost? {
                             if (Authentication.isLoggedIn) UserSubscriptions.doOnlineSyncing()
                             try {
-                                val p = SubredditPaginator(
-                                    Authentication.reddit,
-                                    "slideforreddit"
+                                val p = Authentication.api!!.getPosts(
+                                    communityName = "slide@feddit.uk",
+                                    sort = SortType.New
                                 )
-                                p.setLimit(2)
-                                val posts = ArrayList(p.next())
+                                val page = runBlocking { p!!.next() }
+                                val posts = page.map { LemmyPost(Authentication.api!!.instance, it) }
                                 for (s in posts) {
                                     var version = BuildConfig.VERSION_NAME
                                     if (version.length > 5) {
                                         version = version.substring(0, version.lastIndexOf("."))
                                     }
-                                    if (s.isStickied && s.submissionFlair.text != null && s.submissionFlair
-                                            .text
-                                            .equals("Announcement", ignoreCase = true)
-                                        && !SettingValues.appRestart.contains(
-                                            "announcement" + s.fullName
+                                    if (s.isFeatured && !SettingValues.appRestart.contains(
+                                            "announcement" + s.permalink
                                         )
                                         && s.title.contains(version)
                                     ) {
                                         SettingValues.appRestart.edit()
                                             .putBoolean(
-                                                "announcement" + s.fullName,
+                                                "announcement" + s.permalink,
                                                 true
                                             )
                                             .apply()
-                                        return RedditSubmission(s)
+                                        return s
                                     } else if ((BuildConfig.VERSION_NAME.contains("alpha")
-                                                && s.isStickied) && s.submissionFlair.text != null && s.submissionFlair
-                                            .text
-                                            .equals("Alpha", ignoreCase = true)
-                                        && !SettingValues.appRestart.contains(
-                                            "announcement" + s.fullName
+                                                && s.isFeatured) && !SettingValues.appRestart.contains(
+                                            "announcement" + s.permalink
                                         )
                                         && s.title
                                             .contains(BuildConfig.VERSION_NAME)
                                     ) {
                                         SettingValues.appRestart.edit()
                                             .putBoolean(
-                                                "announcement" + s.fullName,
+                                                "announcement" + s.permalink,
                                                 true
                                             )
                                             .apply()
-                                        return RedditSubmission(s)
-                                    } else if (s.isStickied
-                                        && s.submissionFlair
-                                            .text
-                                            .equals("PRO", ignoreCase = true)
-                                        && !SettingValues.isPro
-                                        && !SettingValues.appRestart.contains(
-                                            "announcement" + s.fullName
-                                        )
-                                    ) {
-                                        SettingValues.appRestart.edit()
-                                            .putBoolean(
-                                                "announcement" + s.fullName,
-                                                true
-                                            )
-                                            .apply()
-                                        return RedditSubmission(s)
+                                        return s
                                     }
                                 }
                             } catch (e: Exception) {
@@ -914,8 +893,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                                     .putString("title", s.title)
                                     .apply()
                                 SettingValues.appRestart.edit().putString("url", s.url).apply()
-                                val title: String
-                                title = if (s.title.lowercase().contains("release")) {
+                                val title: String = if (s.title.lowercase().contains("release")) {
                                     getString(R.string.btn_changelog)
                                 } else {
                                     getString(R.string.btn_view)
@@ -1172,7 +1150,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
         }
         App.setDefaultErrorHandler(this)
         if (sideArrayAdapter != null) {
-            sideArrayAdapter!!.updateHistory(UserSubscriptions.getHistory())
+            sideArrayAdapter!!.updateHistory(UserSubscriptions.history)
         }
 
         /* remove   if (datasetChanged && UserSubscriptions.hasSubs() && !usedArray.isEmpty()) {
@@ -1361,7 +1339,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
              * If the user is a known mod, show the "Moderation" drawer item quickly to
              * stop the UI from jumping
              */
-            if (UserSubscriptions.modOf != null && !UserSubscriptions.modOf.isEmpty() && Authentication.mod) {
+            if (!UserSubscriptions.modOf.isNullOrEmpty() && Authentication.mod) {
                 header.findViewById<View>(R.id.mod).visibility = View.VISIBLE
             }
             //update notification badge
@@ -2047,7 +2025,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                         if (UserSubscriptions.multireddits == null) {
                             UserSubscriptions.syncMultiReddits(this@MainActivity)
                         }
-                        for (r in UserSubscriptions.multireddits) {
+                        for (r in UserSubscriptions.multireddits.orEmpty().filterNotNull()) {
                             multis[r.displayName] = r
                         }
                         return@executeAsyncTask null
@@ -3489,7 +3467,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
     }
 
     fun updateMultiNameToSubs(subs: Map<String, String>) {
-        multiNameToSubsMap = subs
+        multiNameToSubsMap = subs.toMutableMap()
     }
 
     fun updateSubs(subs: ArrayList<String>) {
@@ -4011,7 +3989,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                 mod.visibility = View.VISIBLE
                 mod.setOnClickListener(object : OnSingleClickListener() {
                     override fun onSingleClick(view: View) {
-                        if (UserSubscriptions.modOf != null && !UserSubscriptions.modOf.isEmpty()) {
+                        if (!UserSubscriptions.modOf.isNullOrEmpty()) {
                             val inte = Intent(this@MainActivity, ModQueue::class.java)
                             this@MainActivity.startActivity(inte)
                         }
@@ -4385,7 +4363,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
         var loader: Loader? = null
         var datasetChanged = false
         @JvmField
-        var multiNameToSubsMap: Map<String, String> = HashMap()
+        var multiNameToSubsMap: MutableMap<String, String> = HashMap()
         var checkedPopups = false
         @JvmField
         var shouldLoad: String? = null

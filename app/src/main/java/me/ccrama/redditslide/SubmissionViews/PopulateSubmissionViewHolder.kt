@@ -1935,7 +1935,7 @@ class PopulateSubmissionViewHolder() {
         if ((!offline
                     && (UserSubscriptions.modOf != null
                     ) && (submission.groupName != null
-                    ) && UserSubscriptions.modOf.contains(
+                    ) && UserSubscriptions.modOf!!.contains(
                 submission.groupName.lowercase()
             ))
         ) {

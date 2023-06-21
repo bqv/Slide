@@ -206,13 +206,12 @@ class MultiredditView : Fragment(), SubmissionDisplay {
             rv!!.setScrollBarStyle(View.SCROLLBARS_INSIDE_OVERLAY)
             refreshLayout!!.setLayoutParams(params)
         }
-        val multireddits: List<MultiReddit>?
-        multireddits = if (profile!!.isEmpty()) {
-            UserSubscriptions.multireddits
+        val multireddits: List<MultiReddit>? = if (profile!!.isEmpty()) {
+            UserSubscriptions.multireddits!!.filterNotNull()
         } else {
-            UserSubscriptions.public_multireddits[profile]
+            UserSubscriptions.public_multireddits[profile]!!.filterNotNull()
         }
-        if (multireddits != null && !multireddits.isEmpty()) {
+        if (!multireddits.isNullOrEmpty()) {
             refreshLayout!!.setColorSchemeColors(
                 *Palette.getColors(
                     multireddits[id].displayName, activity

@@ -1221,7 +1221,7 @@ class SubredditView : BaseActivity() {
                                 if (UserSubscriptions.multireddits == null) {
                                     UserSubscriptions.syncMultiReddits(this@SubredditView)
                                 }
-                                for (r: MultiReddit in UserSubscriptions.multireddits) {
+                                for (r in UserSubscriptions.multireddits!!.filterNotNull()) {
                                     multis[r.displayName] = r
                                 }
                                 return null
@@ -1328,8 +1328,7 @@ class SubredditView : BaseActivity() {
                 currentlySubbed =
                     if (Authentication.isLoggedIn) subreddit.isUserSubscriber else UserSubscriptions.getSubscriptions(
                         this
-                    )
-                        .contains(subreddit.displayName.lowercase())
+                    )!!.contains(subreddit.displayName.lowercase())
                 MiscUtil.doSubscribeButtonText(currentlySubbed, subscribe)
                 assert(subscribe != null)
                 subscribe!!.setOnClickListener(object : View.OnClickListener {

@@ -28,9 +28,6 @@ import net.dean.jraw.paginators.MultiRedditPaginator
  * This class is reponsible for loading subreddit specific submissions
  * [] is implemented
  * asynchronously.
- *
- *
- * Created by ccrama on 9/17/2015.
  */
 class MultiredditPosts(multireddit: String, profile: String) : PostLoader {
     override var posts: MutableList<IPost> = mutableListOf()

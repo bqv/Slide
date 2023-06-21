@@ -76,9 +76,6 @@ import net.dean.jraw.models.SubredditRule
 import org.apache.commons.text.StringEscapeUtils
 import java.util.Arrays
 
-/**
- * Created by ccrama on 9/19/2015.
- */
 class PopulateNewsViewHolder() {
     var reason: String? = null
     var chosen = booleanArrayOf(false, false, false)

@@ -123,13 +123,12 @@ class MultiredditOverview : BaseActivityAnim() {
             R.id.action_edit -> {
                 run {
                     if (profile!!.isEmpty() && UserSubscriptions.multireddits != null
-                        && !UserSubscriptions.multireddits.isEmpty()
+                        && !UserSubscriptions.multireddits!!.isEmpty()
                     ) {
                         val i = Intent(this@MultiredditOverview, CreateMulti::class.java)
                         i.putExtra(
                             CreateMulti.EXTRA_MULTI,
-                            UserSubscriptions.multireddits[pager!!.currentItem]
-                                .displayName
+                            UserSubscriptions.multireddits!![pager!!.currentItem]?.displayName
                         )
                         startActivity(i)
                     }
@@ -139,42 +138,46 @@ class MultiredditOverview : BaseActivityAnim() {
 
             R.id.search -> {
                 run {
-                    val m = MultiCallback { multireddits ->
-                        if (multireddits != null && !multireddits.isEmpty()) {
-                            searchMulti = multireddits[pager!!.currentItem]
-                            val builder = MaterialDialog.Builder(this@MultiredditOverview)
-                                .title(R.string.search_title)
-                                .alwaysCallInputCallback()
-                                .input(
-                                    getString(R.string.search_msg), ""
-                                ) { materialDialog, charSequence -> term = charSequence.toString() }
+                    val m = object : MultiCallback {
+                        override fun onComplete(multireddits: List<MultiReddit?>?) {
+                            if (!multireddits.isNullOrEmpty()) {
+                                searchMulti = multireddits[pager!!.currentItem]
+                                val builder = MaterialDialog.Builder(this@MultiredditOverview)
+                                    .title(R.string.search_title)
+                                    .alwaysCallInputCallback()
+                                    .input(
+                                        getString(R.string.search_msg), ""
+                                    ) { materialDialog, charSequence ->
+                                        term = charSequence.toString()
+                                    }
 
-                            //Add "search current sub" if it is not frontpage/all/random
-                            builder.positiveText(
-                                getString(
-                                    R.string.search_subreddit,
-                                    "/m/" + searchMulti!!.displayName
+                                //Add "search current sub" if it is not frontpage/all/random
+                                builder.positiveText(
+                                    getString(
+                                        R.string.search_subreddit,
+                                        "/m/" + searchMulti!!.displayName
+                                    )
                                 )
-                            )
-                                .onPositive { materialDialog, dialogAction ->
-                                    val i = Intent(
-                                        this@MultiredditOverview,
-                                        Search::class.java
-                                    )
-                                    i.putExtra(Search.EXTRA_TERM, term)
-                                    i.putExtra(
-                                        Search.EXTRA_MULTIREDDIT,
-                                        searchMulti!!.displayName
-                                    )
-                                    startActivity(i)
-                                }
-                            builder.show()
+                                    .onPositive { materialDialog, dialogAction ->
+                                        val i = Intent(
+                                            this@MultiredditOverview,
+                                            Search::class.java
+                                        )
+                                        i.putExtra(Search.EXTRA_TERM, term)
+                                        i.putExtra(
+                                            Search.EXTRA_MULTIREDDIT,
+                                            searchMulti!!.displayName
+                                        )
+                                        startActivity(i)
+                                    }
+                                builder.show()
+                            }
                         }
                     }
                     if (profile!!.isEmpty()) {
                         UserSubscriptions.getMultireddits(m)
                     } else {
-                        UserSubscriptions.getPublicMultireddits(m, profile)
+                        UserSubscriptions.getPublicMultireddits(m, profile!!)
                     }
                 }
                 true
@@ -340,17 +343,19 @@ class MultiredditOverview : BaseActivityAnim() {
         if (profile.equals(Authentication.name, ignoreCase = true)) {
             profile = ""
         }
-        val callback = MultiCallback { multiReddits ->
-            if (multiReddits != null && !multiReddits.isEmpty()) {
-                setDataSet(multiReddits)
-            } else {
-                buildDialog()
+        val callback = object : MultiCallback {
+            override fun onComplete(multiReddits: List<MultiReddit?>?) {
+                if (!multiReddits.isNullOrEmpty()) {
+                    setDataSet(multiReddits.filterNotNull())
+                } else {
+                    buildDialog()
+                }
             }
         }
         if (profile!!.isEmpty()) {
             UserSubscriptions.getMultireddits(callback)
         } else {
-            UserSubscriptions.getPublicMultireddits(callback, profile)
+            UserSubscriptions.getPublicMultireddits(callback, profile!!)
         }
     }
 

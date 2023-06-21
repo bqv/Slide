@@ -8,6 +8,7 @@ import ltd.ucode.slide.data.IPost
 import ltd.ucode.slide.data.IUser
 import net.dean.jraw.models.Submission.ThumbnailType
 import net.dean.jraw.models.VoteDirection
+import java.net.URI
 
 class LemmyPost(val instance: String, val data: PostView) : IPost() {
     override val id: String
@@ -31,8 +32,11 @@ class LemmyPost(val instance: String, val data: PostView) : IPost() {
     override val groupName: String
         get() = data.community.name
 
-    override val permalink: String
+    override val link: String
         get() = "https://${instance}/post/${data.post.id}"
+
+    override val permalink: String
+        get() = data.post.apId
 
     override val thumbnail: String?
         get() = data.post.thumbnailUrl
@@ -45,6 +49,9 @@ class LemmyPost(val instance: String, val data: PostView) : IPost() {
 
     override val updated: Instant?
         get() = data.post.updated?.toInstant(UtcOffset.ZERO)
+
+    override val contentDescription: String
+        get() = URI(data.community.actorId).host
 
   //override val creator: IUser by lazy {
   //    val user = runBlocking {

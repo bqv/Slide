@@ -20,6 +20,7 @@ abstract class IPost : IItem {
     abstract val isLocked: Boolean
     abstract val isNsfw: Boolean
     abstract val groupName: String
+    abstract override val link: String
     abstract override val permalink: String
     abstract override val published: Instant
     abstract override val updated: Instant?
@@ -48,7 +49,7 @@ abstract class IPost : IItem {
     open val isFeatured: Boolean
         get() = false // TODO: hook up
     open val isOC: Boolean
-        get() = true // TODO: reddit-specific
+        get() = false // TODO: reddit-specific
     open val bannedBy: String?
         get() = null // TODO: reddit-specific
     open val approvedBy: String?
@@ -76,7 +77,7 @@ abstract class IPost : IItem {
     open val contentType: ContentType.Type? // TODO: reddit-specific
         get() = if (url != null) ContentType.Type.LINK else ContentType.Type.SELF
     open val contentDescription: String // TODO: reddit-specific
-        get() = "lemmy"
+        get() = ""
     open val flair: Flair // TODO: reddit-specific
         get() = Flair(null, null)
     open val hasPreview: Boolean // TODO: reddit-specific

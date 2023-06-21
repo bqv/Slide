@@ -44,9 +44,6 @@ import me.ccrama.redditslide.util.NetworkUtil
 import net.dean.jraw.models.Submission.ThumbnailType
 import java.util.Arrays
 
-/**
- * Created by carlo_000 on 2/7/2016.
- */
 class HeaderImageLinkView : RelativeLayout {
     var loadedUrl: String? = null
     var lq = false

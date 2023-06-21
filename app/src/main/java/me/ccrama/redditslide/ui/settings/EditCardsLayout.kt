@@ -27,9 +27,6 @@ import me.ccrama.redditslide.Views.CreateCardView.setNoThumbnails
 import me.ccrama.redditslide.Views.CreateCardView.setSmallTag
 import me.ccrama.redditslide.Views.CreateCardView.setSwitchThumb
 
-/**
- * Created by ccrama on 9/17/2015.
- */
 class EditCardsLayout : BaseActivityAnim() {
     public override fun onCreate(savedInstance: Bundle?) {
         overrideRedditSwipeAnywhere()
