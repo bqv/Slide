@@ -9,7 +9,7 @@ import ltd.ucode.slide.data.IUser
 import me.ccrama.redditslide.ContentType
 import net.dean.jraw.models.Submission.ThumbnailType
 import net.dean.jraw.models.VoteDirection
-import java.net.URI
+import java.net.URL
 
 class LemmyPost(val instance: String, val data: PostView) : IPost() {
     override val id: String
@@ -89,7 +89,7 @@ class LemmyPost(val instance: String, val data: PostView) : IPost() {
         get() = data.post.updated?.toInstant(UtcOffset.ZERO)
 
     override val contentDescription: String
-        get() = URI(data.community.actorId).host
+        get() = URL(data.community.actorId).host
 
   //override val creator: IUser by lazy {
   //    val user = runBlocking {

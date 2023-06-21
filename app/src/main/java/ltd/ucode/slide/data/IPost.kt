@@ -10,7 +10,7 @@ import net.dean.jraw.models.Submission
 import net.dean.jraw.models.Submission.ThumbnailType
 import net.dean.jraw.models.Thumbnails
 import net.dean.jraw.models.VoteDirection
-import java.net.URI
+import java.net.URL
 import kotlin.io.path.Path
 import kotlin.io.path.extension
 
@@ -38,9 +38,9 @@ abstract class IPost : IItem {
 
 
     val domain: String?
-        get() = url?.let { URI(it).host }
+        get() = url?.let { URL(it).host }
     val extension: String?
-        get() = url?.let { Path(URI(it).path).extension }
+        get() = url?.let { Path(URL(it).path).extension }
     open val isArchived: Boolean
         get() = false // reddit-specific
     open val isContest: Boolean

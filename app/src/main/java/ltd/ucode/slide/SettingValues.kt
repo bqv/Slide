@@ -753,7 +753,7 @@ object SettingValues {
         cookies = this.settings.getBoolean(PREF_COOKIES, true)
         linkHandlingMode = this.settings.getInt(
             PREF_LINK_HANDLING_MODE,
-            SettingsHandlingFragment.LinkHandlingMode.EXTERNAL.value
+            SettingsHandlingFragment.LinkHandlingMode.INTERNAL.value
         )
         previews = this.settings.getInt(PREVIEWS_LEFT, 10)
         nightStart = this.settings.getInt(PREF_NIGHT_START, 9)

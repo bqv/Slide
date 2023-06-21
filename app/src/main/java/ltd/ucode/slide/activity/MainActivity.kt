@@ -843,7 +843,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                                 val posts = page.map { LemmyPost(Authentication.api!!.instance, it) }
                                 for (s in posts) {
                                     var version = BuildConfig.VERSION_NAME
-                                    if (version.length > 5) {
+                                    if (version.length > 5 && version.contains(".")) {
                                         version = version.substring(0, version.lastIndexOf("."))
                                     }
                                     if (s.isFeatured && !SettingValues.appRestart.contains(
