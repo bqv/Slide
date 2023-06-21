@@ -6,6 +6,7 @@ import kotlinx.datetime.toInstant
 import ltd.ucode.lemmy.data.type.PostView
 import ltd.ucode.slide.data.IPost
 import ltd.ucode.slide.data.IUser
+import me.ccrama.redditslide.ContentType
 import net.dean.jraw.models.Submission.ThumbnailType
 import net.dean.jraw.models.VoteDirection
 import java.net.URI
@@ -43,6 +44,43 @@ class LemmyPost(val instance: String, val data: PostView) : IPost() {
 
     override val thumbnailType: ThumbnailType
         get() = (data.post.thumbnailUrl?.let { ThumbnailType.URL }) ?: ThumbnailType.NONE
+
+    override val contentType: ContentType.Type?
+        get() = when {
+            url == null -> {
+                if (body.isNullOrBlank()) ContentType.Type.NONE
+                else ContentType.Type.SELF
+            }
+            isSpoiler -> { ContentType.Type.SPOILER }
+            listOf("gif")
+                .contains(extension?.lowercase()) -> { ContentType.Type.GIF }
+            listOf("mp4", "webm")
+                .contains(extension?.lowercase()) -> { ContentType.Type.VIDEO }
+            else -> domain!!.lowercase().run {
+                when {
+                    listOf("v.redd.it")
+                        .any(::endsWith) -> { ContentType.Type.VREDDIT_DIRECT }
+                    listOf("redd.it", "reddit.com")
+                        .any(::endsWith) -> { ContentType.Type.REDDIT }
+                    listOf("imgur.com")
+                        .any(::endsWith) -> { ContentType.Type.IMGUR }
+                    listOf("tumblr.com")
+                        .any(::endsWith) -> { ContentType.Type.TUMBLR }
+                    listOf("deviantart.com")
+                        .any(::endsWith) -> { ContentType.Type.DEVIANTART }
+                    listOf("xkcd.org")
+                        .any(::endsWith) -> { ContentType.Type.XKCD }
+
+                    // ALBUM, EMBEDDED, EXTERNAL, VREDDIT_REDIRECT, STREAMABLE
+
+                    listOf("jpg", "jpeg", "png", "bmp", "webp", "tiff", "tif")
+                        .contains(extension?.lowercase()) -> { ContentType.Type.IMAGE }
+                    listOf("svg")
+                        .contains(extension?.lowercase()) -> { ContentType.Type.IMAGE }
+                    else -> ContentType.Type.LINK
+                }
+            }
+        }
 
     override val published: Instant
         get() = data.post.published.toInstant(UtcOffset.ZERO)

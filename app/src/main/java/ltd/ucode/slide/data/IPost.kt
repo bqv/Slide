@@ -11,6 +11,8 @@ import net.dean.jraw.models.Submission.ThumbnailType
 import net.dean.jraw.models.Thumbnails
 import net.dean.jraw.models.VoteDirection
 import java.net.URI
+import kotlin.io.path.Path
+import kotlin.io.path.extension
 
 abstract class IPost : IItem {
     abstract val id: String
@@ -34,8 +36,11 @@ abstract class IPost : IItem {
         (this as? RedditSubmission)?.data // reddit-specific
     }
 
+
     val domain: String?
         get() = url?.let { URI(it).host }
+    val extension: String?
+        get() = url?.let { Path(URI(it).path).extension }
     open val isArchived: Boolean
         get() = false // reddit-specific
     open val isContest: Boolean
