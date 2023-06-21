@@ -168,7 +168,7 @@ public class Search extends BaseActivityAnim {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.home:
+            case me.zhanghai.android.materialprogressbar.R.id.home:
                 onBackPressed();
                 return true;
             case R.id.time:

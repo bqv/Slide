@@ -1120,16 +1120,12 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
 
     override fun onResume() {
         super.onResume()
-        if (Authentication.isLoggedIn && Authentication.didOnline && NetworkUtil.isConnected(
-                this@MainActivity
-            ) && headerMain != null && runAfterLoad == null
-        ) {
+        if (Authentication.isLoggedIn && Authentication.didOnline &&
+                NetworkUtil.isConnected(this@MainActivity) &&
+                headerMain != null && runAfterLoad == null) {
             AsyncNotificationBadge().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR)
-        } else if (Authentication.isLoggedIn && Authentication.name.equals(
-                "loggedout",
-                ignoreCase = true
-            )
-        ) {
+        } else if (Authentication.isLoggedIn &&
+                Authentication.name.equals("loggedout", ignoreCase = true)) {
             restartTheme() //force a restart because we should not be here
         }
         if (inNightMode != SettingValues.isNight) {
@@ -2231,7 +2227,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                                         }
                                     }
 
-                                    protected override fun doInBackground(
+                                    override fun doInBackground(
                                         vararg params: Void?
                                     ): Boolean? {
                                         try {
@@ -2562,7 +2558,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                     var flairText: ArrayList<String?>? = null
                     var current: String? = null
                     var m: AccountManager? = null
-                    protected override fun doInBackground(vararg params: View?): View? {
+                    override fun doInBackground(vararg params: View?): View? {
                         try {
                             m = AccountManager(Authentication.reddit)
                             val node = m!!.getFlairChoicesRootNode(subreddit, null)

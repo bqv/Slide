@@ -122,6 +122,7 @@ class SubredditView : BaseActivity() {
     var sub: Subreddit? = null
     private var drawerLayout: DrawerLayout? = null
     private var currentlySubbed = false
+
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         // Check which request we're responding to
         if (requestCode == 2) {

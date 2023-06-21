@@ -97,4 +97,8 @@ abstract class IPost : IItem {
             else -> false
         }
     }
+
+    override fun hashCode(): Int {
+        return permalink.hashCode()
+    }
 }

@@ -3,8 +3,10 @@ package ltd.ucode.slide
 import android.content.Context
 import android.os.AsyncTask
 import android.util.Log
+import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import ltd.ucode.lemmy.api.ApiException
 import ltd.ucode.lemmy.api.LemmyHttp
 import ltd.ucode.slide.App.Companion.setDefaultErrorHandler
 import me.ccrama.redditslide.util.LogUtil
@@ -43,10 +45,20 @@ class Authentication(context: Context?) {
             api = LemmyHttp()
             api!!.retryLimit = 2
             didOnline = true
-            val site = kotlinx.coroutines.runBlocking { api!!.getSite() }
+            val site = try {
+                runBlocking { api!!.getSite() }
+            } catch (e: ApiException) {
+                e.printStackTrace()
+                null
+            }
             Log.v(LogUtil.getTag(), "Site: ${Json.encodeToString(site)}")
-            val nodeinfo = kotlinx.coroutines.runBlocking { api!!.nodeInfo() }?.nodeInfo
-            Log.v(LogUtil.getTag(), "NodeInfo: ${nodeinfo?.software?.name} ${nodeinfo?.software?.version}")
+            val nodeinfo = try {
+                runBlocking { api!!.nodeInfo() }?.nodeInfo
+            } catch (e: ApiException) {
+                e.printStackTrace()
+                null
+            }
+            Log.v(LogUtil.getTag(), with(nodeinfo?.software) { "NodeInfo: ${name} ${this?.version}" })
             //VerifyCredentials(context).execute()
         } else {
             isLoggedIn = SettingValues.appRestart.getBoolean("loggedin", false)

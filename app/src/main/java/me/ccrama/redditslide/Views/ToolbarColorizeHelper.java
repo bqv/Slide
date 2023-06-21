@@ -27,7 +27,6 @@ import androidx.appcompat.widget.Toolbar;
 
 import java.util.ArrayList;
 
-import ltd.ucode.slide.R;
 import me.ccrama.redditslide.util.BlendModeUtil;
 
 
@@ -102,7 +101,7 @@ public class ToolbarColorizeHelper {
      * @param toolbarIconsColor
      */
     private static void setOverflowButtonColor(final Activity activity, final int toolbarIconsColor) {
-        final String overflowDescription = activity.getString(R.string.abc_action_menu_overflow_description);
+        final String overflowDescription = activity.getString(androidx.appcompat.R.string.abc_action_menu_overflow_description);
         final ViewGroup decorView = (ViewGroup) activity.getWindow().getDecorView();
         final ViewTreeObserver viewTreeObserver = decorView.getViewTreeObserver();
         viewTreeObserver.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {

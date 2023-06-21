@@ -35,7 +35,7 @@ public class Related extends BaseActivityAnim {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == R.id.home) {
+        if (item.getItemId() == me.zhanghai.android.materialprogressbar.R.id.home) {
             onBackPressed();
             return true;
         }

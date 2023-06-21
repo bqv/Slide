@@ -64,6 +64,8 @@ class LemmyPost(val instance: String, val data: PostView) : IPost() {
                         .any(::endsWith) -> { ContentType.Type.REDDIT }
                     listOf("imgur.com")
                         .any(::endsWith) -> { ContentType.Type.IMGUR }
+                    listOf("gfycat.com")
+                        .any(::endsWith) -> { ContentType.Type.GIF } // ?
                     listOf("tumblr.com")
                         .any(::endsWith) -> { ContentType.Type.TUMBLR }
                     listOf("deviantart.com")

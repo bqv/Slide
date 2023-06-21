@@ -6,6 +6,7 @@ import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.ActionBar
 import kotlinx.coroutines.runBlocking
+import ltd.ucode.lemmy.api.ApiException
 import ltd.ucode.lemmy.api.iter.PagedData
 import ltd.ucode.lemmy.data.LemmyPost
 import ltd.ucode.lemmy.data.type.ListingType
@@ -26,7 +27,6 @@ import me.ccrama.redditslide.Fragments.SubmissionsView
 import me.ccrama.redditslide.OfflineSubreddit
 import me.ccrama.redditslide.PostLoader
 import me.ccrama.redditslide.PostMatch
-import me.ccrama.redditslide.Synccit.MySynccitReadTask
 import me.ccrama.redditslide.util.LogUtil
 import me.ccrama.redditslide.util.NetworkUtil
 import me.ccrama.redditslide.util.PhotoLoader
@@ -139,17 +139,15 @@ class SubredditPosts @JvmOverloads constructor(
                     }
                 }
                 success = false
-            } else if (submissions != null && !submissions.isEmpty()) {
+            } else if (!submissions.isNullOrEmpty()) {
                 if (displayer is SubmissionsView
                     && (displayer as SubmissionsView).adapter!!.isError
                 ) {
                     (displayer as SubmissionsView).adapter!!.undoSetError()
                 }
                 val ids = arrayOfNulls<String>(submissions.size)
-                var i = 0
-                for (s in submissions) {
+                for ((i, s) in submissions.withIndex()) {
                     ids[i] = s!!.id
-                    i++
                 }
 
                 // update online
@@ -164,9 +162,6 @@ class SubredditPosts @JvmOverloads constructor(
                 if (context is SubredditView && (subreddit == "random" || subreddit == "myrandom" || subreddit == "randnsfw")) {
                     (context as SubredditView).subreddit = subredditRandom
                     (context as SubredditView).executeAsyncSubreddit(subredditRandom)
-                }
-                if (!SettingValues.synccitName!!.isEmpty() && !offline) {
-                    MySynccitReadTask(displayer).execute(*ids)
                 }
             } else if (submissions != null) {
                 // end of submissions
@@ -256,7 +251,7 @@ class SubredditPosts @JvmOverloads constructor(
                     )
                 }
             }
-            val filteredSubmissions: List<IPost> = nextFiltered
+            val filteredSubmissions: MutableList<IPost> = nextFiltered
             if (!(SettingValues.noImages && ((!NetworkUtil.isConnectedWifi(c)
                         && SettingValues.lowResMobile) || SettingValues.lowResAlways))
             ) {
@@ -268,11 +263,11 @@ class SubredditPosts @JvmOverloads constructor(
             }
             //SubmissionCache.cacheSubmissions(filteredSubmissions.map { it.submission }, context, subreddit)
             if (reset || offline || posts == null) {
-                posts = filteredSubmissions.toHashSet().toMutableList()
+                posts = filteredSubmissions.distinct().toMutableList()
                 start = -1
             } else {
                 posts.addAll(filteredSubmissions)
-                posts = posts.toHashSet().toMutableList()
+                posts = posts.distinct().toMutableList()
                 offline = false
             }
             if (!usedOffline) {
@@ -316,6 +311,10 @@ class SubredditPosts @JvmOverloads constructor(
                     if (paginator != null && paginator!!.hasNext && filteredSubmissions.isEmpty()) {
                         filteredSubmissions.addAll(nextFiltered)
                     }
+                } catch (e: ApiException) {
+                    e.printStackTrace()
+                    error = e
+                    Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_LONG).show()
                 } catch (e: Exception) {
                     e.printStackTrace()
                     error = e
@@ -342,8 +341,7 @@ class SubredditPosts @JvmOverloads constructor(
         offline = true
         val titles = arrayOfNulls<String>(all!!.size)
         val base = arrayOfNulls<String>(all!!.size)
-        var i = 0
-        for (s in all!!) {
+        for ((i, s) in all!!.withIndex()) {
             val split = s!!.split(",".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
             titles[i] = if (split[1].toLong() == 0L) c.getString(
                 R.string.settings_backup_submission_only
@@ -353,7 +351,6 @@ class SubredditPosts @JvmOverloads constructor(
                 R.string.settings_backup_comments
             )
             base[i] = s
-            i++
         }
         (c as MainActivity).supportActionBar!!.navigationMode = ActionBar.NAVIGATION_MODE_LIST
         c.supportActionBar!!
