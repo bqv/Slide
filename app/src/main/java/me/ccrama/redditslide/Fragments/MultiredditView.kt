@@ -300,7 +300,7 @@ class MultiredditView : Fragment(), SubmissionDisplay {
                 try {
                     if (HasSeen.getSeen(posts!!.posts[i].submission)) {
                         if (forever) {
-                            Hidden.setHidden(posts!!.posts[i].submission)
+                            Hidden.setHidden(posts!!.posts[i])
                         }
                         o.clearPost(posts!!.posts[i].submission)
                         posts!!.posts.removeAt(i)

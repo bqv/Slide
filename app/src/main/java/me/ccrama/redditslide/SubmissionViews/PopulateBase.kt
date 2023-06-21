@@ -1,59 +1,45 @@
-package me.ccrama.redditslide.SubmissionViews;
+package me.ccrama.redditslide.SubmissionViews
 
-import android.content.Intent;
-import android.os.AsyncTask;
-import android.view.View;
+import android.content.Intent
+import android.os.AsyncTask
+import android.view.View
+import com.google.android.material.snackbar.Snackbar
+import ltd.ucode.slide.Authentication
+import ltd.ucode.slide.R
+import ltd.ucode.slide.data.IPost
+import me.ccrama.redditslide.Activities.MediaView
+import me.ccrama.redditslide.Fragments.SubmissionsView.Companion.currentPosition
+import me.ccrama.redditslide.Fragments.SubmissionsView.Companion.currentSubmission
+import me.ccrama.redditslide.util.LayoutUtils
+import net.dean.jraw.ApiException
+import net.dean.jraw.managers.AccountManager
 
-import com.google.android.material.snackbar.Snackbar;
-
-import net.dean.jraw.ApiException;
-import net.dean.jraw.managers.AccountManager;
-import net.dean.jraw.models.Submission;
-
-import ltd.ucode.reddit.data.RedditSubmission;
-import me.ccrama.redditslide.Activities.MediaView;
-import ltd.ucode.slide.Authentication;
-import me.ccrama.redditslide.Fragments.SubmissionsView;
-import ltd.ucode.slide.R;
-import me.ccrama.redditslide.util.LayoutUtils;
-
-/**
- * Created by TacoTheDank on 04/04/2021.
- */
-public class PopulateBase {
-    public static void addAdaptorPosition(Intent myIntent, Submission submission, int adapterPosition) {
-        if (submission.getComments() == null && adapterPosition != -1) {
-            myIntent.putExtra(MediaView.ADAPTER_POSITION, adapterPosition);
-            myIntent.putExtra(MediaView.SUBMISSION_URL, submission.getPermalink());
+object PopulateBase {
+    fun addAdaptorPosition(myIntent: Intent, submission: IPost, adapterPosition: Int) {
+        if (submission.comments == null && adapterPosition != -1) {
+            myIntent.putExtra(MediaView.ADAPTER_POSITION, adapterPosition)
+            myIntent.putExtra(MediaView.SUBMISSION_URL, submission.permalink)
         }
-        SubmissionsView.currentPosition(adapterPosition);
-        SubmissionsView.currentSubmission(new RedditSubmission(submission));
-
+        currentPosition(adapterPosition)
+        currentSubmission(submission)
     }
 
-    public static class AsyncReportTask extends AsyncTask<String, Void, Void> {
-        private final Submission submission;
-        private final View contextView;
-
-        public AsyncReportTask(final Submission submission, final View contextView) {
-            this.submission = submission;
-            this.contextView = contextView;
-        }
-
-        @Override
-        protected Void doInBackground(String... reason) {
+    class AsyncReportTask(private val submission: IPost, private val contextView: View) :
+        AsyncTask<String?, Void?, Void?>() {
+        override fun doInBackground(vararg reason: String?): Void? {
             try {
-                new AccountManager(Authentication.reddit).report(submission, reason[0]);
-            } catch (ApiException e) {
-                e.printStackTrace();
+                AccountManager(Authentication.reddit).report(
+                    submission.submission, reason[0]
+                )
+            } catch (e: ApiException) {
+                e.printStackTrace()
             }
-            return null;
+            return null
         }
 
-        @Override
-        protected void onPostExecute(Void aVoid) {
-            Snackbar s = Snackbar.make(contextView, R.string.msg_report_sent, Snackbar.LENGTH_SHORT);
-            LayoutUtils.showSnackbar(s);
+        override fun onPostExecute(aVoid: Void?) {
+            val s = Snackbar.make(contextView, R.string.msg_report_sent, Snackbar.LENGTH_SHORT)
+            LayoutUtils.showSnackbar(s)
         }
     }
 }

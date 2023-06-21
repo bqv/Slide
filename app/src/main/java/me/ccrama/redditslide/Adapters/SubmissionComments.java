@@ -22,6 +22,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
 
+import ltd.ucode.reddit.data.RedditSubmission;
 import ltd.ucode.slide.Authentication;
 import me.ccrama.redditslide.Fragments.CommentPage;
 import me.ccrama.redditslide.LastComments;
@@ -200,7 +201,7 @@ public class SubmissionComments {
                     page.doTopBarNotify(submission, adapter);
 
                 page.doData(reset);
-                LastComments.setComments(submission);
+                LastComments.setComments(new RedditSubmission(submission));
             }
         }
 

@@ -15,6 +15,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 
+import ltd.ucode.slide.data.IPost;
 import me.ccrama.redditslide.Synccit.SynccitRead;
 
 import static com.lusfold.androidkeyvaluestore.core.KVManagerImpl.COLUMN_KEY;
@@ -75,6 +76,20 @@ public class HasSeen {
             } catch (Exception ignored) {
             }
         }
+    }
+
+    public static boolean getSeen(IPost s) {
+        if (hasSeen == null) {
+            hasSeen = new HashSet<>();
+            seenTimes = new HashMap<>();
+        }
+
+        String fullname = s.getPermalink();
+        if (fullname.contains("t3_")) {
+            fullname = fullname.substring(3);
+        }
+        return (hasSeen.contains(fullname)
+                || s.getMyVote() != VoteDirection.NO_VOTE);
     }
 
     public static boolean getSeen(Submission s) {

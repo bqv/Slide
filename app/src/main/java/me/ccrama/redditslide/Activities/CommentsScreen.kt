@@ -228,7 +228,7 @@ class CommentsScreen : BaseActivityAnim(), SubmissionDisplay {
     }
 
     override fun updateSuccess(submissions: List<IPost>, startIndex: Int) {
-        if (SettingValues.storeHistory) LastComments.setCommentsSince(submissions.map { it.submission })
+        if (SettingValues.storeHistory) LastComments.setCommentsSince(submissions)
         currentPosts!!.clear()
         currentPosts!!.addAll(submissions)
         runOnUiThread {

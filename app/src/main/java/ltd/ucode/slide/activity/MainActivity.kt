@@ -73,6 +73,7 @@ import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.FragmentStatePagerAdapter
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.viewpager.widget.ViewPager.SimpleOnPageChangeListener
 import com.afollestad.materialdialogs.DialogAction
@@ -80,6 +81,7 @@ import com.afollestad.materialdialogs.MaterialDialog
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.tabs.TabLayout
 import com.lusfold.androidkeyvaluestore.KVStore
+import ltd.ucode.Util.executeAsyncTask
 import ltd.ucode.reddit.data.RedditSubmission
 import ltd.ucode.slide.App
 import ltd.ucode.slide.Authentication
@@ -1004,56 +1006,49 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             App.isRestarting = false
             UserSubscriptions.doMainActivitySubs(this)
         }
-        if (!SettingValues.seen.contains("isCleared") && !SettingValues.seen.all.isEmpty()
+        if (!SettingValues.seen.contains("isCleared") && SettingValues.seen.all.isNotEmpty()
             || !SettingValues.appRestart.contains("hasCleared")
         ) {
-            object : AsyncTask<Void?, Void?, Void?>() {
-                protected override fun doInBackground(vararg params: Void?): Void? {
-                    val m = KVStore.getInstance()
-                    val values = SettingValues.seen.all
-                    for ((key, value) in values) {
-                        if (key.length == 6 && value is Boolean) {
-                            m.insert(key, "true")
-                        } else if (value is Long) {
-                            m.insert(key, SettingValues.seen.getLong(key, 0).toString())
+            lifecycleScope.executeAsyncTask({
+                d = MaterialDialog.Builder(this@MainActivity)
+                    .title(R.string.misc_setting_up)
+                    .content(R.string.misc_setting_up_message)
+                    .progress(true, 100)
+                    .cancelable(false)
+                    .build()
+                d!!.show()
+            }, {
+                val m = KVStore.getInstance()
+                val values = SettingValues.seen.all
+                for ((key, value) in values) {
+                    if (key.length == 6 && value is Boolean) {
+                        m.insert(key, "true")
+                    } else if (value is Long) {
+                        m.insert(key, SettingValues.seen.getLong(key, 0).toString())
+                    }
+                }
+                SettingValues.seen.edit().clear().putBoolean("isCleared", true).apply()
+                if (SettingValues.hiddenPosts.all.isNotEmpty()) {
+                    SettingValues.hidden.edit().clear().apply()
+                    SettingValues.hiddenPosts.edit().clear().apply()
+                }
+                if (!SettingValues.appRestart.contains("hasCleared")) {
+                    val e = SettingValues.appRestart.edit()
+                    val toClear = SettingValues.appRestart.all
+                    for ((key, value) in toClear) {
+                        if (value is String
+                            && value.length > 300
+                        ) {
+                            e.remove(key)
                         }
                     }
-                    SettingValues.seen.edit().clear().putBoolean("isCleared", true).apply()
-                    if (SettingValues.hiddenPosts.all.isNotEmpty()) {
-                        SettingValues.hidden.edit().clear().apply()
-                        SettingValues.hiddenPosts.edit().clear().apply()
-                    }
-                    if (!SettingValues.appRestart.contains("hasCleared")) {
-                        val e = SettingValues.appRestart.edit()
-                        val toClear = SettingValues.appRestart.all
-                        for ((key, value) in toClear) {
-                            if (value is String
-                                && value.length > 300
-                            ) {
-                                e.remove(key)
-                            }
-                        }
-                        e.putBoolean("hasCleared", true)
-                        e.apply()
-                    }
-                    return null
+                    e.putBoolean("hasCleared", true)
+                    e.apply()
                 }
-
-                override fun onPostExecute(aVoid: Void?) {
-                    dismissProgressDialog()
-                }
-
-                override fun onPreExecute() {
-                    d = MaterialDialog.Builder(this@MainActivity).title(
-                        R.string.misc_setting_up
-                    )
-                        .content(R.string.misc_setting_up_message)
-                        .progress(true, 100)
-                        .cancelable(false)
-                        .build()
-                    d!!.show()
-                }
-            }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR)
+                return@executeAsyncTask null
+            }, { _ ->
+                dismissProgressDialog()
+            })
         }
         if (!BuildConfig.isFDroid && Authentication.isLoggedIn && NetworkUtil.isConnected(this@MainActivity)) {
             // Display an snackbar that asks the user to rate the app after this
@@ -2047,100 +2042,94 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             val collection = findViewById<View>(R.id.collection)
             if (Authentication.isLoggedIn) {
                 collection.setOnClickListener {
-                    object : AsyncTask<Void?, Void?, Void?>() {
-                        var multis = HashMap<String?, MultiReddit>()
-                        protected override fun doInBackground(vararg params: Void?): Void? {
-                            if (UserSubscriptions.multireddits == null) {
-                                UserSubscriptions.syncMultiReddits(this@MainActivity)
-                            }
-                            for (r in UserSubscriptions.multireddits) {
-                                multis[r.displayName] = r
-                            }
-                            return null
+                    var multis = HashMap<String?, MultiReddit>()
+                    lifecycleScope.executeAsyncTask({}, {
+                        if (UserSubscriptions.multireddits == null) {
+                            UserSubscriptions.syncMultiReddits(this@MainActivity)
                         }
-
-                        override fun onPostExecute(aVoid: Void?) {
-                            MaterialDialog.Builder(this@MainActivity).title(
-                                getString(
-                                    R.string.multi_add_to,
-                                    subreddit.displayName
-                                )
+                        for (r in UserSubscriptions.multireddits) {
+                            multis[r.displayName] = r
+                        }
+                        return@executeAsyncTask null
+                    }, {
+                        MaterialDialog.Builder(this@MainActivity).title(
+                            getString(
+                                R.string.multi_add_to,
+                                subreddit.displayName
                             )
-                                .items(multis.keys)
-                                .itemsCallback { dialog, itemView, which, text ->
-                                    object : AsyncTask<Void?, Void?, Void?>() {
-                                        protected override fun doInBackground(vararg params: Void?): Void? {
-                                            try {
-                                                val multiName = multis.keys
-                                                    .toTypedArray()[which]
-                                                val subs: MutableList<String> = ArrayList()
-                                                for (sub in multis[multiName]!!.subreddits) {
-                                                    subs.add(sub.displayName)
-                                                }
-                                                subs.add(subreddit.displayName)
-                                                MultiRedditManager(
-                                                    Authentication.reddit
-                                                ).createOrUpdate(
-                                                    MultiRedditUpdateRequest.Builder(
-                                                        Authentication.name,
-                                                        multiName
-                                                    ).subreddits(
-                                                        subs
-                                                    ).build()
-                                                )
-                                                UserSubscriptions.syncMultiReddits(
-                                                    this@MainActivity
-                                                )
-                                                runOnUiThread {
-                                                    drawerLayout!!.closeDrawers()
-                                                    val s = Snackbar.make(
-                                                        mToolbar!!,
-                                                        getString(
-                                                            R.string.multi_subreddit_added,
-                                                            multiName
-                                                        ),
-                                                        Snackbar.LENGTH_LONG
-                                                    )
-                                                    LayoutUtils.showSnackbar(s)
-                                                }
-                                            } catch (e: NetworkException) {
-                                                runOnUiThread {
-                                                    runOnUiThread {
-                                                        Snackbar.make(
-                                                            mToolbar!!,
-                                                            getString(
-                                                                R.string.multi_error
-                                                            ),
-                                                            Snackbar.LENGTH_LONG
-                                                        )
-                                                            .setAction(R.string.btn_ok, null)
-                                                            .show()
-                                                    }
-                                                }
-                                                e.printStackTrace()
-                                            } catch (e: ApiException) {
-                                                runOnUiThread {
-                                                    runOnUiThread {
-                                                        Snackbar.make(
-                                                            mToolbar!!,
-                                                            getString(
-                                                                R.string.multi_error
-                                                            ),
-                                                            Snackbar.LENGTH_LONG
-                                                        )
-                                                            .setAction(R.string.btn_ok, null)
-                                                            .show()
-                                                    }
-                                                }
-                                                e.printStackTrace()
-                                            }
-                                            return null
+                        )
+                            .items(multis.keys)
+                            .itemsCallback { dialog, itemView, which, text ->
+                                lifecycleScope.executeAsyncTask({}, {
+                                    try {
+                                        val multiName = multis.keys
+                                            .toTypedArray()[which]
+                                        val subs: MutableList<String> = ArrayList()
+                                        for (sub in multis[multiName]!!.subreddits) {
+                                            subs.add(sub.displayName)
                                         }
-                                    }.executeOnExecutor(THREAD_POOL_EXECUTOR)
-                                }
-                                .show()
-                        }
-                    }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR)
+                                        subs.add(subreddit.displayName)
+                                        MultiRedditManager(
+                                            Authentication.reddit
+                                        ).createOrUpdate(
+                                            MultiRedditUpdateRequest.Builder(
+                                                Authentication.name,
+                                                multiName
+                                            ).subreddits(
+                                                subs
+                                            ).build()
+                                        )
+                                        UserSubscriptions.syncMultiReddits(
+                                            this@MainActivity
+                                        )
+                                        runOnUiThread {
+                                            drawerLayout!!.closeDrawers()
+                                            val s = Snackbar.make(
+                                                mToolbar!!,
+                                                getString(
+                                                    R.string.multi_subreddit_added,
+                                                    multiName
+                                                ),
+                                                Snackbar.LENGTH_LONG
+                                            )
+                                            LayoutUtils.showSnackbar(s)
+                                        }
+                                    } catch (e: NetworkException) {
+                                        runOnUiThread {
+                                            runOnUiThread {
+                                                Snackbar.make(
+                                                    mToolbar!!,
+                                                    getString(
+                                                        R.string.multi_error
+                                                    ),
+                                                    Snackbar.LENGTH_LONG
+                                                )
+                                                    .setAction(R.string.btn_ok, null)
+                                                    .show()
+                                            }
+                                        }
+                                        e.printStackTrace()
+                                    } catch (e: ApiException) {
+                                        runOnUiThread {
+                                            runOnUiThread {
+                                                Snackbar.make(
+                                                    mToolbar!!,
+                                                    getString(
+                                                        R.string.multi_error
+                                                    ),
+                                                    Snackbar.LENGTH_LONG
+                                                )
+                                                    .setAction(R.string.btn_ok, null)
+                                                    .show()
+                                            }
+                                        }
+                                        e.printStackTrace()
+                                    }
+                                    return@executeAsyncTask null
+                                }, {})
+                            }
+                            .show()
+                    })
                 }
             } else {
                 collection.visibility = View.GONE
@@ -3268,14 +3257,14 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             }
             .setPositiveButton(R.string.btn_save) { dialog: DialogInterface?, which: Int ->
                 caching = CommentCacheAsync(
-                    submissions?.map { it.submission!! }, this@MainActivity, subreddit,
+                    submissions, this@MainActivity, subreddit,
                     chosen
                 ).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR)
             }
             .setPositiveButton(R.string.btn_save) { dialog: DialogInterface?, which: Int ->
                 val service = Executors.newSingleThreadExecutor()
                 CommentCacheAsync(
-                    submissions?.map { it.submission!! }, this@MainActivity, subreddit,
+                    submissions, this@MainActivity, subreddit,
                     chosen
                 ).executeOnExecutor(service)
             }

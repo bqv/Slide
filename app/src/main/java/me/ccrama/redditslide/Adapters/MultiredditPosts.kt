@@ -202,7 +202,7 @@ class MultiredditPosts(multireddit: String, profile: String) : PostLoader {
             }
             HasSeen.setHasSeenSubmission(filteredSubmissions.mapNotNull { it?.submission })
             SubmissionCache.cacheSubmissions(
-                filteredSubmissions.mapNotNull { it?.submission },
+                filteredSubmissions.filterNotNull(),
                 context,
                 paginator!!.multiReddit.displayName
             )
@@ -210,7 +210,7 @@ class MultiredditPosts(multireddit: String, profile: String) : PostLoader {
                 c!!,
                 filteredSubmissions.filterNotNull()
             )
-            if (SettingValues.storeHistory) LastComments.setCommentsSince(filteredSubmissions.mapNotNull { it?.submission })
+            if (SettingValues.storeHistory) LastComments.setCommentsSince(filteredSubmissions.filterNotNull())
             return filteredSubmissions
         }
     }

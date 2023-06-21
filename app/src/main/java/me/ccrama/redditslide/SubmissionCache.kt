@@ -1,263 +1,282 @@
-package me.ccrama.redditslide;
+package me.ccrama.redditslide
 
-import android.content.Context;
-import android.content.res.Resources;
-import android.content.res.TypedArray;
-import android.graphics.Typeface;
-import android.text.SpannableStringBuilder;
-import android.text.Spanned;
-import android.text.style.ForegroundColorSpan;
-import android.text.style.StyleSpan;
-import android.util.TypedValue;
+import android.content.Context
+import android.graphics.Typeface
+import android.text.SpannableStringBuilder
+import android.text.Spanned
+import android.text.style.ForegroundColorSpan
+import android.text.style.StyleSpan
+import android.util.TypedValue
+import ltd.ucode.slide.Authentication
+import ltd.ucode.slide.R
+import ltd.ucode.slide.SettingValues
+import ltd.ucode.slide.SettingValues.commentLastVisit
+import ltd.ucode.slide.SettingValues.hidePostAwards
+import ltd.ucode.slide.SettingValues.showDomain
+import ltd.ucode.slide.SettingValues.typeInfoLine
+import ltd.ucode.slide.SettingValues.votesInfoLine
+import ltd.ucode.slide.data.IPost
+import me.ccrama.redditslide.Adapters.CommentAdapterHelper
+import me.ccrama.redditslide.Toolbox.ToolboxUI.appendToolboxNote
+import me.ccrama.redditslide.Views.RoundedBackgroundSpan
+import me.ccrama.redditslide.Visuals.FontPreferences
+import me.ccrama.redditslide.Visuals.Palette
+import me.ccrama.redditslide.util.CompatUtil
+import me.ccrama.redditslide.util.MiscUtil
+import me.ccrama.redditslide.util.TimeUtils
+import net.dean.jraw.models.DistinguishedStatus
+import java.util.Locale
+import java.util.WeakHashMap
 
-import com.fasterxml.jackson.databind.JsonNode;
-
-import net.dean.jraw.models.DistinguishedStatus;
-import net.dean.jraw.models.Submission;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.WeakHashMap;
-
-import ltd.ucode.slide.Authentication;
-import ltd.ucode.slide.R;
-import ltd.ucode.slide.SettingValues;
-import me.ccrama.redditslide.Adapters.CommentAdapterHelper;
-import me.ccrama.redditslide.Toolbox.ToolboxUI;
-import me.ccrama.redditslide.Views.RoundedBackgroundSpan;
-import me.ccrama.redditslide.Visuals.FontPreferences;
-import me.ccrama.redditslide.Visuals.Palette;
-import me.ccrama.redditslide.util.CompatUtil;
-import me.ccrama.redditslide.util.MiscUtil;
-import me.ccrama.redditslide.util.TimeUtils;
-
-/**
- * Created by carlo_000 on 4/22/2016.
- */
-public class SubmissionCache {
-    private static WeakHashMap<String, SpannableStringBuilder> titles;
-    private static WeakHashMap<String, SpannableStringBuilder> info;
-    private static WeakHashMap<String, SpannableStringBuilder> crosspost;
-
-    public static void cacheSubmissions(List<Submission> submissions, Context mContext,
-            String baseSub) {
-        cacheInfo(submissions, mContext, baseSub);
+object SubmissionCache {
+    private var titles: WeakHashMap<String, SpannableStringBuilder>? = null
+    private var info: WeakHashMap<String, SpannableStringBuilder>? = null
+    private var crosspost: WeakHashMap<String, SpannableStringBuilder?>? = null
+    fun cacheSubmissions(
+        submissions: List<IPost>, mContext: Context,
+        baseSub: String
+    ) {
+        cacheInfo(submissions, mContext, baseSub)
     }
 
-    public static SpannableStringBuilder getCrosspostLine(Submission s, Context mContext) {
-        if (crosspost == null) crosspost = new WeakHashMap<>();
-        if (crosspost.containsKey(s.getFullName())) {
-            return crosspost.get(s.getFullName());
+    fun getCrosspostLine(s: IPost, mContext: Context): SpannableStringBuilder? {
+        if (crosspost == null) crosspost = WeakHashMap()
+        return if (crosspost!!.containsKey(s.permalink)) {
+            crosspost!![s.permalink]
         } else {
-            return getCrosspostSpannable(s, mContext);
+            getCrosspostSpannable(s, mContext)
         }
     }
 
-    private static void cacheInfo(List<Submission> submissions, Context mContext, String baseSub) {
-        if (titles == null) titles = new WeakHashMap<>();
-        if (info == null) info = new WeakHashMap<>();
-        if (crosspost == null) crosspost = new WeakHashMap<>();
-
-        for (Submission submission : submissions) {
-            titles.put(submission.getFullName(), getTitleSpannable(submission, mContext));
-            info.put(submission.getFullName(), getInfoSpannable(submission, mContext, baseSub));
-            crosspost.put(submission.getFullName(), getCrosspostLine(submission, mContext));
+    private fun cacheInfo(submissions: List<IPost>, mContext: Context, baseSub: String) {
+        if (titles == null) titles = WeakHashMap()
+        if (info == null) info = WeakHashMap()
+        if (crosspost == null) crosspost = WeakHashMap()
+        for (submission in submissions) {
+            titles!![submission.permalink] = getTitleSpannable(submission, mContext)
+            info!![submission.permalink] = getInfoSpannable(submission, mContext, baseSub)
+            crosspost!![submission.permalink] = getCrosspostLine(submission, mContext)
         }
     }
 
-    public static void updateInfoSpannable(Submission changed, Context mContext, String baseSub) {
-        info.put(changed.getFullName(), getInfoSpannable(changed, mContext, baseSub));
+    fun updateInfoSpannable(changed: IPost, mContext: Context, baseSub: String) {
+        info!![changed.permalink] =
+            getInfoSpannable(changed, mContext, baseSub)
     }
 
-    public static void updateTitleFlair(Submission s, String flair, Context c) {
-        titles.put(s.getFullName(), getTitleSpannable(s, flair, c));
-
+    fun updateTitleFlair(s: IPost, flair: String?, c: Context) {
+        titles!![s.permalink] = getTitleSpannable(s, flair, c)
     }
 
-    public static SpannableStringBuilder getTitleLine(Submission s, Context mContext) {
-        if (titles == null) titles = new WeakHashMap<>();
-        if (titles.containsKey(s.getFullName())) {
-            return titles.get(s.getFullName());
+    fun getTitleLine(s: IPost, mContext: Context): SpannableStringBuilder? {
+        if (titles == null) titles = WeakHashMap()
+        return if (titles!!.containsKey(s.permalink)) {
+            titles!![s.permalink]
         } else {
-            return getTitleSpannable(s, mContext);
+            getTitleSpannable(s, mContext)
         }
     }
 
-    public static SpannableStringBuilder getInfoLine(Submission s, Context mContext,
-            String baseSub) {
-        if (info == null) info = new WeakHashMap<>();
-        if (info.containsKey(s.getFullName())) {
-            return info.get(s.getFullName());
+    fun getInfoLine(
+        s: IPost, mContext: Context,
+        baseSub: String
+    ): SpannableStringBuilder? {
+        if (info == null) info = WeakHashMap()
+        return if (info!!.containsKey(s.permalink)) {
+            info!![s.permalink]
         } else {
-            return getInfoSpannable(s, mContext, baseSub);
+            getInfoSpannable(s, mContext, baseSub)
         }
     }
 
-    private static SpannableStringBuilder getCrosspostSpannable(Submission s, Context mContext) {
-        String spacer = mContext.getString(R.string.submission_properties_seperator);
-        SpannableStringBuilder titleString = new SpannableStringBuilder("Crosspost" + spacer);
-        JsonNode json = s.getDataNode();
-        if (!json.has("crosspost_parent_list")
-                || json.get("crosspost_parent_list") == null
-                || json.get("crosspost_parent_list").get(0) == null) { //is not a crosspost
-            return null;
+    private fun getCrosspostSpannable(s: IPost, mContext: Context): SpannableStringBuilder? {
+        val spacer = mContext.getString(R.string.submission_properties_seperator)
+        val titleString = SpannableStringBuilder("Crosspost$spacer")
+        /*
+        var json = s.dataNode
+        if (!json.has("crosspost_parent_list") || json["crosspost_parent_list"] == null || json["crosspost_parent_list"][0] == null) { //is not a crosspost
+            return null
         }
-        json = json.get("crosspost_parent_list").get(0);
-
-        if(json.has("subreddit")){
-            String subname = json.get("subreddit").asText().toLowerCase(Locale.ENGLISH);
-            SpannableStringBuilder subreddit = new SpannableStringBuilder("/r/" + subname + spacer);
-
-            if ((SettingValues.colorSubName && Palette.getColor(subname) != Palette.getDefaultColor())
-                    || (SettingValues.colorSubName
-                    && Palette.getColor(subname) != Palette.getDefaultColor())) {
+        json = json["crosspost_parent_list"][0]
+         */
+        s.groupName.let {
+            val subname = it.lowercase()
+            val subreddit = SpannableStringBuilder("/c/$subname$spacer")
+            if (SettingValues.colorSubName && Palette.getColor(subname) != Palette.getDefaultColor()
+                || (SettingValues.colorSubName
+                        && Palette.getColor(subname) != Palette.getDefaultColor())
+            ) {
                 if (!SettingValues.colorEverywhere) {
-                    subreddit.setSpan(new ForegroundColorSpan(Palette.getColor(subname)), 0,
-                            subreddit.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-                    subreddit.setSpan(new StyleSpan(Typeface.BOLD), 0, subreddit.length(),
-                            Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                    subreddit.setSpan(
+                        ForegroundColorSpan(Palette.getColor(subname)), 0,
+                        subreddit.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                    )
+                    subreddit.setSpan(
+                        StyleSpan(Typeface.BOLD), 0, subreddit.length,
+                        Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                    )
                 }
             }
-
-            titleString.append(subreddit);
+            titleString.append(subreddit)
         }
-
-        SpannableStringBuilder author =
-                new SpannableStringBuilder( json.get("author").asText() + " ");
-
-        int authorcolor = Palette.getFontColorUser(json.get("author").asText());
-
+        val author = SpannableStringBuilder(s.creator.name + " ")
+        val authorcolor = Palette.getFontColorUser(s.creator.name)
         if (authorcolor != 0) {
-            author.setSpan(new ForegroundColorSpan(authorcolor), 0, author.length(),
-                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            author.setSpan(
+                ForegroundColorSpan(authorcolor), 0, author.length,
+                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
         }
-        titleString.append(author);
-
-        if (UserTags.isUserTagged(json.get("author").asText())) {
-            SpannableStringBuilder pinned = new SpannableStringBuilder(
-                    " " + UserTags.getUserTag(json.get("author").asText()) + " ");
+        titleString.append(author)
+        if (UserTags.isUserTagged(s.creator.name)) {
+            val pinned = SpannableStringBuilder(
+                " " + UserTags.getUserTag(s.creator.name) + " "
+            )
             pinned.setSpan(
-                    new RoundedBackgroundSpan(mContext, android.R.color.white, R.color.md_blue_500, false),
-                    0, pinned.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-            titleString.append(pinned);
+                RoundedBackgroundSpan(mContext, android.R.color.white, R.color.md_blue_500, false),
+                0, pinned.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
+            titleString.append(pinned)
         }
-
-        if (UserSubscriptions.friends.contains(json.get("author").asText())) {
-            SpannableStringBuilder pinned = new SpannableStringBuilder(
-                    " " + mContext.getString(R.string.profile_friend) + " ");
+        if (UserSubscriptions.friends.contains(s.creator.name)) {
+            val pinned = SpannableStringBuilder(
+                " " + mContext.getString(R.string.profile_friend) + " "
+            )
             pinned.setSpan(
-                    new RoundedBackgroundSpan(mContext, android.R.color.white, R.color.md_deep_orange_500,
-                            false), 0, pinned.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-            titleString.append(pinned);
+                RoundedBackgroundSpan(
+                    mContext, android.R.color.white, R.color.md_deep_orange_500,
+                    false
+                ), 0, pinned.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
+            titleString.append(pinned)
         }
-        return titleString;
+        return titleString
     }
 
-    private static SpannableStringBuilder getInfoSpannable(Submission submission, Context mContext,
-            String baseSub) {
-        String spacer = mContext.getString(R.string.submission_properties_seperator);
-        SpannableStringBuilder titleString = new SpannableStringBuilder();
-
-        SpannableStringBuilder subreddit =
-                new SpannableStringBuilder(" /r/" + submission.getSubredditName() + " ");
-        if (submission.getSubredditName() == null) {
-            subreddit = new SpannableStringBuilder("Promoted ");
+    private fun getInfoSpannable(
+        submission: IPost, mContext: Context,
+        baseSub: String
+    ): SpannableStringBuilder {
+        var baseSub: String? = baseSub
+        val spacer = mContext.getString(R.string.submission_properties_seperator)
+        val titleString = SpannableStringBuilder()
+        var subreddit = SpannableStringBuilder(" /r/" + submission.groupName + " ")
+        if (submission.groupName == null) {
+            subreddit = SpannableStringBuilder("Promoted ")
         }
-        String subname;
-        if (submission.getSubredditName() != null) {
-            subname = submission.getSubredditName().toLowerCase(Locale.ENGLISH);
+        val subname: String
+        subname = if (submission.groupName != null) {
+            submission.groupName.lowercase()
         } else {
-            subname = "";
+            ""
         }
-        if (baseSub == null || baseSub.isEmpty()) baseSub = subname;
-        if ((SettingValues.colorSubName && Palette.getColor(subname) != Palette.getDefaultColor())
-                || (baseSub.equals("nomatching") && (SettingValues.colorSubName
-                && Palette.getColor(subname) != Palette.getDefaultColor()))) {
-            boolean secondary = (baseSub.equalsIgnoreCase("frontpage")
-                    || (baseSub.equalsIgnoreCase("all"))
-                    || (baseSub.equalsIgnoreCase("popular"))
-                    || (baseSub.equalsIgnoreCase("friends"))
-                    || (baseSub.equalsIgnoreCase("mod"))
+        if (baseSub == null || baseSub.isEmpty()) baseSub = subname
+        if (SettingValues.colorSubName && Palette.getColor(subname) != Palette.getDefaultColor() || baseSub == "nomatching" && (SettingValues.colorSubName
+                    && Palette.getColor(subname) != Palette.getDefaultColor())
+        ) {
+            val secondary = (baseSub.equals("frontpage", ignoreCase = true)
+                    || baseSub.equals("all", ignoreCase = true)
+                    || baseSub.equals("popular", ignoreCase = true)
+                    || baseSub.equals("friends", ignoreCase = true)
+                    || baseSub.equals("mod", ignoreCase = true)
                     || baseSub.contains(".")
-                    || baseSub.contains("+"));
+                    || baseSub.contains("+"))
             if (secondary || !SettingValues.colorEverywhere) {
-                subreddit.setSpan(new ForegroundColorSpan(Palette.getColor(subname)), 0,
-                        subreddit.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-                subreddit.setSpan(new StyleSpan(Typeface.BOLD), 0, subreddit.length(),
-                        Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                subreddit.setSpan(
+                    ForegroundColorSpan(Palette.getColor(subname)), 0,
+                    subreddit.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                )
+                subreddit.setSpan(
+                    StyleSpan(Typeface.BOLD), 0, subreddit.length,
+                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                )
             }
         }
-
-        titleString.append(subreddit);
-        titleString.append(spacer);
-
+        titleString.append(subreddit)
+        titleString.append(spacer)
         try {
-            String time = TimeUtils.getTimeAgo(submission.getCreated().getTime(), mContext);
-            titleString.append(time);
-        } catch (Exception e) {
-            titleString.append("just now");
+            val time = TimeUtils.getTimeAgo(submission.published.toEpochMilliseconds(), mContext)
+            titleString.append(time)
+        } catch (e: Exception) {
+            titleString.append("just now")
         }
-        titleString.append(((submission.getEdited() != null) ? " (edit " + TimeUtils.getTimeAgo(
-                submission.getEdited().getTime(), mContext) + ")" : ""));
-
-        titleString.append(spacer);
-
-        SpannableStringBuilder author =
-                new SpannableStringBuilder(" " + submission.getAuthor() + " ");
-        int authorcolor = Palette.getFontColorUser(submission.getAuthor());
-
-        if (submission.getAuthor() != null) {
-            if (Authentication.name != null && submission.getAuthor()
-                    .toLowerCase(Locale.ENGLISH)
-                    .equals(Authentication.name.toLowerCase(Locale.ENGLISH))) {
-                author.setSpan(new RoundedBackgroundSpan(mContext, android.R.color.white,
-                                R.color.md_deep_orange_300, false), 0, author.length(),
-                        Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-            } else if (submission.getDistinguishedStatus() == DistinguishedStatus.ADMIN) {
+        titleString.append(
+            if (submission.updated != null) " (edit " + TimeUtils.getTimeAgo(
+                submission.updated!!.toEpochMilliseconds(), mContext
+            ) + ")" else ""
+        )
+        titleString.append(spacer)
+        val author = SpannableStringBuilder(" " + submission.creator.name + " ")
+        val authorcolor = Palette.getFontColorUser(submission.creator.name)
+        if (submission.creator.name != null) {
+            if (Authentication.name != null && (submission.creator.name
+                    .lowercase()
+                        == Authentication.name!!.lowercase())
+            ) {
                 author.setSpan(
-                        new RoundedBackgroundSpan(mContext, android.R.color.white, R.color.md_red_300,
-                                false), 0, author.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-            } else if (submission.getDistinguishedStatus() == DistinguishedStatus.SPECIAL) {
+                    RoundedBackgroundSpan(
+                        mContext, android.R.color.white,
+                        R.color.md_deep_orange_300, false
+                    ), 0, author.length,
+                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                )
+            } else if (submission.regalia == DistinguishedStatus.ADMIN) {
                 author.setSpan(
-                        new RoundedBackgroundSpan(mContext, android.R.color.white, R.color.md_purple_300,
-                                false), 0, author.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-            } else if (submission.getDistinguishedStatus() == DistinguishedStatus.MODERATOR) {
+                    RoundedBackgroundSpan(
+                        mContext, android.R.color.white, R.color.md_red_300,
+                        false
+                    ), 0, author.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                )
+            } else if (submission.regalia == DistinguishedStatus.SPECIAL) {
                 author.setSpan(
-                        new RoundedBackgroundSpan(mContext, android.R.color.white, R.color.md_green_300,
-                                false), 0, author.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                    RoundedBackgroundSpan(
+                        mContext, android.R.color.white, R.color.md_purple_300,
+                        false
+                    ), 0, author.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                )
+            } else if (submission.regalia == DistinguishedStatus.MODERATOR) {
+                author.setSpan(
+                    RoundedBackgroundSpan(
+                        mContext, android.R.color.white, R.color.md_green_300,
+                        false
+                    ), 0, author.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                )
             } else if (authorcolor != 0) {
-                author.setSpan(new ForegroundColorSpan(authorcolor), 0, author.length(),
-                        Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                author.setSpan(
+                    ForegroundColorSpan(authorcolor), 0, author.length,
+                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                )
             }
-            titleString.append(author);
+            titleString.append(author)
         }
 
 
-      /*todo maybe?  titleString.append(((comment.hasBeenEdited() && comment.getEditDate() != null) ? " *" + TimeUtils.getTimeAgo(comment.getEditDate().getTime(), mContext) : ""));
-        titleString.append("  ");*/
-
-        if (UserTags.isUserTagged(submission.getAuthor())) {
-            SpannableStringBuilder pinned = new SpannableStringBuilder(
-                    " " + UserTags.getUserTag(submission.getAuthor()) + " ");
+        /*todo maybe?  titleString.append(((comment.hasBeenEdited() && comment.getEditDate() != null) ? " *" + TimeUtils.getTimeAgo(comment.getEditDate().getTime(), mContext) : ""));
+        titleString.append("  ");*/if (UserTags.isUserTagged(submission.creator.name)) {
+            val pinned = SpannableStringBuilder(
+                " " + UserTags.getUserTag(submission.creator.name) + " "
+            )
             pinned.setSpan(
-                    new RoundedBackgroundSpan(mContext, android.R.color.white, R.color.md_blue_500, false),
-                    0, pinned.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-            titleString.append(" ");
-            titleString.append(pinned);
+                RoundedBackgroundSpan(mContext, android.R.color.white, R.color.md_blue_500, false),
+                0, pinned.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
+            titleString.append(" ")
+            titleString.append(pinned)
         }
-
-        if (UserSubscriptions.friends.contains(submission.getAuthor())) {
-            SpannableStringBuilder pinned = new SpannableStringBuilder(
-                    " " + mContext.getString(R.string.profile_friend) + " ");
+        if (UserSubscriptions.friends.contains(submission.creator.name)) {
+            val pinned = SpannableStringBuilder(
+                " " + mContext.getString(R.string.profile_friend) + " "
+            )
             pinned.setSpan(
-                    new RoundedBackgroundSpan(mContext, android.R.color.white, R.color.md_deep_orange_500,
-                            false), 0, pinned.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-            titleString.append(" ");
-            titleString.append(pinned);
+                RoundedBackgroundSpan(
+                    mContext, android.R.color.white, R.color.md_deep_orange_500,
+                    false
+                ), 0, pinned.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
+            titleString.append(" ")
+            titleString.append(pinned)
         }
-
-        ToolboxUI.appendToolboxNote(mContext, titleString, submission.getSubredditName(), submission.getAuthor());
+        appendToolboxNote(mContext, titleString, submission.groupName, submission.creator.name)
 
         /* too big, might add later todo
         if (submission.getAuthorFlair() != null && submission.getAuthorFlair().getText() != null && !submission.getAuthorFlair().getText().isEmpty()) {
@@ -354,150 +373,188 @@ public class SubmissionCache {
                 pinned.setSpan(new RoundedBackgroundSpan(holder.title.getCurrentTextColor(), color, false, mContext), 0, pinned.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
                 titleString.append(pinned);
             }
-        }*/
-        if (SettingValues.INSTANCE.getShowDomain()) {
-            titleString.append(spacer);
-            titleString.append(submission.getDomain());
+        }*/if (showDomain) {
+            titleString.append(spacer)
+            titleString.append(submission.domain.orEmpty())
         }
-
-        if (SettingValues.INSTANCE.getTypeInfoLine()) {
-            titleString.append(spacer);
-            SpannableStringBuilder s = new SpannableStringBuilder(
-                    ContentType.getContentDescription(submission, mContext));
-            s.setSpan(new StyleSpan(Typeface.BOLD), 0, s.length(),
-                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-            titleString.append(s);
+        if (typeInfoLine) {
+            titleString.append(spacer)
+            val s = SpannableStringBuilder(
+                submission.contentDescription
+            )
+            s.setSpan(
+                StyleSpan(Typeface.BOLD), 0, s.length,
+                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
+            titleString.append(s)
         }
-        if (SettingValues.INSTANCE.getVotesInfoLine()) {
-            titleString.append("\n ");
-            SpannableStringBuilder s = new SpannableStringBuilder(
-                    submission.getScore()
-                            + String.format(Locale.getDefault(), " %s", mContext.getResources()
-                            .getQuantityString(R.plurals.points, submission.getScore()))
-                            + spacer
-                            + submission.getCommentCount()
-                            + String.format(Locale.getDefault(), " %s", mContext.getResources()
-                            .getQuantityString(R.plurals.comments, submission.getCommentCount())));
-            s.setSpan(new StyleSpan(Typeface.BOLD), 0, s.length(),
-                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-
-            if (SettingValues.INSTANCE.getCommentLastVisit()) {
-                final int more = LastComments.commentsSince(submission);
-                s.append(more > 0 ? "(+" + more + ")" : "");
-
+        if (votesInfoLine) {
+            titleString.append("\n ")
+            val s = SpannableStringBuilder(
+                submission.score
+                    .toString() + String.format(
+                    Locale.getDefault(), " %s", mContext.resources
+                        .getQuantityString(R.plurals.points, submission.score)
+                ) + spacer
+                        + submission.commentCount
+                        + String.format(
+                    Locale.getDefault(), " %s", mContext.resources
+                        .getQuantityString(R.plurals.comments, submission.commentCount)
+                )
+            )
+            s.setSpan(
+                StyleSpan(Typeface.BOLD), 0, s.length,
+                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
+            if (commentLastVisit) {
+                val more = LastComments.commentsSince(submission)
+                s.append(if (more > 0) "(+$more)" else "")
             }
-            titleString.append(s);
+            titleString.append(s)
         }
-        if (removed.contains(submission.getFullName()) || (submission.getBannedBy() != null
-                && !approved.contains(submission.getFullName()))) {
-            titleString.append(CommentAdapterHelper.createRemovedLine(
-                    (submission.getBannedBy() == null) ? Authentication.name
-                            : submission.getBannedBy(), mContext));
-        } else if (approved.contains(submission.getFullName()) || (submission.getApprovedBy()
-                != null && !removed.contains(submission.getFullName()))) {
-            titleString.append(CommentAdapterHelper.createApprovedLine(
-                    (submission.getApprovedBy() == null) ? Authentication.name
-                            : submission.getApprovedBy(), mContext));
+        if (removed.contains(submission.permalink) || (submission.bannedBy != null
+                    && !approved.contains(submission.permalink))
+        ) {
+            titleString.append(
+                CommentAdapterHelper.createRemovedLine(
+                    if (submission.bannedBy == null) Authentication.name else submission.bannedBy,
+                    mContext
+                )
+            )
+        } else if (approved.contains(submission.permalink) || (submission.approvedBy
+                    != null && !removed.contains(submission.permalink))
+        ) {
+            titleString.append(
+                CommentAdapterHelper.createApprovedLine(
+                    if (submission.approvedBy == null) Authentication.name else submission.approvedBy,
+                    mContext
+                )
+            )
         }
-
-        return titleString;
+        return titleString
     }
 
-    private static SpannableStringBuilder getTitleSpannable(Submission submission,
-            String flairOverride, Context mContext) {
-        SpannableStringBuilder titleString = new SpannableStringBuilder();
-        titleString.append(CompatUtil.fromHtml(submission.getTitle()));
-
-        if (submission.isStickied()) {
-            SpannableStringBuilder pinned = new SpannableStringBuilder("\u00A0"
-                    + mContext.getString(R.string.submission_stickied).toUpperCase()
-                    + "\u00A0");
+    private fun getTitleSpannable(
+        submission: IPost,
+        flairOverride: String?, mContext: Context
+    ): SpannableStringBuilder {
+        val titleString = SpannableStringBuilder()
+        titleString.append(CompatUtil.fromHtml(submission.title))
+        if (submission.isFeatured) {
+            val pinned = SpannableStringBuilder(
+                "\u00A0"
+                        + mContext.getString(R.string.submission_stickied)
+                    .uppercase(Locale.getDefault())
+                        + "\u00A0"
+            )
             pinned.setSpan(
-                    new RoundedBackgroundSpan(mContext, android.R.color.white, R.color.md_green_300, true),
-                    0, pinned.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-            titleString.append(" ");
-            titleString.append(pinned);
+                RoundedBackgroundSpan(mContext, android.R.color.white, R.color.md_green_300, true),
+                0, pinned.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
+            titleString.append(" ")
+            titleString.append(pinned)
         }
-
-        if (!SettingValues.INSTANCE.getHidePostAwards() &&
-                (submission.getTimesSilvered() > 0 || submission.getTimesGilded() > 0 || submission.getTimesPlatinized() > 0)) {
-            TypedArray a = mContext.obtainStyledAttributes(
-                    new FontPreferences(mContext).getPostFontStyle().getResId(),
-                    R.styleable.FontStyle);
-            int fontsize =
-                    (int) (a.getDimensionPixelSize(R.styleable.FontStyle_font_cardtitle, -1) * .75);
-            a.recycle();
+        if (!hidePostAwards && (submission.timesSilvered > 0 || submission.timesGilded > 0 || submission.timesPlatinized > 0)) {
+            val a = mContext.obtainStyledAttributes(
+                FontPreferences(mContext).postFontStyle.resId,
+                R.styleable.FontStyle
+            )
+            val fontsize =
+                (a.getDimensionPixelSize(R.styleable.FontStyle_font_cardtitle, -1) * .75).toInt()
+            a.recycle()
             // Add silver, gold, platinum icons and counts in that order
-            MiscUtil.addSubmissionAwards(mContext, fontsize, titleString, submission.getTimesSilvered(), R.drawable.silver);
-            MiscUtil.addSubmissionAwards(mContext, fontsize, titleString, submission.getTimesGilded(), R.drawable.gold);
-            MiscUtil.addSubmissionAwards(mContext, fontsize, titleString, submission.getTimesPlatinized(), R.drawable.platinum);
+            MiscUtil.addSubmissionAwards(
+                mContext,
+                fontsize,
+                titleString,
+                submission.timesSilvered,
+                R.drawable.silver
+            )
+            MiscUtil.addSubmissionAwards(
+                mContext,
+                fontsize,
+                titleString,
+                submission.timesGilded,
+                R.drawable.gold
+            )
+            MiscUtil.addSubmissionAwards(
+                mContext,
+                fontsize,
+                titleString,
+                submission.timesPlatinized,
+                R.drawable.platinum
+            )
         }
-        if (submission.isNsfw()) {
-            SpannableStringBuilder pinned = new SpannableStringBuilder("\u00A0NSFW\u00A0");
+        if (submission.isNsfw) {
+            val pinned = SpannableStringBuilder("\u00A0NSFW\u00A0")
             pinned.setSpan(
-                    new RoundedBackgroundSpan(mContext, android.R.color.white, R.color.md_red_300, true), 0,
-                    pinned.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-            titleString.append(" ");
-            titleString.append(pinned);
+                RoundedBackgroundSpan(mContext, android.R.color.white, R.color.md_red_300, true), 0,
+                pinned.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
+            titleString.append(" ")
+            titleString.append(pinned)
         }
-        if (submission.getDataNode().get("spoiler").asBoolean()) {
-            SpannableStringBuilder pinned = new SpannableStringBuilder("\u00A0SPOILER\u00A0");
+        if (submission.isSpoiler) {
+            val pinned = SpannableStringBuilder("\u00A0SPOILER\u00A0")
             pinned.setSpan(
-                    new RoundedBackgroundSpan(mContext, android.R.color.white, R.color.md_grey_600, true),
-                    0, pinned.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-            titleString.append(" ");
-            titleString.append(pinned);
+                RoundedBackgroundSpan(mContext, android.R.color.white, R.color.md_grey_600, true),
+                0, pinned.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
+            titleString.append(" ")
+            titleString.append(pinned)
         }
-        if (submission.getDataNode().get("is_original_content").asBoolean()) {
-            SpannableStringBuilder pinned = new SpannableStringBuilder("\u00A0OC\u00A0");
-            pinned.setSpan(new RoundedBackgroundSpan(mContext, android.R.color.white, R.color.md_blue_500, true),
-                    0, pinned.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-            titleString.append(" ");
-            titleString.append(pinned);
+        if (submission.isOC) {
+            val pinned = SpannableStringBuilder("\u00A0OC\u00A0")
+            pinned.setSpan(
+                RoundedBackgroundSpan(mContext, android.R.color.white, R.color.md_blue_500, true),
+                0, pinned.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
+            titleString.append(" ")
+            titleString.append(pinned)
         }
-
-        if (submission.getSubmissionFlair().getText() != null && !submission.getSubmissionFlair()
-                .getText()
-                .isEmpty() || flairOverride != null || (submission.getSubmissionFlair()
-                .getCssClass() != null)) {
-            TypedValue typedValue = new TypedValue();
-            Resources.Theme theme = mContext.getTheme();
-            theme.resolveAttribute(R.attr.activity_background, typedValue, false);
-            int color = typedValue.data;
-            theme.resolveAttribute(R.attr.fontColor, typedValue, false);
-            int font = typedValue.data;
-            String flairString;
-            if (flairOverride != null) {
-                flairString = flairOverride;
-            } else if ((submission.getSubmissionFlair().getText() == null
-                    || submission.getSubmissionFlair().getText().isEmpty())
-                    && submission.getSubmissionFlair().getCssClass() != null) {
-                flairString = submission.getSubmissionFlair().getCssClass();
-            } else {
-                flairString = submission.getSubmissionFlair().getText();
-            }
-            SpannableStringBuilder pinned =
-                    new SpannableStringBuilder("\u00A0" + CompatUtil.fromHtml(flairString) + "\u00A0");
-            pinned.setSpan(new RoundedBackgroundSpan(font, color, true, mContext), 0,
-                    pinned.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-            titleString.append(" ");
-            titleString.append(pinned);
+        if (submission.flair.text != null && !submission.flair
+                .text
+                .isEmpty() || flairOverride != null || submission.flair
+                .cssClass != null
+        ) {
+            val typedValue = TypedValue()
+            val theme = mContext.theme
+            theme.resolveAttribute(R.attr.activity_background, typedValue, false)
+            val color = typedValue.data
+            theme.resolveAttribute(R.attr.fontColor, typedValue, false)
+            val font = typedValue.data
+            val flairString: String
+            flairString = flairOverride
+                ?: if ((submission.flair.text == null
+                            || submission.flair.text.isEmpty())
+                    && submission.flair.cssClass != null
+                ) {
+                    submission.flair.cssClass
+                } else {
+                    submission.flair.text
+                }
+            val pinned =
+                SpannableStringBuilder("\u00A0" + CompatUtil.fromHtml(flairString) + "\u00A0")
+            pinned.setSpan(
+                RoundedBackgroundSpan(font, color, true, mContext), 0,
+                pinned.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
+            titleString.append(" ")
+            titleString.append(pinned)
         }
-
-
-        return titleString;
-
+        return titleString
     }
 
-    public static ArrayList<String> removed  = new ArrayList<>();
-    public static ArrayList<String> approved = new ArrayList<>();
-
-    private static SpannableStringBuilder getTitleSpannable(Submission submission,
-            Context mContext) {
-        return getTitleSpannable(submission, null, mContext);
+    var removed = ArrayList<String>()
+    var approved = ArrayList<String>()
+    private fun getTitleSpannable(
+        submission: IPost,
+        mContext: Context
+    ): SpannableStringBuilder {
+        return getTitleSpannable(submission, null, mContext)
     }
 
-    public static void evictAll() {
-        info = new WeakHashMap<>();
+    fun evictAll() {
+        info = WeakHashMap()
     }
 }

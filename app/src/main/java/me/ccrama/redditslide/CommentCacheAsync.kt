@@ -9,32 +9,33 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import com.fasterxml.jackson.databind.JsonNode
+import kotlinx.coroutines.runBlocking
+import ltd.ucode.lemmy.api.iter.PagedData
+import ltd.ucode.lemmy.data.LemmyPost
+import ltd.ucode.lemmy.data.type.PostView
 import ltd.ucode.reddit.data.RedditSubmission
 import ltd.ucode.slide.App
 import ltd.ucode.slide.Authentication
 import ltd.ucode.slide.R
 import ltd.ucode.slide.SettingValues
 import ltd.ucode.slide.SettingValues.getCommentSorting
+import ltd.ucode.slide.data.IPost
 import me.ccrama.redditslide.util.GifUtils
 import me.ccrama.redditslide.util.LogUtil
 import me.ccrama.redditslide.util.PhotoLoader
 import net.dean.jraw.http.NetworkException
 import net.dean.jraw.http.SubmissionRequest
 import net.dean.jraw.models.CommentSort
-import net.dean.jraw.models.Submission
 import net.dean.jraw.models.meta.SubmissionSerializer
 import net.dean.jraw.paginators.SubredditPaginator
 import net.dean.jraw.util.JrawUtils
 
-/**
- * Created by carlo_000 on 4/18/2016.
- */
 class CommentCacheAsync : AsyncTask<Any?, Any?, Any?> {
-    var alreadyReceived: List<Submission>? = null
+    var alreadyReceived: List<IPost>? = null
     var mNotifyManager: NotificationManager? = null
 
     constructor(
-        submissions: List<Submission>?, c: Context, subreddit: String,
+        submissions: List<IPost>?, c: Context, subreddit: String,
         otherChoices: BooleanArray
     ) {
         alreadyReceived = submissions
@@ -44,7 +45,7 @@ class CommentCacheAsync : AsyncTask<Any?, Any?, Any?> {
     }
 
     constructor(
-        submissions: List<Submission>?, mContext: Activity, baseSub: String,
+        submissions: List<IPost>?, mContext: Activity, baseSub: String,
         alternateSubName: String?
     ) : this(submissions, mContext, baseSub, booleanArrayOf(true, true)) {
     }
@@ -93,14 +94,13 @@ class CommentCacheAsync : AsyncTask<Any?, Any?, Any?> {
         if (Authentication.reddit == null) App.authentication = Authentication(context)
         val success = ArrayList<String?>()
         for (fSub in subs) {
-            val sub: String?
             val sortType = getCommentSorting(fSub)
-            sub = if (multiNameToSubsMap.containsKey(fSub)) {
+            val sub: String? = if (multiNameToSubsMap.containsKey(fSub)) {
                 multiNameToSubsMap[fSub]
             } else {
                 fSub
             }
-            if (!sub!!.isEmpty()) {
+            if (sub!!.isNotEmpty()) {
                 if (sub != SAVED_SUBMISSIONS) {
                     mNotifyManager =
                         ContextCompat.getSystemService(context, NotificationManager::class.java)
@@ -118,21 +118,23 @@ class CommentCacheAsync : AsyncTask<Any?, Any?, Any?> {
                     )
                         .setSmallIcon(R.drawable.ic_save)
                 }
-                val submissions: MutableList<Submission> = ArrayList()
+                val submissions: MutableList<IPost> = ArrayList()
                 val newFullnames = ArrayList<String>()
                 var count = 0
                 if (alreadyReceived != null) {
                     submissions.addAll(alreadyReceived!!)
                 } else {
-                    var p: SubredditPaginator
-                    p = if (fSub.equals("frontpage", ignoreCase = true)) {
-                        SubredditPaginator(Authentication.reddit)
+                    var p = if (fSub.equals("frontpage", ignoreCase = true)) {
+                        //SubredditPaginator(Authentication.reddit)
+                        Authentication.api!!.getPosts()
                     } else {
-                        SubredditPaginator(Authentication.reddit, sub)
+                        //SubredditPaginator(Authentication.reddit, sub)
+                        Authentication.api!!.getPosts(communityName = sub)
                     }
-                    p.setLimit(Constants.PAGINATOR_POST_LIMIT)
+                    //p.setLimit(Constants.PAGINATOR_POST_LIMIT)
                     try {
-                        submissions.addAll(p.next())
+                        val page = runBlocking { p!!.next() }
+                        submissions.addAll(page.map { LemmyPost(Authentication.api!!.instance, it) })
                     } catch (e: Exception) {
                         e.printStackTrace()
                     }
@@ -152,15 +154,15 @@ class CommentCacheAsync : AsyncTask<Any?, Any?, Any?> {
                         val s2 = SubmissionSerializer.withComments(n, CommentSort.CONFIDENCE)
                         OfflineSubreddit.writeSubmission(n, s2, context)
                         newFullnames.add(s2.fullName)
-                        if (!SettingValues.noImages) PhotoLoader.loadPhoto(context, RedditSubmission(s))
-                        when (ContentType.getContentType(s)) {
+                        if (!SettingValues.noImages) PhotoLoader.loadPhoto(context, s)
+                        when (s.contentType) {
                             ContentType.Type.VREDDIT_DIRECT, ContentType.Type.VREDDIT_REDIRECT, ContentType.Type.GIF -> if (otherChoices[0]) {
                                 if (context is Activity) {
                                     (context as Activity).runOnUiThread {
                                         GifUtils.cacheSaveGif(
                                             Uri.parse(GifUtils.AsyncLoadGif.formatUrl(s.url)),
                                             context as Activity,
-                                            s.subredditName,
+                                            s.groupName,
                                             null,
                                             false
                                         )
@@ -177,7 +179,7 @@ class CommentCacheAsync : AsyncTask<Any?, Any?, Any?> {
                         }
                     } catch (ignored: Exception) {
                     }
-                    count = count + 1
+                    count += 1
                     if (mBuilder != null) {
                         mBuilder!!.setProgress(submissions.size, count, false)
                         mNotifyManager!!.notify(random, mBuilder!!.build())

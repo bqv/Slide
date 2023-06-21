@@ -14,14 +14,14 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.FragmentStatePagerAdapter
+import ltd.ucode.slide.App
+import ltd.ucode.slide.SettingValues
 import ltd.ucode.slide.databinding.ActivityTutorialBinding
 import ltd.ucode.slide.databinding.ChooseaccentBinding
 import ltd.ucode.slide.databinding.ChoosemainBinding
 import ltd.ucode.slide.databinding.ChoosethemesmallBinding
 import ltd.ucode.slide.databinding.FragmentPersonalizeBinding
 import ltd.ucode.slide.databinding.FragmentWelcomeBinding
-import ltd.ucode.slide.App
-import ltd.ucode.slide.SettingValues
 import me.ccrama.redditslide.Visuals.ColorPreferences
 import me.ccrama.redditslide.Visuals.FontPreferences
 import me.ccrama.redditslide.Visuals.Palette
@@ -91,7 +91,7 @@ class Tutorial : AppCompatActivity() {
         ): View? {
             (activity as Tutorial?)!!.back = ColorPreferences(context).fontStyle.themeType
             personalizeBinding = FragmentPersonalizeBinding.inflate(inflater, container, false)
-            val getFontColor = activity!!.resources.getColor(
+            val getFontColor = requireActivity().resources.getColor(
                 ColorPreferences(context).fontStyle.color
             )
             BlendModeUtil.tintImageViewAsSrcAtop(
@@ -104,12 +104,12 @@ class Tutorial : AppCompatActivity() {
             )
             personalizeBinding!!.header.setBackgroundColor(Palette.getDefaultColor())
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                val window = activity!!.window
+                val window = requireActivity().window
                 window.statusBarColor = Palette.getDarkerColor(Palette.getDefaultColor())
             }
             personalizeBinding!!.primaryColor.setOnClickListener { v: View? ->
                 val choosemainBinding = ChoosemainBinding.inflate(
-                    activity!!.layoutInflater
+                    requireActivity().layoutInflater
                 )
                 choosemainBinding.title.setBackgroundColor(Palette.getDefaultColor())
                 choosemainBinding.picker.colors = ColorPreferences.getBaseColors(context)
@@ -132,7 +132,7 @@ class Tutorial : AppCompatActivity() {
                     choosemainBinding.title.setBackgroundColor(choosemainBinding.picker2.color)
                     personalizeBinding!!.header.setBackgroundColor(choosemainBinding.picker2.color)
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                        val window = activity!!.window
+                        val window = requireActivity().window
                         window.statusBarColor =
                             Palette.getDarkerColor(choosemainBinding.picker2.color)
                     }
@@ -142,13 +142,13 @@ class Tutorial : AppCompatActivity() {
                         .apply()
                     finishDialogLayout()
                 }
-                AlertDialog.Builder(context!!)
+                AlertDialog.Builder(requireContext())
                     .setView(choosemainBinding.root)
                     .show()
             }
             personalizeBinding!!.secondaryColor.setOnClickListener { v: View? ->
                 val accentBinding = ChooseaccentBinding.inflate(
-                    activity!!.layoutInflater
+                    requireActivity().layoutInflater
                 )
                 accentBinding.title.setBackgroundColor(Palette.getDefaultColor())
                 val arrs = IntArray(ColorPreferences.getNumColorsFromThemeType(0))
@@ -157,7 +157,7 @@ class Tutorial : AppCompatActivity() {
                     if (type.themeType
                         == ColorPreferences.ColorThemeOptions.Dark.value
                     ) {
-                        arrs[i] = ContextCompat.getColor(activity!!, type.color)
+                        arrs[i] = ContextCompat.getColor(requireActivity(), type.color)
                         i++
                     }
                 }
@@ -167,7 +167,7 @@ class Tutorial : AppCompatActivity() {
                     val color = accentBinding.picker3.color
                     var theme: ColorPreferences.Theme? = null
                     for (type in ColorPreferences.Theme.values()) {
-                        if (ContextCompat.getColor(activity!!, type.color) == color
+                        if (ContextCompat.getColor(requireActivity(), type.color) == color
                             && (activity as Tutorial?)!!.back == type.themeType
                         ) {
                             theme = type
@@ -177,13 +177,13 @@ class Tutorial : AppCompatActivity() {
                     ColorPreferences(activity).fontStyle = theme
                     finishDialogLayout()
                 }
-                AlertDialog.Builder(activity!!)
+                AlertDialog.Builder(requireActivity())
                     .setView(accentBinding.root)
                     .show()
             }
             personalizeBinding!!.baseColor.setOnClickListener { v: View? ->
                 val themesmallBinding = ChoosethemesmallBinding.inflate(
-                    activity!!.layoutInflater
+                    requireActivity().layoutInflater
                 )
                 val themesmallBindingRoot: View = themesmallBinding.root
                 themesmallBinding.title.setBackgroundColor(Palette.getDefaultColor())
@@ -207,7 +207,7 @@ class Tutorial : AppCompatActivity() {
                             }
                         }
                 }
-                AlertDialog.Builder(activity!!)
+                AlertDialog.Builder(requireActivity())
                     .setView(themesmallBindingRoot)
                     .show()
             }
@@ -229,9 +229,9 @@ class Tutorial : AppCompatActivity() {
             intent.putExtra("page", 1)
             intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION)
             startActivity(intent)
-            activity!!.overridePendingTransition(0, 0)
-            activity!!.finish()
-            activity!!.overridePendingTransition(0, 0)
+            requireActivity().overridePendingTransition(0, 0)
+            requireActivity().finish()
+            requireActivity().overridePendingTransition(0, 0)
         }
     }
 

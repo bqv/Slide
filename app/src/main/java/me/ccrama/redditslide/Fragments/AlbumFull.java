@@ -21,6 +21,7 @@ import net.dean.jraw.models.Submission;
 
 import java.util.List;
 
+import ltd.ucode.reddit.data.RedditSubmission;
 import me.ccrama.redditslide.Activities.CommentsScreen;
 import me.ccrama.redditslide.Activities.Shadowbox;
 import me.ccrama.redditslide.Adapters.AlbumView;
@@ -47,7 +48,7 @@ public class AlbumFull extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
             Bundle savedInstanceState) {
         rootView = inflater.inflate(R.layout.submission_albumcard, container, false);
-        PopulateShadowboxInfo.doActionbar(s, rootView, getActivity(), true);
+        PopulateShadowboxInfo.doActionbar(new RedditSubmission(s), rootView, getActivity(), true);
 
         if (s.getUrl().contains("gallery")) {
             gallery = true;

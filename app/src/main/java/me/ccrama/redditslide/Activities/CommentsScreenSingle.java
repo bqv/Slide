@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
+import ltd.ucode.reddit.data.RedditSubmission;
 import ltd.ucode.slide.Authentication;
 import me.ccrama.redditslide.Autocache.AutoCacheScheduler;
 import me.ccrama.redditslide.Fragments.BlankFragment;
@@ -217,7 +218,7 @@ public class CommentsScreenSingle extends BaseActivityAnim {
                     if (SettingValues.storeNSFWHistory && s.isNsfw() || !s.isNsfw()) {
                         HasSeen.addSeen(s.getFullName());
                     }
-                    LastComments.setComments(s);
+                    LastComments.setComments(new RedditSubmission(s));
                 }
                 HasSeen.setHasSeenSubmission(new ArrayList<Submission>() {{
                     this.add(s);

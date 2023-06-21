@@ -31,6 +31,7 @@ import net.dean.jraw.models.VoteDirection;
 import java.util.List;
 import java.util.Locale;
 
+import ltd.ucode.reddit.data.RedditSubmission;
 import me.ccrama.redditslide.ActionStates;
 import me.ccrama.redditslide.Adapters.ProfileCommentViewHolder;
 import me.ccrama.redditslide.Adapters.SubmissionViewHolder;
@@ -447,7 +448,7 @@ public class RedditItemView extends RelativeLayout {
             CreateCardView.colorCard(submission.getSubredditName().toLowerCase(Locale.ENGLISH), holder.itemView,
                     "no_subreddit", false);
         }
-        new PopulateSubmissionViewHolder().populateSubmissionViewHolder(holder, submission,
+        new PopulateSubmissionViewHolder().populateSubmissionViewHolder(holder, new RedditSubmission(submission),
                 ((PeekViewActivity) getContext()), false, false, null, null, false, false, null,
                 null);
 

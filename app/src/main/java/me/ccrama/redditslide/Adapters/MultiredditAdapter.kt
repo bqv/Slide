@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.google.android.material.snackbar.Snackbar
+import ltd.ucode.reddit.data.RedditSubmission
 import ltd.ucode.slide.Authentication
 import ltd.ucode.slide.R
 import me.ccrama.redditslide.Activities.CommentsScreen
@@ -141,11 +142,11 @@ class MultiredditAdapter(
             }
             PopulateSubmissionViewHolder().populateSubmissionViewHolder(
                 holder,
-                submission,
+                RedditSubmission(submission),
                 context,
                 false,
                 false,
-                dataSet.posts.map { it.submission!! }.toMutableList(),
+                dataSet.posts,
                 listView,
                 true,
                 false,

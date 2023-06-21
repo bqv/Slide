@@ -12,6 +12,7 @@ import net.dean.jraw.models.Submission;
 
 import java.util.List;
 
+import ltd.ucode.reddit.data.RedditSubmission;
 import me.ccrama.redditslide.Activities.CommentsScreen;
 import me.ccrama.redditslide.Activities.Shadowbox;
 import ltd.ucode.slide.R;
@@ -36,7 +37,7 @@ public class SelftextFull extends Fragment {
         ViewGroup rootView = (ViewGroup) inflater.inflate(
                 R.layout.submission_textcard, container, false);
 
-        PopulateShadowboxInfo.doActionbar(s, rootView, getActivity(), true);
+        PopulateShadowboxInfo.doActionbar(new RedditSubmission(s), rootView, getActivity(), true);
 
         if (!s.getSelftext().isEmpty()) {
 

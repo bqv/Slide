@@ -33,9 +33,11 @@ import net.dean.jraw.models.Contribution;
 import net.dean.jraw.models.Submission;
 import net.dean.jraw.models.VoteDirection;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
+import ltd.ucode.reddit.data.RedditSubmission;
 import me.ccrama.redditslide.ActionStates;
 import me.ccrama.redditslide.Activities.Profile;
 import me.ccrama.redditslide.Activities.SubredditView;
@@ -255,14 +257,14 @@ public class ContributionAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                             notifyItemRemoved(pos + 1);
                             d.dismiss();
 
-                            Hidden.setHidden(old);
+                            Hidden.setHidden(new RedditSubmission((Submission) old));
 
                             Snackbar s = Snackbar.make(listView, R.string.submission_info_hidden, Snackbar.LENGTH_LONG).setAction(R.string.btn_undo, new View.OnClickListener() {
                                 @Override
                                 public void onClick(View v) {
                                     dataSet.posts.add(pos, old);
                                     notifyItemInserted(pos + 1);
-                                    Hidden.undoHidden(old);
+                                    Hidden.undoHidden(new RedditSubmission((Submission) old));
 
                                 }
                             });
@@ -274,7 +276,7 @@ public class ContributionAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                     return true;
                 }
             });
-            new PopulateSubmissionViewHolder().populateSubmissionViewHolder(holder, submission, mContext, false, false, dataSet.posts, listView, false, false, null, null);
+            new PopulateSubmissionViewHolder().populateSubmissionViewHolder(holder, new RedditSubmission(submission), mContext, false, false, /*dataSet.posts*/Collections.emptyList(), listView, false, false, null, null);
 
             final ImageView hideButton = holder.itemView.findViewById(R.id.hide);
             if (hideButton != null && isHiddenPost) {
@@ -286,7 +288,7 @@ public class ContributionAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                         dataSet.posts.remove(submission);
                         notifyItemRemoved(pos + 1);
 
-                        Hidden.undoHidden(old);
+                        Hidden.undoHidden(new RedditSubmission((Submission) old));
                     }
                 });
             }

@@ -41,6 +41,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 
+import ltd.ucode.reddit.data.RedditSubmission;
 import me.ccrama.redditslide.Activities.Album;
 import me.ccrama.redditslide.Activities.AlbumPager;
 import me.ccrama.redditslide.Activities.CommentsScreen;
@@ -150,7 +151,7 @@ public class MediaFragment extends Fragment {
             stopPosition = savedInstanceState.getLong("position");
         }
 
-        PopulateShadowboxInfo.doActionbar(s, rootView, getActivity(), true);
+        PopulateShadowboxInfo.doActionbar(new RedditSubmission(s), rootView, getActivity(), true);
         View thumbnailView =  (rootView.findViewById(R.id.thumbimage2));
 
         thumbnailView.setVisibility(View.GONE);
@@ -459,10 +460,10 @@ public class MediaFragment extends Fragment {
                         case XKCD:
                         case IMAGE:
                             PopulateSubmissionViewHolder.openImage(type, contextActivity,
-                                    submission, null, -1);
+                                    new RedditSubmission(submission), null, -1);
                             break;
                         case GIF:
-                            PopulateSubmissionViewHolder.openGif(contextActivity, submission, -1);
+                            PopulateSubmissionViewHolder.openGif(contextActivity, new RedditSubmission(submission), -1);
                             break;
                         case VIDEO:
                             if (!LinkUtil.tryOpenWithVideoPlugin(submission.getUrl())) {

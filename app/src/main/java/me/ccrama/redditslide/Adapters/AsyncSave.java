@@ -9,6 +9,7 @@ import com.google.android.material.snackbar.Snackbar;
 import net.dean.jraw.managers.AccountManager;
 import net.dean.jraw.models.Submission;
 
+import ltd.ucode.reddit.data.RedditSubmission;
 import me.ccrama.redditslide.ActionStates;
 import ltd.ucode.slide.Authentication;
 import ltd.ucode.slide.R;
@@ -26,7 +27,7 @@ public class AsyncSave extends AsyncTask<Submission, Void, Void> {
     @Override
     protected Void doInBackground(Submission... submissions) {
         try {
-            boolean subSaved = ActionStates.isSaved(submissions[0]);
+            boolean subSaved = ActionStates.isSaved(new RedditSubmission(submissions[0]));
             final Snackbar s;
 
             if (subSaved) {

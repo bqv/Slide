@@ -1,5 +1,6 @@
 package me.ccrama.redditslide.SubmissionViews
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.content.DialogInterface
@@ -124,12 +125,12 @@ class PopulateNewsViewHolder() {
         ta.recycle()
         val b = BottomSheet.Builder(mContext).title(CompatUtil.fromHtml(submission.title))
         val isReadLater = mContext is PostReadLater
-        val isAddedToReadLaterList = ReadLater.isToBeReadLater(submission)
+        val isAddedToReadLaterList = ReadLater.isToBeReadLater(RedditSubmission(submission))
         if (Authentication.didOnline) {
             b.sheet(1, (profile)!!, "/u/" + submission.author)
                 .sheet(2, (sub)!!, "/r/" + submission.subredditName)
             var save: String = mContext.getString(R.string.btn_save)
-            if (ActionStates.isSaved(submission)) {
+            if (ActionStates.isSaved(RedditSubmission(submission))) {
                 save = mContext.getString(R.string.comment_unsave)
             }
             if (Authentication.isLoggedIn) {
@@ -351,7 +352,7 @@ class PopulateNewsViewHolder() {
                     }
 
                     28 -> if (!isAddedToReadLaterList) {
-                        ReadLater.setReadLater(submission, true)
+                        ReadLater.setReadLater(RedditSubmission(submission), true)
                         val s = Snackbar.make(
                             holder.itemView, "Added to read later!",
                             Snackbar.LENGTH_SHORT
@@ -362,7 +363,7 @@ class PopulateNewsViewHolder() {
                         )
                         tv.setTextColor(Color.WHITE)
                         s.setAction(R.string.btn_undo, View.OnClickListener {
-                            ReadLater.setReadLater(submission, false)
+                            ReadLater.setReadLater(RedditSubmission(submission), false)
                             val s2 = Snackbar.make(
                                 holder.itemView,
                                 "Removed from read later", Snackbar.LENGTH_SHORT
@@ -371,7 +372,7 @@ class PopulateNewsViewHolder() {
                         })
                         if (NetworkUtil.isConnected(mContext)) {
                             CommentCacheAsync(
-                                listOf(submission), mContext,
+                                listOf(RedditSubmission(submission)), mContext,
                                 CommentCacheAsync.SAVED_SUBMISSIONS, booleanArrayOf(true, true)
                             ).executeOnExecutor(
                                 AsyncTask.THREAD_POOL_EXECUTOR
@@ -379,7 +380,7 @@ class PopulateNewsViewHolder() {
                         }
                         s.show()
                     } else {
-                        ReadLater.setReadLater(submission, false)
+                        ReadLater.setReadLater(RedditSubmission(submission), false)
                         if (isReadLater || !Authentication.didOnline) {
                             val pos = posts.indexOf(submission as T)
                             posts.remove(submission as T)
@@ -439,7 +440,7 @@ class PopulateNewsViewHolder() {
                                             .findViewById<View>(reasonGroup.checkedRadioButtonId) as RadioButton)
                                             .text.toString()
                                     }
-                                    PopulateBase.AsyncReportTask(submission, holder.itemView)
+                                    PopulateBase.AsyncReportTask(RedditSubmission(submission), holder.itemView)
                                         .executeOnExecutor(
                                             AsyncTask.THREAD_POOL_EXECUTOR,
                                             reportReason
@@ -448,16 +449,13 @@ class PopulateNewsViewHolder() {
                             }).build()
                         val reasonGroup =
                             reportDialog.customView!!.findViewById<RadioGroup>(R.id.report_reasons)
-                        reasonGroup.setOnCheckedChangeListener(object :
-                            RadioGroup.OnCheckedChangeListener {
-                            override fun onCheckedChanged(group: RadioGroup, checkedId: Int) {
-                                if (checkedId == R.id.report_other) reportDialog.customView!!.findViewById<View>(
-                                    R.id.input_report_reason
-                                ).visibility = View.VISIBLE else reportDialog.customView!!
-                                    .findViewById<View>(R.id.input_report_reason).visibility =
-                                    View.GONE
-                            }
-                        })
+                        reasonGroup.setOnCheckedChangeListener { group, checkedId ->
+                            if (checkedId == R.id.report_other) reportDialog.customView!!.findViewById<View>(
+                                R.id.input_report_reason
+                            ).visibility = View.VISIBLE else reportDialog.customView!!
+                                .findViewById<View>(R.id.input_report_reason).visibility =
+                                View.GONE
+                        }
 
                         // Load sub's report reasons and show the appropriate ones
                         object : AsyncTask<Void?, Void?, Ruleset>() {
@@ -529,54 +527,54 @@ class PopulateNewsViewHolder() {
                             .setTitle("Select text to copy")
                             .setCancelable(true)
                             .setPositiveButton(
-                                "COPY SELECTED",
-                                { dialog13: DialogInterface?, which13: Int ->
-                                    val selected: String = showText.getText()
-                                        .toString()
-                                        .substring(
-                                            showText.getSelectionStart(),
-                                            showText.getSelectionEnd()
-                                        )
-                                    if (!selected.isEmpty()) {
-                                        ClipboardUtil.copyToClipboard(
-                                            mContext,
-                                            "Selftext",
-                                            selected
-                                        )
-                                    } else {
-                                        ClipboardUtil.copyToClipboard(
-                                            mContext, "Selftext",
-                                            CompatUtil.fromHtml(
-                                                (submission.getTitle()
-                                                        + "\n\n"
-                                                        + submission.getSelftext())
-                                            )
-                                        )
-                                    }
-                                    Toast.makeText(
+                                "COPY SELECTED"
+                            ) { dialog13: DialogInterface?, which13: Int ->
+                                val selected: String = showText.getText()
+                                    .toString()
+                                    .substring(
+                                        showText.getSelectionStart(),
+                                        showText.getSelectionEnd()
+                                    )
+                                if (!selected.isEmpty()) {
+                                    ClipboardUtil.copyToClipboard(
                                         mContext,
-                                        R.string.submission_comment_copied,
-                                        Toast.LENGTH_SHORT
-                                    ).show()
-                                })
-                            .setNegativeButton(R.string.btn_cancel, null)
-                            .setNeutralButton(
-                                "COPY ALL",
-                                { dialog14: DialogInterface?, which14: Int ->
+                                        "Selftext",
+                                        selected
+                                    )
+                                } else {
                                     ClipboardUtil.copyToClipboard(
                                         mContext, "Selftext",
-                                        StringEscapeUtils.unescapeHtml4(
+                                        CompatUtil.fromHtml(
                                             (submission.getTitle()
                                                     + "\n\n"
                                                     + submission.getSelftext())
                                         )
                                     )
-                                    Toast.makeText(
-                                        mContext,
-                                        R.string.submission_text_copied,
-                                        Toast.LENGTH_SHORT
-                                    ).show()
-                                })
+                                }
+                                Toast.makeText(
+                                    mContext,
+                                    R.string.submission_comment_copied,
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                            .setNegativeButton(R.string.btn_cancel, null)
+                            .setNeutralButton(
+                                "COPY ALL"
+                            ) { dialog14: DialogInterface?, which14: Int ->
+                                ClipboardUtil.copyToClipboard(
+                                    mContext, "Selftext",
+                                    StringEscapeUtils.unescapeHtml4(
+                                        (submission.getTitle()
+                                                + "\n\n"
+                                                + submission.getSelftext())
+                                    )
+                                )
+                                Toast.makeText(
+                                    mContext,
+                                    R.string.submission_text_copied,
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
                             .show()
                     }
                 }
@@ -593,7 +591,7 @@ class PopulateNewsViewHolder() {
         if (pos != -1) {
             if (submission.isHidden) {
                 posts.removeAt(pos)
-                Hidden.undoHidden(submission)
+                Hidden.undoHidden(RedditSubmission(submission))
                 recyclerview.adapter!!.notifyItemRemoved(pos + 1)
                 val snack = Snackbar.make(
                     recyclerview, R.string.submission_info_unhidden,
@@ -603,7 +601,7 @@ class PopulateNewsViewHolder() {
             } else {
                 val t = posts[pos]
                 posts.removeAt(pos)
-                Hidden.setHidden(t)
+                Hidden.setHidden(RedditSubmission(t as Submission))
                 val s: OfflineSubreddit?
                 var success = false
                 if (baseSub != null) {
@@ -623,16 +621,14 @@ class PopulateNewsViewHolder() {
                     recyclerview, R.string.submission_info_hidden,
                     Snackbar.LENGTH_LONG
                 )
-                    .setAction(R.string.btn_undo, object : View.OnClickListener {
-                        override fun onClick(v: View) {
-                            if ((baseSub != null) && (s != null) && finalSuccess) {
-                                s.unhideLast()
-                            }
-                            posts.add(pos, t)
-                            recyclerview.adapter!!.notifyItemInserted(pos + 1)
-                            Hidden.undoHidden(t)
+                    .setAction(R.string.btn_undo) {
+                        if ((baseSub != null) && (s != null) && finalSuccess) {
+                            s.unhideLast()
                         }
-                    })
+                        posts.add(pos, t)
+                        recyclerview.adapter!!.notifyItemInserted(pos + 1)
+                        Hidden.undoHidden(RedditSubmission(t as Submission))
+                    }
                 LayoutUtils.showSnackbar(snack)
             }
         }
@@ -642,15 +638,15 @@ class PopulateNewsViewHolder() {
         holder: NewsViewHolder, submission: Submission?, mContext: Context,
         baseSub: String?
     ) {
-        val t = SubmissionCache.getTitleLine(submission, mContext)
-        val l = SubmissionCache.getInfoLine(submission, mContext, baseSub)
+        val t = SubmissionCache.getTitleLine(RedditSubmission(submission!!), mContext)
+        val l = SubmissionCache.getInfoLine(RedditSubmission(submission!!), mContext, baseSub!!)
         val textSizeAttr = intArrayOf(R.attr.font_cardtitle, R.attr.font_cardinfo)
         val a = mContext.obtainStyledAttributes(textSizeAttr)
         val textSizeT = a.getDimensionPixelSize(0, 18)
         val textSizeI = a.getDimensionPixelSize(1, 14)
         a.recycle()
-        t.setSpan(AbsoluteSizeSpan(textSizeT), 0, t.length, 0)
-        l.setSpan(AbsoluteSizeSpan(textSizeI), 0, l.length, 0)
+        t!!.setSpan(AbsoluteSizeSpan(textSizeT), 0, t.length, 0)
+        l!!.setSpan(AbsoluteSizeSpan(textSizeI), 0, l.length, 0)
         val s = SpannableStringBuilder()
         if (SettingValues.titleTop) {
             s.append(t)
@@ -670,16 +666,22 @@ class PopulateNewsViewHolder() {
         recyclerview: RecyclerView, same: Boolean, offline: Boolean,
         baseSub: String?, adapter: CommentAdapter?
     ) {
-        holder.menu.setOnClickListener(object : View.OnClickListener {
-            override fun onClick(view: View) {
-                showBottomSheet(mContext, submission, holder, posts, baseSub, recyclerview, full)
-            }
-        })
+        holder.menu.setOnClickListener {
+            showBottomSheet(
+                mContext,
+                submission,
+                holder,
+                posts,
+                baseSub,
+                recyclerview,
+                full
+            )
+        }
 
         //Use this to offset the submission score
         val submissionScore = submission.score
         val commentCount = submission.commentCount
-        val more = LastComments.commentsSince(submission)
+        val more = LastComments.commentsSince(RedditSubmission(submission))
         val scoreRatio =
             if ((SettingValues.upvotePercentage && full && (submission.upvoteRatio != null))) ("("
                     + (submission.upvoteRatio * 100).toInt() + "%)") else ""
@@ -714,33 +716,33 @@ class PopulateNewsViewHolder() {
         }
         val type = ContentType.getContentType(submission)
         addClickFunctions(holder.itemView, type, mContext, submission, holder, full)
-        holder.comment.setOnClickListener(object : View.OnClickListener {
-            override fun onClick(v: View) {
-                OpenRedditLink.openUrl(mContext, submission.permalink, true)
-            }
-        })
+        holder.comment.setOnClickListener {
+            OpenRedditLink.openUrl(
+                mContext,
+                submission.permalink,
+                true
+            )
+        }
         if (thumbImage2 != null) {
             addClickFunctions(thumbImage2, type, mContext, submission, holder, full)
         }
-        holder.leadImage.setSubmissionNews(submission, full, baseSub, type)
-        holder.itemView.setOnLongClickListener(object : View.OnLongClickListener {
-            override fun onLongClick(v: View): Boolean {
-                if (offline) {
-                    val s = Snackbar.make(
-                        holder.itemView, mContext.getString(R.string.offline_msg),
-                        Snackbar.LENGTH_SHORT
-                    )
-                    LayoutUtils.showSnackbar(s)
+        holder.leadImage.setSubmissionNews(RedditSubmission(submission), full, baseSub, type)
+        holder.itemView.setOnLongClickListener {
+            if (offline) {
+                val s = Snackbar.make(
+                    holder.itemView, mContext.getString(R.string.offline_msg),
+                    Snackbar.LENGTH_SHORT
+                )
+                LayoutUtils.showSnackbar(s)
+            } else {
+                if (SettingValues.actionbarTap && !full) {
+                    CreateCardView.toggleActionbar(holder.itemView)
                 } else {
-                    if (SettingValues.actionbarTap && !full) {
-                        CreateCardView.toggleActionbar(holder.itemView)
-                    } else {
-                        holder.itemView.findViewById<View>(R.id.menu).callOnClick()
-                    }
+                    holder.itemView.findViewById<View>(R.id.menu).callOnClick()
                 }
-                return true
             }
-        })
+            true
+        }
         doText(holder, submission, mContext, baseSub)
         if (HasSeen.getSeen(submission) && !full) {
             holder.title.alpha = 0.54f
@@ -831,7 +833,7 @@ class PopulateNewsViewHolder() {
                                         submission.url,
                                         Palette.getColor(submission.subredditName),
                                         contextActivity, holder!!.bindingAdapterPosition,
-                                        submission
+                                        RedditSubmission(submission)
                                     )
 
                                     ContentType.Type.SELF -> if (holder != null) {
@@ -860,7 +862,7 @@ class PopulateNewsViewHolder() {
                                         )
                                         i.putExtra(Album.EXTRA_URL, submission.url)
                                         PopulateBase.addAdaptorPosition(
-                                            i, submission,
+                                            i, RedditSubmission(submission),
                                             holder!!.bindingAdapterPosition
                                         )
                                         contextActivity.startActivity(i)
@@ -889,7 +891,7 @@ class PopulateNewsViewHolder() {
                                         }
                                         i.putExtra(Album.EXTRA_URL, submission.url)
                                         PopulateBase.addAdaptorPosition(
-                                            i, submission,
+                                            i, RedditSubmission(submission),
                                             holder!!.bindingAdapterPosition
                                         )
                                         contextActivity.startActivity(i)
@@ -979,7 +981,7 @@ class PopulateNewsViewHolder() {
                     }
                 }
                 myIntent.putExtra(MediaView.EXTRA_URL, url)
-                PopulateBase.addAdaptorPosition(myIntent, submission, adapterPosition)
+                PopulateBase.addAdaptorPosition(myIntent, RedditSubmission(submission), adapterPosition)
                 myIntent.putExtra(MediaView.EXTRA_SHARE_URL, submission.url)
                 contextActivity.startActivity(myIntent)
             } else {
@@ -992,7 +994,7 @@ class PopulateNewsViewHolder() {
             adapterPosition: Int
         ) {
             if (SettingValues.gif) {
-                DataShare.sharedSubmission = submission
+                DataShare.sharedSubmission = RedditSubmission(submission)
                 val myIntent = Intent(contextActivity, MediaView::class.java)
                 myIntent.putExtra(MediaView.SUBREDDIT, submission.subredditName)
                 myIntent.putExtra(
@@ -1036,7 +1038,7 @@ class PopulateNewsViewHolder() {
                     )
                     myIntent.putExtra(MediaView.EXTRA_DISPLAY_URL, previewUrl)
                 }
-                PopulateBase.addAdaptorPosition(myIntent, submission, adapterPosition)
+                PopulateBase.addAdaptorPosition(myIntent, RedditSubmission(submission), adapterPosition)
                 contextActivity.startActivity(myIntent)
             } else {
                 LinkUtil.openExternally(submission.url)

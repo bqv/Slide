@@ -68,6 +68,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import ltd.ucode.lemmy.api.LemmyHttp;
+import ltd.ucode.reddit.data.RedditSubmission;
 import me.ccrama.redditslide.ActionStates;
 import me.ccrama.redditslide.Activities.BaseActivity;
 import ltd.ucode.slide.Authentication;
@@ -304,7 +305,7 @@ public class CommentAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                 } else {
                     HasSeen.addSeen(submission.getFullName());
                 }
-                LastComments.setComments(submission);
+                LastComments.setComments(new RedditSubmission(submission));
             }
         }
     }
@@ -554,7 +555,7 @@ public class CommentAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         } else if (firstHolder instanceof SubmissionViewHolder && submission != null) {
             submissionViewHolder = (SubmissionViewHolder) firstHolder;
             new PopulateSubmissionViewHolder().populateSubmissionViewHolder(
-                    (SubmissionViewHolder) firstHolder, submission, (Activity) mContext, true, true,
+                    (SubmissionViewHolder) firstHolder, new RedditSubmission(submission), (Activity) mContext, true, true,
                     null, listView, false, false, null, this);
             if (Authentication.isLoggedIn && Authentication.didOnline) {
                 if (submission.isArchived() || submission.isLocked()) {

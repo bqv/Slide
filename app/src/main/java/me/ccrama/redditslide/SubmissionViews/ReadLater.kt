@@ -1,26 +1,21 @@
-package me.ccrama.redditslide.SubmissionViews;
+package me.ccrama.redditslide.SubmissionViews
 
-import com.lusfold.androidkeyvaluestore.KVStore;
+import com.lusfold.androidkeyvaluestore.KVStore
+import ltd.ucode.slide.data.IPost
 
-import net.dean.jraw.models.Submission;
-
-/**
- * Created by ccrama on 7/19/2015.
- */
-public class ReadLater {
-
-    public static void setReadLater(Submission s, boolean readLater) {
+object ReadLater {
+    fun setReadLater(s: IPost, readLater: Boolean) {
         if (readLater) {
             KVStore.getInstance()
-                    .insert("readLater" + s.getFullName(), String.valueOf(System.currentTimeMillis()));
+                .insert("readLater" + s.permalink, System.currentTimeMillis().toString())
         } else {
             if (isToBeReadLater(s)) {
-                KVStore.getInstance().delete("readLater" + s.getFullName());
+                KVStore.getInstance().delete("readLater" + s.permalink)
             }
         }
     }
 
-    public static boolean isToBeReadLater(Submission s) {
-        return !KVStore.getInstance().getByContains("readLater" + s.getFullName()).isEmpty();
+    fun isToBeReadLater(s: IPost): Boolean {
+        return KVStore.getInstance().getByContains("readLater" + s.permalink).isNotEmpty()
     }
 }

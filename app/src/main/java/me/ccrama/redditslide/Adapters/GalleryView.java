@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import ltd.ucode.reddit.data.RedditSubmission;
 import me.ccrama.redditslide.Activities.Album;
 import me.ccrama.redditslide.Activities.AlbumPager;
 import me.ccrama.redditslide.Activities.CommentsScreen;
@@ -215,7 +216,7 @@ public class GalleryView extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                             case DEVIANTART:
                             case XKCD:
                             case IMAGE:
-                                PopulateSubmissionViewHolder.openImage(type, main, submission, null, holder.getBindingAdapterPosition());
+                                PopulateSubmissionViewHolder.openImage(type, main, new RedditSubmission(submission), null, holder.getBindingAdapterPosition());
                                 break;
                             case EMBEDDED:
                                 if (SettingValues.video) {
@@ -309,7 +310,7 @@ public class GalleryView extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                                 }
                                 break;
                             case GIF:
-                                PopulateSubmissionViewHolder.openGif(main, submission,  holder.getBindingAdapterPosition());
+                                PopulateSubmissionViewHolder.openGif(main, new RedditSubmission(submission),  holder.getBindingAdapterPosition());
                                 break;
                             case NONE:
                             case SELF:

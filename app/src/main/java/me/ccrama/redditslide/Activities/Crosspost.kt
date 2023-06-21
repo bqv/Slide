@@ -1,245 +1,215 @@
-package me.ccrama.redditslide.Activities;
+package me.ccrama.redditslide.Activities
 
-import android.os.AsyncTask;
-import android.os.Build;
-import android.os.Bundle;
-import android.view.View;
-import android.view.Window;
-import android.view.WindowManager;
-import android.widget.ArrayAdapter;
-import android.widget.AutoCompleteTextView;
-import android.widget.EditText;
+import android.content.DialogInterface
+import android.os.AsyncTask
+import android.os.Build
+import android.os.Bundle
+import android.view.View
+import android.view.View.OnFocusChangeListener
+import android.view.WindowManager
+import android.widget.ArrayAdapter
+import android.widget.AutoCompleteTextView
+import android.widget.EditText
+import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.widget.SwitchCompat
+import com.google.android.material.floatingactionbutton.FloatingActionButton
+import ltd.ucode.slide.Authentication
+import ltd.ucode.slide.R
+import ltd.ucode.slide.data.IPost
+import me.ccrama.redditslide.OpenRedditLink
+import me.ccrama.redditslide.SpoilerRobotoTextView
+import me.ccrama.redditslide.UserSubscriptions
+import me.ccrama.redditslide.Views.CommentOverflow
+import me.ccrama.redditslide.util.SubmissionParser
+import me.ccrama.redditslide.util.stubs.SimpleTextWatcher
+import net.dean.jraw.ApiException
+import net.dean.jraw.managers.AccountManager
+import net.dean.jraw.models.Subreddit
 
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.widget.SwitchCompat;
-
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
-
-import net.dean.jraw.ApiException;
-import net.dean.jraw.managers.AccountManager;
-import net.dean.jraw.models.Submission;
-import net.dean.jraw.models.Subreddit;
-
-import java.util.List;
-
-import ltd.ucode.slide.Authentication;
-import me.ccrama.redditslide.OpenRedditLink;
-import ltd.ucode.slide.R;
-import me.ccrama.redditslide.SpoilerRobotoTextView;
-import me.ccrama.redditslide.UserSubscriptions;
-import me.ccrama.redditslide.Views.CommentOverflow;
-import me.ccrama.redditslide.util.SubmissionParser;
-import me.ccrama.redditslide.util.stubs.SimpleTextWatcher;
-
-
-/**
- * Created by ccrama on 3/5/2015.
- */
-public class Crosspost extends BaseActivity {
-
-    public static Submission   toCrosspost;
-    private       SwitchCompat inboxReplies;
-
-    AsyncTask<Void, Void, Subreddit> tchange;
-
-    public void onCreate(Bundle savedInstanceState) {
-        disableSwipeBackLayout();
-        super.onCreate(savedInstanceState);
-        applyColorTheme();
-        setContentView(R.layout.activity_crosspost);
-
+class Crosspost : BaseActivity() {
+    private var inboxReplies: SwitchCompat? = null
+    var tchange: AsyncTask<Void?, Void?, Subreddit?>? = null
+    public override fun onCreate(savedInstanceState: Bundle?) {
+        disableSwipeBackLayout()
+        super.onCreate(savedInstanceState)
+        applyColorTheme()
+        setContentView(R.layout.activity_crosspost)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            Window window = this.getWindow();
-            window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
-            window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+            val window = this.window
+            window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS)
+            window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
         }
-        setupAppBar(R.id.toolbar, R.string.title_crosspost, true, true);
-
-        inboxReplies = (SwitchCompat) findViewById(R.id.replies);
-
-        final AutoCompleteTextView subredditText =
-                ((AutoCompleteTextView) findViewById(R.id.subreddittext));
-
-        ((EditText) findViewById(R.id.crossposttext)).setText(toCrosspost.getTitle()
-                + getString(R.string.submission_properties_seperator)
-                + "/u/"
-                + toCrosspost.getAuthor());
-        findViewById(R.id.crossposttext).setEnabled(false);
-        ArrayAdapter adapter = new ArrayAdapter(this, android.R.layout.simple_list_item_1,
-                UserSubscriptions.getAllSubreddits(this));
-
-        subredditText.setAdapter(adapter);
-        subredditText.setThreshold(2);
-
-        subredditText.addTextChangedListener(new SimpleTextWatcher() {
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
+        setupAppBar(R.id.toolbar, R.string.title_crosspost, true, true)
+        inboxReplies = findViewById<View>(R.id.replies) as SwitchCompat
+        val subredditText = (findViewById<View>(R.id.subreddittext) as AutoCompleteTextView)
+        (findViewById<View>(R.id.crossposttext) as EditText).setText(
+            (toCrosspost!!.title
+                    + getString(R.string.submission_properties_seperator)
+                    + "/u/"
+                    + toCrosspost!!.creator.name)
+        )
+        findViewById<View>(R.id.crossposttext).isEnabled = false
+        val adapter = ArrayAdapter(
+            this, android.R.layout.simple_list_item_1,
+            UserSubscriptions.getAllSubreddits(this) as List<Any>
+        )
+        subredditText.setAdapter(adapter)
+        subredditText.threshold = 2
+        subredditText.addTextChangedListener(object : SimpleTextWatcher() {
+            override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {
                 if (tchange != null) {
-                    tchange.cancel(true);
+                    tchange!!.cancel(true)
                 }
-                findViewById(R.id.submittext).setVisibility(View.GONE);
+                findViewById<View>(R.id.submittext).visibility = View.GONE
             }
-        });
-
-        subredditText.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-            @Override
-            public void onFocusChange(View v, boolean hasFocus) {
-                findViewById(R.id.submittext).setVisibility(View.GONE);
+        })
+        subredditText.onFocusChangeListener = object : OnFocusChangeListener {
+            override fun onFocusChange(v: View, hasFocus: Boolean) {
+                findViewById<View>(R.id.submittext).visibility = View.GONE
                 if (!hasFocus) {
-                    tchange = new AsyncTask<Void, Void, Subreddit>() {
-                        @Override
-                        protected Subreddit doInBackground(Void... params) {
+                    tchange = object : AsyncTask<Void?, Void?, Subreddit?>() {
+                        override fun doInBackground(vararg params: Void?): Subreddit? {
                             try {
-                                return Authentication.reddit.getSubreddit(
-                                        subredditText.getText().toString());
-                            } catch (Exception ignored) {
-
+                                return Authentication.reddit!!.getSubreddit(
+                                    subredditText.text.toString()
+                                )
+                            } catch (ignored: Exception) {
                             }
-                            return null;
+                            return null
                         }
 
-                        @Override
-                        protected void onPostExecute(Subreddit s) {
-
+                        override fun onPostExecute(s: Subreddit?) {
                             if (s != null) {
-                                String text = s.getDataNode().get("submit_text_html").asText();
-                                if (text != null && !text.isEmpty() && !text.equals("null")) {
-                                    findViewById(R.id.submittext).setVisibility(View.VISIBLE);
-                                    setViews(text, subredditText.getText().toString(),
-                                            (SpoilerRobotoTextView) findViewById(R.id.submittext),
-                                            (CommentOverflow) findViewById(R.id.commentOverflow));
-                                }
-                                if (s.getSubredditType().equals("RESTRICTED")) {
-                                    subredditText.setText("");
-                                    new AlertDialog.Builder(Crosspost.this)
-                                            .setTitle(R.string.err_submit_restricted)
-                                            .setMessage(R.string.err_submit_restricted_text)
-                                            .setPositiveButton(R.string.btn_ok, null)
-                                            .show();
+                                val text: String? = s.dataNode.get("submit_text_html").asText()
+                                if (!text.isNullOrEmpty() && text != "null") {
+                                    findViewById<View>(R.id.submittext).visibility = View.VISIBLE
+                                    setViews(
+                                        text, subredditText.text.toString(),
+                                        findViewById<View>(R.id.submittext) as SpoilerRobotoTextView,
+                                        findViewById<View>(R.id.commentOverflow) as CommentOverflow
+                                    )
                                 }
                             } else {
-                                findViewById(R.id.submittext).setVisibility(View.GONE);
+                                findViewById<View>(R.id.submittext).visibility = View.GONE
                             }
                         }
-                    };
-                    tchange.execute();
+                    }
+                    tchange!!.execute()
                 }
             }
-        });
-
-        ((EditText) findViewById(R.id.titletext)).setText(toCrosspost.getTitle());
-
-        findViewById(R.id.suggest).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                ((EditText) findViewById(R.id.titletext)).setText(toCrosspost.getTitle());
+        }
+        (findViewById<View>(R.id.titletext) as EditText).setText(
+            toCrosspost!!.title
+        )
+        findViewById<View>(R.id.suggest).setOnClickListener(View.OnClickListener {
+            (findViewById<View>(R.id.titletext) as EditText).setText(
+                toCrosspost!!.title
+            )
+        })
+        findViewById<View>(R.id.send).setOnClickListener(object : View.OnClickListener {
+            override fun onClick(view: View) {
+                (findViewById<View>(R.id.send) as FloatingActionButton).hide()
+                AsyncDo().execute()
             }
-        });
-
-        findViewById(R.id.send).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                ((FloatingActionButton) findViewById(R.id.send)).hide();
-                new AsyncDo().execute();
-            }
-        });
-
-
+        })
     }
 
-    public void setViews(String rawHTML, String subredditName, SpoilerRobotoTextView firstTextView,
-            CommentOverflow commentOverflow) {
+    fun setViews(
+        rawHTML: String, subredditName: String?, firstTextView: SpoilerRobotoTextView,
+        commentOverflow: CommentOverflow
+    ) {
         if (rawHTML.isEmpty()) {
-            return;
+            return
         }
-
-        List<String> blocks = SubmissionParser.getBlocks(rawHTML);
-
-        int startIndex = 0;
+        val blocks = SubmissionParser.getBlocks(rawHTML)
+        var startIndex = 0
         // the <div class="md"> case is when the body contains a table or code block first
-        if (!blocks.get(0).equals("<div class=\"md\">")) {
-            firstTextView.setVisibility(View.VISIBLE);
-            firstTextView.setTextHtml(blocks.get(0) + " ", subredditName);
-            startIndex = 1;
+        if (blocks.get(0) != "<div class=\"md\">") {
+            firstTextView.visibility = View.VISIBLE
+            firstTextView.setTextHtml(blocks[0] + " ", subredditName)
+            startIndex = 1
         } else {
-            firstTextView.setText("");
-            firstTextView.setVisibility(View.GONE);
+            firstTextView.text = ""
+            firstTextView.visibility = View.GONE
         }
-
-        if (blocks.size() > 1) {
+        if (blocks.size > 1) {
             if (startIndex == 0) {
-                commentOverflow.setViews(blocks, subredditName);
+                commentOverflow.setViews(blocks, subredditName)
             } else {
-                commentOverflow.setViews(blocks.subList(startIndex, blocks.size()), subredditName);
+                commentOverflow.setViews(blocks.subList(startIndex, blocks.size), subredditName)
             }
         } else {
-            commentOverflow.removeAllViews();
+            commentOverflow.removeAllViews()
         }
     }
 
-
-    private class AsyncDo extends AsyncTask<Void, Void, Void> {
-
-        @Override
-        protected Void doInBackground(Void... voids) {
+    private inner class AsyncDo() : AsyncTask<Void?, Void?, Void?>() {
+        override fun doInBackground(vararg voids: Void?): Void? {
             try {
                 try {
-                    Submission s = new AccountManager(Authentication.reddit).crosspost(toCrosspost,
-                            ((AutoCompleteTextView) findViewById(R.id.subreddittext)).getText()
-                                    .toString(),
-                            ((EditText) findViewById(R.id.titletext)).getText().toString(), null,
-                            "");
-                    new AccountManager(Authentication.reddit).sendRepliesToInbox(s,
-                            inboxReplies.isChecked());
-                    OpenRedditLink.openUrl(Crosspost.this,
-                            "reddit.com/r/"
-                                    + ((AutoCompleteTextView) findViewById(
-                                    R.id.subreddittext)).getText().toString()
-                                    + "/comments/"
-                                    + s.getFullName().substring(3), true);
-                    Crosspost.this.finish();
-                } catch (final ApiException e) {
-                    e.printStackTrace();
-
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            showErrorRetryDialog(getString(R.string.misc_err)
-                                    + ": "
-                                    + e.getExplanation()
-                                    + "\n"
-                                    + getString(R.string.misc_retry));
+                    val s = AccountManager(Authentication.reddit).crosspost(
+                        toCrosspost!!.submission,
+                        (findViewById<View>(R.id.subreddittext) as AutoCompleteTextView).text
+                            .toString(),
+                        (findViewById<View>(R.id.titletext) as EditText).text.toString(), null,
+                        ""
+                    )
+                    AccountManager(Authentication.reddit).sendRepliesToInbox(
+                        s,
+                        inboxReplies!!.isChecked
+                    )
+                    OpenRedditLink.openUrl(
+                        this@Crosspost,
+                        ("reddit.com/r/"
+                                + (findViewById<View>(
+                            R.id.subreddittext
+                        ) as AutoCompleteTextView).text.toString()
+                                + "/comments/"
+                                + s.fullName.substring(3)), true
+                    )
+                    finish()
+                } catch (e: ApiException) {
+                    e.printStackTrace()
+                    runOnUiThread(object : Runnable {
+                        override fun run() {
+                            showErrorRetryDialog(
+                                (getString(R.string.misc_err)
+                                        + ": "
+                                        + e.explanation
+                                        + "\n"
+                                        + getString(R.string.misc_retry))
+                            )
                         }
-                    });
+                    })
                 }
-            } catch (Exception e) {
-                e.printStackTrace();
-
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        showErrorRetryDialog(getString(R.string.misc_retry));
+            } catch (e: Exception) {
+                e.printStackTrace()
+                runOnUiThread(object : Runnable {
+                    override fun run() {
+                        showErrorRetryDialog(getString(R.string.misc_retry))
                     }
-                });
+                })
             }
-            return null;
+            return null
         }
-
-
     }
 
+    private fun showErrorRetryDialog(message: String) {
+        AlertDialog.Builder(this@Crosspost)
+            .setTitle(R.string.err_title)
+            .setMessage(message)
+            .setNegativeButton(
+                R.string.btn_no,
+                { dialogInterface: DialogInterface?, i: Int -> finish() })
+            .setPositiveButton(
+                R.string.btn_yes,
+                { dialogInterface: DialogInterface?, i: Int -> (findViewById<View>(R.id.send) as FloatingActionButton).show() })
+            .setOnDismissListener({ dialog: DialogInterface? -> (findViewById<View>(R.id.send) as FloatingActionButton).show() })
+            .create()
+            .show()
+    }
 
-    private void showErrorRetryDialog(String message) {
-        new AlertDialog.Builder(Crosspost.this)
-                .setTitle(R.string.err_title)
-                .setMessage(message)
-                .setNegativeButton(R.string.btn_no, (dialogInterface, i) ->
-                        finish())
-                .setPositiveButton(R.string.btn_yes, (dialogInterface, i) ->
-                        ((FloatingActionButton) findViewById(R.id.send)).show())
-                .setOnDismissListener(dialog ->
-                        ((FloatingActionButton) findViewById(R.id.send)).show())
-                .create()
-                .show();
+    companion object {
+        var toCrosspost: IPost? = null
     }
 }

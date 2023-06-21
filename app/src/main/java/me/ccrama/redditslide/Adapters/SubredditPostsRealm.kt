@@ -219,9 +219,9 @@ class SubredditPostsRealm : PostLoader {
             }
             if (SettingValues.storeHistory) {
                 HasSeen.setHasSeenSubmission(filteredSubmissions.mapNotNull { it?.submission })
-                LastComments.setCommentsSince(filteredSubmissions.mapNotNull { it?.submission })
+                LastComments.setCommentsSince(filteredSubmissions.filterNotNull())
             }
-            SubmissionCache.cacheSubmissions(filteredSubmissions.mapNotNull { it?.submission }, context, subreddit)
+            SubmissionCache.cacheSubmissions(filteredSubmissions.filterNotNull(), context, subreddit)
             if (reset || offline || posts == null) {
                 posts = filteredSubmissions.filterNotNull().toHashSet().toMutableList()
                 start = -1

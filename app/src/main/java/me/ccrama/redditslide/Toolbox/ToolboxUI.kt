@@ -1,212 +1,218 @@
-package me.ccrama.redditslide.Toolbox;
+package me.ccrama.redditslide.Toolbox
 
-import android.content.Context;
-import android.content.Intent;
-import android.graphics.Color;
-import android.os.AsyncTask;
-import android.text.Spannable;
-import android.text.SpannableStringBuilder;
-import android.text.Spanned;
-import android.text.TextUtils;
-import android.text.style.BackgroundColorSpan;
-import android.text.style.ForegroundColorSpan;
-import android.text.style.RelativeSizeSpan;
-import android.util.TypedValue;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
-import android.widget.CheckBox;
-import android.widget.EditText;
-import android.widget.LinearLayout;
-import android.widget.RadioButton;
-import android.widget.RadioGroup;
-import android.widget.Spinner;
-import android.widget.TextView;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
-
-import com.afollestad.materialdialogs.DialogAction;
-import com.afollestad.materialdialogs.MaterialDialog;
-
-import net.dean.jraw.ApiException;
-import net.dean.jraw.http.NetworkException;
-import net.dean.jraw.http.oauth.InvalidScopeException;
-import net.dean.jraw.managers.AccountManager;
-import net.dean.jraw.managers.InboxManager;
-import net.dean.jraw.managers.ModerationManager;
-import net.dean.jraw.models.Comment;
-import net.dean.jraw.models.DistinguishedStatus;
-import net.dean.jraw.models.PublicContribution;
-import net.dean.jraw.models.Submission;
-
-import java.lang.ref.WeakReference;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-
-import me.ccrama.redditslide.Activities.Reauthenticate;
-import ltd.ucode.slide.Authentication;
-import me.ccrama.redditslide.OpenRedditLink;
-import ltd.ucode.slide.R;
-import ltd.ucode.slide.SettingValues;
-import me.ccrama.redditslide.Views.RoundedBackgroundSpan;
+import android.content.Context
+import android.content.DialogInterface
+import android.content.Intent
+import android.graphics.Color
+import android.os.AsyncTask
+import android.text.Spannable
+import android.text.SpannableStringBuilder
+import android.text.Spanned
+import android.text.TextUtils
+import android.text.style.BackgroundColorSpan
+import android.text.style.ForegroundColorSpan
+import android.text.style.RelativeSizeSpan
+import android.util.TypedValue
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.widget.ArrayAdapter
+import android.widget.CheckBox
+import android.widget.EditText
+import android.widget.LinearLayout
+import android.widget.RadioButton
+import android.widget.RadioGroup
+import android.widget.Spinner
+import android.widget.TextView
+import androidx.appcompat.app.AlertDialog
+import com.afollestad.materialdialogs.DialogAction
+import com.afollestad.materialdialogs.MaterialDialog
+import com.afollestad.materialdialogs.MaterialDialog.SingleButtonCallback
+import ltd.ucode.slide.Authentication
+import ltd.ucode.slide.R
+import ltd.ucode.slide.SettingValues
+import ltd.ucode.slide.data.IPost
+import me.ccrama.redditslide.Activities.Reauthenticate
+import me.ccrama.redditslide.OpenRedditLink
+import me.ccrama.redditslide.Toolbox.RemovalReasons.RemovalReason
+import me.ccrama.redditslide.Views.RoundedBackgroundSpan
+import net.dean.jraw.ApiException
+import net.dean.jraw.http.NetworkException
+import net.dean.jraw.http.oauth.InvalidScopeException
+import net.dean.jraw.managers.AccountManager
+import net.dean.jraw.managers.AccountManager.SubmissionBuilder
+import net.dean.jraw.managers.InboxManager
+import net.dean.jraw.managers.ModerationManager
+import net.dean.jraw.models.Comment
+import net.dean.jraw.models.DistinguishedStatus
+import java.lang.ref.WeakReference
+import java.net.MalformedURLException
+import java.net.URL
+import java.text.SimpleDateFormat
+import java.util.Date
 
 /**
  * Misc UI stuff for toolbox - usernote display, removal display, etc.
  */
-public class ToolboxUI {
-
+object ToolboxUI {
+    @JvmStatic
+    fun showRemoval(
+        context: Context, thing: Comment?,
+        callback: CompletedRemovalCallback
+    ) {}
     /**
      * Shows a removal reason dialog
      *
      * @param context Context
-     * @param thing   Submission or Comment being removed
+     * @param thing   IPost or Comment being removed
      */
-    public static void showRemoval(final Context context, final PublicContribution thing,
-            final CompletedRemovalCallback callback) {
-        final RemovalReasons removalReasons;
-        final MaterialDialog.Builder builder = new MaterialDialog.Builder(context);
+    @JvmStatic
+    fun showRemoval(
+        context: Context, thing: IPost?,
+        callback: CompletedRemovalCallback
+    ) {
+        val removalReasons: RemovalReasons
+        val builder = MaterialDialog.Builder(context)
 
         // Set the dialog title
-        if (thing instanceof Comment) {
-            builder.title(context.getResources().getString(R.string.toolbox_removal_title,
-                    ((Comment) thing).getSubredditName()));
-            removalReasons = Toolbox.getConfig(((Comment) thing).getSubredditName()).getRemovalReasons();
-        } else if (thing instanceof Submission) {
-            builder.title(context.getResources().getString(R.string.toolbox_removal_title,
-                    ((Submission) thing).getSubredditName()));
-            removalReasons = Toolbox.getConfig(((Submission) thing).getSubredditName()).getRemovalReasons();
-        } else {
-            return;
+        when (thing) {
+            is Comment -> {
+                builder.title(
+                    context.resources.getString(
+                        R.string.toolbox_removal_title,
+                        thing.subredditName
+                    )
+                )
+                removalReasons = Toolbox.getConfig(thing.subredditName).removalReasons
+            }
+
+            is IPost -> {
+                builder.title(
+                    context.resources.getString(
+                        R.string.toolbox_removal_title,
+                        thing.groupName
+                    )
+                )
+                removalReasons = Toolbox.getConfig(thing.groupName).removalReasons
+            }
+
+            else -> {
+                return
+            }
         }
-
-        final View dialogContent = LayoutInflater.from(context).inflate(R.layout.toolbox_removal_dialog, null);
-
-        final CheckBox headerToggle = dialogContent.findViewById(R.id.toolbox_header_toggle);
-        final TextView headerText = dialogContent.findViewById(R.id.toolbox_header_text);
-        final LinearLayout reasonsList = dialogContent.findViewById(R.id.toolbox_reasons_list);
-        final CheckBox footerToggle = dialogContent.findViewById(R.id.toolbox_footer_toggle);
-        final TextView footerText = dialogContent.findViewById(R.id.toolbox_footer_text);
-        final RadioGroup actions = dialogContent.findViewById(R.id.toolbox_action);
-        final CheckBox actionSticky = dialogContent.findViewById(R.id.sticky_comment);
-        final CheckBox actionModmail = dialogContent.findViewById(R.id.pm_modmail);
-        final CheckBox actionLock = dialogContent.findViewById(R.id.lock);
-        final EditText logReason = dialogContent.findViewById(R.id.toolbox_log_reason);
+        val dialogContent =
+            LayoutInflater.from(context).inflate(R.layout.toolbox_removal_dialog, null)
+        val headerToggle = dialogContent.findViewById<CheckBox>(R.id.toolbox_header_toggle)
+        val headerText = dialogContent.findViewById<TextView>(R.id.toolbox_header_text)
+        val reasonsList = dialogContent.findViewById<LinearLayout>(R.id.toolbox_reasons_list)
+        val footerToggle = dialogContent.findViewById<CheckBox>(R.id.toolbox_footer_toggle)
+        val footerText = dialogContent.findViewById<TextView>(R.id.toolbox_footer_text)
+        val actions = dialogContent.findViewById<RadioGroup>(R.id.toolbox_action)
+        val actionSticky = dialogContent.findViewById<CheckBox>(R.id.sticky_comment)
+        val actionModmail = dialogContent.findViewById<CheckBox>(R.id.pm_modmail)
+        val actionLock = dialogContent.findViewById<CheckBox>(R.id.lock)
+        val logReason = dialogContent.findViewById<EditText>(R.id.toolbox_log_reason)
 
         // Check if removal should be logged and set related views
-        final boolean log = !removalReasons.getLogSub().isEmpty();
+        val log = !removalReasons.logSub.isEmpty()
         if (log) {
-            dialogContent.findViewById(R.id.none).setVisibility(View.VISIBLE);
-            if (removalReasons.getLogTitle().contains("{reason}")) {
-                logReason.setVisibility(View.VISIBLE);
-                logReason.setText(removalReasons.getLogReason());
+            dialogContent.findViewById<View>(R.id.none).visibility = View.VISIBLE
+            if (removalReasons.logTitle.contains("{reason}")) {
+                logReason.visibility = View.VISIBLE
+                logReason.setText(removalReasons.logReason)
             }
         }
 
         // Hide lock option if removing a comment
-        if (thing instanceof Comment) {
-            actionLock.setVisibility(View.GONE);
+        if (thing is Comment) {
+            actionLock.visibility = View.GONE
         }
 
         // Set up the header and footer options
-        headerText.setText(replaceTokens(removalReasons.getHeader(), thing));
-        if (removalReasons.getHeader().isEmpty()) {
-            ((View) headerToggle.getParent()).setVisibility(View.GONE);
+        headerText.text = replaceTokens(removalReasons.header, thing)
+        if (removalReasons.header.isEmpty()) {
+            (headerToggle.parent as View).visibility = View.GONE
         }
-        footerText.setText(replaceTokens(removalReasons.getFooter(), thing));
-        if (removalReasons.getFooter().isEmpty()) {
-            ((View) footerToggle.getParent()).setVisibility(View.GONE);
+        footerText.text = replaceTokens(removalReasons.footer, thing)
+        if (removalReasons.footer.isEmpty()) {
+            (footerToggle.parent as View).visibility = View.GONE
         }
 
         // Set up the removal reason list
-        for (RemovalReasons.RemovalReason reason : removalReasons.getReasons()) {
-            CheckBox checkBox = new CheckBox(context);
-            checkBox.setMaxLines(2);
-            checkBox.setEllipsize(TextUtils.TruncateAt.END);
-            final TypedValue tv = new TypedValue();
-            final boolean found = context.getTheme().resolveAttribute(R.attr.fontColor, tv, true);
-            checkBox.setTextColor(found ? tv.data : Color.WHITE);
-            checkBox.setText(reason.getTitle().isEmpty() ? reason.getText() : reason.getTitle());
-            reasonsList.addView(checkBox);
+        for (reason: RemovalReason in removalReasons.reasons) {
+            val checkBox = CheckBox(context)
+            checkBox.maxLines = 2
+            checkBox.ellipsize = TextUtils.TruncateAt.END
+            val tv = TypedValue()
+            val found = context.theme.resolveAttribute(R.attr.fontColor, tv, true)
+            checkBox.setTextColor(if (found) tv.data else Color.WHITE)
+            checkBox.text = if (reason.title.isEmpty()) reason.text else reason.title
+            reasonsList.addView(checkBox)
         }
 
         // Set default states of checkboxes/radiobuttons
-        if (SettingValues.toolboxMessageType == SettingValues.ToolboxRemovalMessageType.COMMENT.ordinal()) {
-            ((RadioButton) actions.findViewById(R.id.comment)).setChecked(true);
-        } else if (SettingValues.toolboxMessageType == SettingValues.ToolboxRemovalMessageType.PM.ordinal()) {
-            ((RadioButton) actions.findViewById(R.id.pm)).setChecked(true);
-        } else if (SettingValues.toolboxMessageType == SettingValues.ToolboxRemovalMessageType.BOTH.ordinal()) {
-            ((RadioButton) actions.findViewById(R.id.both)).setChecked(true);
+        if (SettingValues.toolboxMessageType == SettingValues.ToolboxRemovalMessageType.COMMENT.ordinal) {
+            (actions.findViewById<View>(R.id.comment) as RadioButton).isChecked = true
+        } else if (SettingValues.toolboxMessageType == SettingValues.ToolboxRemovalMessageType.PM.ordinal) {
+            (actions.findViewById<View>(R.id.pm) as RadioButton).isChecked = true
+        } else if (SettingValues.toolboxMessageType == SettingValues.ToolboxRemovalMessageType.BOTH.ordinal) {
+            (actions.findViewById<View>(R.id.both) as RadioButton).isChecked = true
         } else {
-            ((RadioButton) actions.findViewById(R.id.none)).setChecked(true);
+            (actions.findViewById<View>(R.id.none) as RadioButton).isChecked = true
         }
-        actionSticky.setChecked(SettingValues.toolboxSticky);
-        actionModmail.setChecked(SettingValues.toolboxModmail);
-        actionLock.setChecked(SettingValues.toolboxLock);
+        actionSticky.isChecked = SettingValues.toolboxSticky
+        actionModmail.isChecked = SettingValues.toolboxModmail
+        actionLock.isChecked = SettingValues.toolboxLock
 
         // Set up dialog buttons
-        builder.customView(dialogContent, false);
-        builder.positiveText(R.string.mod_btn_remove);
-        builder.negativeText(R.string.btn_cancel);
-        builder.onPositive(new MaterialDialog.SingleButtonCallback() {
-            @Override
-            public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
-                StringBuilder removalString = new StringBuilder();
-                StringBuilder flairText = new StringBuilder();
-                StringBuilder flairCSS = new StringBuilder();
+        builder.customView(dialogContent, false)
+        builder.positiveText(R.string.mod_btn_remove)
+        builder.negativeText(R.string.btn_cancel)
+        builder.onPositive(SingleButtonCallback { dialog, which ->
+            val removalString = StringBuilder()
+            val flairText = StringBuilder()
+            val flairCSS = StringBuilder()
 
-                // Add the header to the removal message
-                if (headerToggle.isChecked()) {
-                    removalString.append(removalReasons.getHeader());
-                    removalString.append("\n\n");
-                }
-                // Add the removal reasons
-                for (int i = 0; i < reasonsList.getChildCount(); i++) {
-                    if (((CheckBox) reasonsList.getChildAt(i)).isChecked()) {
-                        removalString.append(removalReasons.getReasons().get(i).getText());
-                        removalString.append("\n\n");
-
-                        flairText.append(flairText.length() > 0 ? " " : "");
-                        flairText.append(removalReasons.getReasons().get(i).getFlairText());
-
-                        flairCSS.append(flairCSS.length() > 0 ? " " : "");
-                        flairCSS.append(removalReasons.getReasons().get(i).getFlairCSS());
-                    }
-                }
-                // Add the footer
-                if (footerToggle.isChecked()) {
-                    removalString.append(removalReasons.getFooter());
-                }
-                // Add PM footer
-                if (actions.getCheckedRadioButtonId() == R.id.pm || actions.getCheckedRadioButtonId() == R.id.both) {
-                    removalString.append("\n\n---\n[[Link to your {kind}]({url})]");
-                }
-                // Remove the item and send the message if desired
-                new AsyncRemoveTask(callback).execute(
-                        thing,                                                      // thing
-                        actions.getCheckedRadioButtonId(),                          // action ID
-                        replaceTokens(removalString.toString(), thing),             // removal reason
-                        replaceTokens(removalReasons.getPmSubject(), thing),        // removal PM subject
-                        actionModmail.isChecked(),                                  // modmail?
-                        actionSticky.isChecked(),                                   // sticky?
-                        actionLock.isChecked(),                                     // lock?
-                        log,                                                        // log the removal?
-                        replaceTokens(removalReasons.getLogTitle(), thing)          // log post title
-                                .replace("{reason}", logReason.getText()),
-                        removalReasons.getLogSub(),                                 // log sub
-                        new String[] { flairText.toString(), flairCSS.toString() }  // flair text and css
-                );
+            // Add the header to the removal message
+            if (headerToggle.isChecked) {
+                removalString.append(removalReasons.header)
+                removalString.append("\n\n")
             }
-        });
-
-        builder.build().show();
+            // Add the removal reasons
+            for (i in 0 until reasonsList.childCount) {
+                if ((reasonsList.getChildAt(i) as CheckBox).isChecked) {
+                    removalString.append(removalReasons.reasons[i].text)
+                    removalString.append("\n\n")
+                    flairText.append(if (flairText.length > 0) " " else "")
+                    flairText.append(removalReasons.reasons[i].flairText)
+                    flairCSS.append(if (flairCSS.length > 0) " " else "")
+                    flairCSS.append(removalReasons.reasons[i].flairCSS)
+                }
+            }
+            // Add the footer
+            if (footerToggle.isChecked) {
+                removalString.append(removalReasons.footer)
+            }
+            // Add PM footer
+            if (actions.checkedRadioButtonId == R.id.pm || actions.checkedRadioButtonId == R.id.both) {
+                removalString.append("\n\n---\n[[Link to your {kind}]({url})]")
+            }
+            // Remove the item and send the message if desired
+            AsyncRemoveTask(callback).execute(
+                thing,  // thing
+                actions.checkedRadioButtonId,  // action ID
+                replaceTokens(removalString.toString(), thing),  // removal reason
+                replaceTokens(removalReasons.pmSubject, thing),  // removal PM subject
+                actionModmail.isChecked,  // modmail?
+                actionSticky.isChecked,  // sticky?
+                actionLock.isChecked,  // lock?
+                log,  // log the removal?
+                replaceTokens(removalReasons.logTitle, thing) // log post title
+                    .replace("{reason}", logReason.text.toString()),
+                removalReasons.logSub, arrayOf(flairText.toString(), flairCSS.toString())
+            )
+        })
+        builder.build().show()
     }
 
     /**
@@ -215,10 +221,11 @@ public class ToolboxUI {
      * @param subreddit Subreddit
      * @return whether a toolbox removal dialog can be shown
      */
-    public static boolean canShowRemoval(String subreddit) {
-        return SettingValues.toolboxEnabled
-                && Toolbox.getConfig(subreddit) != null
-                && Toolbox.getConfig(subreddit).getRemovalReasons() != null;
+    @JvmStatic
+    fun canShowRemoval(subreddit: String?): Boolean {
+        return (SettingValues.toolboxEnabled
+                && (Toolbox.getConfig(subreddit) != null
+                ) && (Toolbox.getConfig(subreddit).removalReasons != null))
     }
 
     /**
@@ -229,31 +236,35 @@ public class ToolboxUI {
      * @param parameter Item being acted upon
      * @return String with replacements made
      */
-    public static String replaceTokens(String reason, PublicContribution parameter) {
-        if (parameter instanceof Comment) {
-            Comment thing = (Comment) parameter;
-            return reason.replace("{subreddit}", thing.getSubredditName())
-                    .replace("{author}", thing.getAuthor())
-                    .replace("{kind}", "comment")
-                    .replace("{mod}", Authentication.name)
-                    .replace("{title}", "")
-                    .replace("{url}", "https://www.reddit.com"
-                            + thing.getDataNode().get("permalink").asText())
-                    .replace("{domain}", "")
-                    .replace("{link}", "undefined");
-        } else if (parameter instanceof Submission) {
-            Submission thing = (Submission) parameter;
-            return reason.replace("{subreddit}", thing.getSubredditName())
-                    .replace("{author}", thing.getAuthor())
-                    .replace("{kind}", "submission")
-                    .replace("{mod}", Authentication.name)
-                    .replace("{title}", thing.getTitle())
-                    .replace("{url}", "https://www.reddit.com"
-                            + thing.getDataNode().get("permalink").asText())
-                    .replace("{domain}", thing.getDomain())
-                    .replace("{link}", thing.getUrl());
+    fun replaceTokens(reason: String, parameter: IPost?): String {
+        if (parameter is Comment) {
+            val thing = parameter
+            return reason.replace("{subreddit}", thing.subredditName)
+                .replace("{author}", thing.author)
+                .replace("{kind}", "comment")
+                .replace("{mod}", (Authentication.name)!!)
+                .replace("{title}", "")
+                .replace(
+                    "{url}", ("https://www.reddit.com"
+                            + thing.dataNode["permalink"].asText())
+                )
+                .replace("{domain}", "")
+                .replace("{link}", "undefined")
+        } else if (parameter is IPost) {
+            val thing = parameter
+            return reason.replace("{subreddit}", thing.groupName)
+                .replace("{author}", thing.creator.name)
+                .replace("{kind}", "submission")
+                .replace("{mod}", (Authentication.name)!!)
+                .replace("{title}", thing.title)
+                .replace(
+                    "{url}", ("https://www.reddit.com"
+                            + thing.permalink)
+                )
+                .replace("{domain}", thing.domain.orEmpty())
+                .replace("{link}", thing.url.orEmpty())
         } else {
-            throw new IllegalArgumentException("Must be passed a submission or comment!");
+            throw IllegalArgumentException("Must be passed a submission or comment!")
         }
     }
 
@@ -265,93 +276,102 @@ public class ToolboxUI {
      * @param subreddit   subreddit to get usernotes from
      * @param currentLink Link, in Toolbox format, for the current item - used for adding usernotes
      */
-    public static void showUsernotes(final Context context, String author, String subreddit, String currentLink) {
-        final UsernoteListAdapter adapter = new UsernoteListAdapter(context, subreddit, author);
-        new AlertDialog.Builder(context)
-                .setTitle(context.getResources().getString(R.string.mod_usernotes_title, author))
-                .setAdapter(adapter, null)
-                .setNeutralButton(R.string.mod_usernotes_add, (dialog, which) -> {
-                    // set up layout for add note dialog
-                    final LinearLayout layout = new LinearLayout(context);
-                    final Spinner spinner = new Spinner(context);
-                    final EditText noteText = new EditText(context);
+    @JvmStatic
+    fun showUsernotes(context: Context, author: String?, subreddit: String?, currentLink: String?) {
+        val adapter = UsernoteListAdapter(context, subreddit, author)
+        AlertDialog.Builder(context)
+            .setTitle(context.resources.getString(R.string.mod_usernotes_title, author))
+            .setAdapter(adapter, null)
+            .setNeutralButton(R.string.mod_usernotes_add) { dialog: DialogInterface?, which: Int ->
+                // set up layout for add note dialog
+                val layout: LinearLayout = LinearLayout(context)
+                val spinner: Spinner = Spinner(context)
+                val noteText: EditText = EditText(context)
+                layout.addView(spinner)
+                layout.addView(noteText)
+                noteText.setHint(R.string.toolbox_note_text_placeholder)
+                layout.setOrientation(LinearLayout.VERTICAL)
+                val params: LinearLayout.LayoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT
+                )
+                spinner.setLayoutParams(params)
+                noteText.setLayoutParams(params)
 
-                    layout.addView(spinner);
-                    layout.addView(noteText);
+                // create list of types, add default "no type" type
+                val types: MutableList<CharSequence> = ArrayList()
+                val defaultType: SpannableStringBuilder = SpannableStringBuilder(
+                    " " + context.getString(R.string.toolbox_note_default) + " "
+                )
+                defaultType.setSpan(
+                    BackgroundColorSpan(Color.parseColor("#808080")),
+                    0, defaultType.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                )
+                defaultType.setSpan(
+                    ForegroundColorSpan(Color.WHITE), 0, defaultType.length,
+                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                )
+                types.add(defaultType)
 
-                    noteText.setHint(R.string.toolbox_note_text_placeholder);
+                // add additional types
+                val config: ToolboxConfig? = Toolbox.getConfig(subreddit)
+                val typeMap: Map<String, Map<String?, String>>
+                if ((config != null
+                            ) && (config.getUsernoteTypes() != null
+                            ) && (config.getUsernoteTypes().size > 0)
+                ) {
+                    typeMap = Toolbox.getConfig(subreddit).getUsernoteTypes()
+                } else {
+                    typeMap = Toolbox.DEFAULT_USERNOTE_TYPES
+                }
+                for (stringStringMap: Map<String?, String> in typeMap.values) {
+                    val typeString: SpannableStringBuilder =
+                        SpannableStringBuilder(" [" + stringStringMap.get("text") + "] ")
+                    typeString.setSpan(
+                        BackgroundColorSpan(Color.parseColor(stringStringMap.get("color"))),
+                        0, typeString.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                    )
+                    typeString.setSpan(
+                        ForegroundColorSpan(Color.WHITE), 0, typeString.length,
+                        Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                    )
+                    types.add(typeString)
+                }
+                spinner.setAdapter(
+                    ArrayAdapter(
+                        context, android.R.layout.simple_spinner_dropdown_item,
+                        types
+                    )
+                )
 
-                    layout.setOrientation(LinearLayout.VERTICAL);
-                    LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
-                            LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-                    spinner.setLayoutParams(params);
-                    noteText.setLayoutParams(params);
-
-                    // create list of types, add default "no type" type
-                    List<CharSequence> types = new ArrayList<>();
-                    SpannableStringBuilder defaultType = new SpannableStringBuilder(
-                            " " + context.getString(R.string.toolbox_note_default) + " ");
-                    defaultType.setSpan(new BackgroundColorSpan(Color.parseColor("#808080")),
-                            0, defaultType.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-                    defaultType.setSpan(new ForegroundColorSpan(Color.WHITE), 0, defaultType.length(),
-                            Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-                    types.add(defaultType);
-
-                    // add additional types
-                    ToolboxConfig config = Toolbox.getConfig(subreddit);
-
-                    final Map<String, Map<String, String>> typeMap;
-                    if (config != null
-                            && config.getUsernoteTypes() != null
-                            && config.getUsernoteTypes().size() > 0) {
-                        typeMap = Toolbox.getConfig(subreddit).getUsernoteTypes();
-                    } else {
-                        typeMap = Toolbox.DEFAULT_USERNOTE_TYPES;
-                    }
-
-                    for (Map<String, String> stringStringMap : typeMap.values()) {
-                        SpannableStringBuilder typeString =
-                                new SpannableStringBuilder(" [" + stringStringMap.get("text") + "] ");
-                        typeString.setSpan(new BackgroundColorSpan(Color.parseColor(stringStringMap.get("color"))),
-                                0, typeString.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-                        typeString.setSpan(new ForegroundColorSpan(Color.WHITE), 0, typeString.length(),
-                                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-                        types.add(typeString);
-                    }
-
-                    spinner.setAdapter(new ArrayAdapter<>(context, android.R.layout.simple_spinner_dropdown_item,
-                            types));
-
-                    // show add note dialog
-                    new MaterialDialog.Builder(context)
-                            .customView(layout, true)
-                            .autoDismiss(false)
-                            .positiveText(R.string.btn_add)
-                            .onPositive(new MaterialDialog.SingleButtonCallback() {
-                                @Override
-                                public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
-                                    if (noteText.getText().length() == 0) {
-                                        noteText.setError(context.getString(R.string.toolbox_note_text_required));
-                                        return;
-                                    }
-                                    int selected = spinner.getSelectedItemPosition();
-                                    new AsyncAddUsernoteTask(context).execute(
-                                            subreddit,
-                                            author,
-                                            noteText.getText().toString(),
-                                            currentLink,
-                                            selected - 1 >= 0 ? typeMap.keySet().toArray()[selected - 1].toString()
-                                                    : null
-                                    );
-                                    dialog.dismiss();
-                                }
-                            })
-                            .negativeText(R.string.btn_cancel)
-                            .onNegative((dialog1, which1) -> dialog1.dismiss())
-                            .show();
-                })
-                .setPositiveButton(R.string.btn_close, null)
-                .show();
+                // show add note dialog
+                MaterialDialog.Builder(context)
+                    .customView(layout, true)
+                    .autoDismiss(false)
+                    .positiveText(R.string.btn_add)
+                    .onPositive(object : SingleButtonCallback {
+                        override fun onClick(dialog: MaterialDialog, which: DialogAction) {
+                            if (noteText.getText().length == 0) {
+                                noteText.setError(context.getString(R.string.toolbox_note_text_required))
+                                return
+                            }
+                            val selected: Int = spinner.selectedItemPosition
+                            AsyncAddUsernoteTask(context).execute(
+                                subreddit,
+                                author,
+                                noteText.getText().toString(),
+                                currentLink,
+                                if (selected - 1 >= 0) typeMap.keys.toTypedArray().get(selected - 1)
+                                    .toString() else null
+                            )
+                            dialog.dismiss()
+                        }
+                    })
+                    .negativeText(R.string.btn_cancel)
+                    .onNegative(SingleButtonCallback { dialog1: MaterialDialog, which1: DialogAction? -> dialog1.dismiss() })
+                    .show()
+            }
+            .setPositiveButton(R.string.btn_close, null)
+            .show()
     }
 
     /**
@@ -363,147 +383,115 @@ public class ToolboxUI {
      * @param subreddit The subreddit to look for notes in
      * @param user The user to look for
      */
-    public static void appendToolboxNote(Context context, SpannableStringBuilder builder,
-            String subreddit, String user) {
+    @JvmStatic
+    fun appendToolboxNote(
+        context: Context, builder: SpannableStringBuilder,
+        subreddit: String?, user: String?
+    ) {
         if (!SettingValues.toolboxEnabled || !Authentication.mod) {
-            return;
+            return
         }
-
-        Usernotes notes = Toolbox.getUsernotes(subreddit);
-        if (notes == null) {
-            return;
-        }
-
-        List<Usernote> notesForUser = notes.getNotesForUser(user);
+        val notes = Toolbox.getUsernotes(subreddit) ?: return
+        val notesForUser = notes.getNotesForUser(user)
         if (notesForUser == null || notesForUser.isEmpty()) {
-            return;
+            return
         }
-
-        SpannableStringBuilder noteBuilder =
-                new SpannableStringBuilder("\u00A0" + notes.getDisplayNoteForUser(user) + "\u00A0");
-
+        val noteBuilder =
+            SpannableStringBuilder("\u00A0" + notes.getDisplayNoteForUser(user) + "\u00A0")
         noteBuilder.setSpan(
-                new RoundedBackgroundSpan(context.getResources().getColor(android.R.color.white),
-                        notes.getDisplayColorForUser(user), false, context), 0,
-                noteBuilder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-
-        builder.append(" ");
-        builder.append(noteBuilder);
+            RoundedBackgroundSpan(
+                context.resources.getColor(android.R.color.white),
+                notes.getDisplayColorForUser(user), false, context
+            ), 0,
+            noteBuilder.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+        )
+        builder.append(" ")
+        builder.append(noteBuilder)
     }
 
-    public static class UsernoteListAdapter extends ArrayAdapter<UsernoteListItem> {
-        public UsernoteListAdapter(@NonNull Context context, String subreddit, String user) {
-            super(context, R.layout.usernote_list_item, R.id.usernote_note_text);
-
-            final Usernotes usernotes = Toolbox.getUsernotes(subreddit);
-
-            if (usernotes != null && usernotes.getNotesForUser(user) != null) {
-                for (Usernote note : usernotes.getNotesForUser(user)) {
-                    String dateString = SimpleDateFormat.getDateTimeInstance(SimpleDateFormat.SHORT, SimpleDateFormat.SHORT)
-                            .format(new Date(note.getTime()));
-
-                    SpannableStringBuilder authorDateText = new SpannableStringBuilder(
-                            usernotes.getModNameFromModIndex(note.getMod()) + "\n" + dateString);
-                    authorDateText.setSpan(new RelativeSizeSpan(.92f), authorDateText.length() - dateString.length(),
-                            authorDateText.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-
-                    SpannableStringBuilder noteText = new SpannableStringBuilder(
-                            usernotes.getWarningTextFromWarningIndex(note.getWarning(), true));
-                    noteText.setSpan(new ForegroundColorSpan(
-                                    usernotes.getColorFromWarningIndex(note.getWarning())),
-                            0, noteText.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-                    if (noteText.length() > 0) {
-                        noteText.append(" ");
+    class UsernoteListAdapter(context: Context, subreddit: String?, user: String?) :
+        ArrayAdapter<UsernoteListItem?>(
+            context,
+            R.layout.usernote_list_item,
+            R.id.usernote_note_text
+        ) {
+        init {
+            val usernotes = Toolbox.getUsernotes(subreddit)
+            if (usernotes?.getNotesForUser(user) != null) {
+                for (note: Usernote in usernotes.getNotesForUser(user)) {
+                    val dateString = SimpleDateFormat.getDateTimeInstance(
+                        SimpleDateFormat.SHORT,
+                        SimpleDateFormat.SHORT
+                    )
+                        .format(Date(note.time))
+                    val authorDateText = SpannableStringBuilder(
+                        usernotes.getModNameFromModIndex(note.mod) + "\n" + dateString
+                    )
+                    authorDateText.setSpan(
+                        RelativeSizeSpan(.92f), authorDateText.length - dateString.length,
+                        authorDateText.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                    )
+                    val noteText = SpannableStringBuilder(
+                        usernotes.getWarningTextFromWarningIndex(note.warning, true)
+                    )
+                    noteText.setSpan(
+                        ForegroundColorSpan(
+                            usernotes.getColorFromWarningIndex(note.warning)
+                        ),
+                        0, noteText.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+                    )
+                    if (noteText.length > 0) {
+                        noteText.append(" ")
                     }
-                    noteText.append(note.getNoteText());
-
-                    String link = note.getLinkAsURL(subreddit);
-
-                    this.add(new UsernoteListItem(authorDateText, noteText, link, note, subreddit, user));
+                    noteText.append(note.noteText)
+                    val link = note.getLinkAsURL(subreddit)
+                    add(UsernoteListItem(authorDateText, noteText, link, note, subreddit, user))
                 }
             }
         }
 
-        @NonNull
-        @Override
-        public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
-            final View view = super.getView(position, convertView, parent);
-            final UsernoteListItem item = getItem(position);
-
-            TextView authorDatetime = view.findViewById(R.id.usernote_author_datetime);
-            authorDatetime.setText(item.getAuthorDatetime());
-
-            TextView noteText = view.findViewById(R.id.usernote_note_text);
-            noteText.setText(item.getNoteText());
-
-            view.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
+        override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
+            val view = super.getView(position, convertView, parent)
+            val item = getItem(position)
+            val authorDatetime = view.findViewById<TextView>(R.id.usernote_author_datetime)
+            authorDatetime.text = item!!.authorDatetime
+            val noteText = view.findViewById<TextView>(R.id.usernote_note_text)
+            noteText.text = item.noteText
+            view.setOnClickListener(object : View.OnClickListener {
+                override fun onClick(v: View) {
                     if (item.getLink() != null) {
-                        OpenRedditLink.openUrl(view.getContext(), item.getLink(), true);
+                        OpenRedditLink.openUrl(view.context, item.getLink(), true)
                     }
                 }
-            });
-
-            view.findViewById(R.id.delete).setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    new AsyncRemoveUsernoteTask(item.getNote(), getContext())
-                            .execute(item.getSubreddit(), item.getUser());
-                    remove(item);
+            })
+            view.findViewById<View>(R.id.delete).setOnClickListener(object : View.OnClickListener {
+                override fun onClick(v: View) {
+                    AsyncRemoveUsernoteTask(item.note, context)
+                        .execute(item.subreddit, item.user)
+                    remove(item)
                 }
-            });
-
-            return view;
+            })
+            return view
         }
     }
 
-    public static class UsernoteListItem {
-        private CharSequence authorDatetime;
-        private CharSequence noteText;
-        private String link;
-        private Usernote note;
-        private String subreddit;
-        private String user;
+    class UsernoteListItem(
+        val authorDatetime: CharSequence,
+        val noteText: CharSequence,
+        private val link: String,
+        val note: Usernote,
+        val subreddit: String?,
+        val user: String?
+    ) {
 
-        public UsernoteListItem(CharSequence authorDatetime, CharSequence noteText, String link, Usernote note,
-                String subreddit, String user) {
-            this.authorDatetime = authorDatetime;
-            this.noteText = noteText;
-            this.link = link;
-            this.note = note;
-            this.subreddit = subreddit;
-            this.user = user;
-        }
-
-        public CharSequence getAuthorDatetime() {
-            return authorDatetime;
-        }
-
-        public CharSequence getNoteText() {
-            return noteText;
-        }
-
-        public String getLink() {
-            return link;
-        }
-
-        public Usernote getNote() {
-            return note;
-        }
-
-        public String getSubreddit() {
-            return subreddit;
-        }
-
-        public String getUser() {
-            return user;
+        fun getLink(): String? {
+            return link
         }
     }
 
     /**
      * Removes a post/comment, optionally locking first if a post.
-     * Parameters are: thing (extends PublicContribution),
+     * Parameters are: thing (extends IPost),
      * action ID (int),
      * removal reason (String),
      * removal subject (String),
@@ -515,101 +503,108 @@ public class ToolboxUI {
      * logsub (String)
      * flair (String[] - [text, css])
      */
-    public static class AsyncRemoveTask extends AsyncTask<Object, Void, Boolean> {
-        CompletedRemovalCallback callback;
-
-        public AsyncRemoveTask(CompletedRemovalCallback callback) {
-            this.callback = callback;
-        }
-
+    class AsyncRemoveTask(var callback: CompletedRemovalCallback) :
+        AsyncTask<Any?, Void?, Boolean>() {
         /**
          * Runs the removal and necessary action(s)
          *
          * @param objects ...
          * @return Success
          */
-        @Override
-        protected Boolean doInBackground(Object... objects) {
-            PublicContribution thing = (PublicContribution) objects[0];
-            int action = (int) objects[1];
-            String removalString = (String) objects[2];
-            String pmSubject = (String) objects[3];
-            boolean modmail = (boolean) objects[4];
-            boolean sticky = (boolean) objects[5];
-            boolean lock = (boolean) objects[6];
-            boolean log = (boolean) objects[7];
-            String logTitle = (String) objects[8];
-            String logSub = (String) objects[9];
-            String[] flair = (String[]) objects[10];
-
-            boolean success = true;
-
-            String logResult = "";
+        override fun doInBackground(vararg objects: Any?): Boolean {
+            val thing = objects[0] as IPost
+            val action = objects[1] as Int
+            val removalString = objects[2] as String
+            val pmSubject = objects[3] as String
+            val modmail = objects[4] as Boolean
+            val sticky = objects[5] as Boolean
+            val lock = objects[6] as Boolean
+            val log = objects[7] as Boolean
+            val logTitle = objects[8] as String
+            val logSub = objects[9] as String
+            val flair = objects[10] as Array<String>
+            var success = true
+            var logResult: String = ""
             if (log) {
                 // Log the removal
-                Submission s = logRemoval(logSub, logTitle, "https://www.reddit.com"
-                        + thing.getDataNode().get("permalink").asText());
+                val s = logRemoval(
+                    logSub, logTitle, ("https://www.reddit.com"
+                            + thing.permalink)
+                )
                 if (s != null) {
-                    logResult = "https://www.reddit.com" + s.getDataNode().get("permalink").asText();
+                    logResult = s.permalink
                 } else {
-                    success = false;
+                    success = false
                 }
             }
+            when (action) {
+                R.id.comment -> success = success and postRemovalComment(
+                    thing,
+                    removalString.replace("{loglink}", (logResult)),
+                    sticky
+                )
 
-            // Check what the desired action is and perform it
-            switch (action) {
-                case R.id.comment:
-                    success &= postRemovalComment(thing, removalString.replace("{loglink}", logResult), sticky);
-                    break;
-                case R.id.pm:
-                    if (thing instanceof Comment) {
-                        success &= sendRemovalPM(
-                                modmail ? ((Comment) thing).getSubredditName() : "",
-                                ((Comment) thing).getAuthor(),
-                                pmSubject.replace("{loglink}", logResult),
-                                removalString);
+                R.id.pm -> if (thing is Comment) {
+                    success = success and sendRemovalPM(
+                        if (modmail) thing.subredditName else "",
+                        thing.author,
+                        pmSubject.replace("{loglink}", (logResult)),
+                        removalString
+                    )
+                } else {
+                    success = success and sendRemovalPM(
+                        if (modmail) (thing as IPost).groupName else "",
+                        (thing as IPost).creator.name,
+                        pmSubject.replace("{loglink}", (logResult)),
+                        removalString
+                    )
+                }
+
+                R.id.both -> {
+                    success = success and postRemovalComment(
+                        thing,
+                        removalString.replace("{loglink}", (logResult)),
+                        sticky
+                    )
+                    if (thing is Comment) {
+                        success = success and sendRemovalPM(
+                            if (modmail) thing.subredditName else "",
+                            thing.author,
+                            pmSubject.replace("{loglink}", (logResult)),
+                            removalString
+                        )
                     } else {
-                        success &= sendRemovalPM(
-                                modmail ? ((Submission) thing).getSubredditName() : "",
-                                ((Submission) thing).getAuthor(),
-                                pmSubject.replace("{loglink}", logResult),
-                                removalString);
+                        success = success and sendRemovalPM(
+                            if (modmail) (thing as IPost).groupName else "",
+                            (thing as IPost).creator.name,
+                            pmSubject.replace("{loglink}", (logResult)),
+                            removalString
+                        )
                     }
-                    break;
-                case R.id.both:
-                    success &= postRemovalComment(thing, removalString.replace("{loglink}", logResult), sticky);
-                    if (thing instanceof Comment) {
-                        success &= sendRemovalPM(
-                                modmail ? ((Comment) thing).getSubredditName() : "",
-                                ((Comment) thing).getAuthor(),
-                                pmSubject.replace("{loglink}", logResult),
-                                removalString);
-                    } else {
-                        success &= sendRemovalPM(
-                                modmail ? ((Submission) thing).getSubredditName() : "",
-                                ((Submission) thing).getAuthor(),
-                                pmSubject.replace("{loglink}", logResult),
-                                removalString);
-                    }
-                    break;
-                // case R.id.none is unnecessary as we don't do anything on none.
+                }
             }
 
             // Remove the item and lock/apply necessary flair
             try {
-                new ModerationManager(Authentication.reddit).remove((PublicContribution) objects[0], false);
-                if (lock && thing instanceof Submission) {
-                    new ModerationManager(Authentication.reddit).setLocked(thing);
+                //ModerationManager(Authentication.reddit).remove(
+                //    objects[0] as IPost,
+                //    false
+                //)
+                if (lock && thing is IPost) {
+                    //ModerationManager(Authentication.reddit).setLocked(thing)
                 }
-                if ((flair[0].length() > 0 || flair[1].length() > 0) && thing instanceof Submission) {
-                    new ModerationManager(Authentication.reddit).setFlair(((Submission) thing).getSubredditName(),
-                            (Submission) thing, flair[0], flair[1]);
+                if ((flair[0].length > 0 || flair[1].length > 0) && thing is IPost) {
+                    //ModerationManager(Authentication.reddit).setFlair(
+                    //    thing.groupName,
+                    //    thing, flair[0], flair[1]
+                    //)
                 }
-            } catch (ApiException | NetworkException e) {
-                success = false;
+            } catch (e: ApiException) {
+                success = false
+            } catch (e: NetworkException) {
+                success = false
             }
-
-            return success;
+            return success
         }
 
         /**
@@ -617,10 +612,9 @@ public class ToolboxUI {
          *
          * @param success Whether doInBackground was a complete success
          */
-        @Override
-        protected void onPostExecute(Boolean success) {
+        override fun onPostExecute(success: Boolean) {
             // Run the callback on the UI thread
-            callback.onComplete(success);
+            callback.onComplete(success)
         }
 
         /**
@@ -632,12 +626,19 @@ public class ToolboxUI {
          * @param body    body
          * @return success
          */
-        private boolean sendRemovalPM(String from, String to, String subject, String body) {
+        private fun sendRemovalPM(
+            from: String,
+            to: String,
+            subject: String,
+            body: String
+        ): Boolean {
             try {
-                new InboxManager(Authentication.reddit).compose(from, to, subject, body);
-                return true;
-            } catch (ApiException | NetworkException e) {
-                return false;
+                InboxManager(Authentication.reddit).compose(from, to, subject, body)
+                return true
+            } catch (e: ApiException) {
+                return false
+            } catch (e: NetworkException) {
+                return false
             }
         }
 
@@ -649,22 +650,29 @@ public class ToolboxUI {
          * @param sticky  whether to sticky the comment
          * @return success
          */
-        private boolean postRemovalComment(PublicContribution thing, String comment, boolean sticky) {
+        private fun postRemovalComment(
+            thing: IPost,
+            comment: String,
+            sticky: Boolean
+        ): Boolean {
             try {
                 // Reply with a comment and get that comment's ID
-                String id = new AccountManager(Authentication.reddit).reply(thing, comment);
+                val id = null!!//AccountManager(Authentication.reddit).reply(thing, comment)
 
                 // Sticky or distinguish the posted comment
                 if (sticky) {
-                    new ModerationManager(Authentication.reddit)
-                            .setSticky((Comment) Authentication.reddit.get("t1_" + id).get(0), true);
+                    ModerationManager(Authentication.reddit)
+                        .setSticky(Authentication.reddit!!["t1_$id"][0] as Comment, true)
                 } else {
-                    new ModerationManager(Authentication.reddit).setDistinguishedStatus(
-                            Authentication.reddit.get("t1_" + id).get(0), DistinguishedStatus.MODERATOR);
+                    ModerationManager(Authentication.reddit).setDistinguishedStatus(
+                        Authentication.reddit!!["t1_$id"][0], DistinguishedStatus.MODERATOR
+                    )
                 }
-                return true;
-            } catch (ApiException | NetworkException e) {
-                return false;
+                return true
+            } catch (e: ApiException) {
+                return false
+            } catch (e: NetworkException) {
+                return false
             }
         }
 
@@ -675,15 +683,22 @@ public class ToolboxUI {
          * @param title  title of post
          * @return resulting submission
          */
-        private Submission logRemoval(String logSub, String title, String link) {
+        private fun logRemoval(logSub: String, title: String, link: String): IPost? {
             try {
-                return new AccountManager(Authentication.reddit).submit(new AccountManager.SubmissionBuilder(
-                        new URL(link),
-                        logSub,
-                        title
-                ));
-            } catch (MalformedURLException | ApiException | NetworkException e) {
-                return null;
+                //return AccountManager(Authentication.reddit).submit(
+                //    SubmissionBuilder(
+                //        URL(link),
+                //        logSub,
+                //        title
+                //    )
+                //)
+                return null
+            } catch (e: MalformedURLException) {
+                return null
+            } catch (e: ApiException) {
+                return null
+            } catch (e: NetworkException) {
+                return null
             }
         }
 
@@ -702,10 +717,32 @@ public class ToolboxUI {
          * @param logSub        Log subreddit
          * @param flair         Flair [text, CSS]
          */
-        public void execute(PublicContribution thing, int action, String removalReason, String pmSubject,
-                boolean modmail, boolean sticky, boolean lock, boolean log, String logTitle, String logSub,
-                String[] flair) {
-            super.execute(thing, action, removalReason, pmSubject, modmail, sticky, lock, log, logTitle, logSub, flair);
+        fun execute(
+            thing: IPost?,
+            action: Int,
+            removalReason: String?,
+            pmSubject: String?,
+            modmail: Boolean,
+            sticky: Boolean,
+            lock: Boolean,
+            log: Boolean,
+            logTitle: String?,
+            logSub: String?,
+            flair: Array<String>?
+        ) {
+            super.execute(
+                thing,
+                action,
+                removalReason,
+                pmSubject,
+                modmail,
+                sticky,
+                lock,
+                log,
+                logTitle,
+                logSub,
+                flair
+            )
         }
     }
 
@@ -718,59 +755,57 @@ public class ToolboxUI {
      * link
      * type
      */
-    public static class AsyncAddUsernoteTask extends AsyncTask<String, Void, Boolean> {
-        private WeakReference<Context> contextRef;
+    class AsyncAddUsernoteTask internal constructor(context: Context) :
+        AsyncTask<String?, Void?, Boolean>() {
+        private val contextRef: WeakReference<Context>
 
-        AsyncAddUsernoteTask(Context context) {
-            this.contextRef = new WeakReference<>(context);
+        init {
+            contextRef = WeakReference(context)
         }
 
-        @Override
-        protected Boolean doInBackground(String... strings) {
-            String reason;
-
+        override fun doInBackground(vararg strings: String?): Boolean {
+            val reason: String
             try {
-                Toolbox.downloadUsernotes(strings[0]);
-            } catch (NetworkException e) {
-                return false;
+                Toolbox.downloadUsernotes(strings[0])
+            } catch (e: NetworkException) {
+                return false
             }
             if (Toolbox.getUsernotes(strings[0]) == null) {
-                Toolbox.createUsernotes(strings[0]);
-                reason = "create usernotes config";
+                Toolbox.createUsernotes(strings[0])
+                reason = "create usernotes config"
             } else {
-                reason = "create new note on user " + strings[1];
+                reason = "create new note on user " + strings[1]
             }
             Toolbox.getUsernotes(strings[0]).createNote(
-                    strings[1], // user
-                    strings[2], // note text
-                    strings[3], // link
-                    System.currentTimeMillis(), // time
-                    Authentication.name, // mod
-                    strings[4] // type
-            );
+                strings[1],  // user
+                strings[2],  // note text
+                strings[3],  // link
+                System.currentTimeMillis(),  // time
+                Authentication.name,  // mod
+                strings[4] // type
+            )
             try {
-                Toolbox.uploadUsernotes(strings[0], reason);
-            } catch (InvalidScopeException e) { // we don't have wikiedit scope, need to reauth to get it
-                return false;
+                Toolbox.uploadUsernotes(strings[0], reason)
+            } catch (e: InvalidScopeException) { // we don't have wikiedit scope, need to reauth to get it
+                return false
             }
-            return true;
+            return true
         }
 
-        @Override
-        protected void onPostExecute(Boolean success) {
+        override fun onPostExecute(success: Boolean) {
             if (!success) {
-                final Context context = contextRef.get();
-                if (context == null) {
-                    return;
-                }
-                new MaterialDialog.Builder(context)
-                        .title(R.string.toolbox_wiki_edit_reauth)
-                        .content(R.string.toolbox_wiki_edit_reauth_question)
-                        .negativeText(R.string.misc_maybe_later)
-                        .positiveText(R.string.btn_yes)
-                        .onPositive((dialog1, which1) -> context.startActivity(
-                                new Intent(context, Reauthenticate.class)))
-                        .show();
+                val context = contextRef.get() ?: return
+                MaterialDialog.Builder(context)
+                    .title(R.string.toolbox_wiki_edit_reauth)
+                    .content(R.string.toolbox_wiki_edit_reauth_question)
+                    .negativeText(R.string.misc_maybe_later)
+                    .positiveText(R.string.btn_yes)
+                    .onPositive { dialog1: MaterialDialog?, which1: DialogAction? ->
+                        context.startActivity(
+                            Intent(context, Reauthenticate::class.java)
+                        )
+                    }
+                    .show()
             }
         }
     }
@@ -781,47 +816,48 @@ public class ToolboxUI {
      * subreddit
      * user
      */
-    public static class AsyncRemoveUsernoteTask extends AsyncTask<String, Void, Boolean> {
-        private Usernote note;
-        private WeakReference<Context> contextRef;
+    class AsyncRemoveUsernoteTask internal constructor(
+        private val note: Usernote,
+        context: Context
+    ) : AsyncTask<String?, Void?, Boolean>() {
+        private val contextRef: WeakReference<Context>
 
-        AsyncRemoveUsernoteTask(Usernote note, Context context) {
-            this.note = note;
-            this.contextRef = new WeakReference<>(context);
+        init {
+            contextRef = WeakReference(context)
         }
 
-        @Override
-        protected Boolean doInBackground(String... strings) {
+        override fun doInBackground(vararg strings: String?): Boolean {
             try {
-                Toolbox.downloadUsernotes(strings[0]);
-            } catch (NetworkException e) {
-                return false;
+                Toolbox.downloadUsernotes(strings[0])
+            } catch (e: NetworkException) {
+                return false
             }
-            Toolbox.getUsernotes(strings[0]).removeNote(strings[1], note);
+            Toolbox.getUsernotes(strings[0]).removeNote(strings[1], note)
             try {
-                Toolbox.uploadUsernotes(strings[0], "delete note " + note.getTime() + " on user " + strings[1]);
-            } catch (InvalidScopeException e) { // we don't have wikiedit scope, need to reauth to get it
-                return false;
+                Toolbox.uploadUsernotes(
+                    strings[0],
+                    "delete note " + note.time + " on user " + strings[1]
+                )
+            } catch (e: InvalidScopeException) { // we don't have wikiedit scope, need to reauth to get it
+                return false
             }
-            return true;
+            return true
         }
 
-        @Override
-        protected void onPostExecute(Boolean success) {
+        override fun onPostExecute(success: Boolean) {
             if (!success) {
-                final Context context = contextRef.get();
-                if (context == null) {
-                    return;
-                }
-                new AlertDialog.Builder(context)
-                        .setTitle(R.string.toolbox_wiki_edit_reauth)
-                        .setMessage(R.string.toolbox_wiki_edit_reauth_question)
-                        .setNegativeButton(R.string.misc_maybe_later, null)
-                        .setPositiveButton(R.string.btn_yes, (dialog1, which1) ->
-                                context.startActivity(
-                                        new Intent(context, Reauthenticate.class))
+                val context = contextRef.get() ?: return
+                AlertDialog.Builder(context)
+                    .setTitle(R.string.toolbox_wiki_edit_reauth)
+                    .setMessage(R.string.toolbox_wiki_edit_reauth_question)
+                    .setNegativeButton(R.string.misc_maybe_later, null)
+                    .setPositiveButton(R.string.btn_yes
+                    ) { dialog1: DialogInterface?, which1: Int ->
+                        context.startActivity(
+                            Intent(context, Reauthenticate::class.java)
                         )
-                        .show();
+                    }
+                    .show()
             }
         }
     }
@@ -829,12 +865,12 @@ public class ToolboxUI {
     /**
      * A callback for code to be run on the UI thread after removal.
      */
-    public interface CompletedRemovalCallback {
+    interface CompletedRemovalCallback {
         /**
          * Called when the removal is completed
          *
          * @param success Whether the removal and reason-sending process was 100% successful or not
          */
-        void onComplete(boolean success);
+        fun onComplete(success: Boolean)
     }
 }

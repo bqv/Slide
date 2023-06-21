@@ -1,92 +1,110 @@
-package me.ccrama.redditslide;
+package me.ccrama.redditslide
 
-import net.dean.jraw.models.Comment;
-import net.dean.jraw.models.PublicContribution;
-import net.dean.jraw.models.Submission;
-import net.dean.jraw.models.VoteDirection;
+import ltd.ucode.slide.data.IItem
+import ltd.ucode.slide.data.IPost
+import net.dean.jraw.models.Comment
+import net.dean.jraw.models.PublicContribution
+import net.dean.jraw.models.VoteDirection
 
-import java.util.ArrayList;
+object ActionStates {
+    val upVotedFullnames = ArrayList<String>()
+    val downVotedFullnames = ArrayList<String>()
+    val unvotedFullnames = ArrayList<String>()
+    val savedFullnames = ArrayList<String>()
+    val unSavedFullnames = ArrayList<String>()
 
-/**
- * Created by carlo_000 on 2/26/2016.
- */
-public class ActionStates {
-    public static final ArrayList<String> upVotedFullnames = new ArrayList<>();
-    public static final ArrayList<String> downVotedFullnames = new ArrayList<>();
-
-    public static final ArrayList<String> unvotedFullnames = new ArrayList<>();
-    public static final ArrayList<String> savedFullnames = new ArrayList<>();
-    public static final ArrayList<String> unSavedFullnames = new ArrayList<>();
-
-    public static VoteDirection getVoteDirection(PublicContribution s) {
-        if (upVotedFullnames.contains(s.getFullName())) {
-            return VoteDirection.UPVOTE;
-        } else if (downVotedFullnames.contains(s.getFullName())) {
-            return VoteDirection.DOWNVOTE;
-        } else if (unvotedFullnames.contains(s.getFullName())) {
-            return VoteDirection.NO_VOTE;
+    @JvmStatic
+    fun getVoteDirection(s: PublicContribution): VoteDirection {
+        return if (upVotedFullnames.contains(s.fullName)) {
+            VoteDirection.UPVOTE
+        } else if (downVotedFullnames.contains(s.fullName)) {
+            VoteDirection.DOWNVOTE
+        } else if (unvotedFullnames.contains(s.fullName)) {
+            VoteDirection.NO_VOTE
         } else {
-            return s.getVote();
+            s.vote
         }
     }
 
-    public static void setVoteDirection(PublicContribution s, VoteDirection direction) {
-        String fullname = s.getFullName();
-        upVotedFullnames.remove(fullname);
-        downVotedFullnames.remove(fullname);
-        unvotedFullnames.remove(fullname);
-        switch (direction) {
-
-            case UPVOTE:
-                upVotedFullnames.add(fullname);
-                break;
-            case DOWNVOTE:
-                downVotedFullnames.add(fullname);
-                break;
-            case NO_VOTE:
-                unvotedFullnames.add(fullname);
-                break;
-        }
-    }
-
-    public static boolean isSaved(Submission s) {
-        if (savedFullnames.contains(s.getFullName())) {
-            return true;
-        } else if (unSavedFullnames.contains(s.getFullName())) {
-            return false;
+    @JvmStatic
+    fun getVoteDirection(s: IItem): VoteDirection {
+        return if (upVotedFullnames.contains(s.permalink)) {
+            VoteDirection.UPVOTE
+        } else if (downVotedFullnames.contains(s.permalink)) {
+            VoteDirection.DOWNVOTE
+        } else if (unvotedFullnames.contains(s.permalink)) {
+            VoteDirection.NO_VOTE
         } else {
-            return s.isSaved();
+            s.myVote
         }
     }
 
-    public static boolean isSaved(Comment s) {
-        if (savedFullnames.contains(s.getFullName())) {
-            return true;
-        } else if (unSavedFullnames.contains(s.getFullName())) {
-            return false;
+    @JvmStatic
+    fun setVoteDirection(s: PublicContribution, direction: VoteDirection) {
+        val fullname = s.fullName
+        upVotedFullnames.remove(fullname)
+        downVotedFullnames.remove(fullname)
+        unvotedFullnames.remove(fullname)
+        when (direction) {
+            VoteDirection.UPVOTE -> upVotedFullnames.add(fullname)
+            VoteDirection.DOWNVOTE -> downVotedFullnames.add(fullname)
+            VoteDirection.NO_VOTE -> unvotedFullnames.add(fullname)
+        }
+    }
+
+    @JvmStatic
+    fun setVoteDirection(s: IItem, direction: VoteDirection) {
+        val fullname = s.permalink
+        upVotedFullnames.remove(fullname)
+        downVotedFullnames.remove(fullname)
+        unvotedFullnames.remove(fullname)
+        when (direction) {
+            VoteDirection.UPVOTE -> upVotedFullnames.add(fullname)
+            VoteDirection.DOWNVOTE -> downVotedFullnames.add(fullname)
+            VoteDirection.NO_VOTE -> unvotedFullnames.add(fullname)
+        }
+    }
+
+    @JvmStatic
+    fun isSaved(s: IItem): Boolean {
+        return if (savedFullnames.contains(s.permalink)) {
+            true
+        } else if (unSavedFullnames.contains(s.permalink)) {
+            false
         } else {
-            return s.isSaved();
+            s.isSaved
         }
     }
 
-    public static void setSaved(Submission s, boolean b) {
-        String fullname = s.getFullName();
-        savedFullnames.remove(fullname);
+    @JvmStatic
+    fun isSaved(s: Comment): Boolean {
+        return if (savedFullnames.contains(s.fullName)) {
+            true
+        } else if (unSavedFullnames.contains(s.fullName)) {
+            false
+        } else {
+            s.isSaved
+        }
+    }
+
+    fun setSaved(s: IPost, b: Boolean) {
+        val fullname: String = s.permalink
+        savedFullnames.remove(fullname)
         if (b) {
-            savedFullnames.add(fullname);
+            savedFullnames.add(fullname)
         } else {
-            unSavedFullnames.add(fullname);
+            unSavedFullnames.add(fullname)
         }
     }
 
-    public static void setSaved(Comment s, boolean b) {
-        String fullname = s.getFullName();
-        savedFullnames.remove(fullname);
+    @JvmStatic
+    fun setSaved(s: Comment, b: Boolean) {
+        val fullname = s.fullName
+        savedFullnames.remove(fullname)
         if (b) {
-            savedFullnames.add(fullname);
+            savedFullnames.add(fullname)
         } else {
-            unSavedFullnames.add(fullname);
+            unSavedFullnames.add(fullname)
         }
     }
-
 }

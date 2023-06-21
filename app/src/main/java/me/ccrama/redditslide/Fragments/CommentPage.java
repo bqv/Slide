@@ -64,6 +64,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 
+import ltd.ucode.reddit.data.RedditSubmission;
 import me.ccrama.redditslide.Activities.Album;
 import me.ccrama.redditslide.Activities.AlbumPager;
 import me.ccrama.redditslide.Activities.CommentSearch;
@@ -983,13 +984,13 @@ public class CommentPage extends Fragment implements Toolbar.OnMenuItemClickList
                                 break;
                             case IMAGE:
                                 PopulateSubmissionViewHolder.openImage(type, getActivity(),
-                                        adapter.submission, null, -1);
+                                        new RedditSubmission(adapter.submission), null, -1);
                                 break;
                             case VREDDIT_REDIRECT:
                             case VREDDIT_DIRECT:
                             case GIF:
                                 PopulateSubmissionViewHolder.openGif(getActivity(),
-                                        adapter.submission, -1);
+                                        new RedditSubmission(adapter.submission), -1);
                                 break;
                             case VIDEO:
                                 if (!LinkUtil.tryOpenWithVideoPlugin(

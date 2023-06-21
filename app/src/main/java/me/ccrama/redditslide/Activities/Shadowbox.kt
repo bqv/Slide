@@ -79,7 +79,7 @@ class Shadowbox : FullScreenActivity(), SubmissionDisplay {
 
     var submissionsPager: ShadowboxPagerAdapter? = null
     override fun updateSuccess(submissions: List<IPost>, startIndex: Int) {
-        if (SettingValues.storeHistory) LastComments.setCommentsSince(submissions.map { it.submission })
+        if (SettingValues.storeHistory) LastComments.setCommentsSince(submissions)
         runOnUiThread {
             count = subredditPosts!!.posts.size
             if (startIndex != -1) {

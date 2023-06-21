@@ -282,7 +282,7 @@ class NewsView : Fragment(), SubmissionDisplay {
                 try {
                     if (HasSeen.getSeen(adapter!!.dataSet.posts[i].submission)) {
                         if (forever) {
-                            Hidden.setHidden(adapter!!.dataSet.posts[i].submission)
+                            Hidden.setHidden(adapter!!.dataSet.posts[i])
                         }
                         o.clearPost(adapter!!.dataSet.posts[i].submission)
                         adapter!!.dataSet.posts.removeAt(i)

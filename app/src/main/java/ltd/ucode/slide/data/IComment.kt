@@ -1,4 +1,4 @@
 package ltd.ucode.slide.data
 
-interface IComment {
+interface IComment : IItem {
 }

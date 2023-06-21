@@ -22,10 +22,8 @@ import androidx.fragment.app.Fragment
 import androidx.interpolator.view.animation.LinearOutSlowInInterpolator
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-import com.afollestad.materialdialogs.DialogAction
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.MaterialDialog.InputCallback
-import com.afollestad.materialdialogs.MaterialDialog.SingleButtonCallback
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.snackbar.Snackbar
 import com.mikepenz.itemanimators.AlphaInAnimator
@@ -58,6 +56,7 @@ import me.ccrama.redditslide.Visuals.ColorPreferences
 import me.ccrama.redditslide.Visuals.Palette
 import me.ccrama.redditslide.handler.ToolbarScrollHideHandler
 import me.ccrama.redditslide.util.LayoutUtils
+import kotlin.math.abs
 
 class SubmissionsView : Fragment(), SubmissionDisplay {
     @JvmField
@@ -109,9 +108,9 @@ class SubmissionsView : Fragment(), SubmissionDisplay {
         if (activity !is SubredditView) {
             v.findViewById<View>(R.id.back).background = null
         }
-        rv!!.setLayoutManager(mLayoutManager)
-        rv!!.setItemAnimator(SlideUpAlphaAnimator().withInterpolator(LinearOutSlowInInterpolator()))
-        rv!!.getLayoutManager()!!.scrollToPosition(0)
+        rv!!.layoutManager = mLayoutManager
+        rv!!.itemAnimator = SlideUpAlphaAnimator().withInterpolator(LinearOutSlowInInterpolator())
+        rv!!.layoutManager!!.scrollToPosition(0)
         mSwipeRefreshLayout = v.findViewById(R.id.activity_main_swipe_refresh_layout)
         mSwipeRefreshLayout!!.setColorSchemeColors(*Palette.getColors(id, context))
         /**
@@ -126,8 +125,8 @@ class SubmissionsView : Fragment(), SubmissionDisplay {
                 ViewGroup.LayoutParams.MATCH_PARENT
             )
             MarginLayoutParamsCompat.setMarginStart(params, 0)
-            rv!!.setScrollBarStyle(View.SCROLLBARS_INSIDE_OVERLAY)
-            mSwipeRefreshLayout!!.setLayoutParams(params)
+            rv!!.scrollBarStyle = View.SCROLLBARS_INSIDE_OVERLAY
+            mSwipeRefreshLayout!!.layoutParams = params
         }
         /**
          * If we use 'findViewById(R.id.header).getMeasuredHeight()', 0 is always returned.
@@ -144,7 +143,7 @@ class SubmissionsView : Fragment(), SubmissionDisplay {
             fab = v.findViewById(R.id.post_floating_action_button)
             if (fabType == Constants.FAB_POST) {
                 fab!!.setImageResource(R.drawable.ic_add)
-                fab!!.setContentDescription(getString(R.string.btn_fab_post))
+                fab!!.contentDescription = getString(R.string.btn_fab_post)
                 fab!!.setOnClickListener(View.OnClickListener {
                     val inte = Intent(activity, Submit::class.java)
                     inte.putExtra(Submit.EXTRA_SUBREDDIT, id)
@@ -152,7 +151,7 @@ class SubmissionsView : Fragment(), SubmissionDisplay {
                 })
             } else if (fabType == Constants.FAB_SEARCH) {
                 fab!!.setImageResource(R.drawable.ic_search)
-                fab!!.setContentDescription(getString(R.string.btn_fab_search))
+                fab!!.contentDescription = getString(R.string.btn_fab_search)
                 fab!!.setOnClickListener(object : View.OnClickListener {
                     var term: String? = null
                     override fun onClick(v: View) {
@@ -176,115 +175,94 @@ class SubmissionsView : Fragment(), SubmissionDisplay {
                                     && !id.equals("randnsfw", ignoreCase = true))
                         ) {
                             builder.positiveText(getString(R.string.search_subreddit, id))
-                                .onPositive(object : SingleButtonCallback {
-                                    override fun onClick(
-                                        materialDialog: MaterialDialog,
-                                        dialogAction: DialogAction
-                                    ) {
-                                        val i = Intent(activity, Search::class.java)
-                                        i.putExtra(Search.EXTRA_TERM, term)
-                                        i.putExtra(Search.EXTRA_SUBREDDIT, id)
-                                        startActivity(i)
-                                    }
-                                })
+                                .onPositive { materialDialog, dialogAction ->
+                                    val i = Intent(activity, Search::class.java)
+                                    i.putExtra(Search.EXTRA_TERM, term)
+                                    i.putExtra(Search.EXTRA_SUBREDDIT, id)
+                                    startActivity(i)
+                                }
                             builder.neutralText(R.string.search_all)
-                                .onNeutral(object : SingleButtonCallback {
-                                    override fun onClick(
-                                        materialDialog: MaterialDialog,
-                                        dialogAction: DialogAction
-                                    ) {
-                                        val i = Intent(activity, Search::class.java)
-                                        i.putExtra(Search.EXTRA_TERM, term)
-                                        startActivity(i)
-                                    }
-                                })
+                                .onNeutral { materialDialog, dialogAction ->
+                                    val i = Intent(activity, Search::class.java)
+                                    i.putExtra(Search.EXTRA_TERM, term)
+                                    startActivity(i)
+                                }
                         } else {
                             builder.positiveText(R.string.search_all)
-                                .onPositive(object : SingleButtonCallback {
-                                    override fun onClick(
-                                        materialDialog: MaterialDialog,
-                                        dialogAction: DialogAction
-                                    ) {
-                                        val i = Intent(activity, Search::class.java)
-                                        i.putExtra(Search.EXTRA_TERM, term)
-                                        startActivity(i)
-                                    }
-                                })
+                                .onPositive { materialDialog, dialogAction ->
+                                    val i = Intent(activity, Search::class.java)
+                                    i.putExtra(Search.EXTRA_TERM, term)
+                                    startActivity(i)
+                                }
                         }
                         builder.show()
                     }
                 })
             } else {
                 fab!!.setImageResource(R.drawable.ic_visibility_off)
-                fab!!.setContentDescription(getString(R.string.btn_fab_hide))
-                fab!!.setOnClickListener(object : View.OnClickListener {
-                    override fun onClick(v: View) {
-                        if (!App.fabClear) {
-                            AlertDialog.Builder((activity)!!)
-                                .setTitle(R.string.settings_fabclear)
-                                .setMessage(R.string.settings_fabclear_msg)
-                                .setPositiveButton(R.string.btn_ok) { dialog: DialogInterface?, which: Int ->
-                                    colours.edit()
-                                        .putBoolean(SettingValues.PREF_FAB_CLEAR, true)
-                                        .apply()
-                                    App.fabClear = true
-                                    clearSeenPosts(false)
-                                }
-                                .show()
-                        } else {
-                            clearSeenPosts(false)
-                        }
-                    }
-                })
-                val handler = Handler()
-                fab!!.setOnTouchListener(object : View.OnTouchListener {
-                    override fun onTouch(v: View, event: MotionEvent): Boolean {
-                        detector.onTouchEvent(event)
-                        if (event.action == MotionEvent.ACTION_DOWN) {
-                            origY = event.y
-                            handler.postDelayed(
-                                (mLongPressRunnable)!!,
-                                ViewConfiguration.getLongPressTimeout().toLong()
-                            )
-                        }
-                        if (((event.action == MotionEvent.ACTION_MOVE) && Math.abs(event.y - origY) > fab!!.getHeight() / 2.0f) || (event.action == MotionEvent.ACTION_UP)) {
-                            handler.removeCallbacks((mLongPressRunnable)!!)
-                        }
-                        return false
-                    }
-                })
-                mLongPressRunnable = object : Runnable {
-                    override fun run() {
-                        fab!!.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
-                        if (!App.fabClear) {
-                            AlertDialog.Builder((activity)!!)
-                                .setTitle(R.string.settings_fabclear)
-                                .setMessage(R.string.settings_fabclear_msg)
-                                .setPositiveButton(R.string.btn_ok) { dialog: DialogInterface?, which: Int ->
-                                    colours.edit()
-                                        .putBoolean(SettingValues.PREF_FAB_CLEAR, true)
-                                        .apply()
-                                    App.fabClear = true
-                                    clearSeenPosts(true)
-                                }
-                                .show()
-                        } else {
-                            clearSeenPosts(true)
-                        }
-                        val s = Snackbar.make(
-                            rv!!,
-                            resources.getString(R.string.posts_hidden_forever),
-                            Snackbar.LENGTH_LONG
-                        )
-                        /*Todo a way to unhide
-                        s.setAction(R.string.btn_undo, new View.OnClickListener() {
-
-                            @Override
-                            public void onClick(View v) {
-
+                fab!!.contentDescription = getString(R.string.btn_fab_hide)
+                fab!!.setOnClickListener {
+                    if (!App.fabClear) {
+                        AlertDialog.Builder(requireActivity())
+                            .setTitle(R.string.settings_fabclear)
+                            .setMessage(R.string.settings_fabclear_msg)
+                            .setPositiveButton(R.string.btn_ok) { dialog: DialogInterface?, which: Int ->
+                                colours.edit()
+                                    .putBoolean(SettingValues.PREF_FAB_CLEAR, true)
+                                    .apply()
+                                App.fabClear = true
+                                clearSeenPosts(false)
                             }
-                        });*/LayoutUtils.showSnackbar(s)
+                            .show()
+                    } else {
+                        clearSeenPosts(false)
                     }
+                }
+                val handler = Handler()
+                fab!!.setOnTouchListener { v, event ->
+                    detector.onTouchEvent(event)
+                    if (event.action == MotionEvent.ACTION_DOWN) {
+                        origY = event.y
+                        handler.postDelayed(
+                            (mLongPressRunnable)!!,
+                            ViewConfiguration.getLongPressTimeout().toLong()
+                        )
+                    }
+                    if (((event.action == MotionEvent.ACTION_MOVE) && abs(event.y - origY) > fab!!.height / 2.0f) || (event.action == MotionEvent.ACTION_UP)) {
+                        handler.removeCallbacks((mLongPressRunnable)!!)
+                    }
+                    false
+                }
+                mLongPressRunnable = Runnable {
+                    fab!!.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+                    if (!App.fabClear) {
+                        AlertDialog.Builder(requireActivity())
+                            .setTitle(R.string.settings_fabclear)
+                            .setMessage(R.string.settings_fabclear_msg)
+                            .setPositiveButton(R.string.btn_ok) { dialog: DialogInterface?, which: Int ->
+                                colours.edit()
+                                    .putBoolean(SettingValues.PREF_FAB_CLEAR, true)
+                                    .apply()
+                                App.fabClear = true
+                                clearSeenPosts(true)
+                            }
+                            .show()
+                    } else {
+                        clearSeenPosts(true)
+                    }
+                    val s = Snackbar.make(
+                        rv!!,
+                        resources.getString(R.string.posts_hidden_forever),
+                        Snackbar.LENGTH_LONG
+                    )
+                    /*Todo a way to unhide
+                                    s.setAction(R.string.btn_undo, new View.OnClickListener() {
+
+                                        @Override
+                                        public void onClick(View v) {
+
+                                        }
+                                    });*/LayoutUtils.showSnackbar(s)
                 }
             }
         } else {
@@ -358,7 +336,7 @@ class SubmissionsView : Fragment(), SubmissionDisplay {
                 try {
                     if (HasSeen.getSeen(adapter!!.dataSet.posts[i].submission)) {
                         if (forever) {
-                            Hidden.setHidden(adapter!!.dataSet.posts[i].submission)
+                            Hidden.setHidden(adapter!!.dataSet.posts[i])
                         }
                         o.clearPost(adapter!!.dataSet.posts[i].submission)
                         adapter!!.dataSet.posts.removeAt(i)
@@ -510,7 +488,7 @@ class SubmissionsView : Fragment(), SubmissionDisplay {
                                 (rv!!.layoutManager as CatchStaggeredGridLayoutManager?)!!.findFirstVisibleItemPositions(
                                     null
                                 )
-                            if (firstVisibleItems != null && firstVisibleItems.size > 0) {
+                            if (firstVisibleItems != null && firstVisibleItems.isNotEmpty()) {
                                 for (firstVisibleItem: Int in firstVisibleItems) {
                                     pastVisiblesItems = firstVisibleItem
                                     if ((SettingValues.scrollSeen

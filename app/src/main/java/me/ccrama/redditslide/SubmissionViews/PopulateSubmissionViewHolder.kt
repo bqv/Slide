@@ -159,7 +159,7 @@ class PopulateSubmissionViewHolder() {
         val isAddedToReadLaterList = false//ReadLater.isToBeReadLater(submission)
         if (Authentication.didOnline) {
             b.sheet(1, (profile)!!, "/u/" + submission.creator.name)
-                .sheet(2, (sub)!!, "/r/" + submission.groupName)
+                .sheet(2, (sub)!!, "/c/" + submission.groupName)
             var save: String = mContext.getString(R.string.btn_save)
             if (false /*ActionStates.isSaved(submission)*/) {
                 save = mContext.getString(R.string.comment_unsave)
@@ -346,7 +346,7 @@ class PopulateSubmissionViewHolder() {
                                 if (filtered) {
                                     val toRemove: ArrayList<IPost> = ArrayList()
                                     for (s: IPost? in posts) {
-                                        if (s is IPost && PostMatch.doesMatch(RedditSubmission(s))) {
+                                        if (s is IPost && PostMatch.doesMatch(s)) {
                                             toRemove.add(s)
                                         }
                                     }
@@ -376,7 +376,7 @@ class PopulateSubmissionViewHolder() {
                     }
 
                     7 -> {
-                        LinkUtil.openExternally(submission.url)
+                        LinkUtil.openExternally(submission.url!!)
                         if (submission.isNsfw && !SettingValues.storeNSFWHistory) {
                             //Do nothing if the post is NSFW and storeNSFWHistory is not enabled
                         } else if (SettingValues.storeHistory) {
@@ -630,10 +630,10 @@ class PopulateSubmissionViewHolder() {
             override fun doInBackground(vararg params: Void?): Void? {
                 try {
                     if (ActionStates.isSaved(submission)) {
-                        AccountManager(Authentication.reddit).unsave(submission)
+                        //AccountManager(Authentication.reddit).unsave(submission)
                         ActionStates.setSaved(submission, false)
                     } else {
-                        AccountManager(Authentication.reddit).save(submission)
+                        //AccountManager(Authentication.reddit).save(submission)
                         ActionStates.setSaved(submission, true)
                     }
                 } catch (e: Exception) {
@@ -752,13 +752,7 @@ class PopulateSubmissionViewHolder() {
                                                             vararg params: Void?
                                                         ): Boolean {
                                                             try {
-                                                                AccountManager(
-                                                                    Authentication.reddit
-                                                                )
-                                                                    .save(
-                                                                        submission,
-                                                                        flair
-                                                                    )
+                                                                //AccountManager(Authentication.reddit).save(submission, flair)
                                                                 return true
                                                             } catch (e: ApiException) {
                                                                 e.printStackTrace()
@@ -801,9 +795,7 @@ class PopulateSubmissionViewHolder() {
                                     object : AsyncTask<Void?, Void?, Boolean>() {
                                         override fun doInBackground(vararg params: Void?): Boolean {
                                             return try {
-                                                AccountManager(Authentication.reddit).save(
-                                                    submission, t
-                                                )
+                                                //AccountManager(Authentication.reddit).save(submission, t)
                                                 true
                                             } catch (e: ApiException) {
                                                 e.printStackTrace()
@@ -964,7 +956,7 @@ class PopulateSubmissionViewHolder() {
         } else {
             b.sheet(3, (nsfw)!!, res.getString(R.string.mod_btn_mark_nsfw))
         }
-        val isSpoiler = submission.dataNode["spoiler"].asBoolean()
+        val isSpoiler = submission.isSpoiler
         if (isSpoiler) {
             b.sheet(12, (nsfw)!!, res.getString(R.string.mod_btn_unmark_spoiler))
         } else {
@@ -976,7 +968,7 @@ class PopulateSubmissionViewHolder() {
         } else {
             b.sheet(9, (lock)!!, res.getString(R.string.mod_btn_lock_thread))
         }
-        val stickied = submission.isStickied
+        val stickied = submission.isFeatured
         if (!SubmissionCache.removed.contains(submission.permalink)) {
             if (stickied) {
                 b.sheet(4, (pin)!!, res.getString(R.string.mod_btn_unpin))
@@ -984,8 +976,8 @@ class PopulateSubmissionViewHolder() {
                 b.sheet(4, (pin)!!, res.getString(R.string.mod_btn_pin))
             }
         }
-        val distinguished = (submission.distinguishedStatus == DistinguishedStatus.MODERATOR
-                || submission.distinguishedStatus == DistinguishedStatus.ADMIN)
+        val distinguished = (submission.regalia == DistinguishedStatus.MODERATOR
+                || submission.regalia == DistinguishedStatus.ADMIN)
         if (submission.creator.name.equals(Authentication.name, ignoreCase = true)) {
             if (distinguished) {
                 b.sheet(5, (distinguish)!!, "Undistingiush")
@@ -995,7 +987,7 @@ class PopulateSubmissionViewHolder() {
         }
         val finalWhoApproved = whoApproved
         val finalApproved = approved
-        b.sheet(8, (profile)!!, res.getString(R.string.mod_btn.creator.name))
+        b.sheet(8, (profile)!!, res.getString(R.string.mod_btn_author))
         b.sheet(23, (ban)!!, mContext.getString(R.string.mod_ban_user))
         b.listener(object : DialogInterface.OnClickListener {
             override fun onClick(dialog: DialogInterface, which: Int) {
@@ -1069,35 +1061,37 @@ class PopulateSubmissionViewHolder() {
                         ToolboxUI.showRemoval(
                             mContext,
                             submission,
-                            CompletedRemovalCallback { success ->
-                                if (success) {
-                                    SubmissionCache.removed.add(submission.permalink)
-                                    SubmissionCache.approved.remove(submission.permalink)
-                                    SubmissionCache.updateInfoSpannable(
-                                        submission, mContext,
-                                        submission.groupName
-                                    )
-                                    if (mContext is ModQueue) {
-                                        val pos = posts.indexOf(submission)
-                                        posts.remove(submission)
-                                        if (pos == 0) {
-                                            recyclerview.adapter!!.notifyDataSetChanged()
+                            object : CompletedRemovalCallback {
+                                override fun onComplete(success: Boolean) {
+                                    if (success) {
+                                        SubmissionCache.removed.add(submission.permalink)
+                                        SubmissionCache.approved.remove(submission.permalink)
+                                        SubmissionCache.updateInfoSpannable(
+                                            submission, mContext,
+                                            submission.groupName
+                                        )
+                                        if (mContext is ModQueue) {
+                                            val pos = posts.indexOf(submission)
+                                            posts.remove(submission)
+                                            if (pos == 0) {
+                                                recyclerview.adapter!!.notifyDataSetChanged()
+                                            } else {
+                                                recyclerview.adapter!!.notifyItemRemoved(pos + 1)
+                                            }
                                         } else {
-                                            recyclerview.adapter!!.notifyItemRemoved(pos + 1)
+                                            recyclerview.adapter!!.notifyItemChanged(holder.bindingAdapterPosition)
                                         }
+                                        val s = Snackbar.make(
+                                            holder.itemView, R.string.submission_removed,
+                                            Snackbar.LENGTH_LONG
+                                        )
+                                        LayoutUtils.showSnackbar(s)
                                     } else {
-                                        recyclerview.adapter!!.notifyItemChanged(holder.bindingAdapterPosition)
+                                        AlertDialog.Builder(mContext)
+                                            .setTitle(R.string.err_general)
+                                            .setMessage(R.string.err_retry_later)
+                                            .show()
                                     }
-                                    val s = Snackbar.make(
-                                        holder.itemView, R.string.submission_removed,
-                                        Snackbar.LENGTH_LONG
-                                    )
-                                    LayoutUtils.showSnackbar(s)
-                                } else {
-                                    AlertDialog.Builder(mContext)
-                                        .setTitle(R.string.err_general)
-                                        .setMessage(R.string.err_retry_later)
-                                        .show()
                                 }
                             })
                     } else { // Show a Slide reason dialog if we can't show a toolbox or reddit one
@@ -1190,13 +1184,13 @@ class PopulateSubmissionViewHolder() {
 
             override fun doInBackground(vararg params: Void?): Boolean {
                 try {
-                    val toDistinguish =
-                        AccountManager(Authentication.reddit).reply(submission, reason)
-                    ModerationManager(Authentication.reddit).remove(submission, false)
-                    ModerationManager(Authentication.reddit).setDistinguishedStatus(
-                        Authentication.reddit!!["t1_$toDistinguish"][0],
-                        DistinguishedStatus.MODERATOR
-                    )
+                    val toDistinguish = null
+                        //AccountManager(Authentication.reddit).reply(submission, reason)
+                        //ModerationManager(Authentication.reddit).remove(submission, false)
+                        //ModerationManager(Authentication.reddit).setDistinguishedStatus(
+                        //    Authentication.reddit!!["t1_$toDistinguish"][0],
+                        //    DistinguishedStatus.MODERATOR
+                        //)
                 } catch (e: ApiException) {
                     e.printStackTrace()
                     return false
@@ -1246,7 +1240,7 @@ class PopulateSubmissionViewHolder() {
 
             override fun doInBackground(vararg params: Void?): Boolean {
                 try {
-                    ModerationManager(Authentication.reddit).remove(submission, spam)
+                    //ModerationManager(Authentication.reddit).remove(submission, spam)
                 } catch (e: ApiException) {
                     e.printStackTrace()
                     return false
@@ -1270,7 +1264,7 @@ class PopulateSubmissionViewHolder() {
                     submission.groupName
                 ).flair()
                 try {
-                    flair = ArrayList(allFlairs.options(submission))
+                    flair = ArrayList(/*allFlairs.options(submission)*/)
                     val finalFlairs = ArrayList<String?>()
                     for (temp: FlairTemplate in flair!!) {
                         finalFlairs.add(temp.text)
@@ -1340,9 +1334,9 @@ class PopulateSubmissionViewHolder() {
         object : AsyncTask<Void?, Void?, Boolean>() {
             override fun doInBackground(vararg params: Void?): Boolean {
                 return try {
-                    ModerationManager(Authentication.reddit).setFlair(
-                        submission.groupName, t, flair, submission
-                    )
+                    //ModerationManager(Authentication.reddit).setFlair(
+                    //    submission.groupName, t, flair, submission
+                    //)
                     true
                 } catch (e: ApiException) {
                     e.printStackTrace()
@@ -1382,15 +1376,15 @@ class PopulateSubmissionViewHolder() {
         holder: SubmissionViewHolder, submission: IPost?, mContext: Context,
         baseSub: String?, full: Boolean
     ) {
-        val t = SubmissionCache.getTitleLine(submission, mContext)
-        val l = SubmissionCache.getInfoLine(submission, mContext, baseSub)
-        val c = SubmissionCache.getCrosspostLine(submission, mContext)
+        val t = SubmissionCache.getTitleLine(submission!!, mContext)
+        val l = SubmissionCache.getInfoLine(submission!!, mContext, baseSub!!)
+        val c = SubmissionCache.getCrosspostLine(submission!!, mContext)
         val textSizeAttr = intArrayOf(R.attr.font_cardtitle, R.attr.font_cardinfo)
         val a = mContext.obtainStyledAttributes(textSizeAttr)
         val textSizeT = a.getDimensionPixelSize(0, 18)
         val textSizeI = a.getDimensionPixelSize(1, 14)
-        t.setSpan(AbsoluteSizeSpan(textSizeT), 0, t.length, 0)
-        l.setSpan(AbsoluteSizeSpan(textSizeI), 0, l.length, 0)
+        t!!.setSpan(AbsoluteSizeSpan(textSizeT), 0, t.length, 0)
+        l!!.setSpan(AbsoluteSizeSpan(textSizeI), 0, l.length, 0)
         val s = SpannableStringBuilder()
         if (SettingValues.titleTop) {
             s.append(t)
@@ -1432,7 +1426,7 @@ class PopulateSubmissionViewHolder() {
 
             protected override fun doInBackground(vararg params: Void?): Boolean {
                 try {
-                    ModerationManager(Authentication.reddit).setSticky(submission, true)
+                    //ModerationManager(Authentication.reddit).setSticky(submission, true)
                 } catch (e: ApiException) {
                     e.printStackTrace()
                     return false
@@ -1467,7 +1461,7 @@ class PopulateSubmissionViewHolder() {
 
             protected override fun doInBackground(vararg params: Void?): Boolean {
                 try {
-                    ModerationManager(Authentication.reddit).setSticky(submission, false)
+                    //ModerationManager(Authentication.reddit).setSticky(submission, false)
                 } catch (e: ApiException) {
                     e.printStackTrace()
                     return false
@@ -1497,7 +1491,7 @@ class PopulateSubmissionViewHolder() {
 
             protected override fun doInBackground(vararg params: Void?): Boolean {
                 try {
-                    ModerationManager(Authentication.reddit).setLocked(submission)
+                    //ModerationManager(Authentication.reddit).setLocked(submission)
                 } catch (e: ApiException) {
                     e.printStackTrace()
                     return false
@@ -1527,7 +1521,7 @@ class PopulateSubmissionViewHolder() {
 
             protected override fun doInBackground(vararg params: Void?): Boolean {
                 try {
-                    ModerationManager(Authentication.reddit).setUnlocked(submission)
+                    //ModerationManager(Authentication.reddit).setUnlocked(submission)
                 } catch (e: ApiException) {
                     e.printStackTrace()
                     return false
@@ -1559,10 +1553,10 @@ class PopulateSubmissionViewHolder() {
 
             protected override fun doInBackground(vararg params: Void?): Boolean {
                 try {
-                    ModerationManager(Authentication.reddit).setDistinguishedStatus(
-                        submission,
-                        DistinguishedStatus.MODERATOR
-                    )
+                    //ModerationManager(Authentication.reddit).setDistinguishedStatus(
+                    //    submission,
+                    //    DistinguishedStatus.MODERATOR
+                    //)
                 } catch (e: ApiException) {
                     e.printStackTrace()
                     return false
@@ -1594,10 +1588,10 @@ class PopulateSubmissionViewHolder() {
 
             protected override fun doInBackground(vararg params: Void?): Boolean {
                 try {
-                    ModerationManager(Authentication.reddit).setDistinguishedStatus(
-                        submission,
-                        DistinguishedStatus.MODERATOR
-                    )
+                    //ModerationManager(Authentication.reddit).setDistinguishedStatus(
+                    //    submission,
+                    //    DistinguishedStatus.MODERATOR
+                    //)
                 } catch (e: ApiException) {
                     e.printStackTrace()
                     return false
@@ -1626,7 +1620,7 @@ class PopulateSubmissionViewHolder() {
 
             protected override fun doInBackground(vararg params: Void?): Boolean {
                 try {
-                    ModerationManager(Authentication.reddit).setNsfw(submission, true)
+                    //ModerationManager(Authentication.reddit).setNsfw(submission, true)
                 } catch (e: ApiException) {
                     e.printStackTrace()
                     return false
@@ -1659,7 +1653,7 @@ class PopulateSubmissionViewHolder() {
 
             protected override fun doInBackground(vararg params: Void?): Boolean {
                 try {
-                    ModerationManager(Authentication.reddit).setNsfw(submission, false)
+                    //ModerationManager(Authentication.reddit).setNsfw(submission, false)
                 } catch (e: ApiException) {
                     e.printStackTrace()
                     return false
@@ -1691,7 +1685,7 @@ class PopulateSubmissionViewHolder() {
 
             protected override fun doInBackground(vararg params: Void?): Boolean {
                 try {
-                    ModerationManager(Authentication.reddit).setSpoiler(submission, true)
+                    //ModerationManager(Authentication.reddit).setSpoiler(submission, true)
                 } catch (e: ApiException) {
                     e.printStackTrace()
                     return false
@@ -1724,7 +1718,7 @@ class PopulateSubmissionViewHolder() {
 
             protected override fun doInBackground(vararg params: Void?): Boolean {
                 try {
-                    ModerationManager(Authentication.reddit).setSpoiler(submission, false)
+                    //ModerationManager(Authentication.reddit).setSpoiler(submission, false)
                 } catch (e: ApiException) {
                     e.printStackTrace()
                     return false
@@ -1777,7 +1771,7 @@ class PopulateSubmissionViewHolder() {
 
             protected override fun doInBackground(vararg params: Void?): Boolean {
                 try {
-                    ModerationManager(Authentication.reddit).approve(submission)
+                    //ModerationManager(Authentication.reddit).approve(submission)
                 } catch (e: ApiException) {
                     e.printStackTrace()
                     return false
@@ -1852,22 +1846,22 @@ class PopulateSubmissionViewHolder() {
                                     m = null
                                 }
                                 if (time.text.toString().isEmpty()) {
-                                    ModerationManager(
-                                        Authentication.reddit
-                                    ).banUserPermanently(
-                                        submission.groupName,
-                                        submission.creator.name,
-                                        reason.text.toString(), n, m
-                                    )
+                                    //ModerationManager(
+                                    //    Authentication.reddit
+                                    //).banUserPermanently(
+                                    //    submission.groupName,
+                                    //    submission.creator.name,
+                                    //    reason.text.toString(), n, m
+                                    //)
                                 } else {
-                                    ModerationManager(Authentication.reddit).banUser(
-                                        submission.groupName,
-                                        submission.creator.name,
-                                        reason.text.toString(),
-                                        n,
-                                        m,
-                                        time.text.toString().toInt()
-                                    )
+                                    //ModerationManager(Authentication.reddit).banUser(
+                                    //    submission.groupName,
+                                    //    submission.creator.name,
+                                    //    reason.text.toString(),
+                                    //    n,
+                                    //    m,
+                                    //    time.text.toString().toInt()
+                                    //)
                                 }
                                 return true
                             } catch (e: Exception) {
@@ -1937,7 +1931,7 @@ class PopulateSubmissionViewHolder() {
         recyclerview: RecyclerView, same: Boolean, offline: Boolean,
         baseSub: String?, adapter: CommentAdapter?
     ) {
-        holder.itemView.findViewById<View>(R.id.myVote).visibility = View.GONE
+        holder.itemView.findViewById<View>(R.id.vote).visibility = View.GONE
         if ((!offline
                     && (UserSubscriptions.modOf != null
                     ) && (submission.groupName != null
@@ -2098,11 +2092,7 @@ class PopulateSubmissionViewHolder() {
         val hideButton: ImageView? = holder.hide as ImageView
         if (hideButton != null) {
             if (SettingValues.hideButton && Authentication.isLoggedIn) {
-                hideButton.setOnClickListener(object : View.OnClickListener {
-                    override fun onClick(v: View) {
-                        hideSubmission(submission, posts, baseSub, recyclerview, mContext)
-                    }
-                })
+                hideButton.setOnClickListener(View.OnClickListener { hideSubmission(submission, posts, baseSub, recyclerview, mContext) })
             } else {
                 hideButton.visibility = View.GONE
             }
@@ -2122,11 +2112,7 @@ class PopulateSubmissionViewHolder() {
                 BlendModeUtil.tintImageViewAsSrcAtop((holder.save as ImageView), getTintColor)
                 holder.save.setContentDescription(mContext.getString(R.string.btn_save))
             }
-            holder.save.setOnClickListener(object : View.OnClickListener {
-                override fun onClick(v: View) {
-                    saveSubmission(submission, mContext, holder, full)
-                }
-            })
+            holder.save.setOnClickListener { saveSubmission(submission, mContext, holder, full) }
         }
         if (((!SettingValues.saveButton && !full
                     ) || !Authentication.isLoggedIn
@@ -2138,7 +2124,7 @@ class PopulateSubmissionViewHolder() {
         if (holder.leadImage.thumbImage2 == null) {
             holder.leadImage.setThumbnail(thumbImage2)
         }
-        val type = submission.contentType
+        val type = submission.contentType!!
         addClickFunctions(holder.leadImage, type, mContext, submission, holder, full)
         if (thumbImage2 != null) {
             addClickFunctions(thumbImage2, type, mContext, submission, holder, full)
@@ -2152,11 +2138,9 @@ class PopulateSubmissionViewHolder() {
         if (full) {
             holder.leadImage.wrapArea = holder.itemView.findViewById(R.id.wraparea)
         }
-        if (full && (((submission.dataNode != null
-                    ) && submission.dataNode
-                .has("crosspost_parent_list")
-                    && (submission.dataNode["crosspost_parent_list"] != null
-                    ) && (submission.dataNode["crosspost_parent_list"][0] != null)))
+        /*
+        if (full && (((submission.dataNode != null) && submission.dataNode.has("crosspost_parent_list")
+                    && (submission.dataNode["crosspost_parent_list"] != null) && (submission.dataNode["crosspost_parent_list"][0] != null)))
         ) {
             holder.itemView.findViewById<View>(R.id.crosspost).visibility = View.VISIBLE
             (holder.itemView.findViewById<View>(R.id.crossinfo) as TextView).text =
@@ -2175,6 +2159,7 @@ class PopulateSubmissionViewHolder() {
                     )
                 }
         }
+         */
         holder.leadImage.setSubmission(submission, full, baseSub, type)
         holder.itemView.setOnLongClickListener {
             if (offline) {
@@ -2198,17 +2183,15 @@ class PopulateSubmissionViewHolder() {
                     && submission.url == null
                     && submission.body.orEmpty().isNotEmpty()
                     && !submission.isNsfw
-                    && !submission.dataNode["spoiler"].asBoolean()
-                    && !submission.dataNode["selftext_html"].asText().trim { it <= ' ' }.isEmpty())
+                    && !submission.isSpoiler)
         ) {
             holder.body.visibility = View.VISIBLE
-            val text = submission.dataNode["selftext_html"].asText()
+            val text = submission.body!!
             val typef = FontPreferences(mContext).fontTypeComment.typeface
-            val typeface: Typeface
-            if (typef >= 0) {
-                typeface = RobotoTypefaces.obtainTypeface(mContext, typef)
+            val typeface: Typeface = if (typef >= 0) {
+                RobotoTypefaces.obtainTypeface(mContext, typef)
             } else {
-                typeface = Typeface.DEFAULT
+                Typeface.DEFAULT
             }
             holder.body.setTypeface(typeface)
             holder.body.setTextHtml(
@@ -2237,7 +2220,7 @@ class PopulateSubmissionViewHolder() {
                 }
                 holder.firstTextView.setTypeface(typeface)
                 setViews(
-                    submission.dataNode["selftext_html"].asText(),
+                    submission.body!!,
                     if (submission.groupName == null) "all" else submission.groupName,
                     holder
                 )
@@ -2286,11 +2269,11 @@ class PopulateSubmissionViewHolder() {
                             val DOWNVOTE_SCORE: Int =
                                 if ((SUBMISSION_SCORE == 0)) 0 else (SUBMISSION_SCORE
                                         - 1) //if a post is at 0 votes, keep it at 0 when downvoting
-                            Vote(false, points, mContext).execute(submission)
+                            //Vote(false, points, mContext).execute(submission)
                             ActionStates.setVoteDirection(submission, VoteDirection.DOWNVOTE)
                         } else { //un-downvoted a post
                             points.setTextColor(comments.getCurrentTextColor())
-                            Vote(points, mContext).execute(submission)
+                            //Vote(points, mContext).execute(submission)
                             holder.score.setTypeface(null, Typeface.NORMAL)
                             ActionStates.setVoteDirection(submission, VoteDirection.NO_VOTE)
                             BlendModeUtil.tintImageViewAsSrcAtop(downvotebutton, getTintColor)
@@ -2339,11 +2322,11 @@ class PopulateSubmissionViewHolder() {
                                 ContextCompat.getColor(mContext, R.color.md_orange_500)
                             )
                             holder.score.setTypeface(null, Typeface.BOLD)
-                            Vote(true, points, mContext).execute(submission)
+                            //Vote(true, points, mContext).execute(submission)
                             ActionStates.setVoteDirection(submission, VoteDirection.UPVOTE)
                         } else { //un-upvoted a post
                             points.setTextColor(comments.getCurrentTextColor())
-                            Vote(points, mContext).execute(submission)
+                            //Vote(points, mContext).execute(submission)
                             holder.score.setTypeface(null, Typeface.NORMAL)
                             ActionStates.setVoteDirection(submission, VoteDirection.NO_VOTE)
                             BlendModeUtil.tintImageViewAsSrcAtop(upvotebutton, getTintColor)
@@ -2382,7 +2365,7 @@ class PopulateSubmissionViewHolder() {
                                 submission.groupName
                             ).flair()
                             try {
-                                flairlist = allFlairs.options(submission)
+                                //flairlist = allFlairs.options(submission)
                                 val finalFlairs = ArrayList<String?>()
                                 for (temp: FlairTemplate in flairlist!!) {
                                     finalFlairs.add(temp.text)
@@ -2432,7 +2415,7 @@ class PopulateSubmissionViewHolder() {
                                     mContext.getString(R.string.mod_btn_mark_nsfw)
                                 )
                             }
-                            if (submission.dataNode["spoiler"].asBoolean()) {
+                            if (submission.isSpoiler) {
                                 b.sheet(
                                     5,
                                     nsfw_drawable,
@@ -2495,13 +2478,7 @@ class PopulateSubmissionViewHolder() {
                                                                 vararg params: Void?
                                                             ): Void? {
                                                                 try {
-                                                                    AccountManager(
-                                                                        Authentication.reddit
-                                                                    )
-                                                                        .updateContribution(
-                                                                            submission,
-                                                                            text
-                                                                        )
+                                                                    //AccountManager(Authentication.reddit).updateContribution(submission, text)
                                                                     adapter?.dataSet?.reloadSubmission(
                                                                         adapter
                                                                     )
@@ -2553,10 +2530,7 @@ class PopulateSubmissionViewHolder() {
                                                             vararg params: Void?
                                                         ): Void? {
                                                             try {
-                                                                ModerationManager(
-                                                                    Authentication.reddit
-                                                                )
-                                                                    .delete(submission)
+                                                                //ModerationManager(Authentication.reddit).delete(submission)
                                                             } catch (e: ApiException) {
                                                                 e.printStackTrace()
                                                             }
@@ -2653,16 +2627,8 @@ class PopulateSubmissionViewHolder() {
                                                                                         vararg params: Void?
                                                                                     ): Boolean {
                                                                                         try {
-                                                                                            ModerationManager(
-                                                                                                Authentication.reddit
-                                                                                            )
-                                                                                                .setFlair(
-                                                                                                    submission
-                                                                                                        .groupName,
-                                                                                                    t,
-                                                                                                    flair,
-                                                                                                    submission
-                                                                                                )
+                                                                                            //ModerationManager(Authentication.reddit)
+                                                                                            //    .setFlair(submission.groupName, t, flair, submission)
                                                                                             return true
                                                                                         } catch (e: ApiException) {
                                                                                             e.printStackTrace()
@@ -2732,16 +2698,8 @@ class PopulateSubmissionViewHolder() {
                                                                         vararg params: Void?
                                                                     ): Boolean {
                                                                         try {
-                                                                            ModerationManager(
-                                                                                Authentication.reddit
-                                                                            )
-                                                                                .setFlair(
-                                                                                    submission
-                                                                                        .groupName,
-                                                                                    t,
-                                                                                    null,
-                                                                                    submission
-                                                                                )
+                                                                            //ModerationManager(Authentication.reddit)
+                                                                            //    .setFlair(submission.groupName, t, null, submission)
                                                                             return true
                                                                         } catch (e: ApiException) {
                                                                             e.printStackTrace()
@@ -2807,7 +2765,7 @@ class PopulateSubmissionViewHolder() {
                                             setPostNsfw(mContext, submission, holder)
                                         }
 
-                                        5 -> if (submission.dataNode["spoiler"].asBoolean()) {
+                                        5 -> if (submission.isSpoiler) {
                                             unSpoiler(mContext, submission, holder)
                                         } else {
                                             setSpoiler(mContext, submission, holder)
@@ -2896,9 +2854,7 @@ class PopulateSubmissionViewHolder() {
         AsyncTask<String?, Void?, Void?>() {
         override fun doInBackground(vararg reason: String?): Void? {
             try {
-                AccountManager(
-                    Authentication.reddit
-                ).report(submission, reason[0])
+                //AccountManager(Authentication.reddit).report(submission, reason[0])
             } catch (e: ApiException) {
                 e.printStackTrace()
             }
@@ -2970,7 +2926,7 @@ class PopulateSubmissionViewHolder() {
                                         )
                                         contextActivity.startActivity(myIntent)
                                     } else {
-                                        LinkUtil.openExternally(submission.url)
+                                        LinkUtil.openExternally(submission.url!!)
                                     }
 
                                     ContentType.Type.IMGUR, ContentType.Type.DEVIANTART, ContentType.Type.XKCD, ContentType.Type.IMAGE -> openImage(
@@ -2980,8 +2936,7 @@ class PopulateSubmissionViewHolder() {
 
                                     ContentType.Type.EMBEDDED -> if (SettingValues.video) {
                                         val data = CompatUtil.fromHtml(
-                                            submission.dataNode["media_embed"]["content"]
-                                                .asText()
+                                            submission.url!!
                                         ).toString()
                                         run {
                                             val i: Intent = Intent(
@@ -2992,7 +2947,7 @@ class PopulateSubmissionViewHolder() {
                                             contextActivity.startActivity(i)
                                         }
                                     } else {
-                                        LinkUtil.openExternally(submission.url)
+                                        LinkUtil.openExternally(submission.url!!)
                                     }
 
                                     ContentType.Type.REDDIT -> openRedditContent(
@@ -3027,6 +2982,7 @@ class PopulateSubmissionViewHolder() {
                                             submission.groupName
                                         )
                                         val urls = ArrayList<GalleryImage>()
+                                        /*
                                         val dataNode = submission.dataNode
                                         if (dataNode.has("gallery_data")) {
                                             JsonUtil.getGalleryData(dataNode, urls)
@@ -3037,6 +2993,7 @@ class PopulateSubmissionViewHolder() {
                                                 JsonUtil.getGalleryData(crosspost_parent, urls)
                                             }
                                         }
+                                         */
                                         val urlsBundle = Bundle()
                                         urlsBundle.putSerializable(RedditGallery.GALLERY_URLS, urls)
                                         i.putExtras(urlsBundle)
@@ -3050,7 +3007,7 @@ class PopulateSubmissionViewHolder() {
                                             R.anim.fade_out
                                         )
                                     } else {
-                                        LinkUtil.openExternally(submission.url)
+                                        LinkUtil.openExternally(submission.url!!)
                                     }
 
                                     ContentType.Type.LINK -> LinkUtil.openUrl(
@@ -3095,7 +3052,7 @@ class PopulateSubmissionViewHolder() {
                                             R.anim.fade_out
                                         )
                                     } else {
-                                        LinkUtil.openExternally(submission.url)
+                                        LinkUtil.openExternally(submission.url!!)
                                     }
 
                                     ContentType.Type.TUMBLR -> if (SettingValues.album) {
@@ -3124,7 +3081,7 @@ class PopulateSubmissionViewHolder() {
                                             R.anim.fade_out
                                         )
                                     } else {
-                                        LinkUtil.openExternally(submission.url)
+                                        LinkUtil.openExternally(submission.url!!)
                                     }
 
                                     ContentType.Type.VREDDIT_REDIRECT, ContentType.Type.GIF, ContentType.Type.VREDDIT_DIRECT -> openGif(
@@ -3146,7 +3103,7 @@ class PopulateSubmissionViewHolder() {
                                     else -> {}
                                 }
                             } else {
-                                LinkUtil.openExternally(submission.url)
+                                LinkUtil.openExternally(submission.url!!)
                             }
                         }
                     } else {
@@ -3204,7 +3161,7 @@ class PopulateSubmissionViewHolder() {
                 myIntent.putExtra(MediaView.EXTRA_SHARE_URL, submission.url)
                 contextActivity.startActivity(myIntent)
             } else {
-                LinkUtil.openExternally(submission.url)
+                LinkUtil.openExternally(submission.url!!)
             }
         }
 
@@ -3275,7 +3232,7 @@ class PopulateSubmissionViewHolder() {
                 PopulateBase.addAdaptorPosition(myIntent, submission, adapterPosition)
                 contextActivity.startActivity(myIntent)
             } else {
-                LinkUtil.openExternally(submission.url)
+                LinkUtil.openExternally(submission.url!!)
             }
         }
     }

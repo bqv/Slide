@@ -46,7 +46,10 @@ class RedditSubmission(val data: Submission) : IPost() {
         get() = data.isNsfw
 
     override val published: Instant
-        get() = Instant.fromEpochMilliseconds(data.created.time)
+        get() = data.created.time.let(Instant::fromEpochMilliseconds)
+
+    override val updated: Instant?
+        get() = data.edited?.time?.let(Instant::fromEpochMilliseconds)
 
     override val comments: Iterable<CommentNode>
         get() = data.comments

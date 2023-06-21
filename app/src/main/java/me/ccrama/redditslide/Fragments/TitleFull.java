@@ -10,6 +10,7 @@ import androidx.fragment.app.Fragment;
 
 import net.dean.jraw.models.Submission;
 
+import ltd.ucode.reddit.data.RedditSubmission;
 import me.ccrama.redditslide.Activities.CommentsScreen;
 import me.ccrama.redditslide.Activities.Shadowbox;
 import ltd.ucode.slide.R;
@@ -32,7 +33,7 @@ public class TitleFull extends Fragment {
                 (ViewGroup) inflater.inflate(R.layout.submission_titlecard, container, false);
 
 
-        PopulateShadowboxInfo.doActionbar(s, rootView, getActivity(), true);
+        PopulateShadowboxInfo.doActionbar(new RedditSubmission(s), rootView, getActivity(), true);
 
         rootView.findViewById(R.id.desc).setOnClickListener(new View.OnClickListener() {
             @Override
