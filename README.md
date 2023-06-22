@@ -1,6 +1,6 @@
 ## Current project status
 
-I am attempting to port this to lemmy. No timeline, but progress is being made.
+I am attempting to port this to lemmy. No concrete timeline, but progress is being made.
 
 # Slide
 
@@ -8,6 +8,7 @@ I am attempting to port this to lemmy. No timeline, but progress is being made.
     align="left" width="180" hspace="10" vspace="10">
 
 Slide is an open-source, ad-free link aggregator client for Android.
+
 It is based on the [Slide for Reddit](https://github.com/ccrama/slide) app.
 
 Slide is not yet available on the Google Play Store or F-Droid.
@@ -19,7 +20,8 @@ welcome to join.
 
 If you're interested in sponsoring my work, [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/I2I7MHVKK)
 
-![qrcode](https://storage.ko-fi.com/cdn/useruploads/I2I7MHVKK/qrcode.png?v=2f7c539e-3b5c-4c6d-a612-cb9fab5d26a0?v=2)
+<img src="https://storage.ko-fi.com/cdn/useruploads/I2I7MHVKK/qrcode.png?v=2f7c539e-3b5c-4c6d-a612-cb9fab5d26a0?v=2"
+    align="right" width="180" hspace="10" vspace="10">
 
 ## Contributing
 
@@ -60,4 +62,4 @@ release; for a more detailed look at changes to the app, [view individual commit
 
 ## Licensing
 
-Slide is licensed under the [GNU v3 Public License](LICENSE.txt).
+Slide is Free Open Source Software licensed under the [GNU v3 Public License](LICENSE.txt).

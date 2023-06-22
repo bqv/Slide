@@ -479,16 +479,11 @@ class SettingsActivity : BaseActivity(), FolderChooserDialogCreate.FolderCallbac
         findViewById<View>(R.id.settings_child_support).setOnClickListener(object :
             OnSingleClickListener() {
             override fun onSingleClick(v: View) {
-                if (BuildConfig.isFDroid) {
-                    val browserIntent = Intent(
-                        Intent.ACTION_VIEW,
-                        Uri.parse("https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=56FKCCYLX7L72")
-                    )
-                    startActivity(browserIntent)
-                } else {
-                    val inte = Intent(this@SettingsActivity, DonateView::class.java)
-                    startActivity(inte)
-                }
+                val browserIntent = Intent(
+                    Intent.ACTION_VIEW,
+                    Uri.parse("https://ko-fi.com/I2I7MHVKK")
+                )
+                startActivity(browserIntent)
             }
         })
         findViewById<View>(R.id.settings_child_comments).setOnClickListener(object :

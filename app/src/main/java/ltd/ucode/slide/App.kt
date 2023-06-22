@@ -55,7 +55,6 @@ import me.ccrama.redditslide.util.LogUtil
 import me.ccrama.redditslide.util.NetworkUtil
 import me.ccrama.redditslide.util.SortingUtil
 import me.ccrama.redditslide.util.UpgradeUtil
-import me.ccrama.redditslide.util.billing.IabHelper
 import net.dean.jraw.http.NetworkException
 import okhttp3.Dns
 import okhttp3.OkHttpClient
@@ -335,8 +334,6 @@ class App : MultiDexApplication(), ActivityLifecycleCallbacks {
         const val SHARED_PREF_IS_MOD = "is_mod"
         @JvmField
         var videoCache: Cache? = null
-        @JvmField
-        var mHelper: IabHelper? = null
         var enter_animation_time = enter_animation_time_original
         const val enter_animation_time_multiplier = 1
         @JvmField

@@ -77,7 +77,6 @@ android {
 
     buildFeatures {
         viewBinding true
-        aidl true
     }
 
     namespace 'ltd.ucode.slide'

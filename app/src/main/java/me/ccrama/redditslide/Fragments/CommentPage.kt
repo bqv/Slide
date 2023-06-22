@@ -129,12 +129,9 @@ import java.util.Locale
  */
 class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
     var np = false
-    @JvmField
-    var archived = false
-    @JvmField
-    var locked = false
-    @JvmField
-    var contest = false
+    @JvmField var archived = false
+    @JvmField var locked = false
+    @JvmField var contest = false
     var loadMore = false
     private var mSwipeRefreshLayout: SwipeRefreshLayout? = null
     var rv: RecyclerView? = null
@@ -149,12 +146,12 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
     private var mLayoutManager: PreCachingLayoutManagerComments? = null
     var subreddit: String? = null
     var loaded = false
-    @JvmField
-    var overrideFab = false
+    @JvmField var overrideFab = false
     private var upvoted = false
     private var downvoted = false
     private var currentlySubbed = false
     private var collapsed = SettingValues.collapseCommentsDefault
+
     fun doResult(data: Intent?) {
         if (data!!.hasExtra("fullname")) {
             val fullname = data.extras!!.getString("fullname")
@@ -182,7 +179,7 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
         if (requestCode == 423 && resultCode == Activity.RESULT_OK) {
             doResult(data)
         } else if (requestCode == 3333) {
-            for (fragment in fragmentManager!!.fragments) {
+            for (fragment in requireFragmentManager().fragments) {
                 fragment.onActivityResult(requestCode, resultCode, data)
             }
         }
@@ -306,25 +303,25 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
     ): View? {
         val localInflater = inflater.cloneInContext(contextThemeWrapper)
         v = localInflater.inflate(R.layout.fragment_verticalcontenttoolbar, container, false)
-        rv = v.findViewById(R.id.vertical_content)
-        rv.setLayoutManager(mLayoutManager)
-        rv.getLayoutManager()!!.scrollToPosition(0)
-        toolbar = v.findViewById(R.id.toolbar)
-        toolbar.setPopupTheme(ColorPreferences(activity).fontStyle.baseId)
+        rv = v!!.findViewById(R.id.vertical_content)
+        rv!!.layoutManager = mLayoutManager
+        rv!!.layoutManager!!.scrollToPosition(0)
+        toolbar = v!!.findViewById(R.id.toolbar)
+        toolbar!!.popupTheme = ColorPreferences(activity).fontStyle.baseId
         if (!SettingValues.fabComments || archived || np || locked) {
-            v.findViewById<View>(R.id.comment_floating_action_button).visibility = View.GONE
+            v!!.findViewById<View>(R.id.comment_floating_action_button).visibility = View.GONE
         } else {
-            fab = v.findViewById(R.id.comment_floating_action_button)
+            fab = v!!.findViewById(R.id.comment_floating_action_button)
             if (SettingValues.fastscroll) {
-                val fabs = fab.getLayoutParams() as FrameLayout.LayoutParams
+                val fabs = fab!!.layoutParams as FrameLayout.LayoutParams
                 fabs.setMargins(
                     fabs.leftMargin, fabs.topMargin, fabs.rightMargin,
                     fabs.bottomMargin * 3
                 )
-                fab.setLayoutParams(fabs)
+                fab!!.layoutParams = fabs
             }
-            fab.setOnClickListener(View.OnClickListener {
-                val replyDialog = MaterialDialog.Builder(activity!!)
+            fab!!.setOnClickListener(View.OnClickListener {
+                val replyDialog = MaterialDialog.Builder(requireActivity())
                     .customView(R.layout.edit_comment, false)
                     .cancelable(false)
                     .build()
@@ -336,21 +333,21 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
 
                 //Tint the replyLine appropriately if the base theme is Light or Sepia
                 if (SettingValues.currentTheme == 1 || SettingValues.currentTheme == 5) {
-                    val TINT = ContextCompat.getColor(getContext()!!, R.color.md_grey_600)
+                    val TINT = ContextCompat.getColor(requireContext(), R.color.md_grey_600)
                     e.setHintTextColor(TINT)
                     BlendModeUtil.tintDrawableAsSrcIn(e.background, TINT)
                 }
                 DoEditorActions.doActions(
                     e,
                     replyView,
-                    activity!!.supportFragmentManager,
+                    requireActivity().supportFragmentManager,
                     activity,
                     if (adapter!!.submission.isSelfPost) adapter!!.submission.selftext else null,
                     arrayOf(
                         adapter!!.submission.author
                     )
                 )
-                replyDialog.window
+                replyDialog.window!!
                     .setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
                 replyView.findViewById<View>(R.id.cancel)
                     .setOnClickListener { replyDialog.dismiss() }
@@ -374,7 +371,7 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
                     }
                     val keys = ArrayList(accounts.keys)
                     val i = keys.indexOf(changedProfile[0])
-                    val builder = MaterialDialog.Builder(getContext()!!)
+                    val builder = MaterialDialog.Builder(requireContext())
                     builder.title(getString(R.string.replies_switch_accounts))
                     builder.items(*keys.toTypedArray())
                     builder.itemsCallbackSingleChoice(i) { dialog, itemView, which, text ->
@@ -402,15 +399,15 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
         }
         if (fab != null) fab!!.show()
         resetScroll(false)
-        fastScroll = v.findViewById(R.id.commentnav)
+        fastScroll = v!!.findViewById(R.id.commentnav)
         if (!SettingValues.fastscroll) {
-            fastScroll.setVisibility(View.GONE)
+            fastScroll!!.setVisibility(View.GONE)
         } else {
             if (!SettingValues.showCollapseExpand) {
-                v.findViewById<View>(R.id.collapse_expand).visibility = View.GONE
+                v!!.findViewById<View>(R.id.collapse_expand).visibility = View.GONE
             } else {
-                v.findViewById<View>(R.id.collapse_expand).visibility = View.VISIBLE
-                v.findViewById<View>(R.id.collapse_expand).setOnClickListener {
+                v!!.findViewById<View>(R.id.collapse_expand).visibility = View.VISIBLE
+                v!!.findViewById<View>(R.id.collapse_expand).setOnClickListener {
                     if (adapter != null) {
                         if (collapsed) {
                             adapter!!.expandAll()
@@ -421,14 +418,14 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
                     }
                 }
             }
-            v.findViewById<View>(R.id.down).setOnClickListener {
+            v!!.findViewById<View>(R.id.down).setOnClickListener {
                 if (adapter != null && adapter!!.keys != null && adapter!!.keys.size > 0) {
                     goDown()
                 }
             }
-            v.findViewById<View>(R.id.up)
+            v!!.findViewById<View>(R.id.up)
                 .setOnClickListener { if (adapter != null && adapter!!.keys != null && adapter!!.keys.size > 0) goUp() }
-            v.findViewById<View>(R.id.nav).setOnClickListener {
+            v!!.findViewById<View>(R.id.nav).setOnClickListener {
                 if (adapter != null && adapter!!.currentComments != null) {
                     var parentCount = 0
                     var opCount = 0
@@ -452,36 +449,17 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
                             }
                         }
                     }
-                    AlertDialog.Builder(activity!!)
+                    AlertDialog.Builder(requireActivity())
                         .setTitle(R.string.set_nav_mode)
                         .setSingleChoiceItems(
                             StringUtil.stringToArray(
-                                "Parent comment ("
-                                        + parentCount
-                                        + ")"
-                                        + ","
-                                        +
-                                        "Children comment (highlight child comment & navigate)"
-                                        + ","
-                                        +
-                                        "OP ("
-                                        + opCount
-                                        + ")"
-                                        + ","
-                                        + "Time"
-                                        + ","
-                                        + "Link ("
-                                        + linkCount
-                                        + ")"
-                                        + ","
-                                        +
-                                        (if (Authentication.isLoggedIn) "You" + "," else "")
-                                        +
-                                        "Awarded ("
-                                        + awardCount
-                                        + ")"
-                            )
-                                .toTypedArray(),
+                                "Parent comment ($parentCount)"+","
+                                        +"Children comment (highlight child comment & navigate)"+","
+                                        +"OP ($opCount)"+","
+                                        +"Time"+","
+                                        +"Link ($linkCount)"+","
+                                        +"${if (Authentication.isLoggedIn) "You" + "," else ""}Awarded ($awardCount)"
+                            ).toTypedArray(),
                             getCurrentSort()
                         ) { dialog: DialogInterface?, which: Int ->
                             when (which) {
@@ -490,7 +468,7 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
                                 2 -> currentSort = CommentNavType.OP
                                 3 -> {
                                     currentSort = CommentNavType.TIME
-                                    val inflater1 = activity!!.layoutInflater
+                                    val inflater1 = requireActivity().layoutInflater
                                     val dialoglayout = inflater1.inflate(R.layout.commenttime, null)
                                     val landscape =
                                         dialoglayout.findViewById<Slider>(R.id.landscape)
@@ -520,7 +498,7 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
                                                 + " comments)")
                                     }
                                     landscape.setValue(600f, false)
-                                    AlertDialog.Builder(activity!!)
+                                    AlertDialog.Builder(requireActivity())
                                         .setView(dialoglayout)
                                         .setPositiveButton(R.string.btn_set, null)
                                         .show()
@@ -536,12 +514,12 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
                 }
             }
         }
-        v.findViewById<View>(R.id.up).setOnLongClickListener { //Scroll to top
-            rv.getLayoutManager()!!.scrollToPosition(1)
+        v!!.findViewById<View>(R.id.up).setOnLongClickListener { //Scroll to top
+            rv!!.layoutManager!!.scrollToPosition(1)
             true
         }
         if (SettingValues.voteGestures) {
-            v.findViewById<View>(R.id.up).setOnTouchListener(object : OnFlingGestureListener() {
+            v!!.findViewById<View>(R.id.up).setOnTouchListener(object : OnFlingGestureListener() {
                 override fun onRightToLeft() {}
                 override fun onLeftToRight() {}
                 override fun onBottomToTop() {
@@ -564,7 +542,7 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
             })
         }
         if (SettingValues.voteGestures) {
-            v.findViewById<View>(R.id.down).setOnTouchListener(object : OnFlingGestureListener() {
+            v!!.findViewById<View>(R.id.down).setOnTouchListener(object : OnFlingGestureListener() {
                 override fun onRightToLeft() {}
                 override fun onLeftToRight() {}
                 override fun onBottomToTop() {
@@ -586,25 +564,25 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
                 override fun onTopToBottom() {}
             })
         }
-        toolbar.setBackgroundColor(Palette.getColor(subreddit))
-        mSwipeRefreshLayout = v.findViewById(R.id.activity_main_swipe_refresh_layout)
-        mSwipeRefreshLayout.setColorSchemeColors(*Palette.getColors(subreddit, activity))
-        mSwipeRefreshLayout.setOnRefreshListener(OnRefreshListener {
+        toolbar!!.setBackgroundColor(Palette.getColor(subreddit))
+        mSwipeRefreshLayout = v!!.findViewById(R.id.activity_main_swipe_refresh_layout)
+        mSwipeRefreshLayout!!.setColorSchemeColors(*Palette.getColors(subreddit, activity))
+        mSwipeRefreshLayout!!.setOnRefreshListener(OnRefreshListener {
             if (comments != null) {
                 comments!!.loadMore(adapter, subreddit, true)
             } else {
-                mSwipeRefreshLayout.setRefreshing(false)
+                mSwipeRefreshLayout!!.setRefreshing(false)
             }
 
             //TODO catch errors
         })
-        toolbar.setTitle(subreddit)
-        toolbar.setNavigationIcon(androidx.appcompat.R.drawable.abc_ic_ab_back_material)
-        toolbar.setNavigationOnClickListener(View.OnClickListener { activity!!.onBackPressed() })
-        toolbar.inflateMenu(R.menu.menu_comment_items)
-        toolbar.setOnMenuItemClickListener(this)
-        toolbar.setOnClickListener(View.OnClickListener {
-            (rv.getLayoutManager() as LinearLayoutManager?)!!.scrollToPositionWithOffset(
+        toolbar!!.title = subreddit
+        toolbar!!.setNavigationIcon(androidx.appcompat.R.drawable.abc_ic_ab_back_material)
+        toolbar!!.setNavigationOnClickListener({ requireActivity().onBackPressed() })
+        toolbar!!.inflateMenu(R.menu.menu_comment_items)
+        toolbar!!.setOnMenuItemClickListener(this)
+        toolbar!!.setOnClickListener({
+            (rv!!.layoutManager as LinearLayoutManager?)!!.scrollToPositionWithOffset(
                 1,
                 headerHeight
             )
@@ -613,12 +591,12 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
         addClickFunctionSubName(toolbar)
         doTopBar()
         if (Authentication.didOnline && !NetworkUtil.isConnectedNoOverride(activity)) {
-            AlertDialog.Builder(activity!!)
+            AlertDialog.Builder(requireActivity())
                 .setTitle(R.string.err_title)
                 .setMessage(R.string.err_connection_failed_msg)
                 .setNegativeButton(R.string.btn_close) { dialog: DialogInterface?, which: Int ->
                     if (activity !is MainActivity) {
-                        activity!!.finish()
+                        requireActivity().finish()
                     }
                 }
                 .setPositiveButton(R.string.btn_offline) { dialog: DialogInterface?, which: Int ->
@@ -643,7 +621,7 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
                         DataShare.subAuthor = comments!!.submission.author
                         val i = Intent(activity, CommentSearch::class.java)
                         if (activity is MainActivity) {
-                            activity!!.startActivityForResult(i, 423)
+                            requireActivity().startActivityForResult(i, 423)
                         } else {
                             startActivityForResult(i, 423)
                         }
@@ -659,7 +637,7 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
 
             R.id.related -> {
                 if (adapter!!.submission.isSelfPost) {
-                    AlertDialog.Builder(activity!!)
+                    AlertDialog.Builder(requireActivity())
                         .setTitle("Selftext posts have no related submissions")
                         .setPositiveButton(R.string.btn_ok, null)
                         .show()
@@ -721,7 +699,7 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
                                 }
                             }
                         }
-                        if (!ShadowboxComments.comments.isEmpty()) {
+                        if (ShadowboxComments.comments.isNotEmpty()) {
                             val i = Intent(activity, ShadowboxComments::class.java)
                             startActivity(i)
                         } else {
@@ -764,7 +742,7 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
                                         ImageDownloadNotificationService.EXTRA_SUBMISSION_TITLE,
                                         adapter!!.submission.title
                                     )
-                                    activity!!.startActivity(myIntent)
+                                    requireActivity().startActivity(myIntent)
                                 } else {
                                     openExternally(adapter!!.submission.url)
                                 }
@@ -791,7 +769,7 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
                                         MediaView.EXTRA_URL,
                                         adapter!!.submission.url
                                     )
-                                    activity!!.startActivity(i2)
+                                    requireActivity().startActivity(i2)
                                 }
 
                                 ContentType.Type.EMBEDDED -> if (SettingValues.video) {
@@ -804,7 +782,7 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
                                             FullscreenVideo::class.java
                                         )
                                         i.putExtra(FullscreenVideo.EXTRA_HTML, data)
-                                        activity!!.startActivity(i)
+                                        requireActivity().startActivity(i)
                                     }
                                 } else {
                                     openExternally(adapter!!.submission.url)
@@ -819,7 +797,7 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
                                     Palette.getColor(
                                         adapter!!.submission.subredditName
                                     ),
-                                    activity!!
+                                    requireActivity()
                                 )
 
                                 ContentType.Type.NONE, ContentType.Type.SELF -> if (adapter!!.submission.selftext.isEmpty()) {
@@ -829,7 +807,7 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
                                     )
                                     LayoutUtils.showSnackbar(s)
                                 } else {
-                                    val inflater = activity!!.layoutInflater
+                                    val inflater = requireActivity().layoutInflater
                                     val dialoglayout = inflater.inflate(
                                         R.layout.parent_comment_dialog,
                                         null
@@ -845,7 +823,7 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
                                             R.id.commentOverflow
                                         )
                                     )
-                                    AlertDialog.Builder(activity!!)
+                                    AlertDialog.Builder(requireActivity())
                                         .setView(dialoglayout)
                                         .show()
                                 }
@@ -871,8 +849,8 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
                                         ImageDownloadNotificationService.EXTRA_SUBMISSION_TITLE,
                                         adapter!!.submission.title
                                     )
-                                    activity!!.startActivity(i)
-                                    activity!!.overridePendingTransition(
+                                    requireActivity().startActivity(i)
+                                    requireActivity().overridePendingTransition(
                                         R.anim.slideright, R.anim.fade_out
                                     )
                                 } else {
@@ -899,8 +877,8 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
                                             adapter!!.submission.url
                                         )
                                     }
-                                    activity!!.startActivity(i)
-                                    activity!!.overridePendingTransition(
+                                    requireActivity().startActivity(i)
+                                    requireActivity().overridePendingTransition(
                                         R.anim.slideright, R.anim.fade_out
                                     )
                                 } else {
@@ -908,12 +886,12 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
                                 }
 
                                 ContentType.Type.IMAGE -> openImage(
-                                    type, activity!!,
+                                    type, requireActivity(),
                                     RedditSubmission(adapter!!.submission), null, -1
                                 )
 
                                 ContentType.Type.VREDDIT_REDIRECT, ContentType.Type.VREDDIT_DIRECT, ContentType.Type.GIF -> openGif(
-                                    activity!!,
+                                    requireActivity(),
                                     RedditSubmission(adapter!!.submission), -1
                                 )
 
@@ -923,9 +901,11 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
                                 ) {
                                     openUrl(
                                         adapter!!.submission.url,
-                                        Palette.getStatusBarColor(), activity!!
+                                        Palette.getStatusBarColor(), requireActivity()
                                     )
                                 }
+
+                                else -> {}
                             }
                         } else {
                             openExternally(adapter!!.submission.url)
@@ -953,7 +933,7 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
             }
 
             android.R.id.home -> {
-                activity!!.onBackPressed()
+                requireActivity().onBackPressed()
                 return true
             }
         }
@@ -965,7 +945,7 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
     }
 
     private inner class AsyncGetSubreddit : AsyncTask<String?, Void?, Subreddit?>() {
-        override fun onPostExecute(baseSub: Subreddit) {
+        override fun onPostExecute(baseSub: Subreddit?) {
             try {
                 d!!.dismiss()
             } catch (e: Exception) {
@@ -1066,7 +1046,7 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
                                     .show()
                                 object : AsyncTask<Void?, Void?, Void?>() {
                                     var mods: ArrayList<UserRecord>? = null
-                                    protected override fun doInBackground(vararg params: Void): Void {
+                                    override fun doInBackground(vararg params: Void?): Void? {
                                         mods = ArrayList()
                                         val paginator = UserRecordPaginator(
                                             Authentication.reddit, subreddit,
@@ -1080,7 +1060,7 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
                                         return null
                                     }
 
-                                    protected override fun onPostExecute(aVoid: Void) {
+                                    protected override fun onPostExecute(aVoid: Void?) {
                                         val names = ArrayList<String?>()
                                         for (rec in mods!!) {
                                             names.add(rec.fullName)
@@ -1124,7 +1104,7 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
                     }
                     run {
                         sidebar.findViewById<View>(R.id.loader).visibility = View.GONE
-                        if (baseSub.sidebar != null && !baseSub.sidebar.isEmpty()) {
+                        if (baseSub.sidebar != null && baseSub.sidebar.isNotEmpty()) {
                             sidebar.findViewById<View>(R.id.sidebar_text).visibility = View.VISIBLE
                             val text = baseSub.dataNode["description_html"].asText()
                             val body =
@@ -1140,7 +1120,7 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
                             collection.setOnClickListener {
                                 object : AsyncTask<Void?, Void?, Void?>() {
                                     var multis = HashMap<String?, MultiReddit?>()
-                                    protected override fun doInBackground(vararg params: Void): Void {
+                                    override fun doInBackground(vararg params: Void?): Void? {
                                         if (UserSubscriptions.multireddits == null) {
                                             syncMultiReddits(getContext())
                                         }
@@ -1150,23 +1130,22 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
                                         return null
                                     }
 
-                                    protected override fun onPostExecute(aVoid: Void) {
-                                        MaterialDialog.Builder(getContext()!!).title(
+                                    protected override fun onPostExecute(aVoid: Void?) {
+                                        MaterialDialog.Builder(requireContext()).title(
                                             "Add /r/" + baseSub.displayName + " to"
                                         )
                                             .items(multis.keys)
                                             .itemsCallback { dialog, itemView, which, text ->
                                                 object : AsyncTask<Void?, Void?, Void?>() {
-                                                    protected override fun doInBackground(
-                                                        vararg params: Void
-                                                    ): Void {
+                                                    override fun doInBackground(
+                                                        vararg params: Void?
+                                                    ): Void? {
                                                         try {
                                                             val multiName = multis.keys
                                                                 .toTypedArray()[which]
                                                             val subs: MutableList<String> =
                                                                 ArrayList()
-                                                            for (sub in multis[multiName]
-                                                                .getSubreddits()) {
+                                                            for (sub in multis[multiName]!!.subreddits) {
                                                                 subs.add(
                                                                     sub.displayName
                                                                 )
@@ -1203,7 +1182,7 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
                                                             }
                                                         } catch (e: NetworkException) {
                                                             activity!!.runOnUiThread {
-                                                                activity
+                                                                activity!!
                                                                     .runOnUiThread(
                                                                         Runnable {
                                                                             Snackbar.make(
@@ -1223,7 +1202,7 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
                                                             e.printStackTrace()
                                                         } catch (e: ApiException) {
                                                             activity!!.runOnUiThread {
-                                                                activity
+                                                                activity!!
                                                                     .runOnUiThread(
                                                                         Runnable {
                                                                             Snackbar.make(
@@ -1258,10 +1237,8 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
                         run {
                             val subscribe = sidebar.findViewById<TextView>(R.id.subscribe)
                             currentlySubbed =
-                                if (Authentication.isLoggedIn) baseSub.isUserSubscriber else getSubscriptions(
-                                    activity
-                                )
-                                    .contains(baseSub.displayName.lowercase())
+                                if (Authentication.isLoggedIn) baseSub.isUserSubscriber
+                                else getSubscriptions(activity)!!.contains(baseSub.displayName.lowercase())
                             MiscUtil.doSubscribeButtonText(currentlySubbed, subscribe)
                             subscribe.setOnClickListener(object : View.OnClickListener {
                                 private fun doSubscribe() {
@@ -1275,8 +1252,8 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
                                             )
                                             .setPositiveButton(R.string.reorder_add_subscribe) { dialog: DialogInterface?, which: Int ->
                                                 object : AsyncTask<Void?, Void?, Boolean?>() {
-                                                    override fun onPostExecute(success: Boolean) {
-                                                        if (!success) { // If subreddit was removed from account or not
+                                                    override fun onPostExecute(success: Boolean?) {
+                                                        if (!success!!) { // If subreddit was removed from account or not
                                                             AlertDialog.Builder(activity!!)
                                                                 .setTitle(R.string.force_change_subscription)
                                                                 .setMessage(R.string.force_change_subscription_desc)
@@ -1303,9 +1280,9 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
                                                         }
                                                     }
 
-                                                    protected override fun doInBackground(
-                                                        vararg params: Void
-                                                    ): Boolean {
+                                                    override fun doInBackground(
+                                                        vararg params: Void?
+                                                    ): Boolean? {
                                                         try {
                                                             AccountManager(
                                                                 Authentication.reddit
@@ -1314,9 +1291,9 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
                                                                     baseSub
                                                                 )
                                                         } catch (e: NetworkException) {
-                                                            return@setPositiveButton false // Either network crashed or trying to unsubscribe to a subreddit that the account isn't subscribed to
+                                                            return false // Either network crashed or trying to unsubscribe to a subreddit that the account isn't subscribed to
                                                         }
-                                                        return@setPositiveButton true
+                                                        return true
                                                     }
                                                 }.executeOnExecutor(
                                                     THREAD_POOL_EXECUTOR
@@ -1352,7 +1329,7 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
 
                                 private fun doUnsubscribe() {
                                     if (Authentication.didOnline) {
-                                        AlertDialog.Builder(getContext()!!)
+                                        AlertDialog.Builder(requireContext())
                                             .setTitle(
                                                 getString(
                                                     R.string.unsubscribe_from,
@@ -1361,9 +1338,9 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
                                             )
                                             .setPositiveButton(R.string.reorder_remove_unsubscribe) { dialog: DialogInterface?, which: Int ->
                                                 object : AsyncTask<Void?, Void?, Boolean?>() {
-                                                    override fun onPostExecute(success: Boolean) {
-                                                        if (!success) { // If subreddit was removed from account or not
-                                                            AlertDialog.Builder(getContext()!!)
+                                                    override fun onPostExecute(success: Boolean?) {
+                                                        if (!success!!) { // If subreddit was removed from account or not
+                                                            AlertDialog.Builder(requireContext())
                                                                 .setTitle(R.string.force_change_subscription)
                                                                 .setMessage(R.string.force_change_subscription_desc)
                                                                 .setPositiveButton(R.string.btn_yes) { dialog12: DialogInterface?, which12: Int ->
@@ -1389,9 +1366,9 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
                                                         }
                                                     }
 
-                                                    protected override fun doInBackground(
-                                                        vararg params: Void
-                                                    ): Boolean {
+                                                    override fun doInBackground(
+                                                        vararg params: Void?
+                                                    ): Boolean? {
                                                         try {
                                                             AccountManager(
                                                                 Authentication.reddit
@@ -1400,9 +1377,9 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
                                                                     baseSub
                                                                 )
                                                         } catch (e: NetworkException) {
-                                                            return@setPositiveButton false // Either network crashed or trying to unsubscribe to a subreddit that the account isn't subscribed to
+                                                            return false // Either network crashed or trying to unsubscribe to a subreddit that the account isn't subscribed to
                                                         }
-                                                        return@setPositiveButton true
+                                                        return true
                                                     }
                                                 }.executeOnExecutor(
                                                     THREAD_POOL_EXECUTOR
@@ -1441,11 +1418,10 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
                         } else {
                             sidebar.findViewById<View>(R.id.sub_title).visibility = View.GONE
                         }
-                        if (baseSub.dataNode.has("icon_img") && !baseSub.dataNode["icon_img"]
-                                .asText()
-                                .isEmpty()
+                        if (baseSub.dataNode.has("icon_img") && baseSub.dataNode["icon_img"]
+                                .asText().isNotEmpty()
                         ) {
-                            (getContext()!!.applicationContext as App).imageLoader
+                            (requireContext().applicationContext as App).imageLoader!!
                                 .displayImage(
                                     baseSub.dataNode["icon_img"].asText(),
                                     sidebar.findViewById<View>(R.id.subimage) as ImageView
@@ -1456,7 +1432,7 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
                         val bannerImage = baseSub.bannerImage
                         if (bannerImage != null && !bannerImage.isEmpty()) {
                             sidebar.findViewById<View>(R.id.sub_banner).visibility = View.VISIBLE
-                            (getContext()!!.applicationContext as App).imageLoader
+                            (requireContext().applicationContext as App).imageLoader!!
                                 .displayImage(
                                     bannerImage,
                                     sidebar.findViewById<View>(R.id.sub_banner) as ImageView
@@ -1476,7 +1452,7 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
                             )
                         sidebar.findViewById<View>(R.id.active_users).visibility = View.VISIBLE
                     }
-                    AlertDialog.Builder(getContext()!!)
+                    AlertDialog.Builder(requireContext())
                         .setPositiveButton(R.string.btn_close, null)
                         .setView(sidebar)
                         .show()
@@ -1485,7 +1461,7 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
             }
         }
 
-        protected override fun doInBackground(vararg params: String): Subreddit {
+        override fun doInBackground(vararg params: String?): Subreddit? {
             return try {
                 Authentication.reddit!!.getSubreddit(params[0])
             } catch (e: Exception) {
@@ -1590,7 +1566,7 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
                 s = getSubmissionFromStorage(
                     (if (fullname!!.contains("_")) fullname else "t3_$fullname")!!, getContext(),
                     !NetworkUtil.isConnected(activity), ObjectMapper().reader()
-                )
+                )?.submission
             } catch (e: IOException) {
                 e.printStackTrace()
             }
@@ -1674,7 +1650,7 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
         archived = bundle.getBoolean("archived", false)
         locked = bundle.getBoolean("locked", false)
         contest = bundle.getBoolean("contest", false)
-        (loadMore = !context.isEmpty()) && context != App.EMPTY_STRING
+        loadMore = (context!!.isNotEmpty() && context != App.EMPTY_STRING)
         if (!single) loadMore = false
         val subredditStyle = ColorPreferences(activity).getThemeSubreddit(subreddit)
         contextThemeWrapper = ContextThemeWrapper(activity, subredditStyle)
@@ -1691,7 +1667,7 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
             ) {
                 Drafts.addDraft(adapter!!.currentlyEditing.text.toString())
                 Toast.makeText(
-                    activity!!.applicationContext, R.string.msg_save_draft,
+                    requireActivity().applicationContext, R.string.msg_save_draft,
                     Toast.LENGTH_LONG
                 ).show()
             }
@@ -1743,7 +1719,7 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
                     }
                 }
             }
-            rv!!.addOnScrollListener(toolbarScroll)
+            rv!!.addOnScrollListener(toolbarScroll!!)
         } else {
             toolbarScroll!!.reset = true
         }
@@ -1771,7 +1747,7 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
     }
 
     private fun openPopup(view: View?) {
-        if (comments!!.comments != null && !comments!!.comments.isEmpty()) {
+        if (comments!!.comments != null && comments!!.comments.isNotEmpty()) {
             val l2 = DialogInterface.OnClickListener { dialogInterface, i ->
                 when (i) {
                     0 -> commentSorting = CommentSort.CONFIDENCE
@@ -1877,11 +1853,10 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
     private fun goUp() {
         val toGoto = mLayoutManager!!.findFirstVisibleItemPosition()
         if (adapter != null && adapter!!.currentComments != null && !adapter!!.currentComments.isEmpty()) {
-            if (adapter!!.currentlyEditing != null && !adapter!!.currentlyEditing.text
-                    .toString()
-                    .isEmpty()
+            if (adapter!!.currentlyEditing != null && adapter!!.currentlyEditing.text
+                    .toString().isNotEmpty()
             ) {
-                AlertDialog.Builder(activity!!)
+                AlertDialog.Builder(requireActivity())
                     .setTitle(R.string.discard_comment_title)
                     .setMessage(R.string.comment_discard_msg)
                     .setPositiveButton(R.string.btn_yes) { dialog: DialogInterface?, which: Int ->
@@ -1931,7 +1906,7 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
                                 o.comment.comment.created.time > sortTime
 
                             CommentNavType.GILDED -> matches =
-                                (o.comment.comment.timesGilded > 0 || o.comment.comment.timesSilvered > 0 || o.comment.comment.timesPlatinized) > 0
+                                (o.comment.comment.timesGilded > 0 || o.comment.comment.timesSilvered > 0 || o.comment.comment.timesPlatinized > 0)
 
                             CommentNavType.OP -> matches =
                                 adapter!!.submission != null && (o.comment.comment
@@ -1972,11 +1947,10 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
         (toolbar!!.parent as View).translationY = -(toolbar!!.parent as View).height.toFloat()
         val toGoto = mLayoutManager!!.findFirstVisibleItemPosition()
         if (adapter != null && adapter!!.currentComments != null && !adapter!!.currentComments.isEmpty()) {
-            if (adapter!!.currentlyEditing != null && !adapter!!.currentlyEditing.text
-                    .toString()
-                    .isEmpty()
+            if (adapter!!.currentlyEditing != null && adapter!!.currentlyEditing.text
+                    .toString().isNotEmpty()
             ) {
-                AlertDialog.Builder(activity!!)
+                AlertDialog.Builder(requireActivity())
                     .setTitle(R.string.discard_comment_title)
                     .setMessage(R.string.comment_discard_msg)
                     .setPositiveButton(R.string.btn_yes) { dialog: DialogInterface?, which: Int ->
