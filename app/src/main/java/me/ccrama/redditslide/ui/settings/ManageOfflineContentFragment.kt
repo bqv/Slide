@@ -224,7 +224,7 @@ class ManageOfflineContentFragment(private val context: Activity) {
             val multiNameToSubsMap = UserSubscriptions.getMultiNameToSubs(true)
             domains = ArrayList()
             (context.findViewById<View>(R.id.manage_history_domainlist) as LinearLayout).removeAllViews()
-            for (s: String in OfflineSubreddit.getAll()) {
+            for (s: String in OfflineSubreddit.all) {
                 if (!s.isEmpty()) {
                     val split = s.split(",".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
                     var sub: String? = split[0]

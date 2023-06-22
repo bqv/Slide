@@ -84,7 +84,7 @@ import com.lusfold.androidkeyvaluestore.KVStore
 import kotlinx.coroutines.runBlocking
 import ltd.ucode.Util.executeAsyncTask
 import ltd.ucode.lemmy.data.LemmyPost
-import ltd.ucode.lemmy.data.type.SortType
+import ltd.ucode.lemmy.data.type.PostSortType
 import ltd.ucode.slide.App
 import ltd.ucode.slide.Authentication
 import ltd.ucode.slide.BuildConfig
@@ -837,7 +837,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                             try {
                                 val p = Authentication.api!!.getPosts(
                                     communityName = "slide@feddit.uk",
-                                    sort = SortType.New
+                                    sort = PostSortType.New
                                 )
                                 val page = runBlocking { p!!.next() }
                                 val posts = page.map { LemmyPost(Authentication.api!!.instance, it) }

@@ -87,7 +87,7 @@ class MultiredditView : Fragment(), SubmissionDisplay {
                     for (s: MultiSubreddit in posts!!.multiReddit!!.subreddits) {
                         subs.add(s.displayName)
                     }
-                    MaterialDialog.Builder((activity)!!)
+                    MaterialDialog.Builder(requireActivity())
                         .title(R.string.multi_submit_which_sub)
                         .items(subs)
                         .itemsCallback { dialog, itemView, which, text ->
@@ -135,7 +135,7 @@ class MultiredditView : Fragment(), SubmissionDisplay {
                 fab!!.setImageResource(R.drawable.ic_visibility_off)
                 fab!!.setOnClickListener(View.OnClickListener {
                     if (!App.fabClear) {
-                        AlertDialog.Builder((activity)!!)
+                        AlertDialog.Builder(requireActivity())
                             .setTitle(R.string.settings_fabclear)
                             .setMessage(R.string.settings_fabclear_msg)
                             .setPositiveButton(R.string.btn_ok) { dialog: DialogInterface?, which: Int ->
@@ -152,7 +152,7 @@ class MultiredditView : Fragment(), SubmissionDisplay {
                 })
                 fab!!.setOnLongClickListener(View.OnLongClickListener {
                     if (!App.fabClear) {
-                        AlertDialog.Builder((activity)!!)
+                        AlertDialog.Builder(requireActivity())
                             .setTitle(R.string.settings_fabclear)
                             .setMessage(R.string.settings_fabclear_msg)
                             .setPositiveButton(R.string.btn_ok) { dialog: DialogInterface?, which: Int ->
@@ -230,12 +230,12 @@ class MultiredditView : Fragment(), SubmissionDisplay {
         if (multireddits != null && !multireddits.isEmpty()) {
             posts = MultiredditPosts(multireddits[id].displayName, profile!!)
             adapter = MultiredditAdapter(requireActivity(), posts!!, rv!!, refreshLayout!!, this)
-            rv!!.setAdapter(adapter)
-            rv!!.setItemAnimator(SlideUpAlphaAnimator().withInterpolator(LinearOutSlowInInterpolator()))
+            rv!!.adapter = adapter
+            rv!!.itemAnimator = SlideUpAlphaAnimator().withInterpolator(LinearOutSlowInInterpolator())
             posts!!.loadMore(requireActivity(), this, true, adapter)
             refreshLayout!!.setOnRefreshListener(
                 OnRefreshListener {
-                    posts!!.loadMore((activity)!!, this@MultiredditView, true, adapter)
+                    posts!!.loadMore(requireActivity(), this@MultiredditView, true, adapter)
 
                     //TODO catch errors
                 }
@@ -301,7 +301,7 @@ class MultiredditView : Fragment(), SubmissionDisplay {
                         if (forever) {
                             Hidden.setHidden(posts!!.posts[i])
                         }
-                        o.clearPost(posts!!.posts[i].submission)
+                        o!!.clearPost(posts!!.posts[i])
                         posts!!.posts.removeAt(i)
                         if (posts!!.posts.isEmpty()) {
                             adapter!!.notifyDataSetChanged()
@@ -314,7 +314,7 @@ class MultiredditView : Fragment(), SubmissionDisplay {
                     //Let the loop reset itself
                 }
             }
-            o.writeToMemoryNoStorage()
+            o!!.writeToMemoryNoStorage()
             rv!!.itemAnimator =
                 SlideUpAlphaAnimator().withInterpolator(LinearOutSlowInInterpolator())
             return originalDataSetPosts

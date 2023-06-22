@@ -106,12 +106,10 @@ class MultiredditPosts(multireddit: String, profile: String) : PostLoader {
                     "multi" + multiReddit!!.displayName.lowercase(),
                     false,
                     context
-                ).overwriteSubmissions(posts.map { it.submission }).writeToMemory(c)
+                )!!.overwriteSubmissions(posts).writeToMemory(c)
                 val ids = arrayOfNulls<String>(submissions.size)
-                var i = 0
-                for (s in submissions) {
+                for ((i, s) in submissions.withIndex()) {
                     ids[i] = s!!.id
-                    i++
                 }
                 if (!SettingValues.synccitName!!.isEmpty() && !offline) {
                     MySynccitReadTask().execute(*ids)
@@ -127,7 +125,7 @@ class MultiredditPosts(multireddit: String, profile: String) : PostLoader {
                     "multi" + multiReddit!!.displayName.lowercase(),
                     false,
                     context
-                ).submissions.isEmpty() && !nomore && SettingValues.cache
+                )!!.submissions.isNullOrEmpty() && !nomore && SettingValues.cache
             ) {
                 offline = true
                 val cached = OfflineSubreddit.getSubreddit(
@@ -136,18 +134,18 @@ class MultiredditPosts(multireddit: String, profile: String) : PostLoader {
                     context
                 )
                 val finalSubs: MutableList<IPost> = ArrayList()
-                for (s in cached.submissions) {
+                for (s in cached!!.submissions!!) {
                     if (!PostMatch.doesMatch(
-                            RedditSubmission(s),
+                            s,
                             "multi" + multiReddit!!.displayName.lowercase(),
                             false
                         )
                     ) {
-                        finalSubs.add(RedditSubmission(s))
+                        finalSubs.add(s)
                     }
                 }
                 posts = finalSubs
-                if (!cached.submissions.isEmpty()) {
+                if (!cached.submissions.isNullOrEmpty()) {
                     stillShow = true
                 } else {
                     displayer.updateOfflineError()

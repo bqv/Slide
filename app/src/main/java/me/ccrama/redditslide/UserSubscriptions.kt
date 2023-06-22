@@ -107,7 +107,7 @@ object UserSubscriptions {
                 }
             }
             val finals = CaseInsensitiveArrayList()
-            val offline: List<String> = OfflineSubreddit.getAllFormatted()
+            val offline: List<String> = OfflineSubreddit.allFormatted
             for (subs in subredditsForHome) {
                 if (offline.contains(subs)) {
                     finals.add(subs)
@@ -147,7 +147,7 @@ object UserSubscriptions {
                 }
             }
             val finals = CaseInsensitiveArrayList()
-            val offline: List<String> = OfflineSubreddit.getAllFormatted()
+            val offline: List<String> = OfflineSubreddit.allFormatted
             for (subs in subredditsForHome) {
                 if (offline.contains(subs)) {
                     finals.add(subs)

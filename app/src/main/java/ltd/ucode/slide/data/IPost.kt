@@ -1,7 +1,9 @@
 package ltd.ucode.slide.data
 
 import kotlinx.datetime.Instant
+import ltd.ucode.lemmy.data.type.PostId
 import ltd.ucode.reddit.data.RedditSubmission
+import me.ccrama.redditslide.CommentCacheAsync.CommentStore
 import me.ccrama.redditslide.ContentType
 import net.dean.jraw.models.CommentNode
 import net.dean.jraw.models.DistinguishedStatus
@@ -36,11 +38,12 @@ abstract class IPost : IItem {
         (this as? RedditSubmission)?.data // reddit-specific
     }
 
-
     val domain: String?
         get() = url?.let { URL(it).host }
     val extension: String?
         get() = url?.let { Path(URL(it).path).extension }
+    open val postId: PostId
+        get() = TODO()
     open val isArchived: Boolean
         get() = false // reddit-specific
     open val isContest: Boolean
@@ -89,6 +92,10 @@ abstract class IPost : IItem {
         get() = false
     open val preview: String? // TODO: reddit-specific
         get() = null
+
+    open fun withComments(comments: CommentStore): IPost {
+        TODO()
+    }
 
     override fun equals(other: Any?): Boolean {
         return when (other) {

@@ -9,8 +9,9 @@ import kotlinx.serialization.json.jsonPrimitive
 data class ApiException(val path: String,
                         val statusCode: Int,
                         @Transient val errorBody: String,
-                        val content: JsonElement = Json.parseToJsonElement(errorBody)
-) : Exception(readError(content) ?: "") {
+                        val content: JsonElement? = if (statusCode >= 500) null
+                                                    else Json.parseToJsonElement(errorBody)
+) : Exception(content?.let(::readError) ?: "HTTP $statusCode") {
 }
 
 private fun readError(error: JsonElement): String? {

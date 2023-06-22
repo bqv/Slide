@@ -4,13 +4,13 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import ltd.ucode.lemmy.data.type.CommunityId
 import ltd.ucode.lemmy.data.type.PersonId
-import ltd.ucode.lemmy.data.type.SortType
+import ltd.ucode.lemmy.data.type.PostSortType
 
 @Serializable
 data class GetPersonDetailsRequest (
     @SerialName("person_id") val personId: PersonId? = null,
     val username: String? = null,
-    val sort: SortType? = null,
+    val sort: PostSortType? = null,
     val page: Int? = null,
     val limit: Int? = null,
     @SerialName("community_id") val communityId: CommunityId? = null,

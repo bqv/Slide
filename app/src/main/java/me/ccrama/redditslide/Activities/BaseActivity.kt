@@ -433,11 +433,7 @@ open class BaseActivity : PeekViewActivity(), SwipeBackActivityBase {
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     private fun setRecentBarTaskDescription(title: String?, color: Int) {
-        val icon = if (title.equals(
-                "androidcirclejerk",
-                ignoreCase = true
-            )
-        ) R.drawable.matiasduarte else R.drawable.ic_launcher
+        val icon = R.drawable.ic_launcher
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             setTaskDescription(TaskDescription(title, icon, color))
         } else {

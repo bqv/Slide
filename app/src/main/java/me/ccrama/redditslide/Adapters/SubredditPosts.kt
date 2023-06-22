@@ -9,10 +9,9 @@ import kotlinx.coroutines.runBlocking
 import ltd.ucode.lemmy.api.ApiException
 import ltd.ucode.lemmy.api.iter.PagedData
 import ltd.ucode.lemmy.data.LemmyPost
-import ltd.ucode.lemmy.data.type.ListingType
+import ltd.ucode.lemmy.data.type.PostListingType
 import ltd.ucode.lemmy.data.type.PostView
-import ltd.ucode.lemmy.data.type.SortType
-import ltd.ucode.reddit.data.RedditSubmission
+import ltd.ucode.lemmy.data.type.PostSortType
 import ltd.ucode.slide.App
 import ltd.ucode.slide.Authentication
 import ltd.ucode.slide.BuildConfig
@@ -170,9 +169,9 @@ class SubredditPosts @JvmOverloads constructor(
             } else if (MainActivity.isRestart) {
                 posts = ArrayList()
                 cached = OfflineSubreddit.getSubreddit(subreddit, 0L, true, c)
-                for (s in cached!!.submissions) {
-                    if (!PostMatch.doesMatch(RedditSubmission(s), subreddit, force18)) {
-                        posts.add(RedditSubmission(s))
+                for (s in cached!!.submissions!!) {
+                    if (!PostMatch.doesMatch(s, subreddit, force18)) {
+                        posts.add(s)
                     }
                 }
                 offline = false
@@ -217,36 +216,36 @@ class SubredditPosts @JvmOverloads constructor(
                 paginator = if (sub == "subscribed") {
                     //SubredditPaginator(Authentication.reddit)
                     Authentication.api!!.getPosts(
-                        type = ListingType.Subscribed,
-                        sort = SortType.forSubreddit(subreddit),
+                        type = PostListingType.Subscribed,
+                        sort = PostSortType.forSubreddit(subreddit),
                         limit = Constants.PAGINATOR_POST_LIMIT
                     )
                 } else if (sub == "local") {
                     //SubredditPaginator(Authentication.reddit)
                     Authentication.api!!.getPosts(
-                        type = ListingType.Local,
-                        sort = SortType.forSubreddit(subreddit),
+                        type = PostListingType.Local,
+                        sort = PostSortType.forSubreddit(subreddit),
                         limit = Constants.PAGINATOR_POST_LIMIT
                     )
                 } else if (sub == "all") {
                     //SubredditPaginator(Authentication.reddit)
                     Authentication.api!!.getPosts(
-                        type = ListingType.All,
-                        sort = SortType.forSubreddit(subreddit),
+                        type = PostListingType.All,
+                        sort = PostSortType.forSubreddit(subreddit),
                         limit = Constants.PAGINATOR_POST_LIMIT
                     )
                 } else if (!sub.contains(".")) {
                     //SubredditPaginator(Authentication.reddit, sub)
                     Authentication.api!!.getPosts(
                         communityName = sub,
-                        sort = SortType.forSubreddit(subreddit),
+                        sort = PostSortType.forSubreddit(subreddit),
                         limit = Constants.PAGINATOR_POST_LIMIT
                     )
                 } else {
                     //DomainPaginator(Authentication.reddit, sub)
                     Authentication.api!!.getPosts(
                         communityName = sub,
-                        sort = SortType.forSubreddit(subreddit),
+                        sort = PostSortType.forSubreddit(subreddit),
                         limit = Constants.PAGINATOR_POST_LIMIT
                     )
                 }
@@ -370,9 +369,9 @@ class SubredditPosts @JvmOverloads constructor(
                                 java.lang.Long.valueOf(s2[1]), true, c
                             )
                             val finalSubs: MutableList<IPost> = ArrayList()
-                            for (s in cached!!.submissions) {
-                                if (!PostMatch.doesMatch(RedditSubmission(s), subreddit, force18)) {
-                                    finalSubs.add(RedditSubmission(s))
+                            for (s in cached!!.submissions!!) {
+                                if (!PostMatch.doesMatch(s, subreddit, force18)) {
+                                    finalSubs.add(s)
                                 }
                             }
                             posts = finalSubs
@@ -380,7 +379,7 @@ class SubredditPosts @JvmOverloads constructor(
                         }
 
                         override fun onPostExecute(aVoid: Void?) {
-                            if (cached!!.submissions.isEmpty()) {
+                            if (cached!!.submissions.isNullOrEmpty()) {
                                 displayer!!.updateOfflineError()
                             }
                             // update offline

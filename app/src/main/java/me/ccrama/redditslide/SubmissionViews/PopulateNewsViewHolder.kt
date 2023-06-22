@@ -321,7 +321,7 @@ class PopulateNewsViewHolder() {
                                     val s: OfflineSubreddit = OfflineSubreddit.getSubreddit(
                                         baseSub,
                                         false, mContext
-                                    )
+                                    )!!
                                     for (remove: Contribution? in toRemove) {
                                         val pos: Int = posts.indexOf(remove)
                                         posts.removeAt(pos)
@@ -604,7 +604,7 @@ class PopulateNewsViewHolder() {
                 if (baseSub != null) {
                     s = OfflineSubreddit.getSubreddit(baseSub, false, c)
                     try {
-                        s.hide(pos)
+                        s!!.hide(pos)
                         success = true
                     } catch (e: Exception) {
                     }

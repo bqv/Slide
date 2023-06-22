@@ -7,7 +7,6 @@ import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.FragmentStatePagerAdapter
 import androidx.viewpager.widget.ViewPager
 import androidx.viewpager.widget.ViewPager.SimpleOnPageChangeListener
-import ltd.ucode.reddit.data.RedditSubmission
 import ltd.ucode.slide.Authentication
 import ltd.ucode.slide.R
 import ltd.ucode.slide.SettingValues
@@ -56,7 +55,7 @@ class Shadowbox : FullScreenActivity(), SubmissionDisplay {
         val offline = intent.getLongExtra("offline", 0L)
         val submissions =
             OfflineSubreddit.getSubreddit(subreddit, offline, !Authentication.didOnline, this)
-        subredditPosts!!.posts.addAll(submissions.submissions.map(::RedditSubmission))
+        subredditPosts!!.posts.addAll(submissions!!.submissions.orEmpty())
         count = subredditPosts!!.posts.size
         pager = findViewById<View>(R.id.content_view) as ViewPager
         submissionsPager = ShadowboxPagerAdapter(supportFragmentManager)

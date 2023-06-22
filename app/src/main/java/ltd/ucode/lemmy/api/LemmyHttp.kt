@@ -10,6 +10,7 @@ import kotlinx.serialization.json.encodeToJsonElement
 import kotlinx.serialization.json.jsonObject
 import ltd.ucode.Util.filterNotNullValues
 import ltd.ucode.lemmy.api.iter.PagedData
+import ltd.ucode.lemmy.api.request.GetCommentsRequest
 import ltd.ucode.lemmy.api.request.GetPersonDetailsRequest
 import ltd.ucode.lemmy.api.request.GetPostRequest
 import ltd.ucode.lemmy.api.request.GetPostsRequest
@@ -21,14 +22,17 @@ import ltd.ucode.lemmy.api.response.GetPostResponse
 import ltd.ucode.lemmy.api.response.GetSiteResponse
 import ltd.ucode.lemmy.data.LoginResult
 import ltd.ucode.lemmy.data.type.CommentId
+import ltd.ucode.lemmy.data.type.CommentListingType
+import ltd.ucode.lemmy.data.type.CommentSortType
+import ltd.ucode.lemmy.data.type.CommentView
 import ltd.ucode.lemmy.data.type.CommunityId
 import ltd.ucode.lemmy.data.type.CommunityView
-import ltd.ucode.lemmy.data.type.ListingType
 import ltd.ucode.lemmy.data.type.NodeInfoResult
 import ltd.ucode.lemmy.data.type.PersonId
 import ltd.ucode.lemmy.data.type.PostId
+import ltd.ucode.lemmy.data.type.PostListingType
+import ltd.ucode.lemmy.data.type.PostSortType
 import ltd.ucode.lemmy.data.type.PostView
-import ltd.ucode.lemmy.data.type.SortType
 import ltd.ucode.slide.BuildConfig
 import me.ccrama.redditslide.util.LogUtil
 import okhttp3.Headers.Companion.toHeaders
@@ -103,8 +107,8 @@ class LemmyHttp(val instance: String = "lemmy.ml",
                  limit: Int? = null,
                  fromPage: Int? = null,
                  savedOnly: Boolean? = null,
-                 sort: SortType? = null,
-                 type: ListingType? = null
+                 sort: PostSortType? = null,
+                 type: PostListingType? = null
     ): PagedData<PostView> {
         return PagedData(fromPage ?: 1) { page: Int -> {
                 val response = api.getPosts(
@@ -138,11 +142,45 @@ class LemmyHttp(val instance: String = "lemmy.ml",
         return response.toResult()
     }
 
+    fun getComments(auth: String? = null,
+                    communityId: CommunityId? = null,
+                    communityName: String? = null, // community, or community@instance.tld
+                    parentId: CommentId? = null,
+                    postId: PostId? = null,
+                    maxDepth: Int? = null,
+                    limit: Int? = null,
+                    fromPage: Int? = null,
+                    savedOnly: Boolean? = null,
+                    sort: CommentSortType? = null,
+                    type: CommentListingType? = null
+    ): PagedData<CommentView> {
+        return PagedData(fromPage ?: 1) { page: Int -> {
+                val response = api.getComments(
+                    GetCommentsRequest(
+                        auth = auth,
+                        communityId = communityId,
+                        communityName = communityName,
+                        parentId = parentId,
+                        postId = postId,
+                        maxDepth = maxDepth,
+                        limit = limit,
+                        page = page,
+                        savedOnly = savedOnly,
+                        sort = sort,
+                        type = type
+                    ).toForm()
+                ).unwrap()
+
+                response.toResult()
+            }
+        }
+    }
+
     suspend fun listCommunities(auth: String? = null,
                                 limit: Int? = null, // <= 50
                                 page: Int? = null,
-                                sort: SortType? = null,
-                                type: ListingType? = null
+                                sort: PostSortType? = null,
+                                type: PostListingType? = null
     ): List<CommunityView> {
         val response = api.listCommunities(ListCommunitiesRequest(
             auth = auth,
@@ -161,7 +199,7 @@ class LemmyHttp(val instance: String = "lemmy.ml",
                                  page: Int? = null,
                                  personId: PersonId? = null,
                                  savedOnly: Boolean? = null,
-                                 sort: SortType? = null,
+                                 sort: PostSortType? = null,
                                  username: String? = null
     ): GetPersonDetailsResponse {
         val response = api.getPersonDetails(GetPersonDetailsRequest(

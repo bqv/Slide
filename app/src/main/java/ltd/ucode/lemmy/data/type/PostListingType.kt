@@ -3,9 +3,8 @@ package ltd.ucode.lemmy.data.type
 import kotlinx.serialization.Serializable
 
 @Serializable
-enum class ListingType {
+enum class PostListingType {
     All,
-    Community,
     Local,
     Subscribed,
 }

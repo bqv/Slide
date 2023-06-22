@@ -338,7 +338,7 @@ class SubmissionsView : Fragment(), SubmissionDisplay {
                         if (forever) {
                             Hidden.setHidden(adapter!!.dataSet.posts[i])
                         }
-                        o.clearPost(adapter!!.dataSet.posts[i].submission)
+                        o!!.clearPost(adapter!!.dataSet.posts[i])
                         adapter!!.dataSet.posts.removeAt(i)
                         if (adapter!!.dataSet.posts.isEmpty()) {
                             adapter!!.notifyDataSetChanged()
@@ -352,7 +352,7 @@ class SubmissionsView : Fragment(), SubmissionDisplay {
                 }
             }
             adapter!!.notifyItemRangeChanged(0, adapter!!.dataSet.posts.size)
-            o.writeToMemoryNoStorage()
+            o!!.writeToMemoryNoStorage()
             rv!!.itemAnimator =
                 SlideUpAlphaAnimator().withInterpolator(LinearOutSlowInInterpolator())
             return originalDataSetPosts

@@ -31,6 +31,9 @@ interface LemmyHttpApi {
     @GET("post")
     suspend fun getPost(@QueryMap form: Map<String, String>): Response<GetPostResponse>
 
+    @GET("comment/list")
+    suspend fun getComments(@QueryMap form: Map<String, String>): Response<GetCommentsResponse>
+
     @GET("community/list")
     suspend fun listCommunities(@QueryMap form: Map<String, String>): Response<ListCommunitiesResponse>
 

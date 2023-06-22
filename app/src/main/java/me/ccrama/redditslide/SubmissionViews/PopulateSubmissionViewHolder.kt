@@ -28,14 +28,11 @@ import androidx.core.content.res.ResourcesCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.afollestad.materialdialogs.DialogAction
 import com.afollestad.materialdialogs.MaterialDialog
-import com.afollestad.materialdialogs.MaterialDialog.InputCallback
 import com.afollestad.materialdialogs.MaterialDialog.ListCallback
 import com.afollestad.materialdialogs.MaterialDialog.SingleButtonCallback
 import com.cocosw.bottomsheet.BottomSheet
 import com.devspark.robototextview.RobotoTypefaces
 import com.google.android.material.snackbar.Snackbar
-import ltd.ucode.reddit.data.RedditSubmission
-import ltd.ucode.slide.App
 import ltd.ucode.slide.App.Companion.defaultShareText
 import ltd.ucode.slide.Authentication
 import ltd.ucode.slide.R
@@ -81,14 +78,12 @@ import me.ccrama.redditslide.Views.CreateCardView
 import me.ccrama.redditslide.Views.DoEditorActions
 import me.ccrama.redditslide.Visuals.FontPreferences
 import me.ccrama.redditslide.Visuals.Palette
-import me.ccrama.redditslide.Vote
 import me.ccrama.redditslide.util.AnimatorUtil
 import me.ccrama.redditslide.util.BlendModeUtil
 import me.ccrama.redditslide.util.ClipboardUtil
 import me.ccrama.redditslide.util.CompatUtil
 import me.ccrama.redditslide.util.DisplayUtil
 import me.ccrama.redditslide.util.GifUtils.AsyncLoadGif
-import me.ccrama.redditslide.util.JsonUtil
 import me.ccrama.redditslide.util.LayoutUtils
 import me.ccrama.redditslide.util.LinkUtil
 import me.ccrama.redditslide.util.NetworkUtil
@@ -99,7 +94,6 @@ import net.dean.jraw.fluent.FluentRedditClient
 import net.dean.jraw.http.NetworkException
 import net.dean.jraw.http.oauth.InvalidScopeException
 import net.dean.jraw.managers.AccountManager
-import net.dean.jraw.managers.ModerationManager
 import net.dean.jraw.models.DistinguishedStatus
 import net.dean.jraw.models.FlairTemplate
 import net.dean.jraw.models.Ruleset
@@ -353,7 +347,7 @@ class PopulateSubmissionViewHolder() {
                                     val s: OfflineSubreddit = OfflineSubreddit.getSubreddit(
                                         baseSub,
                                         false, mContext
-                                    )
+                                    )!!
                                     for (remove: IPost? in toRemove) {
                                         val pos: Int = posts.indexOf(remove)
                                         posts.removeAt(pos)
@@ -863,7 +857,7 @@ class PopulateSubmissionViewHolder() {
                 if (baseSub != null) {
                     s = OfflineSubreddit.getSubreddit(baseSub, false, c)
                     try {
-                        s.hide(pos)
+                        s!!.hide(pos)
                         success = true
                     } catch (e: Exception) {
                     }

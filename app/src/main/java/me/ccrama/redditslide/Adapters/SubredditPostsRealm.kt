@@ -232,7 +232,7 @@ class SubredditPostsRealm : PostLoader {
             }
             if (!usedOffline) {
                 OfflineSubreddit.getSubNoLoad(subreddit.lowercase())
-                    .overwriteSubmissions(posts.mapNotNull { it?.submission })
+                    .overwriteSubmissions(posts)
                     .writeToMemory(context)
             }
             start = 0
@@ -325,9 +325,9 @@ class SubredditPostsRealm : PostLoader {
                             java.lang.Long.valueOf(s2[1]), true, c
                         )
                         val finalSubs: MutableList<IPost> = ArrayList()
-                        for (s in cached!!.submissions) {
-                            if (!PostMatch.doesMatch(RedditSubmission(s), subreddit, force18)) {
-                                finalSubs.add(RedditSubmission(s))
+                        for (s in cached!!.submissions!!) {
+                            if (!PostMatch.doesMatch(s, subreddit, force18)) {
+                                finalSubs.add(s)
                             }
                         }
                         posts = finalSubs
@@ -335,7 +335,7 @@ class SubredditPostsRealm : PostLoader {
                     }
 
                     override fun onPostExecute(aVoid: Void?) {
-                        if (cached!!.submissions.isEmpty()) {
+                        if (cached!!.submissions.isNullOrEmpty()) {
                             displayer!!.updateOfflineError()
                         }
                         // update offline

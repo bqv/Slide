@@ -7,7 +7,7 @@ import net.dean.jraw.paginators.Sorting
 import net.dean.jraw.paginators.TimePeriod
 
 @Serializable
-enum class SortType {
+enum class PostSortType {
     Active,
     Hot,
     MostComments,
@@ -24,7 +24,7 @@ enum class SortType {
         fun from(
             submissionSort: Sorting?,
             submissionTimePeriod: TimePeriod?
-        ): SortType? {
+        ): PostSortType? {
             return when (submissionSort) {
                 Sorting.HOT -> Hot
                 Sorting.BEST -> Active // TODO: rename
@@ -46,7 +46,7 @@ enum class SortType {
             }
         }
 
-        fun forSubreddit(subreddit: String): SortType {
+        fun forSubreddit(subreddit: String): PostSortType {
             return from(
                 getSubmissionSort(subreddit),
                 getSubmissionTimePeriod(subreddit)

@@ -114,30 +114,24 @@ public class SubChooseAdapter extends ArrayAdapter<String> {
                     final Bitmap src;
                     final Bitmap bm2;
                     Intent shortcutIntent  = new Intent(getContext(), OpenContent.class);
-                    if (subreddit.toLowerCase(Locale.ENGLISH).equals("androidcirclejerk")) {
-                        bm2 = DrawableUtil.drawableToBitmapShortcut(
-                                ContextCompat.getDrawable(getContext(), R.drawable.matiasduarte));
-                        Log.v(LogUtil.getTag(), "NULL IS " + (bm2 == null));
-                    } else {
-                        src = DrawableUtil.drawableToBitmapShortcut(
-                                ContextCompat.getDrawable(getContext(), R.drawable.blackandwhite));
-                        final int overlayColor = Palette.getColor(subreddit);
-                        final Paint paint = new Paint();
-                        final Bitmap bm1 = Bitmap.createBitmap(src.getWidth(), src.getHeight(), Bitmap.Config.ARGB_8888);
-                        Canvas c = new Canvas(bm1);
-                        BlendModeUtil.tintPaintAsOverlay(paint, overlayColor);
-                        c.drawBitmap(src, 0, 0, paint);
+                    src = DrawableUtil.drawableToBitmapShortcut(
+                            ContextCompat.getDrawable(getContext(), R.drawable.blackandwhite));
+                    final int overlayColor = Palette.getColor(subreddit);
+                    final Paint paint = new Paint();
+                    final Bitmap bm1 = Bitmap.createBitmap(src.getWidth(), src.getHeight(), Bitmap.Config.ARGB_8888);
+                    Canvas c = new Canvas(bm1);
+                    BlendModeUtil.tintPaintAsOverlay(paint, overlayColor);
+                    c.drawBitmap(src, 0, 0, paint);
 
-                        bm2 = Bitmap.createBitmap(src.getWidth(), src.getHeight(), Bitmap.Config.ARGB_8888);
-                        c = new Canvas(bm2);
-                        BlendModeUtil.tintPaintAsSrcAtop(paint, overlayColor);
-                        c.drawBitmap(src, 0, 0, paint);
+                    bm2 = Bitmap.createBitmap(src.getWidth(), src.getHeight(), Bitmap.Config.ARGB_8888);
+                    c = new Canvas(bm2);
+                    BlendModeUtil.tintPaintAsSrcAtop(paint, overlayColor);
+                    c.drawBitmap(src, 0, 0, paint);
 
-                        //paint.setColorFilter(null);
-                        //paint.setXfermode(new AvoidXfermode(overlayColor, 0, AvoidXfermode.Mode.TARGET));
-                        //c.drawBitmap(bm1, 0, 0, paint);
-                        ImageUtil.drawWithTargetColor(bm2, bm1, overlayColor, 0);
-                    }
+                    //paint.setColorFilter(null);
+                    //paint.setXfermode(new AvoidXfermode(overlayColor, 0, AvoidXfermode.Mode.TARGET));
+                    //c.drawBitmap(bm1, 0, 0, paint);
+                    ImageUtil.drawWithTargetColor(bm2, bm1, overlayColor, 0);
 
                     final float scale = getContext().getResources().getDisplayMetrics().density;
                     int p = (int) (50 * scale + 0.5f);

@@ -15,7 +15,6 @@ import androidx.fragment.app.FragmentStatePagerAdapter
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager.widget.ViewPager
 import androidx.viewpager.widget.ViewPager.SimpleOnPageChangeListener
-import ltd.ucode.reddit.data.RedditSubmission
 import ltd.ucode.slide.App.Companion.setDefaultErrorHandler
 import ltd.ucode.slide.Authentication
 import ltd.ucode.slide.R
@@ -144,7 +143,7 @@ class CommentsScreen : BaseActivityAnim(), SubmissionDisplay {
                 if (multireddit == null) baseSubreddit else "multi$multireddit",
                 OfflineSubreddit.currentid, !Authentication.didOnline, this@CommentsScreen
             )
-            subredditPosts!!.posts.addAll(o.submissions.map(::RedditSubmission))
+            subredditPosts!!.posts.addAll(o!!.submissions.orEmpty())
             currentPosts!!.addAll(subredditPosts!!.posts)
         }
         if (intent.hasExtra("fullname")) {
@@ -186,7 +185,7 @@ class CommentsScreen : BaseActivityAnim(), SubmissionDisplay {
                 override fun onPageSelected(position: Int) {
                     var position = position
                     if (position != firstPage && position < currentPosts!!.size) {
-                        position = position - 1
+                        position -= 1
                         if (position < 0) position = 0
                         updateSubredditAndSubmission(currentPosts!![position])
                         if (currentPosts!!.size - 2 <= position && subredditPosts!!.hasMore()) {
@@ -278,7 +277,7 @@ class CommentsScreen : BaseActivityAnim(), SubmissionDisplay {
                 blankPage = BlankFragment()
                 blankPage!!
             } else {
-                i = i - 1
+                i -= 1
                 val f: Fragment = CommentPage()
                 val args = Bundle()
                 val name = currentPosts!![i]!!.permalink

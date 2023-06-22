@@ -1,6 +1,6 @@
 ## Current project status
 
-I am attempting to port this to lemmy. No guarantees, but progress is being made.
+I am attempting to port this to lemmy. No timeline, but progress is being made.
 
 # Slide
 
@@ -17,7 +17,9 @@ welcome to join.
 
 ## Sponsors
 
-If you're interested in sponsoring my work, please contact me!
+If you're interested in sponsoring my work, [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/I2I7MHVKK)
+
+![qrcode](https://storage.ko-fi.com/cdn/useruploads/I2I7MHVKK/qrcode.png?v=2f7c539e-3b5c-4c6d-a612-cb9fab5d26a0?v=2)
 
 ## Contributing
 

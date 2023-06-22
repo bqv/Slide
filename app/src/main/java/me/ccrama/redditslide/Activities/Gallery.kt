@@ -4,7 +4,6 @@ import android.content.res.Configuration
 import android.os.Bundle
 import android.view.View
 import androidx.recyclerview.widget.RecyclerView
-import ltd.ucode.reddit.data.RedditSubmission
 import ltd.ucode.slide.Authentication
 import ltd.ucode.slide.R
 import ltd.ucode.slide.data.IPost
@@ -49,9 +48,9 @@ class Gallery : FullScreenActivity(), SubmissionDisplay {
                 or View.SYSTEM_UI_FLAG_IMMERSIVE)
         val offline = intent.getLongExtra("offline", 0L)
         val submissions: OfflineSubreddit =
-            OfflineSubreddit.getSubreddit(subreddit, offline, !Authentication.didOnline, this)
+            OfflineSubreddit.getSubreddit(subreddit, offline, !Authentication.didOnline, this)!!
         baseSubs = ArrayList<IPost>()
-        for (s in submissions.submissions.map(::RedditSubmission)) {
+        for (s in submissions.submissions.orEmpty()) {
             if (s.thumbnails?.source != null) {
                 baseSubs!!.add(s)
             } else if (s.contentType == ContentType.Type.IMAGE) {

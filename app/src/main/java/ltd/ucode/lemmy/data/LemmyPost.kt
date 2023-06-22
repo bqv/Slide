@@ -3,17 +3,22 @@ package ltd.ucode.lemmy.data
 import kotlinx.datetime.Instant
 import kotlinx.datetime.UtcOffset
 import kotlinx.datetime.toInstant
+import ltd.ucode.lemmy.data.type.PostId
 import ltd.ucode.lemmy.data.type.PostView
 import ltd.ucode.slide.data.IPost
 import ltd.ucode.slide.data.IUser
+import me.ccrama.redditslide.CommentCacheAsync.CommentStore
 import me.ccrama.redditslide.ContentType
 import net.dean.jraw.models.Submission.ThumbnailType
 import net.dean.jraw.models.VoteDirection
 import java.net.URL
 
-class LemmyPost(val instance: String, val data: PostView) : IPost() {
+open class LemmyPost(val instance: String, val data: PostView) : IPost() {
     override val id: String
         get() = data.post.id.toString() // TODO: drop string repr
+
+    override val postId: PostId
+        get() = data.post.id
 
     override val title: String
         get() = data.post.name
@@ -117,4 +122,8 @@ class LemmyPost(val instance: String, val data: PostView) : IPost() {
 
     override val commentCount: Int
         get() = data.counts.comments
+
+    override fun withComments(comments: CommentStore): IPost {
+        return LemmyPostWithComments(instance, data, comments)
+    }
 }

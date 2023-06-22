@@ -8,12 +8,12 @@ import android.os.AsyncTask
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
-import com.fasterxml.jackson.databind.JsonNode
 import kotlinx.coroutines.runBlocking
-import ltd.ucode.lemmy.api.iter.PagedData
+import ltd.ucode.lemmy.api.ApiException
 import ltd.ucode.lemmy.data.LemmyPost
-import ltd.ucode.lemmy.data.type.PostView
-import ltd.ucode.reddit.data.RedditSubmission
+import ltd.ucode.lemmy.data.type.CommentSortType
+import ltd.ucode.lemmy.data.type.CommentView
+import ltd.ucode.lemmy.data.type.PostId
 import ltd.ucode.slide.App
 import ltd.ucode.slide.Authentication
 import ltd.ucode.slide.R
@@ -23,12 +23,6 @@ import ltd.ucode.slide.data.IPost
 import me.ccrama.redditslide.util.GifUtils
 import me.ccrama.redditslide.util.LogUtil
 import me.ccrama.redditslide.util.PhotoLoader
-import net.dean.jraw.http.NetworkException
-import net.dean.jraw.http.SubmissionRequest
-import net.dean.jraw.models.CommentSort
-import net.dean.jraw.models.meta.SubmissionSerializer
-import net.dean.jraw.paginators.SubredditPaginator
-import net.dean.jraw.util.JrawUtils
 
 class CommentCacheAsync : AsyncTask<Any?, Any?, Any?> {
     var alreadyReceived: List<IPost>? = null
@@ -145,15 +139,14 @@ class CommentCacheAsync : AsyncTask<Any?, Any?, Any?> {
                 val random = (Math.random() * 100).toInt()
                 for (s in submissions) {
                     try {
-                        val n = getSubmission(
-                            SubmissionRequest.Builder(s.id).limit(commentCount)
-                                .depth(commentDepth)
-                                .sort(sortType)
-                                .build()
+                        val commentStore = getSubmission(
+                            id = s.postId,
+                            limit = commentCount,
+                            depth = commentDepth,
+                            sort = CommentSortType.from(sortType)
                         )
-                        val s2 = SubmissionSerializer.withComments(n, CommentSort.CONFIDENCE)
-                        OfflineSubreddit.writeSubmission(n, s2, context)
-                        newFullnames.add(s2.fullName)
+                        OfflineSubreddit.writeSubmission(commentStore, s, context)
+                        newFullnames.add(s.permalink)
                         if (!SettingValues.noImages) PhotoLoader.loadPhoto(context, s)
                         when (s.contentType) {
                             ContentType.Type.VREDDIT_DIRECT, ContentType.Type.VREDDIT_REDIRECT, ContentType.Type.GIF -> if (otherChoices[0]) {
@@ -201,34 +194,25 @@ class CommentCacheAsync : AsyncTask<Any?, Any?, Any?> {
         return null
     }
 
-    @Throws(NetworkException::class)
-    fun getSubmission(request: SubmissionRequest): JsonNode? {
-        val args: MutableMap<String, String> = HashMap()
-        if (request.depth != null) args["depth"] = Integer.toString(request.depth)
-        if (request.context != null) {
-            args["context"] = Integer.toString(request.context)
+    data class CommentStore(val sort: CommentSortType?, val comments: List<CommentView>)
+
+    @Throws(ApiException::class)
+    fun getSubmission(id: PostId,
+                      depth: Int? = null,
+                      limit: Int? = null,
+                      sort: CommentSortType? = null): CommentStore {
+        val paginator = Authentication.api!!.getComments(
+            postId = id,
+            maxDepth = depth,
+            limit = limit,
+            sort = sort
+        )
+        val comments: MutableList<CommentView> = mutableListOf()
+        while (paginator.hasNext) {
+            val page = runBlocking { paginator.next() }
+            comments.addAll(page)
         }
-        if (request.limit != null) args["limit"] = Integer.toString(request.limit)
-        if (request.focus != null && !JrawUtils.isFullname(request.focus)) {
-            args["comment"] = request.focus
-        }
-        var sort = request.sort
-        if (sort == null) // Reddit sorts by confidence by default
-        {
-            sort = CommentSort.CONFIDENCE
-        }
-        args["sort"] = sort.name.lowercase()
-        return try {
-            val response = Authentication.reddit!!.execute(
-                Authentication.reddit!!.request()
-                    .path(String.format("/comments/%s", request.id))
-                    .query(args)
-                    .build()
-            )
-            response.json
-        } catch (e: Exception) {
-            null
-        }
+        return CommentStore(sort, comments)
     }
 
     companion object {
