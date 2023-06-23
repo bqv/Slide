@@ -5,7 +5,7 @@ I am attempting to port this to lemmy. No concrete timeline, but progress is bei
 # Slide
 
 <img src="app/src/main/res/drawable/ic_launcher.png"
-    align="left" width="180" hspace="10" vspace="10">
+    align="left" width="160" hspace="6" vspace="10">
 
 Slide is an open-source, ad-free link aggregator client for Android.
 
@@ -18,10 +18,12 @@ welcome to join.
 
 ## Sponsors
 
-If you're interested in sponsoring my work, [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/I2I7MHVKK)
-
 <img src="https://storage.ko-fi.com/cdn/useruploads/I2I7MHVKK/qrcode.png?v=2f7c539e-3b5c-4c6d-a612-cb9fab5d26a0?v=2"
-    align="right" width="180" hspace="10" vspace="10">
+align="right" width="80" hspace="10" vspace="10">
+
+If you're interested in sponsoring my work...
+
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/I2I7MHVKK)
 
 ## Contributing
 
