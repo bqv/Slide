@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.DialogInterface
 import android.content.Intent
 import android.os.Handler
+import android.os.Parcelable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -213,7 +214,8 @@ class SubmissionAdapter(
                                     holder.getBindingAdapterPosition() - 1
                                 )
                                 i2.putExtra(CommentsScreen.EXTRA_SUBREDDIT, subreddit)
-                                i2.putExtra("fullname", submission.permalink)
+                                i2.putExtra(CommentsScreen.EXTRA_FULLNAME, submission.permalink)
+                                i2.putExtra(CommentsScreen.EXTRA_POSTID, submission.postId.id)
                                 context.startActivityForResult(i2, 940)
                                 clicked = holder.getBindingAdapterPosition()
                             }
@@ -242,7 +244,10 @@ class SubmissionAdapter(
                                     holder.getBindingAdapterPosition() - 1
                                 )
                                 i2.putExtra(CommentsScreen.EXTRA_SUBREDDIT, subreddit)
-                                i2.putExtra("fullname", submission.permalink)
+                                i2.putExtra(CommentsScreen.EXTRA_FULLNAME, submission.permalink)
+                                i2.putExtra(CommentsScreen.EXTRA_POSTID, submission.postId.id)
+                                i2.putParcelableArrayListExtra(CommentsScreen.EXTRA_POSTS,
+                                    ArrayList(dataSet.posts.mapNotNull { it as Parcelable }))
                                 context.startActivityForResult(i2, 940)
                                 clicked = holder.getBindingAdapterPosition()
                             }

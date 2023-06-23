@@ -3,6 +3,7 @@ package ltd.ucode.lemmy.data
 import kotlinx.datetime.Instant
 import kotlinx.datetime.UtcOffset
 import kotlinx.datetime.toInstant
+import kotlinx.serialization.Serializable
 import ltd.ucode.lemmy.data.type.PostId
 import ltd.ucode.lemmy.data.type.PostView
 import ltd.ucode.slide.data.IPost
@@ -51,7 +52,7 @@ open class LemmyPost(val instance: String, val data: PostView) : IPost() {
         get() = (data.post.thumbnailUrl?.let { ThumbnailType.URL }) ?: ThumbnailType.NONE
 
     override val contentType: ContentType.Type?
-        get() = when {
+        get() = when { // ContentType.getContentType(String)?
             url == null -> {
                 if (body.isNullOrBlank()) ContentType.Type.NONE
                 else ContentType.Type.SELF

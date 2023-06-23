@@ -11,7 +11,7 @@ import retrofit2.http.POST
 import retrofit2.http.QueryMap
 import retrofit2.http.Url
 
-interface LemmyHttpApi {
+interface ILemmyHttpApi {
 
     @GET("/.well-known/nodeinfo")
     suspend fun nodeInfo(): Response<Resource>

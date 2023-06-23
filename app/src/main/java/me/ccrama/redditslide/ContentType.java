@@ -216,7 +216,6 @@ public class ContentType {
             {
                 return Type.LINK;
             }
-            e.printStackTrace();
             return Type.NONE;
         }
     }

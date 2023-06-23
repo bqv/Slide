@@ -292,10 +292,8 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
     }
 
     var v: View? = null
-    @JvmField
-    var fastScroll: View? = null
-    @JvmField
-    var fab: FloatingActionButton? = null
+    @JvmField var fastScroll: View? = null
+    @JvmField var fab: FloatingActionButton? = null
     var diff = 0
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,

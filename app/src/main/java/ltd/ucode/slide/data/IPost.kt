@@ -1,6 +1,7 @@
 package ltd.ucode.slide.data
 
 import kotlinx.datetime.Instant
+import kotlinx.serialization.Serializable
 import ltd.ucode.lemmy.data.type.PostId
 import ltd.ucode.reddit.data.RedditSubmission
 import me.ccrama.redditslide.CommentCacheAsync.CommentStore

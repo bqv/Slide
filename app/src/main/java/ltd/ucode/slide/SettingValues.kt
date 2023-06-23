@@ -1,5 +1,6 @@
 package ltd.ucode.slide
 
+import android.content.Context
 import android.content.SharedPreferences
 import android.content.res.Configuration
 import ltd.ucode.slide.App.Companion.appContext
@@ -32,7 +33,7 @@ object SettingValues {
     val filters: SharedPreferences by lazy { getSharedPreferences("FILTERS") }
     val upgrade: SharedPreferences by lazy { getSharedPreferences("UPGRADE") }
 
-    private inline fun getSharedPreferences(name: String, mode: Int = 0): SharedPreferences {
+    private inline fun getSharedPreferences(name: String, mode: Int = Context.MODE_PRIVATE): SharedPreferences {
         return appContext.getSharedPreferences(name, mode)
     }
 

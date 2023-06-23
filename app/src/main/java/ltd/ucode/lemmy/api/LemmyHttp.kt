@@ -8,6 +8,7 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.encodeToJsonElement
 import kotlinx.serialization.json.jsonObject
+import ltd.ucode.Util.SnakeCaseSerializer
 import ltd.ucode.Util.filterNotNullValues
 import ltd.ucode.lemmy.api.iter.PagedData
 import ltd.ucode.lemmy.api.request.GetCommentsRequest
@@ -43,7 +44,7 @@ import retrofit2.Retrofit
 
 class LemmyHttp(val instance: String = "lemmy.ml",
                 private val headers: Map<String, String> = mapOf()) {
-    private val api: LemmyHttpApi by lazy { createApi() }
+    private val api: ILemmyHttpApi by lazy { createApi() }
 
     private var client: OkHttpClient = OkHttpClient.Builder()
             .addInterceptor { chain ->
@@ -63,16 +64,16 @@ class LemmyHttp(val instance: String = "lemmy.ml",
 
     var retryLimit: Int = -1 // TODO: use
 
-    private fun createApi(): LemmyHttpApi {
+    private fun createApi(): ILemmyHttpApi {
         if (BuildConfig.DEBUG) LogUtil.v("Creating API Object")
 
         val retrofit = Retrofit.Builder()
             .baseUrl("https://${instance}/api/v3/")
             .client(client)
-            .addConverterFactory(Json.asConverterFactory("application/json".toMediaType()))
+            .addConverterFactory(SnakeCaseSerializer.asConverterFactory("application/json".toMediaType()))
             .build()
 
-        return retrofit.create(LemmyHttpApi::class.java)
+        return retrofit.create(ILemmyHttpApi::class.java)
     }
 
     suspend fun nodeInfo(): NodeInfoResult? {

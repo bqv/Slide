@@ -32,11 +32,11 @@ import java.util.Collections
 object UserSubscriptions {
     const val SUB_NAME_TO_PROPERTIES = "multiNameToSubs"
     val defaultSubs = listOf(
-        "subscribed", "all", "local"
+        "all", "local", "subscribed"
     )
     @JvmField
     val specialSubreddits = listOf(
-        "subscribed", "local", "all"
+        "all", "local", "subscribed"
     )
     @JvmField
     var subscriptions: SharedPreferences? = null
@@ -671,11 +671,14 @@ object UserSubscriptions {
     @JvmStatic
     fun sort(unsorted: CaseInsensitiveArrayList?): CaseInsensitiveArrayList {
         val subs = CaseInsensitiveArrayList(unsorted)
-        if (!subs.contains("frontpage")) {
-            subs.add("frontpage")
-        }
         if (!subs.contains("all")) {
             subs.add("all")
+        }
+        if (!subs.contains("local")) {
+            subs.add("local")
+        }
+        if (!subs.contains("subscribed")) {
+            subs.add("subscribed")
         }
         return sortNoExtras(subs)
     }

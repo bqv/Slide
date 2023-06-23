@@ -15,6 +15,7 @@ import androidx.fragment.app.FragmentStatePagerAdapter
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager.widget.ViewPager
 import androidx.viewpager.widget.ViewPager.SimpleOnPageChangeListener
+import ltd.ucode.lemmy.data.type.PostId
 import ltd.ucode.slide.App.Companion.setDefaultErrorHandler
 import ltd.ucode.slide.Authentication
 import ltd.ucode.slide.R
@@ -46,16 +47,16 @@ import me.ccrama.redditslide.util.KeyboardUtil
  * Comments are displayed in the [CommentPage] fragment.
  */
 class CommentsScreen : BaseActivityAnim(), SubmissionDisplay {
-    @JvmField
-    var currentPosts: ArrayList<IPost?>? = null
-    @JvmField
-    var subredditPosts: PostLoader? = null
+    @JvmField var currentPosts: ArrayList<IPost?>? = null
+    @JvmField var subredditPosts: PostLoader? = null
     var firstPage = 0
     var comments: CommentsScreenPagerAdapter? = null
     private var subreddit: String? = null
     private var baseSubreddit: String? = null
     var multireddit: String? = null
     var profile: String? = null
+    var postId: PostId? = null
+
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
         val keyCode = event.keyCode
         return if (SettingValues.commentVolumeNav) {
@@ -97,8 +98,7 @@ class CommentsScreen : BaseActivityAnim(), SubmissionDisplay {
         }
     }
 
-    @JvmField
-    var currentPage = 0
+    @JvmField var currentPage = 0
     var seen: ArrayList<Int>? = null
     var popup = false
     public override fun onCreate(savedInstance: Bundle?) {
@@ -128,6 +128,7 @@ class CommentsScreen : BaseActivityAnim(), SubmissionDisplay {
         subreddit = baseSubreddit
         multireddit = intent.extras!!.getString(EXTRA_MULTIREDDIT)
         profile = intent.extras!!.getString(EXTRA_PROFILE, "")
+        postId = PostId(intent.extras!!.getInt(EXTRA_POSTID))
         currentPosts = ArrayList()
         if (multireddit != null) {
             subredditPosts = MultiredditPosts(multireddit!!, profile!!)
@@ -146,8 +147,8 @@ class CommentsScreen : BaseActivityAnim(), SubmissionDisplay {
             subredditPosts!!.posts.addAll(o!!.submissions.orEmpty())
             currentPosts!!.addAll(subredditPosts!!.posts)
         }
-        if (intent.hasExtra("fullname")) {
-            val fullname = intent.getStringExtra("fullname")
+        if (intent.hasExtra(EXTRA_FULLNAME)) {
+            val fullname = intent.getStringExtra(EXTRA_FULLNAME)
             for (i in currentPosts!!.indices) {
                 if (currentPosts!![i]!!.permalink == fullname) {
                     if (i != firstPage) firstPage = i
@@ -283,10 +284,7 @@ class CommentsScreen : BaseActivityAnim(), SubmissionDisplay {
                 val name = currentPosts!![i]!!.permalink
                 args.putString("id", name.substring(3))
                 args.putBoolean("archived", currentPosts!![i]!!.isArchived)
-                args.putBoolean(
-                    "contest",
-                    currentPosts!![i]!!.isContest
-                )
+                args.putBoolean("contest", currentPosts!![i]!!.isContest)
                 args.putBoolean("locked", currentPosts!![i]!!.isLocked)
                 args.putInt("page", i)
                 args.putString("subreddit", currentPosts!![i]!!.groupName)
@@ -309,5 +307,8 @@ class CommentsScreen : BaseActivityAnim(), SubmissionDisplay {
         const val EXTRA_PAGE = "page"
         const val EXTRA_SUBREDDIT = "subreddit"
         const val EXTRA_MULTIREDDIT = "multireddit"
+        const val EXTRA_FULLNAME = "fullname"
+        const val EXTRA_POSTID = "postid"
+        const val EXTRA_POSTS = "posts"
     }
 }
