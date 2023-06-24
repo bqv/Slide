@@ -26,8 +26,6 @@ import androidx.core.app.NotificationChannelCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
-import androidx.multidex.MultiDex
-import androidx.multidex.MultiDexApplication
 import com.google.android.exoplayer2.database.DatabaseProvider
 import com.google.android.exoplayer2.database.ExoDatabaseProvider
 import com.google.android.exoplayer2.upstream.cache.Cache
@@ -72,16 +70,11 @@ import java.util.Calendar
 import java.util.Locale
 
 
-class App : MultiDexApplication(), ActivityLifecycleCallbacks {
+class App : Application(), ActivityLifecycleCallbacks {
     var active = false
 
     @JvmField
     var defaultImageLoader: ImageLoader? = null
-
-    override fun attachBaseContext(base: Context?) {
-        super.attachBaseContext(base)
-        MultiDex.install(base) // use base. install(this) will lead to error in pre-lollipop
-    }
 
     override fun onLowMemory() {
         super.onLowMemory()
@@ -181,7 +174,7 @@ class App : MultiDexApplication(), ActivityLifecycleCallbacks {
         SettingValues.initialize()
         SortingUtil.defaultSorting = SettingValues.defaultSorting
         SortingUtil.timePeriod = SettingValues.timePeriod
-        KVStore.init(this, "SEEN")
+        KVStore.init(this, "SEEN") // TODO: replace with room
         doLanguages()
         lastPosition = ArrayList()
         if (SettingValues.appRestart.contains("startScreen")) {

@@ -29,10 +29,10 @@ import ltd.ucode.lemmy.api.response.GetUnreadCountResponse
 import ltd.ucode.lemmy.api.response.ListCommunitiesResponse
 import ltd.ucode.lemmy.api.response.LoginResponse
 import ltd.ucode.lemmy.api.response.UploadImageResponse
+import ltd.ucode.lemmy.data.type.NodeInfoResult
 import ltd.ucode.lemmy.data.type.webfinger.NodeInfo
 import ltd.ucode.lemmy.data.type.webfinger.Resource
 import ltd.ucode.lemmy.data.type.webfinger.Uri
-import ltd.ucode.lemmy.repository.AccountRepository
 import ltd.ucode.slide.BuildConfig
 import me.ccrama.redditslide.util.LogUtil
 import okhttp3.Headers.Companion.toHeaders
@@ -62,6 +62,16 @@ open class InstanceDataSource(
 
     suspend fun nodeInfo(): Resource = retryOnError { api.nodeInfo() }
     suspend fun nodeInfo20(url: Uri): NodeInfo = retryOnError { api.nodeInfo20(url) }
+
+    suspend fun getNodeInfo(): NodeInfoResult {
+        return nodeInfo().let {
+            NodeInfoResult(
+                it,
+                it.links.first().href
+                    .let { url -> nodeInfo20(url) } // lets hope
+            )
+        }
+    }
 
     //open suspend fun addAdmin(request: AddAdminRequest): AddAdminResponse =
     //    retryOnError { api.addAdmin(request) }
@@ -402,7 +412,7 @@ open class InstanceDataSource(
     }
 
 
-    protected inline fun <reified T> T.toForm(): Map<String, String> {
+    private inline fun <reified T> T.toForm(): Map<String, String> {
         return Json { encodeDefaults = true }
             .encodeToJsonElement(this)
             .jsonObject

@@ -1,11 +1,14 @@
 plugins {
     id("com.android.application")
     kotlin("android")
+    kotlin("kapt")
     kotlin("plugin.serialization")
     kotlin("plugin.parcelize")
     id("com.gladed.androidgitversion") version "0.4.14"
     id("com.github.ben-manes.versions") version "0.42.0"
 }
+
+apply(plugin = "dagger.hilt.android.plugin")
 
 android {
     compileSdk = 34
@@ -14,11 +17,10 @@ android {
     defaultConfig {
         applicationId = "ltd.ucode.slide"
         minSdk = 23
-        targetSdk = 34
+        targetSdk = 33
         versionCode = 1
         versionName = androidGitVersion.name()
 
-        multiDexEnabled = true
         vectorDrawables.useSupportLibrary = true
     }
 
@@ -77,7 +79,7 @@ android {
 
     testOptions {
         unitTests {
-            //includeAndroidResources = true
+            isIncludeAndroidResources = true
         }
     }
 
@@ -89,10 +91,8 @@ android {
 }
 
 dependencies {
-    implementation("androidx.security:security-crypto-ktx:1.1.0-alpha03")
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:1.1.1")
 
-    implementation("androidx.core:core-ktx:1.10.1")
     implementation("androidx.collection:collection-ktx:1.2.0")
     implementation("androidx.fragment:fragment-ktx:1.6.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.1")
@@ -107,6 +107,7 @@ dependencies {
     implementation("androidx.sqlite:sqlite-ktx:2.3.1")
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.1")
     implementation("androidx.work:work-runtime-ktx:2.8.1")
+    implementation("androidx.security:security-crypto-ktx:1.1.0-alpha03")
 
     /** Flavors **/
 
@@ -127,7 +128,6 @@ dependencies {
     implementation("androidx.core:core:1.10.1")
     implementation("androidx.fragment:fragment:1.6.0")
     implementation("androidx.media:media:1.3.1")
-    implementation("androidx.multidex:multidex:2.0.1")
     implementation("androidx.recyclerview:recyclerview:1.2.1")
     implementation("androidx.webkit:webkit:1.4.0")
     implementation("com.google.android.material:material:1.4.0")
@@ -241,12 +241,49 @@ dependencies {
     implementation("org.mp4parser:isoparser:1.9.41")
     implementation("org.mp4parser:muxer:1.9.41")
 
+    // Dependency Injection
+    implementation("com.google.dagger:hilt-android:+")
+    kapt("com.google.dagger:hilt-android-compiler:+")
+    implementation("androidx.hilt:hilt-common:+")
+    implementation("androidx.hilt:hilt-lifecycle-viewmodel:+")
+    kapt("androidx.hilt:hilt-compiler:+")
+
 
     /** Testing **/
     testImplementation(kotlin("test"))
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.hamcrest:hamcrest:2.2")
-    testImplementation("org.mockito:mockito-core:3.+")
+    testImplementation("org.mockito:mockito-core:3.12.4")
     testImplementation("org.powermock:powermock-module-junit4:2.0.9")
     testImplementation("com.github.IvanShafran:shared-preferences-mock:1.0")
+    testImplementation("org.robolectric:robolectric:4.10.3")
+
+    // To use the androidx.test.core APIs
+    androidTestImplementation("androidx.test:core:1.5.0")
+    testImplementation("androidx.test:core:1.5.0")
+    // Kotlin extensions for androidx.test.core
+    androidTestImplementation("androidx.test:core-ktx:1.5.0")
+    testImplementation("androidx.core:core-ktx:1.5.0")
+
+    // To use the androidx.test.espresso
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
+    testImplementation("androidx.test.espresso:espresso-core:3.5.1")
+
+    // To use the JUnit Extension APIs
+    androidTestImplementation("androidx.test.ext:junit:1.1.5")
+    testImplementation("androidx.test.ext:junit:1.1.5")
+    // Kotlin extensions for androidx.test.ext.junit
+    androidTestImplementation("androidx.test.ext:junit-ktx:1.1.5")
+    testImplementation("androidx.test.ext:junit-ktx:1.1.5")
+
+    // To use the Truth Extension APIs
+    androidTestImplementation("androidx.test.ext:truth:1.5.0")
+    testImplementation("androidx.test.ext:truth:1.5.0")
+
+    // To use the androidx.test.runner APIs
+    androidTestImplementation("androidx.test:runner:1.5.2")
+    testImplementation("androidx.test:runner:1.5.2")
+
+    // To use android test orchestrator
+    androidTestUtil("androidx.test:orchestrator:1.4.2")
 }

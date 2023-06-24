@@ -2,7 +2,9 @@ package ltd.ucode
 
 import android.content.Context
 import android.content.SharedPreferences
+import androidx.test.core.app.ApplicationProvider
 import com.github.ivanshafran.sharedpreferencesmock.SPMockBuilder
+import io.matthewnelson.fake_keystore.FakeAndroidKeyStore
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
@@ -12,13 +14,20 @@ import ltd.ucode.lemmy.api.AccountDataSource
 import ltd.ucode.lemmy.api.InstanceDataSource
 import ltd.ucode.lemmy.api.request.LoginRequest
 import ltd.ucode.lemmy.data.type.jwt.Token
-import ltd.ucode.lemmy.repository.AccountRepository
+import ltd.ucode.slide.repository.AccountRepository
 import org.junit.Before
+import org.junit.runner.RunWith
 import org.mockito.Mockito
+import org.robolectric.RobolectricTestRunner
 import java.io.File
 import kotlin.test.Test
 
+// Robolectric For SQL, activities flow, for those objects that needed context.
+// JUnit4 for api's java module to make sure data are return correctly.
+// Espresso For checking ui display correctly.
 
+//@RunWith(AndroidJUnit4::class)
+@RunWith(RobolectricTestRunner::class)
 class Experiment {
     lateinit var context: Context
     lateinit var sharedPreferences: SharedPreferences
@@ -29,6 +38,8 @@ class Experiment {
         this.context = Mockito.mock(Context::class.java)
         Mockito.`when`(context.getSharedPreferences("accounts", 0))
             .thenReturn(sharedPreferences)
+        this.context = ApplicationProvider.getApplicationContext()
+        FakeAndroidKeyStore.setup
     }
 
     @Test
@@ -55,9 +66,16 @@ class Experiment {
         } catch (e: Exception) {
             LoginRequest("", "")
         }
+        val accounts = AccountRepository(context)
+        val instance = "lemmy.ml"
+        accounts.setPassword(account.usernameOrEmail, instance, account.password)
+
+
         val source: InstanceDataSource = AccountDataSource(
-            context, AccountRepository(context),
+            context, accounts,
             account.usernameOrEmail,"lemmy.ml")
+
+
         runBlocking { source.nodeInfo() }
             .also { println("$it") }
         runBlocking { source.getSite() }

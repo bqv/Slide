@@ -1,4 +1,4 @@
-package ltd.ucode.lemmy.repository
+package ltd.ucode.slide.repository
 
 import android.content.Context
 import android.content.SharedPreferences

@@ -11,7 +11,7 @@ import ltd.ucode.lemmy.api.response.GetUnreadCountResponse
 import ltd.ucode.lemmy.api.response.UploadImageResponse
 import ltd.ucode.lemmy.data.LoginResult
 import ltd.ucode.lemmy.data.type.jwt.Token
-import ltd.ucode.lemmy.repository.AccountRepository
+import ltd.ucode.slide.repository.AccountRepository
 import retrofit2.Response
 
 class AccountDataSource(

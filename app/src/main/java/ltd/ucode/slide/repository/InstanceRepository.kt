@@ -1,4 +1,4 @@
-package ltd.ucode.lemmy.repository
+package ltd.ucode.slide.repository
 
 import android.content.Context
 import ltd.ucode.lemmy.api.InstanceDataSource
@@ -14,13 +14,7 @@ class InstanceRepository(
 
     suspend fun getNodeInfo(instance: String): NodeInfoResult {
         return with(instances[instance]!!) {
-            nodeInfo().let {
-                NodeInfoResult(
-                    it,
-                    it.links.first().href
-                        .let { url -> nodeInfo20(url) } // lets hope
-                )
-            }
+            getNodeInfo()
         }
     }
 }
