@@ -4,9 +4,15 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.datetime.Clock
+import kotlinx.datetime.Instant
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonNamingStrategy
+import ltd.ucode.slide.BuildConfig
+import kotlin.time.Duration
+import kotlin.time.DurationUnit
+import kotlin.time.toDuration
 
 object Util {
 
@@ -37,4 +43,11 @@ object Util {
         onPostExecute(result)
     }
 
+    val Instant.ago: Duration
+        get() = DurationUnit.SECONDS.let { unit ->
+            minus(Clock.System.now()).absoluteValue.toLong(unit).toDuration(unit)
+        }
+
+    val userAgent: String
+        get() = "android:" + BuildConfig.APPLICATION_ID +  ":v" + BuildConfig.VERSION_NAME
 }

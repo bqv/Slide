@@ -13,7 +13,7 @@ android {
 
     defaultConfig {
         applicationId = "ltd.ucode.slide"
-        minSdk = 19
+        minSdk = 23
         targetSdk = 34
         versionCode = 1
         versionName = androidGitVersion.name()
@@ -76,9 +76,9 @@ android {
     }
 
     testOptions {
-      //unitTests {
-      //    includeAndroidResources = true
-      //}
+        unitTests {
+            //includeAndroidResources = true
+        }
     }
 
     buildFeatures {
@@ -89,6 +89,7 @@ android {
 }
 
 dependencies {
+    implementation("androidx.security:security-crypto-ktx:1.1.0-alpha03")
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:1.1.1")
 
     implementation("androidx.core:core-ktx:1.10.1")
@@ -242,7 +243,10 @@ dependencies {
 
 
     /** Testing **/
+    testImplementation(kotlin("test"))
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.hamcrest:hamcrest:2.2")
+    testImplementation("org.mockito:mockito-core:3.+")
     testImplementation("org.powermock:powermock-module-junit4:2.0.9")
+    testImplementation("com.github.IvanShafran:shared-preferences-mock:1.0")
 }

@@ -7,9 +7,9 @@ import ltd.ucode.lemmy.data.type.PostSortType
 
 @Serializable
 data class ListCommunitiesRequest (
-    val auth: String? = null,
+    override var auth: String? = null,
     val limit: Int? = null,
     val page: Int? = null,
     val sort: PostSortType? = null,
     @SerialName("type_") val type: PostListingType? = null,
-)
+) : Authenticated

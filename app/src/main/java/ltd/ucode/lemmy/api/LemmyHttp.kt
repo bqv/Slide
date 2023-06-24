@@ -1,15 +1,7 @@
 package ltd.ucode.lemmy.api
 
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonArray
-import kotlinx.serialization.json.JsonNull
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.json.encodeToJsonElement
-import kotlinx.serialization.json.jsonObject
 import ltd.ucode.Util.SnakeCaseSerializer
-import ltd.ucode.Util.filterNotNullValues
 import ltd.ucode.lemmy.api.iter.PagedData
 import ltd.ucode.lemmy.api.request.GetCommentsRequest
 import ltd.ucode.lemmy.api.request.GetPersonDetailsRequest
@@ -216,20 +208,6 @@ class LemmyHttp(val instance: String = "lemmy.ml",
 
         return response.toResult()
     }
-}
-
-private inline fun <reified T> T.toForm(): Map<String, String> {
-    return Json { encodeDefaults = true }
-        .encodeToJsonElement(this)
-        .jsonObject
-        .toMap()
-        .mapValues { (_, element) -> when (element) {
-            is JsonNull -> null
-            is JsonPrimitive -> element.content
-            is JsonArray -> TODO()
-            is JsonObject -> TODO()
-        } }
-        .filterNotNullValues()
 }
 
 private fun <T> Response<T>.unwrap(): T {

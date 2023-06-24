@@ -22,12 +22,12 @@ public class ContentTypeTest {
 
     @BeforeClass
     public static void setUp() {
-        SettingValues.alwaysExternal = new HashSet<>(Arrays.asList(
+        SettingValues.INSTANCE.setAlwaysExternal(new HashSet<>(Arrays.asList(
                 "twitter.com",
                 "github.com",
                 "t.co",
                 "example.com/path"
-        ));
+        )));
     }
 
     @Test
