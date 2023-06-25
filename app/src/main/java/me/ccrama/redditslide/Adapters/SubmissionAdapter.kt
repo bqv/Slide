@@ -17,10 +17,10 @@ import ltd.ucode.slide.Authentication
 import ltd.ucode.slide.R
 import ltd.ucode.slide.SettingValues.appRestart
 import ltd.ucode.slide.SettingValues.getLayoutSettings
-import ltd.ucode.slide.activity.MainActivity
-import ltd.ucode.slide.activity.MainActivity.MainPagerAdapterComment
 import ltd.ucode.slide.data.IPost
-import me.ccrama.redditslide.Activities.CommentsScreen
+import ltd.ucode.slide.ui.commentsScreen.CommentsScreen
+import ltd.ucode.slide.ui.main.MainActivity
+import ltd.ucode.slide.ui.main.MainActivity.MainPagerAdapterComment
 import me.ccrama.redditslide.Activities.SubredditView
 import me.ccrama.redditslide.Activities.SubredditView.SubredditPagerAdapterComment
 import me.ccrama.redditslide.Fragments.SubmissionsView
@@ -187,9 +187,9 @@ class SubmissionAdapter(
                                 && a.commentPager
                                 && a.adapter is MainPagerAdapterComment
                             ) {
-                                if (a.openingComments!!.equals(submission)) {
+                                if (true || a.openingComments == submission) {
                                     clicked = holder.getBindingAdapterPosition()
-                                    a.openingComments!!.equals(submission)
+                                    a.openingComments = submission
                                     a.toOpenComments = a.pager!!.currentItem + 1
                                     a.currentComment = holder.bindingAdapterPosition - 1
                                     (a.adapter as MainPagerAdapterComment?)!!.storedFragment =
@@ -246,7 +246,8 @@ class SubmissionAdapter(
                                 i2.putExtra(CommentsScreen.EXTRA_SUBREDDIT, subreddit)
                                 i2.putExtra(CommentsScreen.EXTRA_FULLNAME, submission.permalink)
                                 i2.putExtra(CommentsScreen.EXTRA_POSTID, submission.postId.id)
-                                i2.putParcelableArrayListExtra(CommentsScreen.EXTRA_POSTS,
+                                i2.putParcelableArrayListExtra(
+                                    CommentsScreen.EXTRA_POSTS,
                                     ArrayList(dataSet.posts.mapNotNull { it as Parcelable }))
                                 context.startActivityForResult(i2, 940)
                                 clicked = holder.getBindingAdapterPosition()

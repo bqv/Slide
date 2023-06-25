@@ -14,7 +14,4 @@ data class GetPersonDetailsResponse (
     val posts: List<PostView>,
     val moderates: List<CommunityModeratorView>,
 ) {
-    fun toResult(): GetPersonDetailsResponse {
-        return this
-    }
 }

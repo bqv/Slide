@@ -16,9 +16,9 @@ import ltd.ucode.slide.Authentication
 import ltd.ucode.slide.R
 import ltd.ucode.slide.SettingValues.appRestart
 import ltd.ucode.slide.SettingValues.getLayoutSettings
-import ltd.ucode.slide.activity.MainActivity
-import ltd.ucode.slide.activity.MainActivity.MainPagerAdapterComment
-import me.ccrama.redditslide.Activities.CommentsScreen
+import ltd.ucode.slide.ui.main.MainActivity
+import ltd.ucode.slide.ui.main.MainActivity.MainPagerAdapterComment
+import ltd.ucode.slide.ui.commentsScreen.CommentsScreen
 import me.ccrama.redditslide.Activities.SubredditView
 import me.ccrama.redditslide.Activities.SubredditView.SubredditPagerAdapterComment
 import me.ccrama.redditslide.Fragments.SubmissionsView.Companion.createLayoutManager

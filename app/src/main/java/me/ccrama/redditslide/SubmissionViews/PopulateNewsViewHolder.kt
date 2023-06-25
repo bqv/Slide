@@ -1,11 +1,9 @@
 package me.ccrama.redditslide.SubmissionViews
 
-import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
-import android.content.SharedPreferences
 import android.graphics.Color
 import android.os.AsyncTask
 import android.text.SpannableStringBuilder
@@ -31,7 +29,7 @@ import ltd.ucode.slide.App.Companion.defaultShareText
 import ltd.ucode.slide.Authentication
 import ltd.ucode.slide.R
 import ltd.ucode.slide.SettingValues
-import ltd.ucode.slide.activity.MainActivity
+import ltd.ucode.slide.ui.main.MainActivity
 import me.ccrama.redditslide.ActionStates
 import me.ccrama.redditslide.Activities.Album
 import me.ccrama.redditslide.Activities.AlbumPager

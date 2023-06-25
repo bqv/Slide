@@ -1,4 +1,4 @@
-package me.ccrama.redditslide.Activities
+package ltd.ucode.slide.ui
 
 import android.annotation.TargetApi
 import android.app.ActivityManager.TaskDescription

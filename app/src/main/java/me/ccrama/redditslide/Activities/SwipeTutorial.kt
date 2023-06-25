@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.View
 import android.widget.TextView
 import ltd.ucode.slide.R
+import ltd.ucode.slide.ui.BaseActivity
 
 class SwipeTutorial : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

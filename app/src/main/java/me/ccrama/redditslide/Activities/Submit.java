@@ -46,6 +46,7 @@ import java.util.List;
 
 import gun0912.tedbottompicker.TedBottomPicker;
 import ltd.ucode.slide.Authentication;
+import ltd.ucode.slide.ui.BaseActivity;
 import me.ccrama.redditslide.Drafts;
 import me.ccrama.redditslide.Flair.RichFlair;
 import me.ccrama.redditslide.ImgurAlbum.UploadImgur;

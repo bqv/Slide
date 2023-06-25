@@ -10,9 +10,9 @@ import androidx.appcompat.widget.AppCompatButton;
 import java.util.List;
 
 import ltd.ucode.slide.SettingValues;
+import ltd.ucode.slide.ui.BaseActivity;
 import me.ccrama.redditslide.OpenRedditLink;
 import ltd.ucode.slide.R;
-import ltd.ucode.slide.App;
 import me.ccrama.redditslide.SpoilerRobotoTextView;
 import me.ccrama.redditslide.Views.CommentOverflow;
 import me.ccrama.redditslide.Views.SidebarLayout;

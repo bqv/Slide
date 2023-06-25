@@ -17,9 +17,9 @@ import ltd.ucode.slide.Authentication
 import ltd.ucode.slide.BuildConfig
 import ltd.ucode.slide.R
 import ltd.ucode.slide.SettingValues
-import ltd.ucode.slide.activity.MainActivity
+import ltd.ucode.slide.ui.main.MainActivity
 import ltd.ucode.slide.data.IPost
-import me.ccrama.redditslide.Activities.BaseActivity
+import ltd.ucode.slide.ui.BaseActivity
 import me.ccrama.redditslide.Activities.SubredditView
 import me.ccrama.redditslide.Constants
 import me.ccrama.redditslide.Fragments.SubmissionsView

@@ -44,7 +44,7 @@ public class CommentSearch extends BaseActivityAnim {
         if (commentsOld != null && !commentsOld.isEmpty())
             for (CommentObject o : commentsOld) {
                 if (o instanceof CommentItem)
-                    comments.add(o.comment);
+                    comments.add((CommentNode)(Object) o.comment);
             }
         else
             finish();

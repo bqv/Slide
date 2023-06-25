@@ -37,9 +37,9 @@ import ltd.ucode.slide.SettingValues.defaultCardView
 import ltd.ucode.slide.SettingValues.fabType
 import ltd.ucode.slide.SettingValues.single
 import ltd.ucode.slide.SettingValues.subredditSearchMethod
-import ltd.ucode.slide.activity.MainActivity
 import ltd.ucode.slide.data.IPost
-import me.ccrama.redditslide.Activities.BaseActivity
+import ltd.ucode.slide.ui.BaseActivity
+import ltd.ucode.slide.ui.main.MainActivity
 import me.ccrama.redditslide.Activities.Search
 import me.ccrama.redditslide.Activities.Submit
 import me.ccrama.redditslide.Activities.SubredditView
@@ -59,12 +59,9 @@ import me.ccrama.redditslide.util.LayoutUtils
 import kotlin.math.abs
 
 class SubmissionsView : Fragment(), SubmissionDisplay {
-    @JvmField
-    var posts: SubredditPosts? = null
-    @JvmField
-    var rv: RecyclerView? = null
-    @JvmField
-    var adapter: SubmissionAdapter? = null
+    @JvmField var posts: SubredditPosts? = null
+    @JvmField var rv: RecyclerView? = null
+    @JvmField var adapter: SubmissionAdapter? = null
     var id: String? = null
     var main = false
     var forced = false

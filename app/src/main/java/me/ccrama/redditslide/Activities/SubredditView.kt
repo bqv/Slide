@@ -57,7 +57,7 @@ import ltd.ucode.slide.SettingValues.hasSort
 import ltd.ucode.slide.SettingValues.setSubSorting
 import ltd.ucode.slide.SettingValues.showNSFWContent
 import ltd.ucode.slide.SettingValues.single
-import me.ccrama.redditslide.Activities.Shadowbox
+import ltd.ucode.slide.ui.BaseActivity
 import me.ccrama.redditslide.Constants
 import me.ccrama.redditslide.Fragments.BlankFragment
 import me.ccrama.redditslide.Fragments.CommentPage

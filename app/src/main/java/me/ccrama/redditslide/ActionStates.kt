@@ -1,5 +1,6 @@
 package me.ccrama.redditslide
 
+import ltd.ucode.lemmy.data.type.CommentView
 import ltd.ucode.slide.data.IItem
 import ltd.ucode.slide.data.IPost
 import net.dean.jraw.models.Comment
@@ -36,6 +37,23 @@ object ActionStates {
             VoteDirection.NO_VOTE
         } else {
             s.myVote
+        }
+    }
+
+    @JvmStatic
+    fun getVoteDirection(s: CommentView): VoteDirection {
+        return if (upVotedFullnames.contains(s.permalink)) {
+            VoteDirection.UPVOTE
+        } else if (downVotedFullnames.contains(s.permalink)) {
+            VoteDirection.DOWNVOTE
+        } else if (unvotedFullnames.contains(s.permalink)) {
+            VoteDirection.NO_VOTE
+        } else {
+            when (s.myVote?.let { it > 0 }) {
+                null -> { VoteDirection.NO_VOTE }
+                true -> { VoteDirection.UPVOTE }
+                false -> { VoteDirection.DOWNVOTE }
+            }
         }
     }
 
@@ -87,6 +105,17 @@ object ActionStates {
         }
     }
 
+    @JvmStatic
+    fun isSaved(s: CommentView): Boolean {
+        return if (savedFullnames.contains(s.permalink)) {
+            true
+        } else if (unSavedFullnames.contains(s.permalink)) {
+            false
+        } else {
+            s.isSaved
+        }
+    }
+
     fun setSaved(s: IPost, b: Boolean) {
         val fullname: String = s.permalink
         savedFullnames.remove(fullname)
@@ -100,6 +129,16 @@ object ActionStates {
     @JvmStatic
     fun setSaved(s: Comment, b: Boolean) {
         val fullname = s.fullName
+        savedFullnames.remove(fullname)
+        if (b) {
+            savedFullnames.add(fullname)
+        } else {
+            unSavedFullnames.add(fullname)
+        }
+    }
+
+    fun setSaved(s: CommentView, b: Boolean) {
+        val fullname: String = s.permalink
         savedFullnames.remove(fullname)
         if (b) {
             savedFullnames.add(fullname)

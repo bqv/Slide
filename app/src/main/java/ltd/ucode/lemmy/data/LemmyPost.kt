@@ -3,7 +3,7 @@ package ltd.ucode.lemmy.data
 import kotlinx.datetime.Instant
 import kotlinx.datetime.UtcOffset
 import kotlinx.datetime.toInstant
-import kotlinx.serialization.Serializable
+import ltd.ucode.lemmy.data.type.CommunityId
 import ltd.ucode.lemmy.data.type.PostId
 import ltd.ucode.lemmy.data.type.PostView
 import ltd.ucode.slide.data.IPost
@@ -38,6 +38,8 @@ open class LemmyPost(val instance: String, val data: PostView) : IPost() {
 
     override val groupName: String
         get() = data.community.name
+    override val groupId: CommunityId?
+        get() = data.community.id
 
     override val link: String
         get() = "https://${instance}/post/${data.post.id}"

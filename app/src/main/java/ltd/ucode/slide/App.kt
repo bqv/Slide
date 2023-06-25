@@ -11,6 +11,7 @@ import android.content.DialogInterface
 import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
+import android.content.pm.PackageManager.NameNotFoundException
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -34,7 +35,8 @@ import com.google.android.exoplayer2.upstream.cache.SimpleCache
 import com.jakewharton.processphoenix.ProcessPhoenix
 import com.lusfold.androidkeyvaluestore.KVStore
 import com.nostra13.universalimageloader.core.ImageLoader
-import ltd.ucode.slide.activity.MainActivity
+import dagger.hilt.android.HiltAndroidApp
+import ltd.ucode.slide.ui.main.MainActivity
 import me.ccrama.redditslide.Autocache.AutoCacheScheduler
 import me.ccrama.redditslide.ContentType
 import me.ccrama.redditslide.ImageFlairs
@@ -69,7 +71,7 @@ import java.net.UnknownHostException
 import java.util.Calendar
 import java.util.Locale
 
-
+@HiltAndroidApp
 class App : Application(), ActivityLifecycleCallbacks {
     var active = false
 
@@ -394,7 +396,7 @@ class App : Application(), ActivityLifecycleCallbacks {
                     s!!, 0
                 )
                 if (pi != null && pi.applicationInfo.enabled) return true
-            } catch (ignored: Throwable) {
+            } catch (ignored: NameNotFoundException) {
             }
             return false
         }

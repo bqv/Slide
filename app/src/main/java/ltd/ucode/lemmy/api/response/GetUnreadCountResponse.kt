@@ -9,7 +9,4 @@ data class GetUnreadCountResponse (
     @SerialName("private_messages") val privateMessages: Int,
     val replies: Int,
 ) {
-    fun toResult(): GetUnreadCountResponse {
-        return this
-    }
 }

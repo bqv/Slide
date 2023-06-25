@@ -34,9 +34,9 @@ import ltd.ucode.slide.SettingValues.defaultCardView
 import ltd.ucode.slide.SettingValues.fabType
 import ltd.ucode.slide.SettingValues.single
 import ltd.ucode.slide.SettingValues.subredditSearchMethod
-import ltd.ucode.slide.activity.MainActivity
+import ltd.ucode.slide.ui.main.MainActivity
 import ltd.ucode.slide.data.IPost
-import me.ccrama.redditslide.Activities.BaseActivity
+import ltd.ucode.slide.ui.BaseActivity
 import me.ccrama.redditslide.Activities.Submit
 import me.ccrama.redditslide.Activities.SubredditView
 import me.ccrama.redditslide.Adapters.SubmissionDisplay

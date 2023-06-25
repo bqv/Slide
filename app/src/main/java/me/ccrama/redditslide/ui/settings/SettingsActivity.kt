@@ -28,7 +28,7 @@ import ltd.ucode.slide.Authentication
 import ltd.ucode.slide.BuildConfig
 import ltd.ucode.slide.R
 import ltd.ucode.slide.SettingValues
-import me.ccrama.redditslide.Activities.BaseActivity
+import ltd.ucode.slide.ui.BaseActivity
 import me.ccrama.redditslide.Fragments.FolderChooserDialogCreate
 import me.ccrama.redditslide.Visuals.Palette
 import me.ccrama.redditslide.ui.settings.dragSort.ReorderSubreddits

@@ -6,6 +6,7 @@ import android.view.Window;
 
 import ltd.ucode.slide.R;
 import ltd.ucode.slide.App;
+import ltd.ucode.slide.ui.BaseActivity;
 import me.ccrama.redditslide.Visuals.Palette;
 
 /**

@@ -1,281 +1,267 @@
-package me.ccrama.redditslide.Activities;
+package ltd.ucode.slide.ui.login
 
-import android.annotation.TargetApi;
-import android.app.Dialog;
-import android.content.SharedPreferences;
-import android.graphics.Bitmap;
-import android.os.AsyncTask;
-import android.os.Build;
-import android.os.Bundle;
-import android.util.Log;
-import android.view.View;
-import android.webkit.CookieManager;
-import android.webkit.CookieSyncManager;
-import android.webkit.WebSettings;
-import android.webkit.WebView;
-import android.webkit.WebViewClient;
+import android.annotation.TargetApi
+import android.app.Dialog
+import android.content.DialogInterface
+import android.graphics.Bitmap
+import android.os.AsyncTask
+import android.os.Build
+import android.os.Bundle
+import android.util.Log
+import android.view.View
+import android.webkit.CookieManager
+import android.webkit.CookieSyncManager
+import android.webkit.WebView
+import android.webkit.WebViewClient
+import androidx.appcompat.app.AlertDialog
+import com.afollestad.materialdialogs.MaterialDialog
+import ltd.ucode.slide.App.Companion.forceRestart
+import ltd.ucode.slide.Authentication
+import ltd.ucode.slide.R
+import ltd.ucode.slide.SettingValues.appRestart
+import ltd.ucode.slide.SettingValues.authentication
+import me.ccrama.redditslide.Activities.BaseActivityAnim
+import me.ccrama.redditslide.CaseInsensitiveArrayList
+import me.ccrama.redditslide.UserSubscriptions.setSubscriptions
+import me.ccrama.redditslide.UserSubscriptions.sort
+import me.ccrama.redditslide.UserSubscriptions.switchAccounts
+import me.ccrama.redditslide.UserSubscriptions.syncSubredditsGetObjectAsync
+import me.ccrama.redditslide.Visuals.GetClosestColor
+import me.ccrama.redditslide.Visuals.Palette
+import me.ccrama.redditslide.util.LogUtil
+import net.dean.jraw.http.NetworkException
+import net.dean.jraw.http.oauth.Credentials
+import net.dean.jraw.http.oauth.OAuthData
+import net.dean.jraw.http.oauth.OAuthException
+import net.dean.jraw.http.oauth.OAuthHelper
+import net.dean.jraw.models.Subreddit
 
-import androidx.appcompat.app.AlertDialog;
-
-import com.afollestad.materialdialogs.MaterialDialog;
-
-import net.dean.jraw.http.NetworkException;
-import net.dean.jraw.http.oauth.Credentials;
-import net.dean.jraw.http.oauth.OAuthData;
-import net.dean.jraw.http.oauth.OAuthException;
-import net.dean.jraw.http.oauth.OAuthHelper;
-import net.dean.jraw.models.LoggedInAccount;
-import net.dean.jraw.models.Subreddit;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Locale;
-import java.util.Set;
-
-import ltd.ucode.slide.Authentication;
-import ltd.ucode.slide.SettingValues;
-import me.ccrama.redditslide.CaseInsensitiveArrayList;
-import ltd.ucode.slide.R;
-import ltd.ucode.slide.App;
-import me.ccrama.redditslide.UserSubscriptions;
-import me.ccrama.redditslide.Visuals.GetClosestColor;
-import me.ccrama.redditslide.Visuals.Palette;
-import me.ccrama.redditslide.util.LogUtil;
-
-
-/**
- * Created by ccrama on 5/27/2015.
- */
-public class Login extends BaseActivityAnim {
-    private static final String CLIENT_ID    = "KI2Nl9A_ouG9Qw";
-    private static final String REDIRECT_URL = "http://www.ccrama.me";
-    Dialog                           d;
-    CaseInsensitiveArrayList subNames;
-
-    @Override
-    public void onCreate(Bundle savedInstance) {
-        overrideSwipeFromAnywhere();
-        super.onCreate(savedInstance);
-        applyColorTheme("");
+class Login : BaseActivityAnim() {
+    var d: Dialog? = null
+    var subNames: CaseInsensitiveArrayList? = null
+    public override fun onCreate(savedInstance: Bundle?) {
+        overrideSwipeFromAnywhere()
+        super.onCreate(savedInstance)
+        applyColorTheme("")
         try {
-            setContentView(R.layout.activity_login);
-        } catch(Exception e){
-            finish();
-            return;
+            setContentView(R.layout.activity_login)
+        } catch (e: Exception) {
+            finish()
+            return
         }
-        setupAppBar(R.id.toolbar, R.string.title_login, true, true);
-
-        String[] scopes = {
-                "identity", "modcontributors", "modconfig", "modothers", "modwiki", "creddits",
-                "livemanage", "account", "privatemessages", "modflair", "modlog", "report",
-                "modposts", "modwiki", "read", "vote", "edit", "submit", "subscribe", "save",
-                "wikiread", "flair", "history", "mysubreddits", "wikiedit"
-        };
-        if (Authentication.reddit == null) {
-            new Authentication(getApplicationContext());
-        }
-        final OAuthHelper oAuthHelper = Authentication.reddit.getOAuthHelper();
-        final Credentials credentials = Credentials.installedApp(CLIENT_ID, REDIRECT_URL);
-        String authorizationUrl =
-                oAuthHelper.getAuthorizationUrl(credentials, true, scopes).toExternalForm();
-        authorizationUrl = authorizationUrl.replace("www.", "i.");
-        authorizationUrl = authorizationUrl.replace("%3A%2F%2Fi", "://www");
-        Log.v(LogUtil.getTag(), "Auth URL: " + authorizationUrl);
-        final WebView webView = (WebView) findViewById(R.id.web);
-        webView.clearCache(true);
-        webView.clearHistory();
-        WebSettings webSettings = webView.getSettings();
-        webSettings.setJavaScriptEnabled(true);
-        webSettings.setDomStorageEnabled(true);
-        webSettings.setDatabaseEnabled(true);
-        webSettings.setMinimumFontSize(1);
-        webSettings.setMinimumLogicalFontSize(1);
-
-        final CookieManager cookieManager = CookieManager.getInstance();
+        setupAppBar(R.id.toolbar, R.string.title_login, true, true)
+        val scopes = arrayOf(
+            "identity", "modcontributors", "modconfig", "modothers", "modwiki", "creddits",
+            "livemanage", "account", "privatemessages", "modflair", "modlog", "report",
+            "modposts", "modwiki", "read", "vote", "edit", "submit", "subscribe", "save",
+            "wikiread", "flair", "history", "mysubreddits", "wikiedit"
+        )
+        //if (Authentication.reddit == null) {
+        //    Authentication(applicationContext)
+        //}
+        //val oAuthHelper = Authentication.reddit!!.oAuthHelper
+        //val credentials = Credentials.installedApp(CLIENT_ID, REDIRECT_URL)
+        //var authorizationUrl = oAuthHelper.getAuthorizationUrl(credentials, true, *scopes).toExternalForm()
+        //authorizationUrl = authorizationUrl.replace("www.", "i.")
+        //authorizationUrl = authorizationUrl.replace("%3A%2F%2Fi", "://www")
+        //Log.v(LogUtil.getTag(), "Auth URL: $authorizationUrl")
+        val webView = findViewById<View>(R.id.web) as WebView
+        webView.clearCache(true)
+        webView.clearHistory()
+        val webSettings = webView.settings
+        webSettings.javaScriptEnabled = true
+        webSettings.domStorageEnabled = true
+        webSettings.databaseEnabled = true
+        webSettings.minimumFontSize = 1
+        webSettings.minimumLogicalFontSize = 1
+        val cookieManager = CookieManager.getInstance()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            cookieManager.removeAllCookies(null);
-            cookieManager.flush();
+            cookieManager.removeAllCookies(null)
+            cookieManager.flush()
         } else {
-            final CookieSyncManager cookieSyncMngr = CookieSyncManager.createInstance(this);
-            cookieSyncMngr.startSync();
-            cookieManager.removeAllCookie();
-            cookieManager.removeSessionCookie();
-            cookieSyncMngr.stopSync();
-            cookieSyncMngr.sync();
+            val cookieSyncMngr = CookieSyncManager.createInstance(this)
+            cookieSyncMngr.startSync()
+            cookieManager.removeAllCookie()
+            cookieManager.removeSessionCookie()
+            cookieSyncMngr.stopSync()
+            cookieSyncMngr.sync()
         }
-
-        webView.setWebViewClient(new WebViewClient() {
-            @Override
-            public void onPageStarted(WebView view, String url, Bitmap favicon) {
-                LogUtil.v(url);
+        webView.webViewClient = object : WebViewClient() {
+            override fun onPageStarted(view: WebView, url: String, favicon: Bitmap) {
+                LogUtil.v(url)
                 if (url.contains("code=")) {
-                    Log.v(LogUtil.getTag(), "WebView URL: " + url);
+                    Log.v(LogUtil.getTag(), "WebView URL: $url")
                     // Authentication code received, prevent HTTP call from being made.
-                    webView.stopLoading();
-                    new UserChallengeTask(oAuthHelper, credentials).execute(url);
-                    webView.setVisibility(View.GONE);
+                    webView.stopLoading()
+                    //UserChallengeTask(oAuthHelper, credentials).execute(url)
+                    webView.visibility = View.GONE
                 }
             }
-        });
-
-        webView.loadUrl(authorizationUrl);
+        }
+        webView.loadUrl("about:blank")
     }
 
-    @Override
     @TargetApi(Build.VERSION_CODES.O)
-    protected void setAutofill() {
-        getWindow().getDecorView().setImportantForAutofill(View.IMPORTANT_FOR_AUTOFILL_AUTO);
+    override fun setAutofill() {
+        window.decorView.importantForAutofill = View.IMPORTANT_FOR_AUTOFILL_AUTO
     }
 
-    private void doSubStrings(ArrayList<Subreddit> subs) {
-        subNames = new CaseInsensitiveArrayList();
-        for (Subreddit s : subs) {
-            subNames.add(s.getDisplayName().toLowerCase(Locale.ENGLISH));
+    private fun doSubStrings(subs: ArrayList<Subreddit>) {
+        subNames = CaseInsensitiveArrayList()
+        for (s in subs) {
+            subNames!!.add(s.displayName.lowercase())
         }
-        subNames = UserSubscriptions.sort(subNames);
-        if (!subNames.contains("slideforreddit")) {
-            new AlertDialog.Builder(Login.this)
-                    .setTitle(R.string.login_subscribe_rslideforreddit)
-                    .setMessage(R.string.login_subscribe_rslideforreddit_desc)
-                    .setPositiveButton(R.string.btn_yes, (dialog, which) -> {
-                        subNames.add(2, "slideforreddit");
-                        UserSubscriptions.setSubscriptions(subNames);
-                        App.forceRestart(Login.this, true);
-                    })
-                    .setNegativeButton(R.string.btn_no, (dialog, which) -> {
-                        UserSubscriptions.setSubscriptions(subNames);
-                        App.forceRestart(Login.this, true);
-                    })
-                    .setCancelable(false)
-                    .show();
-        } else {
-            UserSubscriptions.setSubscriptions(subNames);
-            App.forceRestart(Login.this, true);
-        }
-
-    }
-
-    public void doLastStuff(final ArrayList<Subreddit> subs) {
-
-        d.dismiss();
-        new AlertDialog.Builder(Login.this)
-                .setTitle(R.string.login_sync_colors)
-                .setMessage(R.string.login_sync_colors_desc)
-                .setPositiveButton(R.string.btn_yes, (dialog, which) -> {
-                    for (Subreddit s : subs) {
-                        if (s.getDataNode().has("key_color")
-                                && !s.getDataNode()
-                                .get("key_color")
-                                .asText()
-                                .isEmpty()
-                                && Palette.getColor(s.getDisplayName().toLowerCase(Locale.ENGLISH)) == Palette
-                                .getDefaultColor()) {
-                            Palette.setColor(s.getDisplayName().toLowerCase(Locale.ENGLISH),
-                                    GetClosestColor.getClosestColor(
-                                            s.getDataNode().get("key_color").asText(),
-                                            Login.this));
-                        }
-
-                    }
-                    doSubStrings(subs);
-                })
-                .setNegativeButton(R.string.btn_no, (dialog, which) ->
-                        doSubStrings(subs))
-                .setOnDismissListener(dialog ->
-                        doSubStrings(subs))
-                .create()
-                .show();
-    }
-
-
-    private final class UserChallengeTask extends AsyncTask<String, Void, OAuthData> {
-        private final OAuthHelper    mOAuthHelper;
-        private final Credentials    mCredentials;
-        private       MaterialDialog mMaterialDialog;
-
-        public UserChallengeTask(OAuthHelper oAuthHelper, Credentials credentials) {
-            Log.v(LogUtil.getTag(), "UserChallengeTask()");
-            mOAuthHelper = oAuthHelper;
-            mCredentials = credentials;
-        }
-
-        @Override
-        protected void onPreExecute() {
-            //Show a dialog to indicate progress
-            MaterialDialog.Builder builder =
-                    new MaterialDialog.Builder(Login.this).title(R.string.login_authenticating)
-                            .progress(true, 0)
-                            .content(R.string.misc_please_wait)
-                            .cancelable(false);
-            mMaterialDialog = builder.build();
-            mMaterialDialog.show();
-        }
-
-        @Override
-        protected OAuthData doInBackground(String... params) {
-            try {
-                OAuthData oAuthData = mOAuthHelper.onUserChallenge(params[0], mCredentials);
-                if (oAuthData != null) {
-                    Authentication.reddit.authenticate(oAuthData);
-                    Authentication.isLoggedIn = true;
-                    String refreshToken = Authentication.reddit.getOAuthData().getRefreshToken();
-                    SharedPreferences.Editor editor = SettingValues.INSTANCE.getAuthentication().edit();
-                    Set<String> accounts = SettingValues.INSTANCE.getAuthentication().getStringSet("accounts",
-                            new HashSet<String>());
-                    LoggedInAccount me = Authentication.reddit.me();
-                    accounts.add(me.getFullName() + ":" + refreshToken);
-                    Authentication.name = me.getFullName();
-                    editor.putStringSet("accounts", accounts);
-                    Set<String> tokens = SettingValues.INSTANCE.getAuthentication().getStringSet("tokens",
-                            new HashSet<String>());
-                    tokens.add(refreshToken);
-                    editor.putStringSet("tokens", tokens);
-                    editor.putString("lasttoken", refreshToken);
-                    editor.remove("backedCreds");
-                    SettingValues.INSTANCE.getAppRestart().edit().remove("back").commit();
-                    editor.commit();
-                } else {
-                    Log.e(LogUtil.getTag(), "Passed in OAuthData was null");
+        subNames = sort(subNames)
+        if (!subNames!!.contains("slideforreddit")) {
+            AlertDialog.Builder(this@Login)
+                .setTitle(R.string.login_subscribe_rslideforreddit)
+                .setMessage(R.string.login_subscribe_rslideforreddit_desc)
+                .setPositiveButton(R.string.btn_yes) { dialog: DialogInterface?, which: Int ->
+                    subNames!!.add(2, "slideforreddit")
+                    setSubscriptions(subNames)
+                    forceRestart(this@Login, true)
                 }
-                return oAuthData;
-            } catch (IllegalStateException | NetworkException | OAuthException e) {
-                // Handle me gracefully
-                Log.e(LogUtil.getTag(), "OAuth failed");
-                Log.e(LogUtil.getTag(), e.getMessage());
+                .setNegativeButton(R.string.btn_no) { dialog: DialogInterface?, which: Int ->
+                    setSubscriptions(subNames)
+                    forceRestart(this@Login, true)
+                }
+                .setCancelable(false)
+                .show()
+        } else {
+            setSubscriptions(subNames)
+            forceRestart(this@Login, true)
+        }
+    }
+
+    fun doLastStuff(subs: ArrayList<Subreddit>) {
+        d!!.dismiss()
+        AlertDialog.Builder(this@Login)
+            .setTitle(R.string.login_sync_colors)
+            .setMessage(R.string.login_sync_colors_desc)
+            .setPositiveButton(R.string.btn_yes) { dialog: DialogInterface?, which: Int ->
+                for (s in subs) {
+                    if ((s.dataNode.has("key_color")
+                                && !s.dataNode["key_color"]
+                            .asText()
+                            .isEmpty()) && Palette.getColor(s.displayName.lowercase()) == Palette
+                            .getDefaultColor()
+                    ) {
+                        Palette.setColor(
+                            s.displayName.lowercase(),
+                            GetClosestColor.getClosestColor(
+                                s.dataNode["key_color"].asText(),
+                                this@Login
+                            )
+                        )
+                    }
+                }
+                doSubStrings(subs)
             }
-            return null;
+            .setNegativeButton(R.string.btn_no) { dialog: DialogInterface?, which: Int ->
+                doSubStrings(
+                    subs
+                )
+            }
+            .setOnDismissListener { dialog: DialogInterface? -> doSubStrings(subs) }
+            .create()
+            .show()
+    }
+
+    private inner class UserChallengeTask(oAuthHelper: OAuthHelper, credentials: Credentials) :
+        AsyncTask<String?, Void?, OAuthData?>() {
+        private val mOAuthHelper: OAuthHelper
+        private val mCredentials: Credentials
+        private var mMaterialDialog: MaterialDialog? = null
+
+        init {
+            Log.v(LogUtil.getTag(), "UserChallengeTask()")
+            mOAuthHelper = oAuthHelper
+            mCredentials = credentials
         }
 
-        @Override
-        protected void onPostExecute(OAuthData oAuthData) {
+        override fun onPreExecute() {
+            //Show a dialog to indicate progress
+            val builder = MaterialDialog.Builder(this@Login).title(R.string.login_authenticating)
+                .progress(true, 0)
+                .content(R.string.misc_please_wait)
+                .cancelable(false)
+            mMaterialDialog = builder.build()
+            mMaterialDialog!!.show()
+        }
+
+        override fun doInBackground(vararg params: String?): OAuthData? {
+            try {
+                val oAuthData = mOAuthHelper.onUserChallenge(params[0], mCredentials)
+                if (oAuthData != null) {
+                    Authentication.reddit!!.authenticate(oAuthData)
+                    Authentication.isLoggedIn = true
+                    val refreshToken = Authentication.reddit.oAuthData.refreshToken
+                    val editor = authentication.edit()
+                    val accounts = authentication.getStringSet(
+                        "accounts",
+                        HashSet()
+                    )
+                    val me = Authentication.reddit.me()
+                    accounts!!.add(me.fullName + ":" + refreshToken)
+                    Authentication.name = me.fullName
+                    editor.putStringSet("accounts", accounts)
+                    val tokens = authentication.getStringSet(
+                        "tokens",
+                        HashSet()
+                    )
+                    tokens!!.add(refreshToken)
+                    editor.putStringSet("tokens", tokens)
+                    editor.putString("lasttoken", refreshToken)
+                    editor.remove("backedCreds")
+                    appRestart.edit().remove("back").commit()
+                    editor.commit()
+                } else {
+                    Log.e(LogUtil.getTag(), "Passed in OAuthData was null")
+                }
+                return oAuthData
+            } catch (e: IllegalStateException) {
+                // Handle me gracefully
+                Log.e(LogUtil.getTag(), "OAuth failed")
+                Log.e(LogUtil.getTag(), e.message!!)
+            } catch (e: NetworkException) {
+                Log.e(LogUtil.getTag(), "OAuth failed")
+                Log.e(LogUtil.getTag(), e.message!!)
+            } catch (e: OAuthException) {
+                Log.e(LogUtil.getTag(), "OAuth failed")
+                Log.e(LogUtil.getTag(), e.message!!)
+            }
+            return null
+        }
+
+        override fun onPostExecute(oAuthData: OAuthData?) {
             //Dismiss old progress dialog
-            mMaterialDialog.dismiss();
-
+            mMaterialDialog!!.dismiss()
             if (oAuthData != null) {
-                SettingValues.INSTANCE.getAppRestart().edit().putBoolean("firststarting", true).apply();
-
-                UserSubscriptions.switchAccounts();
-                d = new MaterialDialog.Builder(Login.this).cancelable(false)
-                        .title(R.string.login_starting)
-                        .progress(true, 0)
-                        .content(R.string.login_starting_desc)
-                        .build();
-                d.show();
-
-                UserSubscriptions.syncSubredditsGetObjectAsync(Login.this);
+                appRestart.edit().putBoolean("firststarting", true).apply()
+                switchAccounts()
+                d = MaterialDialog.Builder(this@Login).cancelable(false)
+                    .title(R.string.login_starting)
+                    .progress(true, 0)
+                    .content(R.string.login_starting_desc)
+                    .build()
+                d!!.show()
+                syncSubredditsGetObjectAsync(this@Login)
             } else {
                 //Show a dialog if data is null
-                new AlertDialog.Builder(Login.this)
-                        .setTitle(R.string.err_authentication)
-                        .setMessage(R.string.login_failed_err_decline)
-                        .setNeutralButton(android.R.string.ok, (dialog, which) -> {
-                            App.forceRestart(Login.this, true);
-                            finish();
-                        })
-                        .show();
+                AlertDialog.Builder(this@Login)
+                    .setTitle(R.string.err_authentication)
+                    .setMessage(R.string.login_failed_err_decline)
+                    .setNeutralButton(android.R.string.ok) { dialog: DialogInterface?, which: Int ->
+                        forceRestart(this@Login, true)
+                        finish()
+                    }
+                    .show()
             }
         }
     }
 
-
+    companion object {
+        private const val CLIENT_ID = "KI2Nl9A_ouG9Qw"
+        private const val REDIRECT_URL = "http://www.ccrama.me"
+    }
 }

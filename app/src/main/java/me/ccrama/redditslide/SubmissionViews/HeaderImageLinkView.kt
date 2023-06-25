@@ -52,7 +52,7 @@ class HeaderImageLinkView : RelativeLayout {
     var secondSubTitle: TextView? = null
     var wrapArea: View? = null
         set(v: View?) {
-            wrapArea = v
+            field = v
             secondTitle = v!!.findViewById(R.id.contenttitle)
             secondSubTitle = v!!.findViewById(R.id.contenturl)
         }

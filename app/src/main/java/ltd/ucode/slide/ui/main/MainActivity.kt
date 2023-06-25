@@ -1,4 +1,4 @@
-package ltd.ucode.slide.activity
+package ltd.ucode.slide.ui.main
 
 import android.Manifest
 import android.animation.Animator
@@ -81,6 +81,7 @@ import com.afollestad.materialdialogs.MaterialDialog
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.tabs.TabLayout
 import com.lusfold.androidkeyvaluestore.KVStore
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.runBlocking
 import ltd.ucode.Util.executeAsyncTask
 import ltd.ucode.lemmy.data.LemmyPost
@@ -91,14 +92,16 @@ import ltd.ucode.slide.BuildConfig
 import ltd.ucode.slide.R
 import ltd.ucode.slide.SettingValues
 import ltd.ucode.slide.data.IPost
+import ltd.ucode.slide.ui.BaseActivity
+import ltd.ucode.slide.ui.Slide
+import ltd.ucode.slide.ui.Tutorial
+import ltd.ucode.slide.ui.login.Login
 import me.ccrama.redditslide.Activities.Announcement
-import me.ccrama.redditslide.Activities.BaseActivity
 import me.ccrama.redditslide.Activities.CancelSubNotifs
 import me.ccrama.redditslide.Activities.Discover
 import me.ccrama.redditslide.Activities.Gallery
 import me.ccrama.redditslide.Activities.Inbox
 import me.ccrama.redditslide.Activities.Loader
-import me.ccrama.redditslide.Activities.Login
 import me.ccrama.redditslide.Activities.ModQueue
 import me.ccrama.redditslide.Activities.MultiredditOverview
 import me.ccrama.redditslide.Activities.PostReadLater
@@ -185,6 +188,7 @@ import java.util.Collections
 import java.util.Locale
 import java.util.concurrent.Executors
 
+@AndroidEntryPoint
 class MainActivity : BaseActivity(), NetworkStateReceiverListener {
     var menu: Menu? = null
     var mTabLayout: TabLayout? = null
@@ -4195,10 +4199,8 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
     }
 
     inner class MainPagerAdapterComment(fm: FragmentManager?) : MainPagerAdapter(fm) {
-        @JvmField
-        var size = usedArray!!.size
-        @JvmField
-        var storedFragment: Fragment? = null
+        @JvmField var size = usedArray!!.size
+        @JvmField var storedFragment: Fragment? = null
         var mCurrentComments: CommentPage? = null
 
         init {
@@ -4289,12 +4291,9 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                 val f: Fragment = CommentPage()
                 val args = Bundle()
                 val name = openingComments!!.permalink
-                args.putString("id", name.substring(3))
+                args.putString("id", openingComments!!.postId.id.toString())
                 args.putBoolean("archived", openingComments!!.isArchived)
-                args.putBoolean(
-                    "contest",
-                    openingComments!!.isContest
-                )
+                args.putBoolean("contest", openingComments!!.isContest)
                 args.putBoolean("locked", openingComments!!.isLocked)
                 args.putInt("page", currentComment)
                 args.putString("subreddit", openingComments!!.groupName)

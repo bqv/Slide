@@ -15,7 +15,7 @@ import ltd.ucode.slide.Authentication;
 import ltd.ucode.slide.App;
 import me.ccrama.redditslide.Activities.CommentsScreenSingle;
 import me.ccrama.redditslide.Activities.LiveThread;
-import ltd.ucode.slide.activity.MainActivity;
+import ltd.ucode.slide.ui.main.MainActivity;
 import me.ccrama.redditslide.Activities.MultiredditOverview;
 import me.ccrama.redditslide.Activities.OpenContent;
 import me.ccrama.redditslide.Activities.Profile;

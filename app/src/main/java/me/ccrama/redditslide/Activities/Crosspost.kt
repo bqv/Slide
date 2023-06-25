@@ -16,6 +16,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 import ltd.ucode.slide.Authentication
 import ltd.ucode.slide.R
 import ltd.ucode.slide.data.IPost
+import ltd.ucode.slide.ui.BaseActivity
 import me.ccrama.redditslide.OpenRedditLink
 import me.ccrama.redditslide.SpoilerRobotoTextView
 import me.ccrama.redditslide.UserSubscriptions

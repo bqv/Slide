@@ -1,4 +1,4 @@
-package me.ccrama.redditslide.Activities
+package ltd.ucode.slide.ui.commentsScreen
 
 import android.content.Intent
 import android.content.res.Configuration
@@ -23,7 +23,9 @@ import ltd.ucode.slide.SettingValues
 import ltd.ucode.slide.SettingValues.appRestart
 import ltd.ucode.slide.SettingValues.fullCommentOverride
 import ltd.ucode.slide.data.IPost
-import me.ccrama.redditslide.Activities.CommentsScreen.CommentsScreenPagerAdapter
+import ltd.ucode.slide.ui.commentsScreen.CommentsScreen.CommentsScreenPagerAdapter
+import me.ccrama.redditslide.Activities.BaseActivityAnim
+import me.ccrama.redditslide.Activities.SwipeTutorial
 import me.ccrama.redditslide.Adapters.MultiredditPosts
 import me.ccrama.redditslide.Adapters.SubmissionDisplay
 import me.ccrama.redditslide.Adapters.SubredditPosts

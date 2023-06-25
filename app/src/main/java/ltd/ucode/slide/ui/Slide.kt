@@ -1,9 +1,9 @@
-package ltd.ucode.slide.activity
+package ltd.ucode.slide.ui
 
 import android.app.Activity
-import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import ltd.ucode.slide.ui.main.MainActivity
 
 class Slide : Activity() {
     public override fun onCreate(savedInstance: Bundle?) {

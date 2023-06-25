@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Locale;
 
 import ltd.ucode.slide.Authentication;
+import ltd.ucode.slide.ui.BaseActivity;
 import me.ccrama.redditslide.DataShare;
 import ltd.ucode.slide.R;
 import me.ccrama.redditslide.UserSubscriptions;

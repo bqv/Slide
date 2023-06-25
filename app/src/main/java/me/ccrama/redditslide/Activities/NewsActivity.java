@@ -32,7 +32,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import ltd.ucode.slide.activity.Slide;
+import ltd.ucode.slide.ui.BaseActivity;
+import ltd.ucode.slide.ui.Slide;
 import me.ccrama.redditslide.Adapters.SubredditPostsRealm;
 import ltd.ucode.slide.Authentication;
 import me.ccrama.redditslide.CaseInsensitiveArrayList;

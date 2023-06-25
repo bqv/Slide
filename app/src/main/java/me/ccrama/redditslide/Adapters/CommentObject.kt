@@ -1,20 +1,14 @@
-package me.ccrama.redditslide.Adapters;
+package me.ccrama.redditslide.Adapters
 
-import net.dean.jraw.models.CommentNode;
+import ltd.ucode.lemmy.data.type.CommentView
 
-/**
- * Created by carlo_000 on 10/27/2015.
- */
-public class CommentObject {
-    public String name = "";
-
-    public boolean isComment() {
-        return false;
+open class CommentObject {
+    @JvmField
+    var id: Int = 0
+    open fun isComment(): Boolean {
+        return false
     }
 
-    public String getName() {
-        return name;
-    }
-
-    public CommentNode comment;
+    @JvmField
+    var comment: CommentView? = null
 }

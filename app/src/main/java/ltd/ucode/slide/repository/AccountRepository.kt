@@ -4,9 +4,11 @@ import android.content.Context
 import android.content.SharedPreferences
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
+import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
 
-class AccountRepository(
-    val context: Context
+class AccountRepository @Inject constructor(
+    @ApplicationContext val context: Context
 ) {
     private val passwordStore: SharedPreferences by lazy {
         val mainKey = MasterKey.Builder(context)

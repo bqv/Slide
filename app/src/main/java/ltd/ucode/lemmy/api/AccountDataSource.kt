@@ -9,18 +9,19 @@ import ltd.ucode.lemmy.api.request.UploadImageRequest
 import ltd.ucode.lemmy.api.response.GetSiteResponse
 import ltd.ucode.lemmy.api.response.GetUnreadCountResponse
 import ltd.ucode.lemmy.api.response.UploadImageResponse
-import ltd.ucode.lemmy.data.LoginResult
 import ltd.ucode.lemmy.data.type.jwt.Token
 import ltd.ucode.slide.repository.AccountRepository
+import okhttp3.OkHttpClient
 import retrofit2.Response
+import javax.inject.Inject
 
-class AccountDataSource(
+class AccountDataSource @Inject constructor(
     context: Context,
     private val accountRepository: AccountRepository = AccountRepository(context),
     val username: String,
     instance: String,
-    headers: Map<String, String> = mapOf(),
-) : InstanceDataSource(context, instance, headers) {
+    okHttpClient: OkHttpClient,
+) : InstanceDataSource(context, instance, okHttpClient) {
     private lateinit var jwt: Token
 
     private val password: String
@@ -37,8 +38,7 @@ class AccountDataSource(
 
     private suspend fun refresh() {
         jwt = login(LoginRequest(username, password))
-            .toResult()
-            .let { (it as LoginResult.Success).jwt.let(::Token) }
+            .let { it.success.jwt }
     }
 
     override suspend fun <T> retryOnError(block: suspend () -> Response<T>): T {

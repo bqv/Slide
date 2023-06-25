@@ -62,6 +62,10 @@ android {
         jvmToolchain(17)
     }
 
+    kapt {
+        correctErrorTypes = true
+    }
+
     lint {
         quiet = true
         abortOnError = false
@@ -245,7 +249,6 @@ dependencies {
     implementation("com.google.dagger:hilt-android:+")
     kapt("com.google.dagger:hilt-android-compiler:+")
     implementation("androidx.hilt:hilt-common:+")
-    implementation("androidx.hilt:hilt-lifecycle-viewmodel:+")
     kapt("androidx.hilt:hilt-compiler:+")
 
 

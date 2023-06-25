@@ -13,7 +13,7 @@ import net.dean.jraw.models.Submission;
 import java.util.List;
 
 import ltd.ucode.reddit.data.RedditSubmission;
-import me.ccrama.redditslide.Activities.CommentsScreen;
+import ltd.ucode.slide.ui.commentsScreen.CommentsScreen;
 import me.ccrama.redditslide.Activities.Shadowbox;
 import ltd.ucode.slide.R;
 import me.ccrama.redditslide.SpoilerRobotoTextView;

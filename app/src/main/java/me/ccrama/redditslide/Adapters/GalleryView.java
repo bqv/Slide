@@ -28,7 +28,7 @@ import java.util.List;
 import ltd.ucode.reddit.data.RedditSubmission;
 import me.ccrama.redditslide.Activities.Album;
 import me.ccrama.redditslide.Activities.AlbumPager;
-import me.ccrama.redditslide.Activities.CommentsScreen;
+import ltd.ucode.slide.ui.commentsScreen.CommentsScreen;
 import me.ccrama.redditslide.Activities.FullscreenVideo;
 import me.ccrama.redditslide.Activities.Gallery;
 import me.ccrama.redditslide.Activities.GalleryImage;

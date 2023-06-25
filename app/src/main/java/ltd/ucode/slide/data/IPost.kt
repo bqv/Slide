@@ -1,7 +1,7 @@
 package ltd.ucode.slide.data
 
 import kotlinx.datetime.Instant
-import kotlinx.serialization.Serializable
+import ltd.ucode.lemmy.data.type.CommunityId
 import ltd.ucode.lemmy.data.type.PostId
 import ltd.ucode.reddit.data.RedditSubmission
 import me.ccrama.redditslide.CommentCacheAsync.CommentStore
@@ -25,6 +25,7 @@ abstract class IPost : IItem {
     abstract val isLocked: Boolean
     abstract val isNsfw: Boolean
     abstract val groupName: String
+    abstract val groupId: CommunityId?
     abstract override val link: String
     abstract override val permalink: String
     abstract override val published: Instant

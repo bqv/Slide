@@ -28,6 +28,7 @@ import androidx.appcompat.app.AlertDialog
 import com.afollestad.materialdialogs.DialogAction
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.MaterialDialog.SingleButtonCallback
+import ltd.ucode.lemmy.data.type.CommentView
 import ltd.ucode.slide.Authentication
 import ltd.ucode.slide.R
 import ltd.ucode.slide.SettingValues
@@ -58,6 +59,12 @@ object ToolboxUI {
     @JvmStatic
     fun showRemoval(
         context: Context, thing: Comment?,
+        callback: CompletedRemovalCallback
+    ) {}
+
+    @JvmStatic
+    fun showRemoval(
+        context: Context, thing: CommentView?,
         callback: CompletedRemovalCallback
     ) {}
     /**

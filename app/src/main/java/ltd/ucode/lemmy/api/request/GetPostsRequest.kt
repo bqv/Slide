@@ -2,7 +2,6 @@ package ltd.ucode.lemmy.api.request
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import ltd.ucode.lemmy.api.toForm
 import ltd.ucode.lemmy.data.type.CommunityId
 import ltd.ucode.lemmy.data.type.PostListingType
 import ltd.ucode.lemmy.data.type.PostSortType
@@ -17,4 +16,4 @@ data class GetPostsRequest (
     @SerialName("saved_only") val savedOnly: Boolean? = null,
     val sort: PostSortType? = null,
     @SerialName("type_") val type: PostListingType? = null,
-) : Authenticated, HashMap<String, String>(this.toForm())
+) : Authenticated

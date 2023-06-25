@@ -33,8 +33,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import me.ccrama.redditslide.Activities.BaseActivity;
-import ltd.ucode.slide.activity.Slide;
+import ltd.ucode.slide.ui.BaseActivity;
+import ltd.ucode.slide.ui.Slide;
 import ltd.ucode.slide.R;
 import ltd.ucode.slide.App;
 import ltd.ucode.slide.SettingValues;

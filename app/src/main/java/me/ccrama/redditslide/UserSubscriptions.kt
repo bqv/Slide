@@ -11,8 +11,8 @@ import ltd.ucode.slide.R
 import ltd.ucode.slide.SettingValues.alphabetizeOnSubscribe
 import ltd.ucode.slide.SettingValues.appRestart
 import ltd.ucode.slide.SettingValues.authentication
-import ltd.ucode.slide.activity.MainActivity
-import me.ccrama.redditslide.Activities.Login
+import ltd.ucode.slide.ui.main.MainActivity
+import ltd.ucode.slide.ui.login.Login
 import me.ccrama.redditslide.Activities.MultiredditOverview
 import me.ccrama.redditslide.Activities.NewsActivity
 import me.ccrama.redditslide.Toolbox.Toolbox

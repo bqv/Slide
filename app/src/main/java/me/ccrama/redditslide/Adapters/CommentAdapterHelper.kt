@@ -1,1106 +1,1100 @@
-package me.ccrama.redditslide.Adapters;
+package me.ccrama.redditslide.Adapters
 
-import android.animation.Animator;
-import android.animation.AnimatorListenerAdapter;
-import android.animation.ValueAnimator;
-import android.app.Activity;
-import android.app.Dialog;
-import android.content.Context;
-import android.content.DialogInterface;
-import android.content.Intent;
-import android.content.res.Resources;
-import android.content.res.TypedArray;
-import android.graphics.Color;
-import android.graphics.Typeface;
-import android.graphics.drawable.Drawable;
-import android.os.AsyncTask;
-import android.text.InputType;
-import android.text.Spannable;
-import android.text.SpannableStringBuilder;
-import android.text.Spanned;
-import android.text.style.ForegroundColorSpan;
-import android.text.style.RelativeSizeSpan;
-import android.text.style.StyleSpan;
-import android.text.style.TypefaceSpan;
-import android.util.TypedValue;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.WindowManager;
-import android.widget.EditText;
-import android.widget.LinearLayout;
-import android.widget.RadioButton;
-import android.widget.RadioGroup;
-import android.widget.TextView;
-import android.widget.Toast;
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
+import android.animation.ValueAnimator
+import android.app.Activity
+import android.app.Dialog
+import android.content.Context
+import android.content.DialogInterface
+import android.content.Intent
+import android.graphics.Color
+import android.graphics.Typeface
+import android.os.AsyncTask
+import android.text.InputType
+import android.text.Spannable
+import android.text.SpannableStringBuilder
+import android.text.Spanned
+import android.text.style.ForegroundColorSpan
+import android.text.style.RelativeSizeSpan
+import android.text.style.StyleSpan
+import android.text.style.TypefaceSpan
+import android.view.View
+import android.view.WindowManager
+import android.widget.EditText
+import android.widget.LinearLayout
+import android.widget.RadioButton
+import android.widget.RadioGroup
+import android.widget.TextView
+import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
+import androidx.fragment.app.FragmentManager
+import androidx.interpolator.view.animation.FastOutSlowInInterpolator
+import com.afollestad.materialdialogs.DialogAction
+import com.afollestad.materialdialogs.MaterialDialog
+import com.afollestad.materialdialogs.MaterialDialog.ListCallback
+import com.afollestad.materialdialogs.MaterialDialog.SingleButtonCallback
+import com.cocosw.bottomsheet.BottomSheet
+import com.google.android.material.snackbar.Snackbar
+import kotlinx.datetime.UtcOffset
+import kotlinx.datetime.toInstant
+import ltd.ucode.lemmy.data.type.CommentView
+import ltd.ucode.slide.App.Companion.defaultShareText
+import ltd.ucode.slide.Authentication
+import ltd.ucode.slide.R
+import ltd.ucode.slide.SettingValues
+import ltd.ucode.slide.SettingValues.commentLastVisit
+import ltd.ucode.slide.data.IPost
+import me.ccrama.redditslide.ActionStates.getVoteDirection
+import me.ccrama.redditslide.ActionStates.isSaved
+import me.ccrama.redditslide.ActionStates.setSaved
+import me.ccrama.redditslide.Activities.Profile
+import me.ccrama.redditslide.Activities.Reauthenticate
+import me.ccrama.redditslide.OpenRedditLink
+import me.ccrama.redditslide.Toolbox.ToolboxUI.CompletedRemovalCallback
+import me.ccrama.redditslide.Toolbox.ToolboxUI.appendToolboxNote
+import me.ccrama.redditslide.Toolbox.ToolboxUI.canShowRemoval
+import me.ccrama.redditslide.Toolbox.ToolboxUI.showRemoval
+import me.ccrama.redditslide.Toolbox.ToolboxUI.showUsernotes
+import me.ccrama.redditslide.UserSubscriptions
+import me.ccrama.redditslide.UserTags
+import me.ccrama.redditslide.Views.DoEditorActions
+import me.ccrama.redditslide.Views.RoundedBackgroundSpan
+import me.ccrama.redditslide.Visuals.Palette
+import me.ccrama.redditslide.util.BlendModeUtil
+import me.ccrama.redditslide.util.ClipboardUtil
+import me.ccrama.redditslide.util.CompatUtil
+import me.ccrama.redditslide.util.DisplayUtil
+import me.ccrama.redditslide.util.LayoutUtils
+import me.ccrama.redditslide.util.TimeUtils
+import net.dean.jraw.ApiException
+import net.dean.jraw.http.NetworkException
+import net.dean.jraw.http.oauth.InvalidScopeException
+import net.dean.jraw.managers.ModerationManager
+import net.dean.jraw.models.Ruleset
+import net.dean.jraw.models.SubredditRule
+import net.dean.jraw.models.VoteDirection
+import org.apache.commons.text.StringEscapeUtils
+import java.util.Arrays
+import java.util.Locale
 
-import androidx.appcompat.app.AlertDialog;
-import androidx.fragment.app.FragmentManager;
-import androidx.interpolator.view.animation.FastOutSlowInInterpolator;
-
-import com.afollestad.materialdialogs.DialogAction;
-import com.afollestad.materialdialogs.MaterialDialog;
-import com.cocosw.bottomsheet.BottomSheet;
-import com.google.android.material.snackbar.Snackbar;
-
-import net.dean.jraw.ApiException;
-import net.dean.jraw.http.NetworkException;
-import net.dean.jraw.http.oauth.InvalidScopeException;
-import net.dean.jraw.managers.AccountManager;
-import net.dean.jraw.managers.ModerationManager;
-import net.dean.jraw.models.Comment;
-import net.dean.jraw.models.CommentNode;
-import net.dean.jraw.models.DistinguishedStatus;
-import net.dean.jraw.models.Ruleset;
-import net.dean.jraw.models.Submission;
-import net.dean.jraw.models.SubredditRule;
-import net.dean.jraw.models.VoteDirection;
-
-import org.apache.commons.text.StringEscapeUtils;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-
-import me.ccrama.redditslide.ActionStates;
-import me.ccrama.redditslide.Activities.Profile;
-import me.ccrama.redditslide.Activities.Reauthenticate;
-import me.ccrama.redditslide.Activities.Website;
-import ltd.ucode.slide.Authentication;
-import me.ccrama.redditslide.OpenRedditLink;
-import ltd.ucode.slide.R;
-import ltd.ucode.slide.App;
-import ltd.ucode.slide.SettingValues;
-import me.ccrama.redditslide.Toolbox.ToolboxUI;
-import me.ccrama.redditslide.UserSubscriptions;
-import me.ccrama.redditslide.UserTags;
-import me.ccrama.redditslide.Views.DoEditorActions;
-import me.ccrama.redditslide.Views.RoundedBackgroundSpan;
-import me.ccrama.redditslide.Visuals.FontPreferences;
-import me.ccrama.redditslide.Visuals.Palette;
-import me.ccrama.redditslide.util.BlendModeUtil;
-import me.ccrama.redditslide.util.ClipboardUtil;
-import me.ccrama.redditslide.util.CompatUtil;
-import me.ccrama.redditslide.util.DisplayUtil;
-import me.ccrama.redditslide.util.LayoutUtils;
-import me.ccrama.redditslide.util.LinkUtil;
-import me.ccrama.redditslide.util.MiscUtil;
-import me.ccrama.redditslide.util.TimeUtils;
-
-/**
- * Created by Carlos on 8/4/2016.
- */
-public class CommentAdapterHelper {
-    public static void showOverflowBottomSheet(final CommentAdapter adapter, final Context mContext,
-            final CommentViewHolder holder, final CommentNode baseNode) {
-
-        int[] attrs = new int[]{R.attr.tintColor};
-        final Comment n = baseNode.getComment();
-        TypedArray ta = mContext.obtainStyledAttributes(attrs);
-
-        int color = ta.getColor(0, Color.WHITE);
-        Drawable profile = mContext.getResources().getDrawable(R.drawable.ic_account_circle);
-        Drawable saved = mContext.getResources().getDrawable(R.drawable.ic_star);
-        Drawable gild = mContext.getResources().getDrawable(R.drawable.ic_stars);
-        Drawable copy = mContext.getResources().getDrawable(R.drawable.ic_content_copy);
-        Drawable share = mContext.getResources().getDrawable(R.drawable.ic_share);
-        Drawable parent = mContext.getResources().getDrawable(R.drawable.ic_forum);
-        Drawable replies = mContext.getResources().getDrawable(R.drawable.ic_notifications);
-        Drawable permalink = mContext.getResources().getDrawable(R.drawable.ic_link);
-        Drawable report = mContext.getResources().getDrawable(R.drawable.ic_report);
-
-        final List<Drawable> drawableSet = Arrays.asList(
-                profile, saved, gild, report, copy, share, parent, permalink, replies);
-        BlendModeUtil.tintDrawablesAsSrcAtop(drawableSet, color);
-
-        ta.recycle();
-
-        BottomSheet.Builder b =
-                new BottomSheet.Builder((Activity) mContext).title(CompatUtil.fromHtml(n.getBody()));
-
+object CommentAdapterHelper {
+    fun showOverflowBottomSheet(
+        adapter: CommentAdapter, mContext: Context,
+        holder: CommentViewHolder, baseNode: CommentView
+    ) {
+        val attrs = intArrayOf(R.attr.tintColor)
+        val n = baseNode
+        val ta = mContext.obtainStyledAttributes(attrs)
+        val color = ta.getColor(0, Color.WHITE)
+        val profile = mContext.resources.getDrawable(R.drawable.ic_account_circle)
+        val saved = mContext.resources.getDrawable(R.drawable.ic_star)
+        val gild = mContext.resources.getDrawable(R.drawable.ic_stars)
+        val copy = mContext.resources.getDrawable(R.drawable.ic_content_copy)
+        val share = mContext.resources.getDrawable(R.drawable.ic_share)
+        val parent = mContext.resources.getDrawable(R.drawable.ic_forum)
+        val replies = mContext.resources.getDrawable(R.drawable.ic_notifications)
+        val permalink = mContext.resources.getDrawable(R.drawable.ic_link)
+        val report = mContext.resources.getDrawable(R.drawable.ic_report)
+        val drawableSet = Arrays.asList(
+            profile, saved, gild, report, copy, share, parent, permalink, replies
+        )
+        BlendModeUtil.tintDrawablesAsSrcAtop(drawableSet, color)
+        ta.recycle()
+        val b = BottomSheet.Builder((mContext as Activity)).title(CompatUtil.fromHtml(n.comment.content))
         if (Authentication.didOnline) {
-            b.sheet(1, profile, "/u/" + n.getAuthor());
-            String save = mContext.getString(R.string.btn_save);
-            if (ActionStates.isSaved(n)) {
-                save = mContext.getString(R.string.comment_unsave);
+            b.sheet(1, profile, "/u/" + n.creator.name)
+            var save: String = mContext.getString(R.string.btn_save)
+            if (isSaved(n)) {
+                save = mContext.getString(R.string.comment_unsave)
             }
             if (Authentication.isLoggedIn) {
-                b.sheet(3, saved, save);
-                b.sheet(16, report, mContext.getString(R.string.btn_report));
+                b.sheet(3, saved, (save))
+                b.sheet(16, report, mContext.getString(R.string.btn_report))
             }
-            if (Authentication.name.equalsIgnoreCase(baseNode.getComment().getAuthor())) {
-                b.sheet(50, replies, mContext.getString(R.string.disable_replies_comment));
+            if (Authentication.name.equals(baseNode.creator.name, ignoreCase = true)) {
+                b.sheet(50, replies, mContext.getString(R.string.disable_replies_comment))
             }
         }
         b.sheet(5, gild, mContext.getString(R.string.comment_gild))
-                .sheet(7, copy, mContext.getString(R.string.misc_copy_text))
-                .sheet(23, permalink, mContext.getString(R.string.comment_permalink))
-                .sheet(4, share, mContext.getString(R.string.comment_share));
-        if (!adapter.currentBaseNode.isTopLevel()) {
-            b.sheet(10, parent, mContext.getString(R.string.comment_parent));
+            .sheet(7, copy, mContext.getString(R.string.misc_copy_text))
+            .sheet(23, permalink, mContext.getString(R.string.comment_permalink))
+            .sheet(4, share, mContext.getString(R.string.comment_share))
+        if (!adapter.currentBaseNode!!.comment.isTopLevel) {
+            b.sheet(10, parent, mContext.getString(R.string.comment_parent))
         }
-        b.listener(new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                switch (which) {
-                    case 1: {
+        b.listener(object : DialogInterface.OnClickListener {
+            override fun onClick(dialog: DialogInterface, which: Int) {
+                when (which) {
+                    1 -> {
+
                         //Go to author
-                        Intent i = new Intent(mContext, Profile.class);
-                        i.putExtra(Profile.EXTRA_PROFILE, n.getAuthor());
-                        mContext.startActivity(i);
+                        val i = Intent(mContext, Profile::class.java)
+                        i.putExtra(Profile.EXTRA_PROFILE, n.creator.name)
+                        mContext.startActivity(i)
                     }
-                    break;
-                    case 3:
-                        //Save comment
-                        saveComment(n, mContext, holder);
-                        break;
-                    case 23: {
+
+                    3 ->                         //Save comment
+                        saveComment(n, mContext, holder)
+
+                    23 -> {
+
                         //Go to comment permalink
-                        String s = "https://reddit.com"
-                                + adapter.submission.getPermalink()
-                                + n.getFullName().substring(3)
-                                + "?context=3";
-                        OpenRedditLink.openUrl(mContext, s, true);
+                        val s = ("https://${Authentication.api!!.instance}/comment/${n.comment.id.id}"
+                                + "?context=3")
+                        OpenRedditLink.openUrl(mContext, s, true)
                     }
-                    break;
-                    case 50: {
-                        setReplies(baseNode.getComment(), holder, !baseNode.getComment().getDataNode().get("send_replies").asBoolean());
+
+                    50 -> {
+                        setReplies(
+                            baseNode,
+                            holder,
+                            false
+                        )
                     }
-                    break;
-                    case 5: {
+
+                    5 -> {
+
                         //Gild comment
-                        Intent i = new Intent(mContext, Website.class);
-                        i.putExtra(LinkUtil.EXTRA_URL, "https://reddit.com"
-                                + adapter.submission.getPermalink()
-                                + n.getFullName().substring(3)
-                                + "?context=3&inapp=false");
-                        i.putExtra(LinkUtil.EXTRA_COLOR, Palette.getColor(n.getSubredditName()));
-                        mContext.startActivity(i);
                     }
-                    break;
-                    case 16:
+
+                    16 -> {
                         //report
-                        final MaterialDialog reportDialog = new MaterialDialog.Builder(mContext)
-                                .customView(R.layout.report_dialog, true)
-                                .title(R.string.report_comment)
-                                .positiveText(R.string.btn_report)
-                                .negativeText(R.string.btn_cancel)
-                                .onPositive(new MaterialDialog.SingleButtonCallback() {
-                                    @Override
-                                    public void onClick(MaterialDialog dialog, DialogAction which) {
-                                        RadioGroup reasonGroup = dialog.getCustomView()
-                                                .findViewById(R.id.report_reasons);
-                                        String reportReason;
-                                        if (reasonGroup.getCheckedRadioButtonId() == R.id.report_other) {
-                                            reportReason = ((EditText) dialog.getCustomView()
-                                                    .findViewById(R.id.input_report_reason)).getText().toString();
-                                        } else {
-                                            reportReason = ((RadioButton) reasonGroup
-                                                    .findViewById(reasonGroup.getCheckedRadioButtonId()))
-                                                    .getText().toString();
-                                        }
-                                        new AsyncReportTask(adapter.currentBaseNode, adapter.listView)
-                                                .execute(reportReason);
-                                    }
-                                }).build();
-
-                        final RadioGroup reasonGroup = reportDialog.getCustomView().findViewById(R.id.report_reasons);
-
-                        reasonGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
-                            @Override
-                            public void onCheckedChanged(RadioGroup group, int checkedId) {
-                                if (checkedId == R.id.report_other)
-                                    reportDialog.getCustomView().findViewById(R.id.input_report_reason)
-                                            .setVisibility(View.VISIBLE);
-                                else
-                                    reportDialog.getCustomView().findViewById(R.id.input_report_reason)
-                                            .setVisibility(View.GONE);
-                            }
-                        });
+                        val reportDialog = MaterialDialog.Builder(mContext)
+                            .customView(R.layout.report_dialog, true)
+                            .title(R.string.report_comment)
+                            .positiveText(R.string.btn_report)
+                            .negativeText(R.string.btn_cancel)
+                            .onPositive(SingleButtonCallback { dialog, which ->
+                                val reasonGroup = dialog.customView!!
+                                    .findViewById<RadioGroup>(R.id.report_reasons)
+                                val reportReason: String = if (reasonGroup.checkedRadioButtonId == R.id.report_other) {
+                                    (dialog.customView!!
+                                        .findViewById<View>(R.id.input_report_reason) as EditText).text.toString()
+                                } else {
+                                    (reasonGroup
+                                        .findViewById<View>(reasonGroup.checkedRadioButtonId) as RadioButton)
+                                        .text.toString()
+                                }
+                                AsyncReportTask(adapter.currentBaseNode, adapter.listView)
+                                    .execute(reportReason)
+                            }).build()
+                        val reasonGroup =
+                            reportDialog.customView!!.findViewById<RadioGroup>(R.id.report_reasons)
+                        reasonGroup.setOnCheckedChangeListener { group, checkedId ->
+                            if (checkedId == R.id.report_other) reportDialog.customView!!.findViewById<View>(
+                                R.id.input_report_reason
+                            ).visibility = View.VISIBLE else reportDialog.customView!!
+                                .findViewById<View>(R.id.input_report_reason).visibility =
+                                View.GONE
+                        }
 
                         // Load sub's report reasons and show the appropriate ones
-                        new AsyncTask<Void, Void, Ruleset>() {
-                            @Override
-                            protected Ruleset doInBackground(Void... voids) {
-                                return Authentication.reddit.getRules(adapter.currentBaseNode.getComment()
-                                        .getSubredditName());
+                        object : AsyncTask<Void?, Void?, Ruleset>() {
+                            override fun doInBackground(vararg voids: Void?): Ruleset {
+                                /*
+                                return Authentication.reddit!!.getRules(
+                                    adapter.currentBaseNode!!.community.name
+                                )
+                                 */throw Exception("TODO")
                             }
 
-                            @Override
-                            protected void onPostExecute(Ruleset rules) {
-                                reportDialog.getCustomView().findViewById(R.id.report_loading).setVisibility(View.GONE);
-                                if (rules.getSubredditRules().size() > 0) {
-                                    TextView subHeader = new TextView(mContext);
-                                    subHeader.setText(mContext.getString(R.string.report_sub_rules,
-                                            adapter.currentBaseNode.getComment().getSubredditName()));
-                                    reasonGroup.addView(subHeader, reasonGroup.getChildCount() - 2);
+                            override fun onPostExecute(rules: Ruleset) {
+                                reportDialog.customView!!.findViewById<View>(R.id.report_loading).visibility =
+                                    View.GONE
+                                if (rules.subredditRules.size > 0) {
+                                    val subHeader = TextView(mContext)
+                                    subHeader.text = mContext.getString(
+                                        R.string.report_sub_rules,
+                                        adapter.currentBaseNode!!.community.name
+                                    )
+                                    reasonGroup.addView(subHeader, reasonGroup.childCount - 2)
                                 }
-                                for (SubredditRule rule : rules.getSubredditRules()) {
-                                    if (rule.getKind() == SubredditRule.RuleKind.COMMENT
-                                            || rule.getKind() == SubredditRule.RuleKind.ALL) {
-                                        RadioButton btn = new RadioButton(mContext);
-                                        btn.setText(rule.getViolationReason());
-                                        reasonGroup.addView(btn, reasonGroup.getChildCount() - 2);
-                                        btn.getLayoutParams().width = WindowManager.LayoutParams.MATCH_PARENT;
+                                for (rule: SubredditRule in rules.subredditRules) {
+                                    if ((rule.kind == SubredditRule.RuleKind.COMMENT
+                                                || rule.kind == SubredditRule.RuleKind.ALL)
+                                    ) {
+                                        val btn = RadioButton(mContext)
+                                        btn.text = rule.violationReason
+                                        reasonGroup.addView(btn, reasonGroup.childCount - 2)
+                                        btn.layoutParams.width =
+                                            WindowManager.LayoutParams.MATCH_PARENT
                                     }
                                 }
-                                if (rules.getSiteRules().size() > 0) {
-                                    TextView siteHeader = new TextView(mContext);
-                                    siteHeader.setText(R.string.report_site_rules);
-                                    reasonGroup.addView(siteHeader, reasonGroup.getChildCount() - 2);
+                                if (rules.siteRules.size > 0) {
+                                    val siteHeader = TextView(mContext)
+                                    siteHeader.setText(R.string.report_site_rules)
+                                    reasonGroup.addView(siteHeader, reasonGroup.childCount - 2)
                                 }
-                                for (String rule : rules.getSiteRules()) {
-                                    RadioButton btn = new RadioButton(mContext);
-                                    btn.setText(rule);
-                                    reasonGroup.addView(btn, reasonGroup.getChildCount() - 2);
-                                    btn.getLayoutParams().width = WindowManager.LayoutParams.MATCH_PARENT;
+                                for (rule: String? in rules.siteRules) {
+                                    val btn = RadioButton(mContext)
+                                    btn.text = rule
+                                    reasonGroup.addView(btn, reasonGroup.childCount - 2)
+                                    btn.layoutParams.width = WindowManager.LayoutParams.MATCH_PARENT
                                 }
                             }
-                        }.execute();
+                        }.execute()
+                        reportDialog.show()
+                    }
 
-                        reportDialog.show();
-                        break;
-                    case 10:
-                        //View comment parent
-                        viewCommentParent(adapter, holder, mContext, baseNode);
-                        break;
-                    case 7:
+                    10 ->                         //View comment parent
+                        viewCommentParent(adapter, holder, mContext, baseNode)
+
+                    7 -> {
                         //Show select and copy text to clipboard
-                        final TextView showText = new TextView(mContext);
-                        showText.setText(StringEscapeUtils.unescapeHtml4(n.getBody()));
-                        showText.setTextIsSelectable(true);
-                        int sixteen = DisplayUtil.dpToPxVertical(24);
-                        showText.setPadding(sixteen, 0, sixteen, 0);
+                        val showText = TextView(mContext)
+                        showText.text = StringEscapeUtils.unescapeHtml4(n.comment.content)
+                        showText.setTextIsSelectable(true)
+                        val sixteen = DisplayUtil.dpToPxVertical(24)
+                        showText.setPadding(sixteen, 0, sixteen, 0)
+                        AlertDialog.Builder(mContext)
+                            .setView(showText)
+                            .setTitle("Select text to copy")
+                            .setCancelable(true)
+                            .setPositiveButton("COPY") { dialog1: DialogInterface?, which1: Int ->
+                                val selected: String = showText.getText()
+                                    .toString()
+                                    .substring(
+                                        showText.getSelectionStart(),
+                                        showText.getSelectionEnd()
+                                    )
+                                ClipboardUtil.copyToClipboard(mContext, "Comment text", selected)
+                                Toast.makeText(
+                                    mContext, R.string.submission_comment_copied,
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                            .setNegativeButton(R.string.btn_cancel, null)
+                            .setNeutralButton(
+                                "COPY ALL"
+                            ) { dialog12: DialogInterface?, which12: Int ->
+                                ClipboardUtil.copyToClipboard(
+                                    mContext, "Comment text",
+                                    n.comment.content
+                                )
+                                Toast.makeText(
+                                    mContext,
+                                    R.string.submission_comment_copied,
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                            .show()
+                    }
 
-                        new AlertDialog.Builder(mContext)
-                                .setView(showText)
-                                .setTitle("Select text to copy")
-                                .setCancelable(true)
-                                .setPositiveButton("COPY", (dialog1, which1) -> {
-                                    String selected = showText.getText()
-                                            .toString()
-                                            .substring(showText.getSelectionStart(),
-                                                    showText.getSelectionEnd());
-                                    ClipboardUtil.copyToClipboard(mContext, "Comment text", selected);
-
-                                    Toast.makeText(mContext, R.string.submission_comment_copied,
-                                            Toast.LENGTH_SHORT).show();
-
-                                })
-                                .setNegativeButton(R.string.btn_cancel, null)
-                                .setNeutralButton("COPY ALL", (dialog12, which12) -> {
-                                    ClipboardUtil.copyToClipboard(mContext, "Comment text",
-                                            StringEscapeUtils.unescapeHtml4(n.getBody()));
-
-                                    Toast.makeText(mContext,
-                                            R.string.submission_comment_copied,
-                                            Toast.LENGTH_SHORT).show();
-                                })
-                                .show();
-                        break;
-                    case 4:
-                        //Share comment
-                        App.defaultShareText(adapter.submission.getTitle(), "https://reddit.com"
-                                + adapter.submission.getPermalink()
-                                + n.getFullName().substring(3)
-                                + "?context=3", mContext);
-                        break;
+                    4 ->                         //Share comment
+                        defaultShareText(
+                            adapter.submission!!.title,
+                            ("https://${Authentication.api!!.instance}/comment/${n.comment.id.id}"
+                                    + "?context=3"), mContext
+                        )
                 }
             }
-        });
-        b.show();
+        })
+        b.show()
     }
 
-    private static void setReplies(final Comment comment, final CommentViewHolder holder, final boolean showReplies) {
-        new AsyncTask<Void, Void, Void>() {
-            @Override
-            protected Void doInBackground(Void... params) {
+    private fun setReplies(comment: CommentView, holder: CommentViewHolder, showReplies: Boolean) {
+        object : AsyncTask<Void?, Void?, Void?>() {
+            override fun doInBackground(vararg params: Void?): Void? {
                 try {
-                    new AccountManager(Authentication.reddit).sendRepliesToInbox(comment, showReplies);
-
-                } catch (ApiException e) {
-                    e.printStackTrace();
+                    throw Exception("TODO")//AccountManager(Authentication.reddit).sendRepliesToInbox(comment, showReplies)
+                } catch (e: ApiException) {
+                    e.printStackTrace()
                 }
-
-                return null;
+                return null
             }
 
-            @Override
-            protected void onPostExecute(Void aVoid) {
-                Snackbar s;
+            override fun onPostExecute(aVoid: Void?) {
+                val s: Snackbar
                 try {
                     if (holder.itemView != null) {
                         if (!showReplies) {
-                            s = Snackbar.make(holder.itemView, R.string.replies_disabled_comment,
-                                    Snackbar.LENGTH_LONG);
+                            s = Snackbar.make(
+                                holder.itemView, R.string.replies_disabled_comment,
+                                Snackbar.LENGTH_LONG
+                            )
                         } else {
-                            s = Snackbar.make(holder.itemView, R.string.replies_enabled_comment,
-                                    Snackbar.LENGTH_SHORT);
+                            s = Snackbar.make(
+                                holder.itemView, R.string.replies_enabled_comment,
+                                Snackbar.LENGTH_SHORT
+                            )
                         }
-                        LayoutUtils.showSnackbar(s);
+                        LayoutUtils.showSnackbar(s)
                     }
-                } catch (Exception ignored) {
-
+                } catch (ignored: Exception) {
                 }
             }
-        }.execute();
+        }.execute()
     }
 
-    private static void viewCommentParent(CommentAdapter adapter, CommentViewHolder holder,
-            Context mContext, CommentNode baseNode) {
-        int old = holder.getBindingAdapterPosition();
-        int pos = (old < 2) ? 0 : old - 1;
-        for (int i = pos - 1; i >= 0; i--) {
-            CommentObject o = adapter.currentComments.get(adapter.getRealPosition(i));
-            if (o instanceof CommentItem
-                    && pos - 1 != i
-                    && o.comment.getDepth() < baseNode.getDepth()) {
-                LayoutInflater inflater = ((Activity) mContext).getLayoutInflater();
-                final View dialoglayout = inflater.inflate(R.layout.parent_comment_dialog, null);
+    private fun viewCommentParent(
+        adapter: CommentAdapter, holder: CommentViewHolder,
+        mContext: Context, baseNode: CommentView
+    ) {
+        val old = holder.bindingAdapterPosition
+        val pos = if ((old < 2)) 0 else old - 1
+        for (i in pos - 1 downTo 0) {
+            val o = (adapter.currentComments!![adapter.getRealPosition(i)])!!
+            if ((o is CommentItem
+                        && (pos - 1 != i
+                        ) && (o.comment!!.comment.depth < baseNode.comment.depth))
+            ) {
+                val inflater = (mContext as Activity).layoutInflater
+                val dialoglayout = inflater.inflate(R.layout.parent_comment_dialog, null)
+                /*
                 Comment parent = o.comment.getComment();
                 adapter.setViews(parent.getDataNode().get("body_html").asText(),
-                        adapter.submission.getSubredditName(),
+                        adapter.submission.getGroupName(),
                         dialoglayout.findViewById(R.id.firstTextView),
                         dialoglayout.findViewById(R.id.commentOverflow));
-
-                new AlertDialog.Builder(mContext)
-                        .setView(dialoglayout)
-                        .show();
-                break;
+                 */AlertDialog.Builder(mContext)
+                    .setView(dialoglayout)
+                    .show()
+                break
             }
         }
     }
 
-    private static void saveComment(final Comment comment, final Context mContext,
-            final CommentViewHolder holder) {
-        new AsyncTask<Void, Void, Void>() {
-            @Override
-            protected Void doInBackground(Void... params) {
+    private fun saveComment(
+        comment: CommentView, mContext: Context,
+        holder: CommentViewHolder
+    ) {
+        object : AsyncTask<Void?, Void?, Void?>() {
+            override fun doInBackground(vararg params: Void?): Void? {
                 try {
-                    if (ActionStates.isSaved(comment)) {
-                        new AccountManager(Authentication.reddit).unsave(comment);
-                        ActionStates.setSaved(comment, false);
+                    if (isSaved(comment)) {
+                        //AccountManager(Authentication.reddit).unsave(comment)
+                        setSaved(comment, false)
                     } else {
-                        new AccountManager(Authentication.reddit).save(comment);
-                        ActionStates.setSaved(comment, true);
+                        //AccountManager(Authentication.reddit).save(comment)
+                        setSaved(comment, true)
                     }
-
-                } catch (ApiException e) {
-                    e.printStackTrace();
+                } catch (e: ApiException) {
+                    e.printStackTrace()
                 }
-
-                return null;
+                return null
             }
 
-            @Override
-            protected void onPostExecute(Void aVoid) {
-                Snackbar s;
+            override fun onPostExecute(aVoid: Void?) {
+                val s: Snackbar
                 try {
                     if (holder.itemView != null) {
-                        if (ActionStates.isSaved(comment)) {
-                            s = Snackbar.make(holder.itemView, R.string.submission_comment_saved,
-                                    Snackbar.LENGTH_LONG);
-                            if (Authentication.me != null && Authentication.me.hasGold()) {
-                                s.setAction(R.string.category_categorize,
-                                        new View.OnClickListener() {
-                                            @Override
-                                            public void onClick(View v) {
-                                                categorizeComment(comment, mContext);
-                                            }
-                                        });
-                            }
+                        if (isSaved(comment)) {
+                            s = Snackbar.make(
+                                holder.itemView, R.string.submission_comment_saved,
+                                Snackbar.LENGTH_LONG
+                            )
                         } else {
-                            s = Snackbar.make(holder.itemView, R.string.submission_comment_unsaved,
-                                    Snackbar.LENGTH_SHORT);
+                            s = Snackbar.make(
+                                holder.itemView, R.string.submission_comment_unsaved,
+                                Snackbar.LENGTH_SHORT
+                            )
                         }
-                        LayoutUtils.showSnackbar(s);
+                        LayoutUtils.showSnackbar(s)
                     }
-                } catch (Exception ignored) {
-
+                } catch (ignored: Exception) {
                 }
             }
-        }.execute();
+        }.execute()
     }
 
-    private static void categorizeComment(final Comment comment, final Context mContext) {
-        new AsyncTask<Void, Void, List<String>>() {
-
-            Dialog d;
-
-            @Override
-            public void onPreExecute() {
-                d = new MaterialDialog.Builder(mContext).progress(true, 100)
-                        .content(R.string.misc_please_wait)
-                        .title(R.string.profile_category_loading)
-                        .show();
+    private fun categorizeComment(comment: CommentView, mContext: Context) {
+        object : AsyncTask<Void?, Void?, List<String?>>() {
+            var d: Dialog? = null
+            public override fun onPreExecute() {
+                d = MaterialDialog.Builder(mContext).progress(true, 100)
+                    .content(R.string.misc_please_wait)
+                    .title(R.string.profile_category_loading)
+                    .show()
             }
 
-            @Override
-            protected List<String> doInBackground(Void... params) {
+            override fun doInBackground(vararg params: Void?): List<String?> {
                 try {
-                    List<String> categories = new ArrayList<String>(
-                            new AccountManager(Authentication.reddit).getSavedCategories());
-                    categories.add("New category");
-                    return categories;
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    return new ArrayList<String>() {{
-                        add("New category");
-                    }};
+                    /*
+                    val categories: MutableList<String?> = ArrayList(
+                        AccountManager(Authentication.reddit).savedCategories
+                    )
+                    categories.add("New category")
+                    return categories
+                     */throw Exception("TODO")
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    return object : ArrayList<String?>() {
+                        init {
+                            add("New category")
+                        }
+                    }
                 }
             }
 
-            @Override
-            public void onPostExecute(final List<String> data) {
+            public override fun onPostExecute(data: List<String?>) {
                 try {
-                    new MaterialDialog.Builder(mContext).items(data)
-                            .title(R.string.sidebar_select_flair)
-                            .itemsCallback(new MaterialDialog.ListCallback() {
-                                @Override
-                                public void onSelection(MaterialDialog dialog, final View itemView,
-                                        int which, CharSequence text) {
-                                    final String t = data.get(which);
-                                    if (which == data.size() - 1) {
-                                        new MaterialDialog.Builder(mContext).title(
-                                                R.string.category_set_name)
-                                                .input(mContext.getString(
-                                                        R.string.category_set_name_hint), null,
-                                                        false, (dialog1, input) -> {})
-                                                .positiveText(R.string.btn_set)
-                                                .onPositive(
-                                                        new MaterialDialog.SingleButtonCallback() {
-                                                            @Override
-                                                            public void onClick(
-                                                                    MaterialDialog dialog,
-                                                                    DialogAction which) {
-                                                                final String flair =
-                                                                        dialog.getInputEditText()
-                                                                                .getText()
-                                                                                .toString();
-                                                                new AsyncTask<Void, Void, Boolean>() {
-                                                                    @Override
-                                                                    protected Boolean doInBackground(
-                                                                            Void... params) {
-                                                                        try {
-                                                                            new AccountManager(
-                                                                                    Authentication.reddit)
-                                                                                    .save(comment,
-                                                                                            flair);
-                                                                            return true;
-                                                                        } catch (ApiException e) {
-                                                                            e.printStackTrace();
-                                                                            return false;
-                                                                        }
-                                                                    }
-
-                                                                    @Override
-                                                                    protected void onPostExecute(
-                                                                            Boolean done) {
-                                                                        Snackbar s;
-                                                                        if (done) {
-                                                                            if (itemView != null) {
-                                                                                s = Snackbar.make(
-                                                                                        itemView,
-                                                                                        R.string.submission_info_saved,
-                                                                                        Snackbar.LENGTH_SHORT);
-                                                                                LayoutUtils.showSnackbar(s);
-                                                                            }
-                                                                        } else {
-                                                                            if (itemView != null) {
-                                                                                s = Snackbar.make(
-                                                                                        itemView,
-                                                                                        R.string.category_set_error,
-                                                                                        Snackbar.LENGTH_SHORT);
-                                                                                LayoutUtils.showSnackbar(s);
-                                                                            }
-                                                                        }
-
-                                                                    }
-                                                                }.execute();
+                    MaterialDialog.Builder(mContext).items(data)
+                        .title(R.string.sidebar_select_flair)
+                        .itemsCallback(object : ListCallback {
+                            override fun onSelection(
+                                dialog: MaterialDialog, itemView: View,
+                                which: Int, text: CharSequence
+                            ) {
+                                val t = data[which]
+                                if (which == data.size - 1) {
+                                    MaterialDialog.Builder(mContext).title(
+                                        R.string.category_set_name
+                                    )
+                                        .input(mContext.getString(
+                                            R.string.category_set_name_hint
+                                        ),
+                                            null,
+                                            false
+                                        ) { dialog1: MaterialDialog?, input: CharSequence? -> }
+                                        .positiveText(R.string.btn_set)
+                                        .onPositive(
+                                            object : SingleButtonCallback {
+                                                override fun onClick(
+                                                    dialog: MaterialDialog,
+                                                    which: DialogAction
+                                                ) {
+                                                    val flair = dialog.inputEditText!!
+                                                        .text
+                                                        .toString()
+                                                    object : AsyncTask<Void?, Void?, Boolean>() {
+                                                        protected override fun doInBackground(
+                                                            vararg params: Void?
+                                                        ): Boolean {
+                                                            try {
+                                                                /*
+                                                                AccountManager(
+                                                                    Authentication.reddit
+                                                                )
+                                                                    .save(
+                                                                        comment,
+                                                                        flair
+                                                                    )
+                                                                return true
+                                                                 */throw Exception("TODO")
+                                                            } catch (e: ApiException) {
+                                                                e.printStackTrace()
+                                                                return false
                                                             }
-                                                        })
-                                                .negativeText(R.string.btn_cancel)
-                                                .show();
-                                    } else {
-                                        new AsyncTask<Void, Void, Boolean>() {
-                                            @Override
-                                            protected Boolean doInBackground(Void... params) {
-                                                try {
-                                                    new AccountManager(Authentication.reddit).save(
-                                                            comment, t);
-                                                    return true;
-                                                } catch (ApiException e) {
-                                                    e.printStackTrace();
-                                                    return false;
-                                                }
-                                            }
+                                                        }
 
-                                            @Override
-                                            protected void onPostExecute(Boolean done) {
-                                                Snackbar s;
-                                                if (done) {
-                                                    if (itemView != null) {
-                                                        s = Snackbar.make(itemView,
-                                                                R.string.submission_info_saved,
-                                                                Snackbar.LENGTH_SHORT);
-                                                        LayoutUtils.showSnackbar(s);
-                                                    }
-                                                } else {
-                                                    if (itemView != null) {
-                                                        s = Snackbar.make(itemView,
-                                                                R.string.category_set_error,
-                                                                Snackbar.LENGTH_SHORT);
-                                                        LayoutUtils.showSnackbar(s);
-                                                    }
+                                                        override fun onPostExecute(
+                                                            done: Boolean
+                                                        ) {
+                                                            val s: Snackbar
+                                                            if (done) {
+                                                                if (itemView != null) {
+                                                                    s = Snackbar.make(
+                                                                        itemView,
+                                                                        R.string.submission_info_saved,
+                                                                        Snackbar.LENGTH_SHORT
+                                                                    )
+                                                                    LayoutUtils.showSnackbar(s)
+                                                                }
+                                                            } else {
+                                                                if (itemView != null) {
+                                                                    s = Snackbar.make(
+                                                                        itemView,
+                                                                        R.string.category_set_error,
+                                                                        Snackbar.LENGTH_SHORT
+                                                                    )
+                                                                    LayoutUtils.showSnackbar(s)
+                                                                }
+                                                            }
+                                                        }
+                                                    }.execute()
+                                                }
+                                            })
+                                        .negativeText(R.string.btn_cancel)
+                                        .show()
+                                } else {
+                                    object : AsyncTask<Void?, Void?, Boolean>() {
+                                        override fun doInBackground(vararg params: Void?): Boolean {
+                                            try {
+                                                /*
+                                                AccountManager(Authentication.reddit).save(
+                                                    comment, t
+                                                )
+                                                return true
+                                                 */throw Exception("TODO")
+                                            } catch (e: ApiException) {
+                                                e.printStackTrace()
+                                                return false
+                                            }
+                                        }
+
+                                        override fun onPostExecute(done: Boolean) {
+                                            val s: Snackbar
+                                            if (done) {
+                                                if (itemView != null) {
+                                                    s = Snackbar.make(
+                                                        itemView,
+                                                        R.string.submission_info_saved,
+                                                        Snackbar.LENGTH_SHORT
+                                                    )
+                                                    LayoutUtils.showSnackbar(s)
+                                                }
+                                            } else {
+                                                if (itemView != null) {
+                                                    s = Snackbar.make(
+                                                        itemView,
+                                                        R.string.category_set_error,
+                                                        Snackbar.LENGTH_SHORT
+                                                    )
+                                                    LayoutUtils.showSnackbar(s)
                                                 }
                                             }
-                                        }.execute();
-                                    }
+                                        }
+                                    }.execute()
                                 }
-                            })
-                            .show();
+                            }
+                        })
+                        .show()
                     if (d != null) {
-                        d.dismiss();
+                        d!!.dismiss()
                     }
-                } catch (Exception ignored) {
-
+                } catch (ignored: Exception) {
                 }
             }
-        }.execute();
+        }.execute()
     }
 
-    public static void showModBottomSheet(final CommentAdapter adapter, final Context mContext,
-            final CommentNode baseNode, final Comment comment, final CommentViewHolder holder,
-            final Map<String, Integer> reports, final Map<String, String> reports2) {
-
-        int[] attrs = new int[]{R.attr.tintColor};
-        TypedArray ta = mContext.obtainStyledAttributes(attrs);
+    fun showModBottomSheet(
+        adapter: CommentAdapter, mContext: Context,
+        baseNode: CommentView, comment: CommentView, holder: CommentViewHolder,
+        reports: Map<String, Int>, reports2: Map<String, String>
+    ) {
+        val attrs = intArrayOf(R.attr.tintColor)
+        val ta = mContext.obtainStyledAttributes(attrs)
 
         //Initialize drawables
-        int color = ta.getColor(0, Color.WHITE);
-        Drawable profile = mContext.getResources().getDrawable(R.drawable.ic_account_circle);
-        final Drawable report = mContext.getResources().getDrawable(R.drawable.ic_report);
-        final Drawable approve = mContext.getResources().getDrawable(R.drawable.ic_thumb_up);
-        final Drawable nsfw = mContext.getResources().getDrawable(R.drawable.ic_visibility_off);
-        final Drawable pin = mContext.getResources().getDrawable(R.drawable.ic_bookmark_border);
-        final Drawable distinguish = mContext.getResources().getDrawable(R.drawable.ic_star);
-        final Drawable remove = mContext.getResources().getDrawable(R.drawable.ic_close);
-        final Drawable ban = mContext.getResources().getDrawable(R.drawable.ic_gavel);
-        final Drawable spam = mContext.getResources().getDrawable(R.drawable.ic_flag);
-        final Drawable note = mContext.getResources().getDrawable(R.drawable.ic_note);
-        final Drawable removeReason = mContext.getResources().getDrawable(R.drawable.ic_announcement);
-        final Drawable lock = mContext.getResources().getDrawable(R.drawable.ic_lock);
+        val color = ta.getColor(0, Color.WHITE)
+        val profile = mContext.resources.getDrawable(R.drawable.ic_account_circle)
+        val report = mContext.resources.getDrawable(R.drawable.ic_report)
+        val approve = mContext.resources.getDrawable(R.drawable.ic_thumb_up)
+        val nsfw = mContext.resources.getDrawable(R.drawable.ic_visibility_off)
+        val pin = mContext.resources.getDrawable(R.drawable.ic_bookmark_border)
+        val distinguish = mContext.resources.getDrawable(R.drawable.ic_star)
+        val remove = mContext.resources.getDrawable(R.drawable.ic_close)
+        val ban = mContext.resources.getDrawable(R.drawable.ic_gavel)
+        val spam = mContext.resources.getDrawable(R.drawable.ic_flag)
+        val note = mContext.resources.getDrawable(R.drawable.ic_note)
+        val removeReason = mContext.resources.getDrawable(R.drawable.ic_announcement)
+        val lock = mContext.resources.getDrawable(R.drawable.ic_lock)
 
         //Tint drawables
-        final List<Drawable> drawableSet = Arrays.asList(
-                profile, report, approve, nsfw, distinguish, remove,
-                pin, ban, spam, note, removeReason, lock);
-        BlendModeUtil.tintDrawablesAsSrcAtop(drawableSet, color);
-
-        ta.recycle();
+        val drawableSet = Arrays.asList(
+            profile, report, approve, nsfw, distinguish, remove,
+            pin, ban, spam, note, removeReason, lock
+        )
+        BlendModeUtil.tintDrawablesAsSrcAtop(drawableSet, color)
+        ta.recycle()
 
         //Bottom sheet builder
-        BottomSheet.Builder b = new BottomSheet.Builder((Activity) mContext).title(
-                CompatUtil.fromHtml(comment.getBody()));
-
-        int reportCount = reports.size() + reports2.size();
-
+        val b = BottomSheet.Builder((mContext as Activity)).title(
+            CompatUtil.fromHtml(comment.comment.content)
+        )
+        val reportCount = reports.size + reports2.size
         if (reportCount == 0) {
-            b.sheet(0, report, mContext.getString(R.string.mod_no_reports));
+            b.sheet(0, report, mContext.getString(R.string.mod_no_reports))
         } else {
-            b.sheet(0, report, mContext.getResources()
-                    .getQuantityString(R.plurals.mod_btn_reports, reportCount, reportCount));
+            b.sheet(
+                0, report, mContext.getResources()
+                    .getQuantityString(R.plurals.mod_btn_reports, reportCount, reportCount)
+            )
         }
-
         if (SettingValues.toolboxEnabled) {
-            b.sheet(24, note, mContext.getString(R.string.mod_usernotes_view));
+            b.sheet(24, note, mContext.getString(R.string.mod_usernotes_view))
         }
-
-        b.sheet(1, approve, mContext.getString(R.string.mod_btn_approve));
-        b.sheet(6, remove, mContext.getString(R.string.btn_remove));
-        b.sheet(7, removeReason, mContext.getString(R.string.mod_btn_remove_reason));
-        b.sheet(10, spam, mContext.getString(R.string.mod_btn_spam));
-
-        final boolean locked = comment.getDataNode().has("locked")
-                && comment.getDataNode().get("locked").asBoolean();
+        b.sheet(1, approve, mContext.getString(R.string.mod_btn_approve))
+        b.sheet(6, remove, mContext.getString(R.string.btn_remove))
+        b.sheet(7, removeReason, mContext.getString(R.string.mod_btn_remove_reason))
+        b.sheet(10, spam, mContext.getString(R.string.mod_btn_spam))
+        val locked = false
         if (locked) {
-            b.sheet(25, lock, mContext.getString(R.string.mod_btn_unlock_comment));
+            b.sheet(25, lock, mContext.getString(R.string.mod_btn_unlock_comment))
         } else {
-            b.sheet(25, lock, mContext.getString(R.string.mod_btn_lock_comment));
+            b.sheet(25, lock, mContext.getString(R.string.mod_btn_lock_comment))
         }
-
-        final boolean stickied = comment.getDataNode().has("stickied") && comment.getDataNode()
-                .get("stickied")
-                .asBoolean();
-        if (baseNode.isTopLevel() && comment.getAuthor().equalsIgnoreCase(Authentication.name)) {
+        val stickied = comment.comment.isDistinguished
+        if (baseNode.comment.isTopLevel && comment.creator.name.equals(Authentication.name, ignoreCase = true)) {
             if (!stickied) {
-                b.sheet(4, pin, mContext.getString(R.string.mod_sticky));
+                b.sheet(4, pin, mContext.getString(R.string.mod_sticky))
             } else {
-                b.sheet(4, pin, mContext.getString(R.string.mod_unsticky));
+                b.sheet(4, pin, mContext.getString(R.string.mod_unsticky))
             }
         }
-
-        final boolean distinguished = !comment.getDataNode().get("distinguished").isNull();
-        if (comment.getAuthor().equalsIgnoreCase(Authentication.name)) {
+        val distinguished = comment.comment.isDistinguished
+        if (comment.creator.name.equals(Authentication.name, ignoreCase = true)) {
             if (!distinguished) {
-                b.sheet(9, distinguish, mContext.getString(R.string.mod_distinguish));
+                b.sheet(9, distinguish, mContext.getString(R.string.mod_distinguish))
             } else {
-                b.sheet(9, distinguish, mContext.getString(R.string.mod_undistinguish));
+                b.sheet(9, distinguish, mContext.getString(R.string.mod_undistinguish))
             }
         }
-
-        b.sheet(8, profile, mContext.getString(R.string.mod_btn_author));
-        b.sheet(23, ban, mContext.getString(R.string.mod_ban_user));
-
-        b.listener(new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                switch (which) {
-                    case 0:
-                        viewReports(mContext, reports, reports2);
-                        break;
-                    case 1:
-                        doApproval(mContext, holder, comment, adapter);
-                        break;
-                    case 4:
-                        if (stickied) {
-                            unStickyComment(mContext, holder, comment);
-                        } else {
-                            stickyComment(mContext, holder, comment);
-                        }
-                        break;
-                    case 9:
-                        if (distinguished) {
-                            unDistinguishComment(mContext, holder, comment);
-                        } else {
-                            distinguishComment(mContext, holder, comment);
-                        }
-                        break;
-                    case 6:
-                        removeComment(mContext, holder, comment, adapter, false);
-                        break;
-                    case 7:
-                        if (SettingValues.removalReasonType == SettingValues.RemovalReasonType.TOOLBOX.ordinal()
-                                && ToolboxUI.canShowRemoval(comment.getSubredditName())) {
-                            ToolboxUI.showRemoval(mContext, comment, new ToolboxUI.CompletedRemovalCallback() {
-                                @Override
-                                public void onComplete(boolean success) {
-                                    if (success) {
-                                        Snackbar s = Snackbar.make(holder.itemView, R.string.comment_removed,
-                                                Snackbar.LENGTH_LONG);
-                                        LayoutUtils.showSnackbar(s);
-
-                                        adapter.removed.add(comment.getFullName());
-                                        adapter.approved.remove(comment.getFullName());
-                                        holder.content.setText(CommentAdapterHelper.getScoreString(
-                                                comment, mContext, holder, adapter.submission, adapter));
-                                    } else {
-                                        new AlertDialog.Builder(mContext)
-                                                .setTitle(R.string.err_general)
-                                                .setMessage(R.string.err_retry_later)
-                                                .show();
-                                    }
-                                }
-                            });
-                        } else { // Show a Slide reason dialog if we can't show a toolbox or reddit one
-                            doRemoveCommentReason(mContext, holder, comment, adapter);
-                        }
-                        break;
-                    case 10:
-                        removeComment(mContext, holder, comment, adapter, true);
-                        break;
-                    case 8:
-                        Intent i = new Intent(mContext, Profile.class);
-                        i.putExtra(Profile.EXTRA_PROFILE, comment.getAuthor());
-                        mContext.startActivity(i);
-                        break;
-                    case 23:
-                        showBan(mContext, adapter.listView, comment, "", "", "", "");
-                        break;
-                    case 24:
-                        ToolboxUI.showUsernotes(mContext, comment.getAuthor(), comment.getSubredditName(),
-                                "l," + comment.getParentId() + "," + comment.getId());
-                        break;
-                    case 25:
-                        lockUnlockComment(mContext, holder, comment, !locked);
-                        break;
+        b.sheet(8, profile, mContext.getString(R.string.mod_btn_author))
+        b.sheet(23, ban, mContext.getString(R.string.mod_ban_user))
+        b.listener { dialog, which ->
+            when (which) {
+                0 -> viewReports(mContext, reports, reports2)
+                1 -> doApproval(mContext, holder, comment, adapter)
+                4 -> if (stickied) {
+                    unStickyComment(mContext, holder, comment)
+                } else {
+                    stickyComment(mContext, holder, comment)
                 }
+
+                9 -> if (distinguished) {
+                    unDistinguishComment(mContext, holder, comment)
+                } else {
+                    distinguishComment(mContext, holder, comment)
+                }
+
+                6 -> removeComment(mContext, holder, comment, adapter, false)
+                7 -> if ((SettingValues.removalReasonType == SettingValues.RemovalReasonType.TOOLBOX.ordinal
+                            && canShowRemoval(comment.community.name))
+                ) {
+                    showRemoval(mContext, comment, object : CompletedRemovalCallback {
+                        override fun onComplete(success: Boolean) {
+                            if (success) {
+                                val s = Snackbar.make(
+                                    holder.itemView, R.string.comment_removed,
+                                    Snackbar.LENGTH_LONG
+                                )
+                                LayoutUtils.showSnackbar(s)
+                                adapter.removed.add(comment.permalink)
+                                adapter.approved.remove(comment.permalink)
+                                holder.content.text = getScoreString(
+                                    comment,
+                                    mContext,
+                                    holder,
+                                    adapter.submission!!,
+                                    adapter
+                                )
+                            } else {
+                                AlertDialog.Builder(mContext)
+                                    .setTitle(R.string.err_general)
+                                    .setMessage(R.string.err_retry_later)
+                                    .show()
+                            }
+                        }
+                    })
+                } else { // Show a Slide reason dialog if we can't show a toolbox or reddit one
+                    doRemoveCommentReason(mContext, holder, comment, adapter)
+                }
+
+                10 -> removeComment(mContext, holder, comment, adapter, true)
+                8 -> {
+                    val i = Intent(mContext, Profile::class.java)
+                    i.putExtra(Profile.EXTRA_PROFILE, comment.creator.name)
+                    mContext.startActivity(i)
+                }
+
+                23 -> showBan(mContext, adapter.listView, comment, "", "", "", "")
+                24 -> showUsernotes(
+                    mContext, comment.creator.name, comment.community.name,
+                    "l," + comment.comment.parent.id + "," + comment.comment.id.id
+                )
+
+                25 -> lockUnlockComment(mContext, holder, comment, !locked)
             }
-        });
-        b.show();
+        }
+        b.show()
     }
 
-    public static void showBan(final Context mContext, final View mToolbar,
-            final Comment submission, String rs, String nt, String msg, String t) {
-        LinearLayout l = new LinearLayout(mContext);
-        l.setOrientation(LinearLayout.VERTICAL);
-        int sixteen = DisplayUtil.dpToPxVertical(16);
-        l.setPadding(sixteen, 0, sixteen, 0);
-
-        final EditText reason = new EditText(mContext);
-        reason.setHint(R.string.mod_ban_reason);
-        reason.setText(rs);
-        reason.setInputType(InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
-        l.addView(reason);
-
-
-        final EditText note = new EditText(mContext);
-        note.setHint(R.string.mod_ban_note_mod);
-        note.setText(nt);
-        note.setInputType(InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
-        l.addView(note);
-
-        final EditText message = new EditText(mContext);
-        message.setHint(R.string.mod_ban_note_user);
-        message.setText(msg);
-        message.setInputType(InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
-        l.addView(message);
-
-        final EditText time = new EditText(mContext);
-        time.setHint(R.string.mod_ban_time);
-        time.setText(t);
-        time.setInputType(InputType.TYPE_CLASS_NUMBER);
-        l.addView(time);
-
-        new AlertDialog.Builder(mContext)
-                .setView(l)
-                .setTitle(mContext.getString(R.string.mod_ban_title, submission.getAuthor()))
-                .setCancelable(true)
-                .setPositiveButton(R.string.mod_btn_ban, (dialog, which) -> {
-                    //to ban
-                    if (reason.getText().toString().isEmpty()) {
-                        new AlertDialog.Builder(mContext)
-                                .setTitle(R.string.mod_ban_reason_required)
-                                .setMessage(R.string.misc_please_try_again)
-                                .setPositiveButton(R.string.btn_ok, (dialog1, which1) ->
-                                        showBan(mContext, mToolbar, submission,
-                                                reason.getText().toString(),
-                                                note.getText().toString(),
-                                                message.getText().toString(),
-                                                time.getText().toString()))
-                                .setCancelable(false)
-                                .show();
-                    } else {
-                        new AsyncTask<Void, Void, Boolean>() {
-                            @Override
-                            protected Boolean doInBackground(Void... params) {
-                                try {
-                                    String n = note.getText().toString();
-                                    String m = message.getText().toString();
-
-                                    if (n.isEmpty()) {
-                                        n = null;
-                                    }
-                                    if (m.isEmpty()) {
-                                        m = null;
-                                    }
-                                    if (time.getText().toString().isEmpty()) {
-                                        new ModerationManager(Authentication.reddit).banUserPermanently(
-                                                submission.getSubredditName(),
-                                                submission.getAuthor(),
-                                                reason.getText().toString(),
-                                                n,
-                                                m);
-                                    } else {
-                                        new ModerationManager(Authentication.reddit).banUser(
-                                                submission.getSubredditName(),
-                                                submission.getAuthor(), reason.getText().toString(),
-                                                n, m, Integer.parseInt(time.getText().toString()));
-                                    }
-                                    return true;
-                                } catch (Exception e) {
-                                    if (e instanceof InvalidScopeException) {
-                                        scope = true;
-                                    }
-                                    e.printStackTrace();
-                                    return false;
+    @JvmStatic
+    fun showBan(
+        mContext: Context, mToolbar: View?,
+        submission: CommentView, rs: String?, nt: String?, msg: String?, t: String?
+    ) {
+        val l = LinearLayout(mContext)
+        l.orientation = LinearLayout.VERTICAL
+        val sixteen = DisplayUtil.dpToPxVertical(16)
+        l.setPadding(sixteen, 0, sixteen, 0)
+        val reason = EditText(mContext)
+        reason.setHint(R.string.mod_ban_reason)
+        reason.setText(rs)
+        reason.inputType = InputType.TYPE_TEXT_FLAG_CAP_SENTENCES
+        l.addView(reason)
+        val note = EditText(mContext)
+        note.setHint(R.string.mod_ban_note_mod)
+        note.setText(nt)
+        note.inputType = InputType.TYPE_TEXT_FLAG_CAP_SENTENCES
+        l.addView(note)
+        val message = EditText(mContext)
+        message.setHint(R.string.mod_ban_note_user)
+        message.setText(msg)
+        message.inputType = InputType.TYPE_TEXT_FLAG_CAP_SENTENCES
+        l.addView(message)
+        val time = EditText(mContext)
+        time.setHint(R.string.mod_ban_time)
+        time.setText(t)
+        time.inputType = InputType.TYPE_CLASS_NUMBER
+        l.addView(time)
+        AlertDialog.Builder(mContext)
+            .setView(l)
+            .setTitle(mContext.getString(R.string.mod_ban_title, submission.creator.name))
+            .setCancelable(true)
+            .setPositiveButton(R.string.mod_btn_ban) { dialog: DialogInterface?, which: Int ->
+                //to ban
+                if (reason.getText().toString().isEmpty()) {
+                    AlertDialog.Builder(mContext)
+                        .setTitle(R.string.mod_ban_reason_required)
+                        .setMessage(R.string.misc_please_try_again)
+                        .setPositiveButton(
+                            R.string.btn_ok,
+                            DialogInterface.OnClickListener { dialog1: DialogInterface?, which1: Int ->
+                                showBan(
+                                    mContext, mToolbar, submission,
+                                    reason.getText().toString(),
+                                    note.getText().toString(),
+                                    message.getText().toString(),
+                                    time.getText().toString()
+                                )
+                            })
+                        .setCancelable(false)
+                        .show()
+                } else {
+                    object : AsyncTask<Void?, Void?, Boolean>() {
+                        override fun doInBackground(vararg params: Void?): Boolean {
+                            try {
+                                var n: String? = note.getText().toString()
+                                var m: String? = message.getText().toString()
+                                if (n!!.isEmpty()) {
+                                    n = null
                                 }
-                            }
-
-                            boolean scope;
-
-                            @Override
-                            protected void onPostExecute(Boolean done) {
-                                Snackbar s;
-                                if (done) {
-                                    s = Snackbar.make(mToolbar, R.string.mod_ban_success,
-                                            Snackbar.LENGTH_SHORT);
+                                if (m!!.isEmpty()) {
+                                    m = null
+                                }
+                                if (time.getText().toString().isEmpty()) {
+                                    ModerationManager(Authentication.reddit).banUserPermanently(
+                                        submission.community.name,
+                                        submission.creator.name,
+                                        reason.getText().toString(),
+                                        n,
+                                        m
+                                    )
                                 } else {
-                                    if (scope) {
-                                        new AlertDialog.Builder(mContext)
-                                                .setTitle(R.string.mod_ban_reauth)
-                                                .setMessage(R.string.mod_ban_reauth_question)
-                                                .setPositiveButton(R.string.btn_ok, (dialog12, which12) -> {
-                                                    Intent i = new Intent(mContext, Reauthenticate.class);
-                                                    mContext.startActivity(i);
-                                                })
-                                                .setNegativeButton(R.string.misc_maybe_later, null)
-                                                .setCancelable(false)
-                                                .show();
-                                    }
-                                    s = Snackbar.make(mToolbar, R.string.mod_ban_fail,
-                                            Snackbar.LENGTH_INDEFINITE)
-                                            .setAction(R.string.misc_try_again,
-                                                    new View.OnClickListener() {
-                                                        @Override
-                                                        public void onClick(View v) {
-                                                            showBan(mContext, mToolbar,
-                                                                    submission,
-                                                                    reason.getText().toString(),
-                                                                    note.getText().toString(),
-                                                                    message.getText()
-                                                                            .toString(),
-                                                                    time.getText().toString());
-                                                        }
-                                                    });
-
+                                    ModerationManager(Authentication.reddit).banUser(
+                                        submission.community.name,
+                                        submission.creator.name,
+                                        reason.getText().toString(),
+                                        n, m, time.getText().toString().toInt()
+                                    )
                                 }
-
-                                if (s != null) {
-                                    LayoutUtils.showSnackbar(s);
+                                return true
+                            } catch (e: Exception) {
+                                if (e is InvalidScopeException) {
+                                    scope = true
                                 }
+                                e.printStackTrace()
+                                return false
                             }
-                        }.execute();
-                    }
-                })
-                .setNegativeButton(R.string.btn_cancel, null)
-                .show();
+                        }
 
+                        var scope: Boolean = false
+                        override fun onPostExecute(done: Boolean) {
+                            val s: Snackbar?
+                            if (done) {
+                                s = Snackbar.make(
+                                    (mToolbar)!!, R.string.mod_ban_success,
+                                    Snackbar.LENGTH_SHORT
+                                )
+                            } else {
+                                if (scope) {
+                                    AlertDialog.Builder(mContext)
+                                        .setTitle(R.string.mod_ban_reauth)
+                                        .setMessage(R.string.mod_ban_reauth_question)
+                                        .setPositiveButton(
+                                            R.string.btn_ok,
+                                            DialogInterface.OnClickListener { dialog12: DialogInterface?, which12: Int ->
+                                                val i: Intent =
+                                                    Intent(mContext, Reauthenticate::class.java)
+                                                mContext.startActivity(i)
+                                            })
+                                        .setNegativeButton(R.string.misc_maybe_later, null)
+                                        .setCancelable(false)
+                                        .show()
+                                }
+                                s = Snackbar.make(
+                                    (mToolbar)!!, R.string.mod_ban_fail,
+                                    Snackbar.LENGTH_INDEFINITE
+                                )
+                                    .setAction(R.string.misc_try_again,
+                                        object : View.OnClickListener {
+                                            override fun onClick(v: View) {
+                                                showBan(
+                                                    mContext, mToolbar,
+                                                    submission,
+                                                    reason.getText().toString(),
+                                                    note.getText().toString(),
+                                                    message.getText()
+                                                        .toString(),
+                                                    time.getText().toString()
+                                                )
+                                            }
+                                        })
+                            }
+                            if (s != null) {
+                                LayoutUtils.showSnackbar(s)
+                            }
+                        }
+                    }.execute()
+                }
+            }
+            .setNegativeButton(R.string.btn_cancel, null)
+            .show()
     }
 
-    public static void distinguishComment(final Context mContext, final CommentViewHolder holder,
-            final Comment comment) {
-        new AsyncTask<Void, Void, Boolean>() {
-
-            @Override
-            public void onPostExecute(Boolean b) {
+    fun distinguishComment(
+        mContext: Context?, holder: CommentViewHolder,
+        comment: CommentView?
+    ) {
+        object : AsyncTask<Void?, Void?, Boolean>() {
+            public override fun onPostExecute(b: Boolean) {
                 if (b) {
-                    Snackbar s = Snackbar.make(holder.itemView, R.string.comment_distinguished,
-                            Snackbar.LENGTH_LONG);
-                    LayoutUtils.showSnackbar(s);
+                    val s = Snackbar.make(
+                        holder.itemView, R.string.comment_distinguished,
+                        Snackbar.LENGTH_LONG
+                    )
+                    LayoutUtils.showSnackbar(s)
                 } else {
-                    new AlertDialog.Builder(mContext)
-                            .setTitle(R.string.err_general)
-                            .setMessage(R.string.err_retry_later)
-                            .show();
+                    AlertDialog.Builder((mContext)!!)
+                        .setTitle(R.string.err_general)
+                        .setMessage(R.string.err_retry_later)
+                        .show()
                 }
             }
 
-            @Override
-            protected Boolean doInBackground(Void... params) {
+            override fun doInBackground(vararg params: Void?): Boolean {
                 try {
-                    new ModerationManager(Authentication.reddit).setDistinguishedStatus(comment,
-                            DistinguishedStatus.MODERATOR);
-                } catch (ApiException e) {
-                    e.printStackTrace();
-                    return false;
-
+                    /*
+                    ModerationManager(Authentication.reddit).setDistinguishedStatus(
+                        comment,
+                        DistinguishedStatus.MODERATOR
+                    )
+                     */throw Exception("TODO")
+                } catch (e: ApiException) {
+                    e.printStackTrace()
+                    return false
                 }
-                return true;
+                return true
             }
-        }.execute();
+        }.execute()
     }
 
-    public static void unDistinguishComment(final Context mContext, final CommentViewHolder holder,
-            final Comment comment) {
-        new AsyncTask<Void, Void, Boolean>() {
-
-            @Override
-            public void onPostExecute(Boolean b) {
+    fun unDistinguishComment(
+        mContext: Context?, holder: CommentViewHolder,
+        comment: CommentView?
+    ) {
+        object : AsyncTask<Void?, Void?, Boolean>() {
+            public override fun onPostExecute(b: Boolean) {
                 if (b) {
-                    Snackbar s = Snackbar.make(holder.itemView, R.string.comment_undistinguished,
-                            Snackbar.LENGTH_LONG);
-                    LayoutUtils.showSnackbar(s);
+                    val s = Snackbar.make(
+                        holder.itemView, R.string.comment_undistinguished,
+                        Snackbar.LENGTH_LONG
+                    )
+                    LayoutUtils.showSnackbar(s)
                 } else {
-                    new AlertDialog.Builder(mContext)
-                            .setTitle(R.string.err_general)
-                            .setMessage(R.string.err_retry_later)
-                            .show();
+                    AlertDialog.Builder((mContext)!!)
+                        .setTitle(R.string.err_general)
+                        .setMessage(R.string.err_retry_later)
+                        .show()
                 }
             }
 
-            @Override
-            protected Boolean doInBackground(Void... params) {
+            override fun doInBackground(vararg params: Void?): Boolean {
                 try {
-                    new ModerationManager(Authentication.reddit).setDistinguishedStatus(comment,
-                            DistinguishedStatus.NORMAL);
-                } catch (ApiException e) {
-                    e.printStackTrace();
-                    return false;
-
+                    /*
+                    ModerationManager(Authentication.reddit).setDistinguishedStatus(
+                        comment,
+                        DistinguishedStatus.NORMAL
+                    )
+                     */throw Exception("TODO")
+                } catch (e: ApiException) {
+                    e.printStackTrace()
+                    return false
                 }
-                return true;
+                return true
             }
-        }.execute();
+        }.execute()
     }
 
-    public static void stickyComment(final Context mContext, final CommentViewHolder holder,
-            final Comment comment) {
-        new AsyncTask<Void, Void, Boolean>() {
-
-            @Override
-            public void onPostExecute(Boolean b) {
+    fun stickyComment(
+        mContext: Context?, holder: CommentViewHolder,
+        comment: CommentView?
+    ) {
+        object : AsyncTask<Void?, Void?, Boolean>() {
+            public override fun onPostExecute(b: Boolean) {
                 if (b) {
-                    Snackbar s = Snackbar.make(holder.itemView, R.string.comment_stickied,
-                            Snackbar.LENGTH_LONG);
-                    LayoutUtils.showSnackbar(s);
+                    val s = Snackbar.make(
+                        holder.itemView, R.string.comment_stickied,
+                        Snackbar.LENGTH_LONG
+                    )
+                    LayoutUtils.showSnackbar(s)
                 } else {
-                    new AlertDialog.Builder(mContext)
-                            .setTitle(R.string.err_general)
-                            .setMessage(R.string.err_retry_later)
-                            .show();
+                    AlertDialog.Builder((mContext)!!)
+                        .setTitle(R.string.err_general)
+                        .setMessage(R.string.err_retry_later)
+                        .show()
                 }
             }
 
-            @Override
-            protected Boolean doInBackground(Void... params) {
+            override fun doInBackground(vararg params: Void?): Boolean {
                 try {
-                    new ModerationManager(Authentication.reddit).setSticky(comment, true);
-                } catch (ApiException e) {
-                    e.printStackTrace();
-                    return false;
-
+                    /*
+                    ModerationManager(Authentication.reddit).setSticky(comment, true)
+                     */throw Exception("TODO")
+                } catch (e: ApiException) {
+                    e.printStackTrace()
+                    return false
                 }
-                return true;
+                return true
             }
-        }.execute();
+        }.execute()
     }
 
-    public static void viewReports(final Context mContext, final Map<String, Integer> reports,
-            final Map<String, String> reports2) {
-        new AsyncTask<Void, Void, ArrayList<String>>() {
-            @Override
-            protected ArrayList<String> doInBackground(Void... params) {
-
-                ArrayList<String> finalReports = new ArrayList<>();
-                for (Map.Entry<String, Integer> entry : reports.entrySet()) {
-                    finalReports.add("x" + entry.getValue() + " " + entry.getKey());
+    @JvmStatic
+    fun viewReports(
+        mContext: Context, reports: Map<String, Int>,
+        reports2: Map<String, String>
+    ) {
+        object : AsyncTask<Void?, Void?, ArrayList<String>>() {
+            override fun doInBackground(vararg params: Void?): ArrayList<String> {
+                val finalReports = ArrayList<String>()
+                for (entry: Map.Entry<String, Int> in reports.entries) {
+                    finalReports.add("x" + entry.value + " " + entry.key)
                 }
-                for (Map.Entry<String, String> entry : reports2.entrySet()) {
-                    finalReports.add(entry.getKey() + ": " + entry.getValue());
+                for (entry: Map.Entry<String, String> in reports2.entries) {
+                    finalReports.add(entry.key + ": " + entry.value)
                 }
                 if (finalReports.isEmpty()) {
-                    finalReports.add(mContext.getString(R.string.mod_no_reports));
+                    finalReports.add(mContext.getString(R.string.mod_no_reports))
                 }
-                return finalReports;
+                return finalReports
             }
 
-            @Override
-            public void onPostExecute(ArrayList<String> data) {
-                new AlertDialog.Builder(mContext)
-                        .setTitle(R.string.mod_reports)
-                        .setItems(data.toArray(new CharSequence[0]), null)
-                        .show();
+            public override fun onPostExecute(data: ArrayList<String>) {
+                AlertDialog.Builder(mContext)
+                    .setTitle(R.string.mod_reports)
+                    .setItems(data.toTypedArray<CharSequence>(), null)
+                    .show()
             }
-        }.execute();
+        }.execute()
     }
 
-    public static void doApproval(final Context mContext, final CommentViewHolder holder,
-            final Comment comment, final CommentAdapter adapter) {
-        new AsyncTask<Void, Void, Boolean>() {
-
-            @Override
-            public void onPostExecute(Boolean b) {
+    fun doApproval(
+        mContext: Context, holder: CommentViewHolder,
+        comment: CommentView, adapter: CommentAdapter
+    ) {
+        object : AsyncTask<Void?, Void?, Boolean>() {
+            public override fun onPostExecute(b: Boolean) {
                 if (b) {
-                    adapter.approved.add(comment.getFullName());
-                    adapter.removed.remove(comment.getFullName());
-                    holder.content.setText(
-                            CommentAdapterHelper.getScoreString(comment, mContext, holder,
-                                    adapter.submission, adapter));
+                    adapter.approved.add(comment.permalink)
+                    adapter.removed.remove(comment.permalink)
+                    holder.content.text = getScoreString(
+                        comment, mContext, holder,
+                        adapter.submission!!, adapter
+                    )
                     Snackbar.make(holder.itemView, R.string.mod_approved, Snackbar.LENGTH_LONG)
-                            .show();
-
+                        .show()
                 } else {
-                    new AlertDialog.Builder(mContext)
-                            .setTitle(R.string.err_general)
-                            .setMessage(R.string.err_retry_later)
-                            .show();
+                    AlertDialog.Builder(mContext)
+                        .setTitle(R.string.err_general)
+                        .setMessage(R.string.err_retry_later)
+                        .show()
                 }
             }
 
-            @Override
-            protected Boolean doInBackground(Void... params) {
+            override fun doInBackground(vararg params: Void?): Boolean {
                 try {
-                    new ModerationManager(Authentication.reddit).approve(comment);
-                } catch (ApiException e) {
-                    e.printStackTrace();
-                    return false;
-
+                    /*
+                    ModerationManager(Authentication.reddit).approve(comment)
+                     */throw Exception("TODO")
+                } catch (e: ApiException) {
+                    e.printStackTrace()
+                    return false
                 }
-                return true;
+                return true
             }
-        }.execute();
+        }.execute()
     }
 
-    public static void unStickyComment(final Context mContext, final CommentViewHolder holder,
-            final Comment comment) {
-        new AsyncTask<Void, Void, Boolean>() {
-
-            @Override
-            public void onPostExecute(Boolean b) {
+    fun unStickyComment(
+        mContext: Context?, holder: CommentViewHolder,
+        comment: CommentView?
+    ) {
+        object : AsyncTask<Void?, Void?, Boolean>() {
+            public override fun onPostExecute(b: Boolean) {
                 if (b) {
-                    Snackbar s = Snackbar.make(holder.itemView, R.string.comment_unstickied,
-                            Snackbar.LENGTH_LONG);
-                    LayoutUtils.showSnackbar(s);
+                    val s = Snackbar.make(
+                        holder.itemView, R.string.comment_unstickied,
+                        Snackbar.LENGTH_LONG
+                    )
+                    LayoutUtils.showSnackbar(s)
                 } else {
-                    new AlertDialog.Builder(mContext)
-                            .setTitle(R.string.err_general)
-                            .setMessage(R.string.err_retry_later)
-                            .show();
+                    AlertDialog.Builder((mContext)!!)
+                        .setTitle(R.string.err_general)
+                        .setMessage(R.string.err_retry_later)
+                        .show()
                 }
             }
 
-            @Override
-            protected Boolean doInBackground(Void... params) {
+            override fun doInBackground(vararg params: Void?): Boolean {
                 try {
-                    new ModerationManager(Authentication.reddit).setSticky(comment, false);
-                } catch (ApiException e) {
-                    e.printStackTrace();
-                    return false;
-
+                    /*
+                    ModerationManager(Authentication.reddit).setSticky(comment, false)
+                     */throw Exception("TODO")
+                } catch (e: ApiException) {
+                    e.printStackTrace()
+                    return false
                 }
-                return true;
+                return true
             }
-        }.execute();
+        }.execute()
     }
 
-    public static void removeComment(final Context mContext, final CommentViewHolder holder,
-            final Comment comment, final CommentAdapter adapter, final boolean spam) {
-        new AsyncTask<Void, Void, Boolean>() {
-
-            @Override
-            public void onPostExecute(Boolean b) {
+    fun removeComment(
+        mContext: Context, holder: CommentViewHolder,
+        comment: CommentView, adapter: CommentAdapter, spam: Boolean
+    ) {
+        object : AsyncTask<Void?, Void?, Boolean>() {
+            public override fun onPostExecute(b: Boolean) {
                 if (b) {
-                    Snackbar s = Snackbar.make(holder.itemView, R.string.comment_removed,
-                            Snackbar.LENGTH_LONG);
-                    LayoutUtils.showSnackbar(s);
-
-                    adapter.removed.add(comment.getFullName());
-                    adapter.approved.remove(comment.getFullName());
-                    holder.content.setText(
-                            CommentAdapterHelper.getScoreString(comment, mContext, holder,
-                                    adapter.submission, adapter));
+                    val s = Snackbar.make(
+                        holder.itemView, R.string.comment_removed,
+                        Snackbar.LENGTH_LONG
+                    )
+                    LayoutUtils.showSnackbar(s)
+                    adapter.removed.add(comment.permalink)
+                    adapter.approved.remove(comment.permalink)
+                    holder.content.text = getScoreString(
+                        comment, mContext, holder,
+                        adapter.submission!!, adapter
+                    )
                 } else {
-                    new AlertDialog.Builder(mContext)
-                            .setTitle(R.string.err_general)
-                            .setMessage(R.string.err_retry_later)
-                            .show();
+                    AlertDialog.Builder(mContext)
+                        .setTitle(R.string.err_general)
+                        .setMessage(R.string.err_retry_later)
+                        .show()
                 }
             }
 
-            @Override
-            protected Boolean doInBackground(Void... params) {
+            override fun doInBackground(vararg params: Void?): Boolean {
                 try {
-                    new ModerationManager(Authentication.reddit).remove(comment, spam);
-                } catch (ApiException | NetworkException e) {
-                    e.printStackTrace();
-                    return false;
-
+                    /*
+                    ModerationManager(Authentication.reddit).remove(comment, spam)
+                    */throw Exception("TODO")
+                } catch (e: ApiException) {
+                    e.printStackTrace()
+                    return false
+                } catch (e: NetworkException) {
+                    e.printStackTrace()
+                    return false
                 }
-                return true;
+                return true
             }
-        }.execute();
+        }.execute()
     }
 
     /**
@@ -1110,25 +1104,26 @@ public class CommentAdapterHelper {
      * @param comment comment
      * @param adapter commentadapter
      */
-    public static void doRemoveCommentReason(final Context mContext,
-            final CommentViewHolder holder, final Comment comment, final CommentAdapter adapter) {
-        new MaterialDialog.Builder(mContext).title(R.string.mod_remove_title)
-                .positiveText(R.string.btn_remove)
-                .alwaysCallInputCallback()
-                .input(mContext.getString(R.string.mod_remove_hint),
-                        mContext.getString(R.string.mod_remove_template), false,
-                        (dialog, input) -> {})
-                .inputType(InputType.TYPE_TEXT_FLAG_CAP_SENTENCES)
-                .neutralText(R.string.mod_remove_insert_draft)
-                .onPositive(new MaterialDialog.SingleButtonCallback() {
-                    @Override
-                    public void onClick(final MaterialDialog dialog, DialogAction which) {
-                        removeCommentReason(comment, mContext, holder, adapter,
-                                dialog.getInputEditText().getText().toString());
-                    }
-                })
-                .negativeText(R.string.btn_cancel)
-                .show();
+    fun doRemoveCommentReason(
+        mContext: Context,
+        holder: CommentViewHolder, comment: CommentView, adapter: CommentAdapter
+    ) {
+        MaterialDialog.Builder(mContext).title(R.string.mod_remove_title)
+            .positiveText(R.string.btn_remove)
+            .alwaysCallInputCallback()
+            .input(mContext.getString(R.string.mod_remove_hint),
+                mContext.getString(R.string.mod_remove_template), false
+            ) { dialog: MaterialDialog?, input: CharSequence? -> }
+            .inputType(InputType.TYPE_TEXT_FLAG_CAP_SENTENCES)
+            .neutralText(R.string.mod_remove_insert_draft)
+            .onPositive { dialog, which ->
+                removeCommentReason(
+                    comment, mContext, holder, adapter,
+                    dialog.inputEditText!!.text.toString()
+                )
+            }
+            .negativeText(R.string.btn_cancel)
+            .show()
     }
 
     /**
@@ -1139,564 +1134,590 @@ public class CommentAdapterHelper {
      * @param adapter commentadapter
      * @param reason reason
      */
-    public static void removeCommentReason(final Comment comment, final Context mContext, CommentViewHolder holder,
-            final CommentAdapter adapter, final String reason) {
-        new AsyncTask<Void, Void, Boolean>() {
-
-            @Override
-            public void onPostExecute(Boolean b) {
+    fun removeCommentReason(
+        comment: CommentView, mContext: Context, holder: CommentViewHolder,
+        adapter: CommentAdapter, reason: String?
+    ) {
+        object : AsyncTask<Void?, Void?, Boolean>() {
+            public override fun onPostExecute(b: Boolean) {
                 if (b) {
-                    Snackbar s = Snackbar.make(holder.itemView, R.string.comment_removed, Snackbar.LENGTH_LONG);
-                    LayoutUtils.showSnackbar(s);
-
-                    adapter.removed.add(comment.getFullName());
-                    adapter.approved.remove(comment.getFullName());
-                    holder.content.setText(CommentAdapterHelper.getScoreString(comment, mContext, holder,
-                            adapter.submission, adapter));
+                    val s = Snackbar.make(
+                        holder.itemView,
+                        R.string.comment_removed,
+                        Snackbar.LENGTH_LONG
+                    )
+                    LayoutUtils.showSnackbar(s)
+                    adapter.removed.add(comment.permalink)
+                    adapter.approved.remove(comment.permalink)
+                    holder.content.text = getScoreString(
+                        comment, mContext, holder,
+                        adapter.submission!!, adapter
+                    )
                 } else {
-                    new AlertDialog.Builder(mContext)
-                            .setTitle(R.string.err_general)
-                            .setMessage(R.string.err_retry_later)
-                            .show();
+                    AlertDialog.Builder(mContext)
+                        .setTitle(R.string.err_general)
+                        .setMessage(R.string.err_retry_later)
+                        .show()
                 }
             }
 
-            @Override
-            protected Boolean doInBackground(Void... params) {
+            override fun doInBackground(vararg params: Void?): Boolean {
                 try {
-                    new AccountManager(Authentication.reddit).reply(comment, reason);
-                    new ModerationManager(Authentication.reddit).remove(comment, false);
-                    new ModerationManager(Authentication.reddit).setDistinguishedStatus(
-                            Authentication.reddit.get(comment.getFullName()).get(0),
-                            DistinguishedStatus.MODERATOR);
-                } catch (ApiException | NetworkException e) {
-                    e.printStackTrace();
-                    return false;
+                    /*
+                    AccountManager(Authentication.reddit).reply(comment, reason)
+                    ModerationManager(Authentication.reddit).remove(comment, false)
+                    ModerationManager(Authentication.reddit).setDistinguishedStatus(
+                        Authentication.reddit!![comment.fullName][0],
+                        DistinguishedStatus.MODERATOR
+                    )
+                     */throw Exception("TODO")
+                } catch (e: ApiException) {
+                    e.printStackTrace()
+                    return false
+                } catch (e: NetworkException) {
+                    e.printStackTrace()
+                    return false
                 }
-                return true;
+                return true
             }
-        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR)
     }
 
-    public static void lockUnlockComment(final Context mContext, final CommentViewHolder holder,
-            final Comment comment, final boolean lock) {
-        new AsyncTask<Void, Void, Boolean>() {
-
-            @Override
-            public void onPostExecute(Boolean b) {
+    fun lockUnlockComment(
+        mContext: Context?, holder: CommentViewHolder,
+        comment: CommentView?, lock: Boolean
+    ) {
+        object : AsyncTask<Void?, Void?, Boolean>() {
+            public override fun onPostExecute(b: Boolean) {
                 if (b) {
-                    Snackbar s = Snackbar.make(holder.itemView, lock ? R.string.mod_locked : R.string.mod_unlocked,
-                            Snackbar.LENGTH_LONG);
-                    LayoutUtils.showSnackbar(s);
+                    val s = Snackbar.make(
+                        holder.itemView, if (lock) R.string.mod_locked else R.string.mod_unlocked,
+                        Snackbar.LENGTH_LONG
+                    )
+                    LayoutUtils.showSnackbar(s)
                 } else {
-                    new AlertDialog.Builder(mContext)
-                            .setTitle(R.string.err_general)
-                            .setMessage(R.string.err_retry_later)
-                            .show();
+                    AlertDialog.Builder((mContext)!!)
+                        .setTitle(R.string.err_general)
+                        .setMessage(R.string.err_retry_later)
+                        .show()
                 }
             }
 
-            @Override
-            protected Boolean doInBackground(Void... params) {
+            override fun doInBackground(vararg params: Void?): Boolean {
                 try {
+                    /*
                     if (lock) {
-                        new ModerationManager(Authentication.reddit).setLocked(comment);
+                        ModerationManager(Authentication.reddit).setLocked(comment)
                     } else {
-                        new ModerationManager(Authentication.reddit).setUnlocked(comment);
+                        ModerationManager(Authentication.reddit).setUnlocked(comment)
                     }
-                } catch (ApiException e) {
-                    e.printStackTrace();
-                    return false;
-
+                     */throw Exception("TODO")
+                } catch (e: ApiException) {
+                    e.printStackTrace()
+                    return false
                 }
-                return true;
+                return true
             }
-        }.execute();
+        }.execute()
     }
 
-    public static SpannableStringBuilder createApprovedLine(String approvedBy, Context c) {
-        SpannableStringBuilder removedString = new SpannableStringBuilder("\n");
-        SpannableStringBuilder mod = new SpannableStringBuilder("Approved by ");
-        mod.append(approvedBy);
-        mod.setSpan(new StyleSpan(Typeface.BOLD), 0, mod.length(),
-                Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-        mod.setSpan(new RelativeSizeSpan(0.8f), 0, mod.length(),
-                Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-        mod.setSpan(new ForegroundColorSpan(c.getResources().getColor(R.color.md_green_300)), 0,
-                mod.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-        removedString.append(mod);
-        return removedString;
+    fun createApprovedLine(approvedBy: String?, c: Context): SpannableStringBuilder {
+        val removedString = SpannableStringBuilder("\n")
+        val mod = SpannableStringBuilder("Approved by ")
+        mod.append(approvedBy)
+        mod.setSpan(
+            StyleSpan(Typeface.BOLD), 0, mod.length,
+            Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+        )
+        mod.setSpan(
+            RelativeSizeSpan(0.8f), 0, mod.length,
+            Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+        )
+        mod.setSpan(
+            ForegroundColorSpan(c.resources.getColor(R.color.md_green_300)), 0,
+            mod.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+        )
+        removedString.append(mod)
+        return removedString
     }
 
-    public static SpannableStringBuilder createRemovedLine(String removedBy, Context c) {
-        SpannableStringBuilder removedString = new SpannableStringBuilder("\n");
-        SpannableStringBuilder mod = new SpannableStringBuilder("Removed by ");
-        if (removedBy.equalsIgnoreCase(
-                "true")) {//Probably shadowbanned or removed not by mod action
-            mod = new SpannableStringBuilder("Removed by Reddit");
+    fun createRemovedLine(removedBy: String?, c: Context): SpannableStringBuilder {
+        val removedString = SpannableStringBuilder("\n")
+        var mod = SpannableStringBuilder("Removed by ")
+        if (removedBy.equals(
+                "true", ignoreCase = true
+            )
+        ) { //Probably shadowbanned or removed not by mod action
+            mod = SpannableStringBuilder("Removed by Reddit")
         } else {
-            mod.append(removedBy);
+            mod.append(removedBy)
         }
-        mod.setSpan(new StyleSpan(Typeface.BOLD), 0, mod.length(),
-                Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-        mod.setSpan(new RelativeSizeSpan(0.8f), 0, mod.length(),
-                Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-        mod.setSpan(new ForegroundColorSpan(c.getResources().getColor(R.color.md_red_300)), 0,
-                mod.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-        removedString.append(mod);
-        return removedString;
+        mod.setSpan(
+            StyleSpan(Typeface.BOLD), 0, mod.length,
+            Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+        )
+        mod.setSpan(
+            RelativeSizeSpan(0.8f), 0, mod.length,
+            Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+        )
+        mod.setSpan(
+            ForegroundColorSpan(c.resources.getColor(R.color.md_red_300)), 0,
+            mod.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+        )
+        removedString.append(mod)
+        return removedString
     }
 
-    public static Spannable getScoreString(Comment comment, Context mContext,
-            CommentViewHolder holder, Submission submission, CommentAdapter adapter) {
-        final String spacer =
-                " " + mContext.getString(R.string.submission_properties_seperator_comments) + " ";
-        SpannableStringBuilder titleString =
-                new SpannableStringBuilder("\u200B");//zero width space to fix first span height
-        SpannableStringBuilder author = new SpannableStringBuilder(comment.getAuthor());
-        final int authorcolor = Palette.getFontColorUser(comment.getAuthor());
-
-        author.setSpan(new TypefaceSpan("sans-serif-condensed"), 0, author.length(),
-                Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-        author.setSpan(new StyleSpan(Typeface.BOLD), 0, author.length(),
-                Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-        if (comment.getDistinguishedStatus() == DistinguishedStatus.ADMIN) {
-            author.replace(0, author.length(), " " + comment.getAuthor() + " ");
+    fun getScoreString(
+        comment: CommentView, mContext: Context,
+        holder: CommentViewHolder, submission: IPost?, adapter: CommentAdapter
+    ): Spannable {
+        val spacer =
+            " " + mContext.getString(R.string.submission_properties_seperator_comments) + " "
+        val titleString =
+            SpannableStringBuilder("\u200B") //zero width space to fix first span height
+        val author = SpannableStringBuilder(comment.creator.name)
+        val authorcolor = Palette.getFontColorUser(comment.creator.name)
+        author.setSpan(
+            TypefaceSpan("sans-serif-condensed"), 0, author.length,
+            Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+        )
+        author.setSpan(
+            StyleSpan(Typeface.BOLD), 0, author.length,
+            Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+        )
+        if (comment.comment.isDistinguished) {
+            author.replace(0, author.length, " " + comment.creator.name + " ")
             author.setSpan(
-                    new RoundedBackgroundSpan(mContext, android.R.color.white, R.color.md_red_300, false),
-                    0, author.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-        } else if (comment.getDistinguishedStatus() == DistinguishedStatus.SPECIAL) {
-            author.replace(0, author.length(), " " + comment.getAuthor() + " ");
+                RoundedBackgroundSpan(mContext, android.R.color.white, R.color.md_red_300, false),
+                0, author.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
+        } else if (comment.comment.isDistinguished) {
+            author.replace(0, author.length, " " + comment.creator.name + " ")
             author.setSpan(
-                    new RoundedBackgroundSpan(mContext, android.R.color.white, R.color.md_red_500, false),
-                    0, author.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-        } else if (comment.getDistinguishedStatus() == DistinguishedStatus.MODERATOR) {
-            author.replace(0, author.length(), " " + comment.getAuthor() + " ");
+                RoundedBackgroundSpan(mContext, android.R.color.white, R.color.md_red_500, false),
+                0, author.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
+        } else if (comment.comment.isDistinguished) {
+            author.replace(0, author.length, " " + comment.creator.name + " ")
             author.setSpan(
-                    new RoundedBackgroundSpan(mContext, android.R.color.white, R.color.md_green_300, false),
-                    0, author.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-        } else if (Authentication.name != null && comment.getAuthor()
-                .toLowerCase(Locale.ENGLISH)
-                .equals(Authentication.name.toLowerCase(Locale.ENGLISH))) {
-            author.replace(0, author.length(), " " + comment.getAuthor() + " ");
+                RoundedBackgroundSpan(mContext, android.R.color.white, R.color.md_green_300, false),
+                0, author.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
+        } else if (Authentication.name != null && (comment.creator.name.lowercase()
+                    == Authentication.name!!.lowercase())
+        ) {
+            author.replace(0, author.length, " " + comment.creator.name + " ")
             author.setSpan(
-                    new RoundedBackgroundSpan(mContext, android.R.color.white, R.color.md_deep_orange_300,
-                            false), 0, author.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-        } else if (submission != null && comment.getAuthor()
-                .toLowerCase(Locale.ENGLISH)
-                .equals(submission.getAuthor().toLowerCase(Locale.ENGLISH)) && !comment.getAuthor()
-                .equals("[deleted]")) {
-            author.replace(0, author.length(), " " + comment.getAuthor() + " ");
+                RoundedBackgroundSpan(
+                    mContext, android.R.color.white, R.color.md_deep_orange_300,
+                    false
+                ), 0, author.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
+        } else if ((submission != null) && (comment.creator.name
+                .lowercase()
+                    == submission.creator.name.lowercase()) && comment.creator.name != "[deleted]"
+        ) {
+            author.replace(0, author.length, " " + comment.creator.name + " ")
             author.setSpan(
-                    new RoundedBackgroundSpan(mContext, android.R.color.white, R.color.md_blue_300, false),
-                    0, author.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                RoundedBackgroundSpan(mContext, android.R.color.white, R.color.md_blue_300, false),
+                0, author.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
         } else if (authorcolor != 0) {
-            author.setSpan(new ForegroundColorSpan(authorcolor), 0, author.length(),
-                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            author.setSpan(
+                ForegroundColorSpan(authorcolor), 0, author.length,
+                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
         }
-
-        titleString.append(author);
-        titleString.append(spacer);
-
-        int scoreColor;
-        switch (ActionStates.getVoteDirection(comment)) {
-            case UPVOTE:
-                scoreColor = (holder.textColorUp);
-                break;
-            case DOWNVOTE:
-                scoreColor = (holder.textColorDown);
-                break;
-            default:
-                scoreColor = (holder.textColorRegular);
-                break;
+        titleString.append(author)
+        titleString.append(spacer)
+        val scoreColor: Int = when (getVoteDirection(comment)) {
+            VoteDirection.UPVOTE -> (holder.textColorUp)
+            VoteDirection.DOWNVOTE -> (holder.textColorDown)
+            else -> (holder.textColorRegular)
         }
-
-        String scoreText;
-        if (comment.isScoreHidden()) {
-            scoreText = "[" + mContext.getString(R.string.misc_score_hidden).toUpperCase() + "]";
-        } else {
-            scoreText = String.format(Locale.getDefault(), "%d", getScoreText(comment));
-        }
-
-        SpannableStringBuilder score = new SpannableStringBuilder(scoreText);
-
+        val scoreText: String =
+            String.format(Locale.getDefault(), "%d", getScoreText(comment))
+        var score: SpannableStringBuilder = SpannableStringBuilder(scoreText)
         if (score == null || score.toString().isEmpty()) {
-            score = new SpannableStringBuilder("0");
+            score = SpannableStringBuilder("0")
         }
         if (!scoreText.contains("[")) {
-            score.append(String.format(Locale.getDefault(), " %s", mContext.getResources()
-                    .getQuantityString(R.plurals.points, comment.getScore())));
+            score.append(
+                String.format(
+                    Locale.getDefault(), " %s", mContext.resources
+                        .getQuantityString(R.plurals.points, comment.counts.score)
+                )
+            )
         }
-        score.setSpan(new ForegroundColorSpan(scoreColor), 0, score.length(),
-                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-
-        titleString.append(score);
-        titleString.append((comment.isControversial() ? " †" : ""));
-
-        titleString.append(spacer);
-
-        long time = comment.getCreated().getTime();
-        String timeAgo = TimeUtils.getTimeAgo(time, mContext);
-
-        SpannableStringBuilder timeSpan = new SpannableStringBuilder().append(
-                (timeAgo == null || timeAgo.isEmpty()) ? "just now" : timeAgo);
-
-        if (SettingValues.highlightTime
-                && adapter.lastSeen != 0
-                && adapter.lastSeen < time
-                && !adapter.dataSet.single
-                && SettingValues.INSTANCE.getCommentLastVisit()) {
-            timeSpan.setSpan(new RoundedBackgroundSpan(Color.WHITE,
-                            Palette.getColor(comment.getSubredditName()), false, mContext), 0,
-                    timeSpan.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-
+        score.setSpan(
+            ForegroundColorSpan(scoreColor), 0, score.length,
+            Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+        )
+        titleString.append(score)
+        titleString.append(spacer)
+        val time = comment.comment.published.toInstant(UtcOffset.ZERO).toEpochMilliseconds()
+        val timeAgo = TimeUtils.getTimeAgo(time, mContext)
+        val timeSpan = SpannableStringBuilder().append(
+            if ((timeAgo == null || timeAgo.isEmpty())) "just now" else timeAgo
+        )
+        if ((SettingValues.highlightTime
+                    && (adapter.lastSeen != 0L
+                    ) && (adapter.lastSeen < time
+                    ) && !adapter.dataSet.single
+                    && commentLastVisit)
+        ) {
+            timeSpan.setSpan(
+                RoundedBackgroundSpan(
+                    Color.WHITE,
+                    Palette.getColor(comment.community.name), false, mContext
+                ), 0,
+                timeSpan.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
         }
-        titleString.append(timeSpan);
-
-        titleString.append(((comment.getEditDate() != null) ? " (edit " + TimeUtils.getTimeAgo(
-                comment.getEditDate().getTime(), mContext) + ")" : ""));
-        titleString.append("  ");
-
-        if (comment.getDataNode().get("stickied").asBoolean()) {
-            SpannableStringBuilder pinned = new SpannableStringBuilder("\u00A0"
-                    + mContext.getString(R.string.submission_stickied).toUpperCase()
-                    + "\u00A0");
+        titleString.append(timeSpan)
+        titleString.append(
+            (if ((comment.comment.updated != null)) " (edit " + TimeUtils.getTimeAgo(
+                comment.comment.updated.toInstant(UtcOffset.ZERO).toEpochMilliseconds(), mContext
+            ) + ")" else "")
+        )
+        titleString.append("  ")
+        if (comment.comment.isDistinguished) {
+            val pinned = SpannableStringBuilder(
+                ("\u00A0"
+                        + mContext.getString(R.string.submission_stickied)
+                    .uppercase(Locale.getDefault())
+                        + "\u00A0")
+            )
             pinned.setSpan(
-                    new RoundedBackgroundSpan(mContext, android.R.color.white, R.color.md_green_300, false),
-                    0, pinned.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-            titleString.append(pinned);
-            titleString.append(" ");
+                RoundedBackgroundSpan(mContext, android.R.color.white, R.color.md_green_300, false),
+                0, pinned.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
+            titleString.append(pinned)
+            titleString.append(" ")
         }
-        if (!SettingValues.hideCommentAwards && (comment.getTimesSilvered() > 0 || comment.getTimesGilded() > 0  || comment.getTimesPlatinized() > 0)) {
-            TypedArray a = mContext.obtainStyledAttributes(
-                    new FontPreferences(mContext).getPostFontStyle().getResId(),
-                    R.styleable.FontStyle);
-            int fontsize =
-                    (int) (a.getDimensionPixelSize(R.styleable.FontStyle_font_cardtitle, -1) * .75);
-            a.recycle();
+        /*
+        if (!SettingValues.hideCommentAwards && ((comment.timesSilvered > 0) || (comment.timesGilded > 0) || (comment.timesPlatinized > 0))) {
+            val a = mContext.obtainStyledAttributes(
+                FontPreferences(mContext).postFontStyle.resId,
+                R.styleable.FontStyle
+            )
+            val fontsize =
+                (a.getDimensionPixelSize(R.styleable.FontStyle_font_cardtitle, -1) * .75).toInt()
+            a.recycle()
             // Add silver, gold, platinum icons and counts in that order
-            MiscUtil.addCommentAwards(mContext, fontsize, titleString, comment.getTimesSilvered(), adapter.awardIcons[0]);
-            MiscUtil.addCommentAwards(mContext, fontsize, titleString, comment.getTimesGilded(), adapter.awardIcons[1]);
-            MiscUtil.addCommentAwards(mContext, fontsize, titleString, comment.getTimesPlatinized(), adapter.awardIcons[2]);
+            MiscUtil.addCommentAwards(
+                mContext,
+                fontsize,
+                titleString,
+                comment.timesSilvered,
+                adapter.awardIcons[0]
+            )
+            MiscUtil.addCommentAwards(
+                mContext,
+                fontsize,
+                titleString,
+                comment.timesGilded,
+                adapter.awardIcons[1]
+            )
+            MiscUtil.addCommentAwards(
+                mContext,
+                fontsize,
+                titleString,
+                comment.timesPlatinized,
+                adapter.awardIcons[2]
+            )
         }
-        if (UserTags.isUserTagged(comment.getAuthor())) {
-            SpannableStringBuilder pinned = new SpannableStringBuilder(
-                    "\u00A0" + UserTags.getUserTag(comment.getAuthor()) + "\u00A0");
+         */
+        if (UserTags.isUserTagged(comment.creator.name)) {
+            val pinned = SpannableStringBuilder(
+                "\u00A0" + UserTags.getUserTag(comment.creator.name) + "\u00A0"
+            )
             pinned.setSpan(
-                    new RoundedBackgroundSpan(mContext, android.R.color.white, R.color.md_blue_500, false),
-                    0, pinned.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-            titleString.append(pinned);
-            titleString.append(" ");
+                RoundedBackgroundSpan(mContext, android.R.color.white, R.color.md_blue_500, false),
+                0, pinned.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
+            titleString.append(pinned)
+            titleString.append(" ")
         }
-        if (UserSubscriptions.friends.contains(comment.getAuthor())) {
-            SpannableStringBuilder pinned = new SpannableStringBuilder(
-                    "\u00A0" + mContext.getString(R.string.profile_friend) + "\u00A0");
+        if (UserSubscriptions.friends!!.contains(comment.creator.name)) {
+            val pinned = SpannableStringBuilder(
+                "\u00A0" + mContext.getString(R.string.profile_friend) + "\u00A0"
+            )
             pinned.setSpan(
-                    new RoundedBackgroundSpan(mContext, android.R.color.white, R.color.md_deep_orange_500,
-                            false), 0, pinned.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-            titleString.append(pinned);
-            titleString.append(" ");
+                RoundedBackgroundSpan(
+                    mContext, android.R.color.white, R.color.md_deep_orange_500,
+                    false
+                ), 0, pinned.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
+            titleString.append(pinned)
+            titleString.append(" ")
         }
-        if (comment.getAuthorFlair() != null && (comment.getAuthorFlair().getText() != null
-                || comment.getAuthorFlair().getCssClass() != null)) {
-
-            String flairText = null;
-            if (comment.getAuthorFlair() != null &&
-                    comment.getAuthorFlair().getText() != null &&
-                    !comment.getAuthorFlair().getText().isEmpty()) {
-
-                flairText = comment.getAuthorFlair().getText();
-
-            } else if (comment.getAuthorFlair() != null &&
-                    comment.getAuthorFlair().getCssClass() != null &&
-                    !comment.getAuthorFlair().getCssClass().isEmpty()) {
-
-                flairText = comment.getAuthorFlair().getCssClass();
+        /*
+        if (comment.authorFlair != null && ((comment.authorFlair.text != null
+                    || comment.authorFlair.cssClass != null))
+        ) {
+            var flairText: String? = null
+            if (((comment.authorFlair != null) && (
+                        comment.authorFlair.text != null) &&
+                        !comment.authorFlair.text.isEmpty())
+            ) {
+                flairText = comment.authorFlair.text
+            } else if (((comment.authorFlair != null) && (
+                        comment.authorFlair.cssClass != null) &&
+                        !comment.authorFlair.cssClass.isEmpty())
+            ) {
+                flairText = comment.authorFlair.cssClass
             }
-
             if (flairText != null) {
-                TypedValue typedValue = new TypedValue();
-                Resources.Theme theme = mContext.getTheme();
-                theme.resolveAttribute(R.attr.activity_background, typedValue, true);
-                int color = typedValue.data;
-                SpannableStringBuilder pinned =
-                        new SpannableStringBuilder("\u00A0" + CompatUtil.fromHtml(flairText) + "\u00A0");
+                val typedValue = TypedValue()
+                val theme = mContext.theme
+                theme.resolveAttribute(R.attr.activity_background, typedValue, true)
+                val color = typedValue.data
+                val pinned =
+                    SpannableStringBuilder("\u00A0" + CompatUtil.fromHtml(flairText) + "\u00A0")
                 pinned.setSpan(
-                        new RoundedBackgroundSpan(holder.firstTextView.getCurrentTextColor(), color,
-                                false, mContext), 0, pinned.length(),
-                        Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-                titleString.append(pinned);
-                titleString.append(" ");
+                    RoundedBackgroundSpan(
+                        holder.firstTextView.currentTextColor, color,
+                        false, mContext
+                    ), 0, pinned.length,
+                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                )
+                titleString.append(pinned)
+                titleString.append(" ")
             }
         }
-
-        ToolboxUI.appendToolboxNote(mContext, titleString, comment.getSubredditName(), comment.getAuthor());
-
-        if (adapter.removed.contains(comment.getFullName()) || (comment.getBannedBy() != null
-                && !adapter.approved.contains(comment.getFullName()))) {
-            titleString.append(CommentAdapterHelper.createRemovedLine(
-                    (comment.getBannedBy() == null) ? Authentication.name : comment.getBannedBy(),
-                    mContext));
-        } else if (adapter.approved.contains(comment.getFullName()) || (comment.getApprovedBy()
-                != null && !adapter.removed.contains(comment.getFullName()))) {
-            titleString.append(CommentAdapterHelper.createApprovedLine(
-                    (comment.getApprovedBy() == null) ? Authentication.name
-                            : comment.getApprovedBy(), mContext));
-        }
-        return titleString;
+         */
+        appendToolboxNote(mContext, titleString, comment.community.name, comment.creator.name)
+        if (adapter.removed.contains(comment.permalink) || ((comment.isCreatorBanned
+                    && !adapter.approved.contains(comment.permalink)))
+        ) {
+            titleString.append(
+                createRemovedLine(
+                    if ((comment.isCreatorBanned)) Authentication.name else "TODO",
+                    mContext
+                )
+            )
+        } /*else if (adapter.approved.contains(comment.permalink) && !adapter.removed.contains(comment.permalink))
+        ) {
+            titleString.append(
+                createApprovedLine(
+                    if ((comment.approvedBy == null)) Authentication.name else comment.approvedBy,
+                    mContext
+                )
+            )
+        }*/
+        return titleString
     }
 
-    public static int getScoreText(Comment comment) {
-        int submissionScore = comment.getScore();
-        switch (ActionStates.getVoteDirection(comment)) {
-            case UPVOTE: {
-                if (comment.getVote() != VoteDirection.UPVOTE) {
-                    if (comment.getVote() == VoteDirection.DOWNVOTE) ++submissionScore;
-                    ++submissionScore; //offset the score by +1
+    private fun getScoreText(comment: CommentView): Int {
+        var submissionScore = comment.counts.score
+        when (getVoteDirection(comment)) {
+            VoteDirection.UPVOTE -> {
+                if (comment.myVote != +1) {
+                    if (comment.myVote == -1) ++submissionScore
+                    ++submissionScore //offset the score by +1
                 }
-                break;
             }
-            case DOWNVOTE: {
-                if (comment.getVote() != VoteDirection.DOWNVOTE) {
-                    if (comment.getVote() == VoteDirection.UPVOTE) --submissionScore;
-                    --submissionScore; //offset the score by +1
+
+            VoteDirection.DOWNVOTE -> {
+                if (comment.myVote != -1) {
+                    if (comment.myVote == +1) --submissionScore
+                    --submissionScore //offset the score by +1
                 }
-                break;
             }
-            case NO_VOTE:
-                if (comment.getVote() == VoteDirection.UPVOTE && comment.getAuthor()
-                        .equalsIgnoreCase(Authentication.name)) {
-                    submissionScore--;
-                }
-                break;
+
+            VoteDirection.NO_VOTE -> if (comment.myVote == +1 && comment.creator.name
+                    .equals(Authentication.name, ignoreCase = true)
+            ) {
+                submissionScore--
+            }
         }
-        return submissionScore;
+        return submissionScore
     }
 
-    public static void doCommentEdit(final CommentAdapter adapter, final Context mContext,
-            FragmentManager fm, final CommentNode baseNode, String replyText,
-            final CommentViewHolder holder) {
-        LayoutInflater inflater = ((Activity) mContext).getLayoutInflater();
-
-        final View dialoglayout = inflater.inflate(R.layout.edit_comment, null);
-
-
-        final EditText e = dialoglayout.findViewById(R.id.entry);
-        e.setText(StringEscapeUtils.unescapeHtml4(baseNode.getComment().getBody()));
-
-        DoEditorActions.doActions(e, dialoglayout, fm, (Activity) mContext,
-                StringEscapeUtils.unescapeHtml4(replyText), null);
-
-        final AlertDialog.Builder builder = new AlertDialog.Builder(mContext)
-                .setCancelable(false)
-                .setView(dialoglayout);
-        final Dialog d = builder.create();
-        d.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
-
-        d.show();
-        dialoglayout.findViewById(R.id.cancel).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                d.dismiss();
+    fun doCommentEdit(
+        adapter: CommentAdapter, mContext: Context,
+        fm: FragmentManager?, baseNode: CommentView, replyText: String?,
+        holder: CommentViewHolder?
+    ) {
+        val inflater = (mContext as Activity).layoutInflater
+        val dialoglayout = inflater.inflate(R.layout.edit_comment, null)
+        val e = dialoglayout.findViewById<EditText>(R.id.entry)
+        e.setText(StringEscapeUtils.unescapeHtml4(baseNode.comment.content))
+        DoEditorActions.doActions(
+            e, dialoglayout, fm, mContext,
+            StringEscapeUtils.unescapeHtml4(replyText), null
+        )
+        val builder = AlertDialog.Builder(mContext)
+            .setCancelable(false)
+            .setView(dialoglayout)
+        val d: Dialog = builder.create()
+        d.window!!.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
+        d.show()
+        dialoglayout.findViewById<View>(R.id.cancel)
+            .setOnClickListener { d.dismiss() }
+        dialoglayout.findViewById<View>(R.id.submit)
+            .setOnClickListener {
+                val text = e.text.toString()
+                AsyncEditTask(adapter, baseNode, text, mContext, d, holder).executeOnExecutor(
+                    AsyncTask.THREAD_POOL_EXECUTOR
+                )
             }
-        });
-        dialoglayout.findViewById(R.id.submit).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                final String text = e.getText().toString();
-                new AsyncEditTask(adapter, baseNode, text, mContext, d, holder).executeOnExecutor(
-                        AsyncTask.THREAD_POOL_EXECUTOR);
+    }
+
+    fun deleteComment(
+        adapter: CommentAdapter, mContext: Context,
+        baseNode: CommentView, holder: CommentViewHolder
+    ) {
+        AlertDialog.Builder(mContext)
+            .setTitle(R.string.comment_delete)
+            .setMessage(R.string.comment_delete_msg)
+            .setPositiveButton(R.string.btn_yes) { dialog: DialogInterface?, which: Int ->
+                AsyncDeleteTask(adapter, baseNode, holder, mContext)
+                    .executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR)
             }
-        });
-
+            .setNegativeButton(
+                R.string.btn_no
+            ) { dialog: DialogInterface, which: Int -> dialog.dismiss() }
+            .show()
     }
 
-    public static void deleteComment(final CommentAdapter adapter, final Context mContext,
-            final CommentNode baseNode, final CommentViewHolder holder) {
-        new AlertDialog.Builder(mContext)
-                .setTitle(R.string.comment_delete)
-                .setMessage(R.string.comment_delete_msg)
-                .setPositiveButton(R.string.btn_yes, (dialog, which) ->
-                        new AsyncDeleteTask(adapter, baseNode, holder, mContext)
-                                .executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR))
-                .setNegativeButton(R.string.btn_no, (dialog, which) ->
-                        dialog.dismiss())
-                .show();
-    }
-
-    public static class AsyncEditTask extends AsyncTask<Void, Void, Void> {
-        CommentAdapter    adapter;
-        CommentNode       baseNode;
-        String            text;
-        Context           mContext;
-        Dialog            dialog;
-        CommentViewHolder holder;
-
-        public AsyncEditTask(CommentAdapter adapter, CommentNode baseNode, String text,
-                Context mContext, Dialog dialog, CommentViewHolder holder) {
-            this.adapter = adapter;
-            this.baseNode = baseNode;
-            this.text = text;
-            this.mContext = mContext;
-            this.dialog = dialog;
-            this.holder = holder;
+    fun showChildrenObject(v: View) {
+        v.visibility = View.VISIBLE
+        val animator = ValueAnimator.ofFloat(0f, 1f)
+        animator.duration = 250
+        animator.interpolator = FastOutSlowInInterpolator()
+        animator.addUpdateListener { animation ->
+            val value = animation.animatedValue as Float
+            v.alpha = value
+            v.scaleX = value
+            v.scaleY = value
         }
+        animator.start()
+    }
 
-        @Override
-        protected Void doInBackground(Void... params) {
+    fun hideChildrenObject(v: View) {
+        val animator = ValueAnimator.ofFloat(1f, 0f)
+        animator.duration = 250
+        animator.interpolator = FastOutSlowInInterpolator()
+        animator.addUpdateListener { animation ->
+            val value = animation.animatedValue as Float
+            v.alpha = value
+            v.scaleX = value
+            v.scaleY = value
+        }
+        animator.addListener(object : AnimatorListenerAdapter() {
+            override fun onAnimationEnd(arg0: Animator) {
+                v.visibility = View.GONE
+            }
+
+            override fun onAnimationCancel(arg0: Animator) {
+                v.visibility = View.GONE
+            }
+        })
+        animator.start()
+    }
+
+    class AsyncEditTask(
+        var adapter: CommentAdapter, var baseNode: CommentView, var text: String,
+        var mContext: Context, var dialog: Dialog, var holder: CommentViewHolder?
+    ) : AsyncTask<Void?, Void?, Void?>() {
+        override fun doInBackground(vararg params: Void?): Void? {
             try {
-                new AccountManager(Authentication.reddit).updateContribution(baseNode.getComment(),
-                        text);
-                adapter.currentSelectedItem = baseNode.getComment().getFullName();
-                CommentNode n = baseNode.notifyCommentChanged(Authentication.reddit);
-                adapter.editComment(n, holder);
-                dialog.dismiss();
-            } catch (Exception e) {
-                e.printStackTrace();
-                ((Activity) mContext).runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        new AlertDialog.Builder(mContext)
-                                .setTitle(R.string.comment_delete_err)
-                                .setMessage(R.string.comment_delete_err_msg)
-                                .setPositiveButton(R.string.btn_yes, (dialog, which) -> {
-                                    dialog.dismiss();
-                                    new AsyncEditTask(adapter, baseNode, text, mContext,
-                                            AsyncEditTask.this.dialog, holder)
-                                            .execute();
-                                })
-                                .setNegativeButton(R.string.btn_no, (dialog, which) ->
-                                        dialog.dismiss())
-                                .show();
-                    }
-                });
-            }
-            return null;
-        }
-    }
-
-    public static class AsyncDeleteTask extends AsyncTask<Void, Void, Boolean> {
-        CommentAdapter    adapter;
-        CommentNode       baseNode;
-        CommentViewHolder holder;
-        Context           mContext;
-
-        public AsyncDeleteTask(CommentAdapter adapter, CommentNode baseNode,
-                CommentViewHolder holder, Context mContext) {
-            this.adapter = adapter;
-            this.baseNode = baseNode;
-            this.holder = holder;
-            this.mContext = mContext;
-        }
-
-        @Override
-        protected void onPostExecute(Boolean success) {
-            if (success) {
-                holder.firstTextView.setTextHtml(mContext.getString(R.string.content_deleted));
-                holder.content.setText(R.string.content_deleted);
-            } else {
-                new AlertDialog.Builder(mContext)
+                /*
+                AccountManager(Authentication.reddit).updateContribution(
+                    baseNode,
+                    text
+                )
+                adapter.currentSelectedItem = baseNode.comment.fullName
+                val n = baseNode.notifyCommentChanged(Authentication.reddit)
+                adapter.editComment(n, (holder)!!)
+                dialog.dismiss()
+                 */throw Exception("TODO")
+            } catch (e: Exception) {
+                e.printStackTrace()
+                (mContext as Activity).runOnUiThread {
+                    AlertDialog.Builder(mContext)
                         .setTitle(R.string.comment_delete_err)
                         .setMessage(R.string.comment_delete_err_msg)
-                        .setPositiveButton(R.string.btn_yes, (dialog, which) -> {
-                            dialog.dismiss();
-                            doInBackground();
-                        })
-                        .setNegativeButton(R.string.btn_no, (dialog, which) ->
-                                dialog.dismiss())
-                        .show();
+                        .setPositiveButton(
+                            R.string.btn_yes
+                        ) { dialog: DialogInterface, which: Int ->
+                            dialog.dismiss()
+                            AsyncEditTask(
+                                adapter, baseNode, text, mContext,
+                                this@AsyncEditTask.dialog, holder
+                            )
+                                .execute()
+                        }
+                        .setNegativeButton(
+                            R.string.btn_no
+                        ) { dialog: DialogInterface, which: Int -> dialog.dismiss() }
+                        .show()
+                }
+            }
+            return null
+        }
+    }
+
+    class AsyncDeleteTask(
+        var adapter: CommentAdapter, var baseNode: CommentView,
+        var holder: CommentViewHolder, var mContext: Context
+    ) : AsyncTask<Void?, Void?, Boolean>() {
+        override fun onPostExecute(success: Boolean) {
+            if (success) {
+                holder.firstTextView.setTextHtml(mContext.getString(R.string.content_deleted))
+                holder.content.setText(R.string.content_deleted)
+            } else {
+                AlertDialog.Builder(mContext)
+                    .setTitle(R.string.comment_delete_err)
+                    .setMessage(R.string.comment_delete_err_msg)
+                    .setPositiveButton(R.string.btn_yes) { dialog: DialogInterface, which: Int ->
+                        dialog.dismiss()
+                        doInBackground()
+                    }
+                    .setNegativeButton(
+                        R.string.btn_no
+                    ) { dialog: DialogInterface, which: Int -> dialog.dismiss() }
+                    .show()
             }
         }
 
-        @Override
-        protected Boolean doInBackground(Void... params) {
+        override fun doInBackground(vararg params: Void?): Boolean {
+            return try {
+                /*
+                ModerationManager(Authentication.reddit).delete(
+                    baseNode
+                )
+                adapter.deleted.add(baseNode.permalink)
+                true
+                 */throw Exception("TODO")
+            } catch (e: ApiException) {
+                e.printStackTrace()
+                false
+            }
+        }
+    }
+
+    class AsyncReportTask(private val baseNode: CommentView?, private val contextView: View) :
+        AsyncTask<String?, Void?, Void?>() {
+        override fun doInBackground(vararg reason: String?): Void? {
             try {
-                new ModerationManager(Authentication.reddit).delete(baseNode.getComment());
-                adapter.deleted.add(baseNode.getComment().getFullName());
-                return true;
-            } catch (ApiException e) {
-                e.printStackTrace();
-                return false;
+                /*
+                AccountManager(Authentication.reddit).report(
+                    baseNode!!.comment, reason[0]
+                )
+                 */throw Exception("TODO")
+            } catch (e: ApiException) {
+                e.printStackTrace()
             }
-        }
-    }
-
-    public static class AsyncReportTask extends AsyncTask<String, Void, Void> {
-        private CommentNode baseNode;
-        private View        contextView;
-
-        public AsyncReportTask(CommentNode baseNode, View contextView) {
-            this.baseNode = baseNode;
-            this.contextView = contextView;
+            return null
         }
 
-        @Override
-        protected Void doInBackground(String... reason) {
-            try {
-                new AccountManager(Authentication.reddit).report(baseNode.getComment(), reason[0]);
-            } catch (ApiException e) {
-                e.printStackTrace();
-            }
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(Void aVoid) {
-            Snackbar s =
-                    Snackbar.make(contextView, R.string.msg_report_sent, Snackbar.LENGTH_SHORT);
-            LayoutUtils.showSnackbar(s);
+        override fun onPostExecute(aVoid: Void?) {
+            val s = Snackbar.make(contextView, R.string.msg_report_sent, Snackbar.LENGTH_SHORT)
+            LayoutUtils.showSnackbar(s)
         }
     }
-
-    public static void showChildrenObject(final View v) {
-        v.setVisibility(View.VISIBLE);
-        ValueAnimator animator = ValueAnimator.ofFloat(0, 1f);
-        animator.setDuration(250);
-        animator.setInterpolator(new FastOutSlowInInterpolator());
-        animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-
-            @Override
-            public void onAnimationUpdate(ValueAnimator animation) {
-                float value = (Float) animation.getAnimatedValue();
-                v.setAlpha(value);
-                v.setScaleX(value);
-                v.setScaleY(value);
-            }
-        });
-
-        animator.start();
-    }
-
-    public static void hideChildrenObject(final View v) {
-        ValueAnimator animator = ValueAnimator.ofFloat(1f, 0);
-        animator.setDuration(250);
-        animator.setInterpolator(new FastOutSlowInInterpolator());
-        animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-
-
-            @Override
-            public void onAnimationUpdate(ValueAnimator animation) {
-                float value = (Float) animation.getAnimatedValue();
-                v.setAlpha(value);
-                v.setScaleX(value);
-                v.setScaleY(value);
-
-            }
-        });
-
-        animator.addListener(new AnimatorListenerAdapter() {
-            @Override
-            public void onAnimationEnd(Animator arg0) {
-                v.setVisibility(View.GONE);
-            }
-
-            @Override
-            public void onAnimationCancel(Animator arg0) {
-                v.setVisibility(View.GONE);
-            }
-        });
-
-        animator.start();
-    }
-
 }

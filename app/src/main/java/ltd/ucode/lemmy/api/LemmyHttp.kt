@@ -13,7 +13,7 @@ import ltd.ucode.lemmy.api.request.LoginRequest
 import ltd.ucode.lemmy.api.response.GetPersonDetailsResponse
 import ltd.ucode.lemmy.api.response.GetPostResponse
 import ltd.ucode.lemmy.api.response.GetSiteResponse
-import ltd.ucode.lemmy.data.LoginResult
+import ltd.ucode.lemmy.api.response.LoginResponse
 import ltd.ucode.lemmy.data.type.CommentId
 import ltd.ucode.lemmy.data.type.CommentListingType
 import ltd.ucode.lemmy.data.type.CommentSortType
@@ -77,13 +77,13 @@ class LemmyHttp(val instance: String = "lemmy.ml",
             ?.let { NodeInfoResult(response, it) }
     }
 
-    suspend fun login(user: String, password: String): LoginResult {
+    suspend fun login(user: String, password: String): LoginResponse {
         val response = api.login(LoginRequest(
             usernameOrEmail = user,
             password = password
         )).unwrap()
 
-        return response.toResult()
+        return response
     }
 
     suspend fun getSite(auth: String? = null): GetSiteResponse {
@@ -91,7 +91,7 @@ class LemmyHttp(val instance: String = "lemmy.ml",
             auth = auth
         ).toForm()).unwrap()
 
-        return response.toResult()
+        return response
     }
 
     fun getPosts(auth: String? = null,
@@ -117,7 +117,7 @@ class LemmyHttp(val instance: String = "lemmy.ml",
                     ).toForm()
                 ).unwrap()
 
-                response.toResult()
+                response.posts
             }
         }
     }
@@ -132,7 +132,7 @@ class LemmyHttp(val instance: String = "lemmy.ml",
             commentId = commentId
         ).toForm()).unwrap()
 
-        return response.toResult()
+        return response
     }
 
     fun getComments(auth: String? = null,
@@ -164,7 +164,7 @@ class LemmyHttp(val instance: String = "lemmy.ml",
                     ).toForm()
                 ).unwrap()
 
-                response.toResult()
+                response.comments
             }
         }
     }
@@ -183,7 +183,7 @@ class LemmyHttp(val instance: String = "lemmy.ml",
             type = type
         ).toForm()).unwrap()
 
-        return response.toResult()
+        return response.communities
     }
 
     suspend fun getPersonDetails(auth: String? = null,
@@ -206,7 +206,7 @@ class LemmyHttp(val instance: String = "lemmy.ml",
             username = username
         ).toForm()).unwrap()
 
-        return response.toResult()
+        return response
     }
 }
 

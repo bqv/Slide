@@ -7,7 +7,4 @@ import ltd.ucode.lemmy.data.type.CommentView
 data class GetCommentsResponse (
     val comments: List<CommentView>,
 ) {
-    fun toResult(): List<CommentView> {
-        return comments
-    }
 }

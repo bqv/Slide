@@ -1,6 +1,5 @@
 package me.ccrama.redditslide.ui.settings;
 
-/* unused
 import android.content.Intent;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -37,10 +36,9 @@ import me.ccrama.redditslide.util.LogUtil;
 import me.ccrama.redditslide.util.ProUtil;
 
 
-*/
 /**
  * Created by ccrama on 3/5/2015.
- *//*
+ */
 
 public class SettingsBackup extends BaseActivityAnim {
     MaterialDialog progress;
@@ -313,4 +311,3 @@ public class SettingsBackup extends BaseActivityAnim {
     }
 
 }
-*/

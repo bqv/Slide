@@ -7,7 +7,4 @@ import ltd.ucode.lemmy.data.type.PostView
 data class GetPostsResponse(
     val posts: List<PostView>,
 ) {
-    fun toResult(): List<PostView> {
-        return posts
-    }
 }

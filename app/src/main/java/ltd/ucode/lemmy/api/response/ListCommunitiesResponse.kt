@@ -7,7 +7,4 @@ import ltd.ucode.lemmy.data.type.CommunityView
 data class ListCommunitiesResponse(
     val communities: List<CommunityView>,
 ) {
-    fun toResult(): List<CommunityView> {
-        return communities
-    }
 }

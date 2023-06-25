@@ -15,4 +15,7 @@ data class CommentView (
     @SerialName("saved") val isSaved: Boolean,
     @SerialName("creator_blocked") val isCreatorBlocked: Boolean,
     @SerialName("my_vote") val myVote: Int? = null,
-)
+) {
+    val permalink: String
+        get() = comment.apId
+}

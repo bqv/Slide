@@ -14,7 +14,7 @@ import com.google.android.material.snackbar.Snackbar
 import ltd.ucode.reddit.data.RedditSubmission
 import ltd.ucode.slide.Authentication
 import ltd.ucode.slide.R
-import me.ccrama.redditslide.Activities.CommentsScreen
+import ltd.ucode.slide.ui.commentsScreen.CommentsScreen
 import me.ccrama.redditslide.Fragments.MultiredditView
 import me.ccrama.redditslide.SubmissionViews.PopulateSubmissionViewHolder
 import me.ccrama.redditslide.Views.CatchStaggeredGridLayoutManager

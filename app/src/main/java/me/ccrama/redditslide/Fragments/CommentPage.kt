@@ -36,6 +36,8 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.snackbar.Snackbar
 import com.rey.material.widget.Slider
+import kotlinx.datetime.UtcOffset
+import kotlinx.datetime.toInstant
 import ltd.ucode.reddit.data.RedditSubmission
 import ltd.ucode.slide.App
 import ltd.ucode.slide.App.Companion.forceRestart
@@ -48,11 +50,12 @@ import ltd.ucode.slide.SettingValues.authentication
 import ltd.ucode.slide.SettingValues.fabType
 import ltd.ucode.slide.SettingValues.getCommentSorting
 import ltd.ucode.slide.SettingValues.setDefaultCommentSorting
-import ltd.ucode.slide.activity.MainActivity
+import ltd.ucode.slide.data.IPost
+import ltd.ucode.slide.ui.main.MainActivity
 import me.ccrama.redditslide.Activities.Album
 import me.ccrama.redditslide.Activities.AlbumPager
 import me.ccrama.redditslide.Activities.CommentSearch
-import me.ccrama.redditslide.Activities.CommentsScreen
+import ltd.ucode.slide.ui.commentsScreen.CommentsScreen
 import me.ccrama.redditslide.Activities.FullscreenVideo
 import me.ccrama.redditslide.Activities.MediaView
 import me.ccrama.redditslide.Activities.Profile
@@ -112,7 +115,6 @@ import net.dean.jraw.managers.AccountManager
 import net.dean.jraw.managers.MultiRedditManager
 import net.dean.jraw.models.CommentSort
 import net.dean.jraw.models.MultiReddit
-import net.dean.jraw.models.Submission
 import net.dean.jraw.models.Subreddit
 import net.dean.jraw.models.UserRecord
 import net.dean.jraw.paginators.Sorting
@@ -155,13 +157,12 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
     fun doResult(data: Intent?) {
         if (data!!.hasExtra("fullname")) {
             val fullname = data.extras!!.getString("fullname")
-            adapter!!.currentSelectedItem = fullname
-            adapter!!.reset(getContext(), comments, rv, comments!!.submission, true)
+            adapter!!.currentSelectedItem = fullname?.toInt() ?: 0
+            adapter!!.reset(getContext(), comments!!, rv!!, comments!!.submission!!, true)
             adapter!!.notifyDataSetChanged()
             var i = 2
-            for (n in comments!!.comments) {
-                if (n is CommentItem && n.comment.comment
-                        .fullName
+            for (n in comments!!.comments!!) {
+                if (n is CommentItem && n.comment!!.permalink
                         .contains(fullname!!)
                 ) {
                     (rv!!.layoutManager as PreCachingLayoutManagerComments?)!!.scrollToPositionWithOffset(
@@ -191,14 +192,14 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
     var headerHeight = 0
     @JvmField
     var shownHeaders = 0
-    fun doTopBar(s: Submission) {
+    fun doTopBar(s: IPost) {
         archived = s.isArchived
         locked = s.isLocked
-        contest = s.dataNode["contest_mode"].asBoolean()
+        contest = false
         doTopBar()
     }
 
-    fun doTopBarNotify(submission: Submission, adapter2: CommentAdapter?) {
+    fun doTopBarNotify(submission: IPost, adapter2: CommentAdapter?) {
         doTopBar(submission)
         adapter2?.notifyItemChanged(0)
     }
@@ -240,9 +241,10 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
 
                 //avoid crashes when load more is clicked before loading is finished
                 if (comments!!.mLoadData != null) {
-                    comments!!.mLoadData.cancel(true)
+                    comments!!.mLoadData!!.cancel(true)
                 }
-                comments = SubmissionComments(fullname, this@CommentPage, mSwipeRefreshLayout)
+                comments = SubmissionComments(fullname!!.split("/").last(),
+                    this@CommentPage, mSwipeRefreshLayout!!)
                 comments!!.setSorting(CommentSort.CONFIDENCE)
                 loadMore = false
                 mSwipeRefreshLayout!!.setProgressViewOffset(
@@ -318,7 +320,7 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
                 )
                 fab!!.layoutParams = fabs
             }
-            fab!!.setOnClickListener(View.OnClickListener {
+            fab!!.setOnClickListener {
                 val replyDialog = MaterialDialog.Builder(requireActivity())
                     .customView(R.layout.edit_comment, false)
                     .cancelable(false)
@@ -340,9 +342,9 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
                     replyView,
                     requireActivity().supportFragmentManager,
                     activity,
-                    if (adapter!!.submission.isSelfPost) adapter!!.submission.selftext else null,
+                    if (adapter!!.submission!!.url == null) adapter!!.submission!!.body else null,
                     arrayOf(
-                        adapter!!.submission.author
+                        adapter!!.submission!!.creator.name
                     )
                 )
                 replyDialog.window!!
@@ -384,16 +386,18 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
                 replyView.findViewById<View>(R.id.submit)
                     .setOnClickListener {
                         adapter!!.dataSet.refreshLayout.isRefreshing = true
+                        /*
                         adapter!!.ReplyTaskComment(
-                            adapter!!.submission,
+                            adapter!!.submission!!,
                             changedProfile[0]
                         ).execute(
                             e.text.toString()
                         )
+                         */throw Exception("TODO")
                         replyDialog.dismiss()
                     }
                 replyDialog.show()
-            })
+            }
         }
         if (fab != null) fab!!.show()
         resetScroll(false)
@@ -429,18 +433,16 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
                     var opCount = 0
                     var linkCount = 0
                     var awardCount = 0
-                    val op = adapter!!.submission.author
-                    for (o in adapter!!.currentComments) {
-                        if (o.comment != null && o !is MoreChildItem) {
-                            if (o.comment.isTopLevel) parentCount++
-                            if (o.comment.comment.timesGilded > 0 || o.comment.comment.timesSilvered > 0 || o.comment.comment.timesPlatinized > 0) awardCount++
-                            if (o.comment.comment.author != null && o.comment.comment.author == op) {
+                    val op = adapter!!.submission!!.creator.name
+                    for (o in adapter!!.currentComments!!) {
+                        if (o!!.comment != null && o !is MoreChildItem) {
+                            if (o!!.comment!!.comment.isTopLevel) parentCount++
+                            //if (o!!.comment!!.comment.timesGilded > 0 || o!!.comment!!.comment.timesSilvered > 0 || o!!.comment!!.comment.timesPlatinized > 0) awardCount++
+                            if (o!!.comment!!.creator.name != null && o!!.comment!!.creator.name == op) {
                                 opCount++
                             }
-                            if (o.comment.comment.dataNode.has("body_html")
-                                && o.comment.comment
-                                    .dataNode["body_html"]
-                                    .asText()
+                            if (o.comment!!.comment.content.isNotBlank()
+                                && o.comment!!.comment.content
                                     .contains("&lt;/a")
                             ) {
                                 linkCount++
@@ -478,12 +480,9 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
                                         sortTime = (c.timeInMillis
                                                 - i1 * 1000L)
                                         var commentcount = 0
-                                        for (o in adapter!!.currentComments) {
-                                            if (o.comment != null && o.comment.comment
-                                                    .dataNode
-                                                    .has("created") && o.comment.comment
-                                                    .created
-                                                    .time > sortTime
+                                        for (o in adapter!!.currentComments!!) {
+                                            if (o!!.comment != null && o!!.comment!!.comment
+                                                    .published.toInstant(UtcOffset.ZERO).toEpochMilliseconds() > sortTime
                                             ) {
                                                 commentcount += 1
                                             }
@@ -521,7 +520,7 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
                 override fun onRightToLeft() {}
                 override fun onLeftToRight() {}
                 override fun onBottomToTop() {
-                    adapter!!.submissionViewHolder.upvote.performClick()
+                    adapter!!.submissionViewHolder!!.upvote.performClick()
                     val context = getContext()
                     val duration = Toast.LENGTH_SHORT
                     val text: CharSequence
@@ -544,7 +543,7 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
                 override fun onRightToLeft() {}
                 override fun onLeftToRight() {}
                 override fun onBottomToTop() {
-                    adapter!!.submissionViewHolder.downvote.performClick()
+                    adapter!!.submissionViewHolder!!.downvote.performClick()
                     val context = getContext()
                     val duration = Toast.LENGTH_SHORT
                     val text: CharSequence
@@ -567,25 +566,25 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
         mSwipeRefreshLayout!!.setColorSchemeColors(*Palette.getColors(subreddit, activity))
         mSwipeRefreshLayout!!.setOnRefreshListener(OnRefreshListener {
             if (comments != null) {
-                comments!!.loadMore(adapter, subreddit, true)
+                comments!!.loadMore(adapter!!, subreddit, true)
             } else {
-                mSwipeRefreshLayout!!.setRefreshing(false)
+                mSwipeRefreshLayout!!.isRefreshing = false
             }
 
             //TODO catch errors
         })
         toolbar!!.title = subreddit
         toolbar!!.setNavigationIcon(androidx.appcompat.R.drawable.abc_ic_ab_back_material)
-        toolbar!!.setNavigationOnClickListener({ requireActivity().onBackPressed() })
+        toolbar!!.setNavigationOnClickListener { requireActivity().onBackPressed() }
         toolbar!!.inflateMenu(R.menu.menu_comment_items)
         toolbar!!.setOnMenuItemClickListener(this)
-        toolbar!!.setOnClickListener({
+        toolbar!!.setOnClickListener {
             (rv!!.layoutManager as LinearLayoutManager?)!!.scrollToPositionWithOffset(
                 1,
                 headerHeight
             )
             resetScroll(false)
-        })
+        }
         addClickFunctionSubName(toolbar)
         doTopBar()
         if (Authentication.didOnline && !NetworkUtil.isConnectedNoOverride(activity)) {
@@ -615,8 +614,8 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
             R.id.search -> {
                 run {
                     if (comments!!.comments != null && comments!!.submission != null) {
-                        DataShare.sharedComments = comments!!.comments
-                        DataShare.subAuthor = comments!!.submission.author
+                        //DataShare.sharedComments = comments!!.comments!!
+                        DataShare.subAuthor = comments!!.submission!!.creator.name
                         val i = Intent(activity, CommentSearch::class.java)
                         if (activity is MainActivity) {
                             requireActivity().startActivityForResult(i, 423)
@@ -634,14 +633,14 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
             }
 
             R.id.related -> {
-                if (adapter!!.submission.isSelfPost) {
+                if (adapter!!.submission!!.url == null) {
                     AlertDialog.Builder(requireActivity())
                         .setTitle("Selftext posts have no related submissions")
                         .setPositiveButton(R.string.btn_ok, null)
                         .show()
                 } else {
                     val i = Intent(activity, Related::class.java)
-                    i.putExtra(Related.EXTRA_URL, adapter!!.submission.url)
+                    i.putExtra(Related.EXTRA_URL, adapter!!.submission!!.url)
                     startActivity(i)
                 }
                 return true
@@ -651,16 +650,12 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
                 if (SettingValues.isPro) {
                     if (comments!!.comments != null && comments!!.submission != null) {
                         ShadowboxComments.comments = ArrayList()
-                        for (c in comments!!.comments) {
+                        for (c in comments!!.comments!!) {
                             if (c is CommentItem) {
-                                if (c.comment.comment
-                                        .dataNode["body_html"]
-                                        .asText()
+                                if (c.comment!!.comment.content
                                         .contains("&lt;/a")
                                 ) {
-                                    val body = c.comment.comment
-                                        .dataNode["body_html"]
-                                        .asText()
+                                    val body = c.comment!!.comment.content
                                     var url: String
                                     val split = body.split("&lt;a href=\"".toRegex())
                                         .dropLastWhile { it.isEmpty() }
@@ -673,12 +668,14 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
                                             )
                                             val t = ContentType.getContentType(url)
                                             if (ContentType.mediaType(t)) {
+                                                /*
                                                 ShadowboxComments.comments.add(
                                                     CommentUrlObject(
                                                         c.comment,
                                                         url, subreddit
                                                     )
                                                 )
+                                                 */
                                             }
                                         }
                                     } else {
@@ -689,9 +686,11 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
                                         )
                                         val t = ContentType.getContentType(url)
                                         if (ContentType.mediaType(t)) {
+                                            /*
                                             ShadowboxComments.comments.add(
                                                 CommentUrlObject(c.comment, url, subreddit)
                                             )
+                                             */
                                         }
                                     }
                                 }
@@ -724,25 +723,23 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
             R.id.content -> {
                 run {
                     if (adapter != null && adapter!!.submission != null) {
-                        if (!openExternal(adapter!!.submission.url)) {
-                            val type = ContentType.getContentType(
-                                adapter!!.submission
-                            )
+                        if (!openExternal(adapter!!.submission!!.url!!)) {
+                            val type = adapter!!.submission!!.contentType
                             when (type) {
                                 ContentType.Type.STREAMABLE -> if (SettingValues.video) {
                                     val myIntent = Intent(activity, MediaView::class.java)
                                     myIntent.putExtra(MediaView.SUBREDDIT, subreddit)
                                     myIntent.putExtra(
                                         MediaView.EXTRA_URL,
-                                        adapter!!.submission.url
+                                        adapter!!.submission!!.url
                                     )
                                     myIntent.putExtra(
                                         ImageDownloadNotificationService.EXTRA_SUBMISSION_TITLE,
-                                        adapter!!.submission.title
+                                        adapter!!.submission!!.title
                                     )
                                     requireActivity().startActivity(myIntent)
                                 } else {
-                                    openExternally(adapter!!.submission.url)
+                                    openExternally(adapter!!.submission!!.url!!)
                                 }
 
                                 ContentType.Type.IMGUR, ContentType.Type.XKCD -> {
@@ -750,26 +747,21 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
                                     i2.putExtra(MediaView.SUBREDDIT, subreddit)
                                     i2.putExtra(
                                         ImageDownloadNotificationService.EXTRA_SUBMISSION_TITLE,
-                                        adapter!!.submission.title
+                                        adapter!!.submission!!.title
                                     )
-                                    if (adapter!!.submission.dataNode.has("preview")
-                                        && adapter!!.submission.dataNode["preview"]["images"][0]["source"]
-                                            .has("height")
-                                        && (type
-                                                != ContentType.Type.XKCD)
+                                    if (adapter!!.submission!!.hasPreview && (type != ContentType.Type.XKCD)
                                     ) { //Load the preview image which has probably already been cached in memory instead of the direct link
-                                        val previewUrl =
-                                            adapter!!.submission.dataNode["preview"]["images"][0]["source"]["url"]
-                                                .asText()
+                                        val previewUrl = adapter!!.submission!!.preview
                                         i2.putExtra(MediaView.EXTRA_DISPLAY_URL, previewUrl)
                                     }
                                     i2.putExtra(
                                         MediaView.EXTRA_URL,
-                                        adapter!!.submission.url
+                                        adapter!!.submission!!.url
                                     )
                                     requireActivity().startActivity(i2)
                                 }
 
+                                /*
                                 ContentType.Type.EMBEDDED -> if (SettingValues.video) {
                                     val data =
                                         adapter!!.submission.dataNode["media_embed"]["content"]
@@ -783,22 +775,23 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
                                         requireActivity().startActivity(i)
                                     }
                                 } else {
-                                    openExternally(adapter!!.submission.url)
+                                    openExternally(adapter!!.submission!!.url)
                                 }
+                                 */
 
                                 ContentType.Type.REDDIT -> openRedditContent(
-                                    adapter!!.submission.url, activity
+                                    adapter!!.submission!!.url, activity
                                 )
 
                                 ContentType.Type.LINK -> openUrl(
-                                    adapter!!.submission.url,
+                                    adapter!!.submission!!.url!!,
                                     Palette.getColor(
-                                        adapter!!.submission.subredditName
+                                        adapter!!.submission!!.groupName
                                     ),
                                     requireActivity()
                                 )
 
-                                ContentType.Type.NONE, ContentType.Type.SELF -> if (adapter!!.submission.selftext.isEmpty()) {
+                                ContentType.Type.NONE, ContentType.Type.SELF -> if (adapter!!.submission!!.body.isNullOrEmpty()) {
                                     val s = Snackbar.make(
                                         rv!!, R.string.submission_nocontent,
                                         Snackbar.LENGTH_SHORT
@@ -811,9 +804,8 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
                                         null
                                     )
                                     adapter!!.setViews(
-                                        adapter!!.submission.dataNode["selftext_html"]
-                                            .asText(),
-                                        adapter!!.submission.subredditName,
+                                        adapter!!.submission!!.body.orEmpty(),
+                                        adapter!!.submission!!.groupName,
                                         dialoglayout.findViewById(
                                             R.id.firstTextView
                                         ),
@@ -832,27 +824,27 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
                                         i = Intent(activity, AlbumPager::class.java)
                                         i.putExtra(
                                             Album.EXTRA_URL,
-                                            adapter!!.submission.url
+                                            adapter!!.submission!!.url
                                         )
                                         i.putExtra(AlbumPager.SUBREDDIT, subreddit)
                                     } else {
                                         i = Intent(activity, Album::class.java)
                                         i.putExtra(
                                             Album.EXTRA_URL,
-                                            adapter!!.submission.url
+                                            adapter!!.submission!!.url
                                         )
                                         i.putExtra(Album.SUBREDDIT, subreddit)
                                     }
                                     i.putExtra(
                                         ImageDownloadNotificationService.EXTRA_SUBMISSION_TITLE,
-                                        adapter!!.submission.title
+                                        adapter!!.submission!!.title
                                     )
                                     requireActivity().startActivity(i)
                                     requireActivity().overridePendingTransition(
                                         R.anim.slideright, R.anim.fade_out
                                     )
                                 } else {
-                                    openExternally(adapter!!.submission.url)
+                                    openExternally(adapter!!.submission!!.url!!)
                                 }
 
                                 ContentType.Type.TUMBLR -> if (SettingValues.image) {
@@ -864,7 +856,7 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
                                         )
                                         i.putExtra(
                                             Album.EXTRA_URL,
-                                            adapter!!.submission.url
+                                            adapter!!.submission!!.url
                                         )
                                         i.putExtra(TumblrPager.SUBREDDIT, subreddit)
                                     } else {
@@ -872,7 +864,7 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
                                         i.putExtra(Tumblr.SUBREDDIT, subreddit)
                                         i.putExtra(
                                             Album.EXTRA_URL,
-                                            adapter!!.submission.url
+                                            adapter!!.submission!!.url
                                         )
                                     }
                                     requireActivity().startActivity(i)
@@ -880,25 +872,25 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
                                         R.anim.slideright, R.anim.fade_out
                                     )
                                 } else {
-                                    openExternally(adapter!!.submission.url)
+                                    openExternally(adapter!!.submission!!.url!!)
                                 }
 
                                 ContentType.Type.IMAGE -> openImage(
                                     type, requireActivity(),
-                                    RedditSubmission(adapter!!.submission), null, -1
+                                    adapter!!.submission!!, null, -1
                                 )
 
                                 ContentType.Type.VREDDIT_REDIRECT, ContentType.Type.VREDDIT_DIRECT, ContentType.Type.GIF -> openGif(
                                     requireActivity(),
-                                    RedditSubmission(adapter!!.submission), -1
+                                    adapter!!.submission!!, -1
                                 )
 
                                 ContentType.Type.VIDEO -> if (!tryOpenWithVideoPlugin(
-                                        adapter!!.submission.url
+                                        adapter!!.submission!!.url!!
                                     )
                                 ) {
                                     openUrl(
-                                        adapter!!.submission.url,
+                                        adapter!!.submission!!.url!!,
                                         Palette.getStatusBarColor(), requireActivity()
                                     )
                                 }
@@ -906,7 +898,7 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
                                 else -> {}
                             }
                         } else {
-                            openExternally(adapter!!.submission.url)
+                            openExternally(adapter!!.submission!!.url!!)
                         }
                     }
                 }
@@ -1505,11 +1497,12 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
         commentSorting = getCommentSorting(subreddit!!)
         if (load) doRefresh(true)
         if (load) loaded = true
-        if ((!single
-                    && activity is CommentsScreen) && (activity as CommentsScreen?)!!.subredditPosts != null && Authentication.didOnline && (activity as CommentsScreen?)!!.currentPosts != null && (activity as CommentsScreen?)!!.currentPosts!!.size > page
-        ) {
+        if ((!single && activity is CommentsScreen)
+            && (activity as CommentsScreen?)!!.subredditPosts != null
+            && Authentication.didOnline && (activity as CommentsScreen?)!!.currentPosts != null
+            && (activity as CommentsScreen?)!!.currentPosts!!.size > page) {
             comments = try {
-                SubmissionComments(fullname, this, mSwipeRefreshLayout)
+                SubmissionComments(fullname!!, this, mSwipeRefreshLayout!!)
             } catch (e: IndexOutOfBoundsException) {
                 return
             }
@@ -1524,15 +1517,16 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
             } else if (s != null) {
                 commentSorting = getCommentSorting(s.subredditName)
             }
-            if (load) comments!!.setSorting(commentSorting)
+            if (load) comments!!.setSorting(commentSorting!!)
             if (adapter == null) {
-                adapter = CommentAdapter(this, comments, rv, s, fragmentManager)
+                adapter = CommentAdapter(this, comments!!, rv!!, RedditSubmission(s!!), requireFragmentManager())
                 rv!!.adapter = adapter
             }
         } else if (activity is MainActivity) {
             if (Authentication.didOnline) {
-                comments = SubmissionComments(fullname, this, mSwipeRefreshLayout)
-                val s = (activity as MainActivity?)!!.openingComments!!.submission
+                val s = (activity as MainActivity?)!!.openingComments!!
+                comments = SubmissionComments(fullname!!, this, mSwipeRefreshLayout!!, s)
+                /*
                 if (s != null && s.dataNode.has("suggested_sort") && !s.dataNode["suggested_sort"]
                         .asText()
                         .equals("null", ignoreCase = true)
@@ -1544,56 +1538,57 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
                 } else if (s != null) {
                     commentSorting = getCommentSorting(s.subredditName)
                 }
-                if (load) comments!!.setSorting(commentSorting)
+                 */
+                if (load) comments!!.setSorting(commentSorting!!)
                 if (adapter == null) {
-                    adapter = CommentAdapter(this, comments, rv, s, fragmentManager)
+                    adapter = CommentAdapter(this, comments!!, rv!!, s!!, requireFragmentManager())
                     rv!!.adapter = adapter
                 }
             } else {
-                val s = (activity as MainActivity?)!!.openingComments!!.submission
+                val s = (activity as MainActivity?)!!.openingComments!!
                 doRefresh(false)
-                comments = SubmissionComments(fullname, this, mSwipeRefreshLayout, s)
+                comments = SubmissionComments(fullname!!, this, mSwipeRefreshLayout!!, s!!)
                 if (adapter == null) {
-                    adapter = CommentAdapter(this, comments, rv, s, fragmentManager)
+                    adapter = CommentAdapter(this, comments!!, rv!!, s!!, requireFragmentManager())
                     rv!!.adapter = adapter
                 }
             }
         } else {
-            var s: Submission? = null
+            var s: IPost? = null
             try {
                 s = getSubmissionFromStorage(
                     (if (fullname!!.contains("_")) fullname else "t3_$fullname")!!, getContext(),
                     !NetworkUtil.isConnected(activity), ObjectMapper().reader()
-                )?.submission
+                )
             } catch (e: IOException) {
                 e.printStackTrace()
             }
             if (s != null && s.comments != null) {
                 doRefresh(false)
-                comments = SubmissionComments(fullname, this, mSwipeRefreshLayout, s)
+                comments = SubmissionComments(fullname!!, this, mSwipeRefreshLayout!!, s)
                 if (adapter == null) {
-                    adapter = CommentAdapter(this, comments, rv, s, fragmentManager)
+                    adapter = CommentAdapter(this, comments!!, rv!!, s!!, requireFragmentManager())
                     rv!!.adapter = adapter
                 }
             } else if (context!!.isEmpty()) {
-                comments = SubmissionComments(fullname, this, mSwipeRefreshLayout)
-                comments!!.setSorting(commentSorting)
+                comments = SubmissionComments(fullname!!, this, mSwipeRefreshLayout!!)
+                comments!!.setSorting(commentSorting!!)
                 if (adapter == null) {
                     if (s != null) {
-                        adapter = CommentAdapter(this, comments, rv, s, fragmentManager)
+                        adapter = CommentAdapter(this, comments!!, rv!!, s!!, requireFragmentManager())
                     }
                     rv!!.adapter = adapter
                 }
             } else {
                 comments = if (context == App.EMPTY_STRING) {
-                    SubmissionComments(fullname, this, mSwipeRefreshLayout)
+                    SubmissionComments(fullname!!, this, mSwipeRefreshLayout!!)
                 } else {
                     SubmissionComments(
-                        fullname, this, mSwipeRefreshLayout, context,
+                        fullname!!, this, mSwipeRefreshLayout!!, context,
                         contextNumber
                     )
                 }
-                if (load) comments!!.setSorting(commentSorting)
+                if (load) comments!!.setSorting(commentSorting!!)
             }
         }
     }
@@ -1601,24 +1596,24 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
     fun doData(b: Boolean?) {
         if (adapter == null || single) {
             adapter = CommentAdapter(
-                this, comments, rv, comments!!.submission,
-                fragmentManager
+                this, comments!!, rv!!, comments!!.submission,
+                requireFragmentManager()
             )
             rv!!.adapter = adapter
-            adapter!!.currentSelectedItem = context
+            adapter!!.currentSelectedItem = context?.toInt() ?: 0
             if (context!!.isEmpty()) {
                 if (SettingValues.collapseCommentsDefault) {
                     adapter!!.collapseAll()
                 }
             }
-            adapter!!.reset(getContext(), comments, rv, comments!!.submission, b!!)
+            adapter!!.reset(getContext(), comments!!, rv!!, comments!!.submission!!, b!!)
         } else if (!b!!) {
             try {
                 adapter!!.reset(
                     getContext(),
-                    comments,
-                    rv,
-                    if (activity is MainActivity) (activity as MainActivity?)!!.openingComments!!.submission else comments!!.submission,
+                    comments!!,
+                    rv!!,
+                    if (activity is MainActivity) (activity as MainActivity?)!!.openingComments!! else comments!!.submission!!,
                     b
                 )
                 if (SettingValues.collapseCommentsDefault) {
@@ -1627,7 +1622,7 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
             } catch (ignored: Exception) {
             }
         } else {
-            adapter!!.reset(getContext(), comments, rv, comments!!.submission, b)
+            adapter!!.reset(getContext(), comments!!, rv!!, comments!!.submission!!, b)
             if (SettingValues.collapseCommentsDefault) {
                 adapter!!.collapseAll()
             }
@@ -1659,11 +1654,11 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
         super.onDestroy()
         if (comments != null) comments!!.cancelLoad()
         if (adapter != null && adapter!!.currentComments != null) {
-            if (adapter!!.currentlyEditing != null && !adapter!!.currentlyEditing.text
+            if (adapter!!.currentlyEditing != null && !adapter!!.currentlyEditing!!.text
                     .toString()
                     .isEmpty()
             ) {
-                Drafts.addDraft(adapter!!.currentlyEditing.text.toString())
+                Drafts.addDraft(adapter!!.currentlyEditing!!.text.toString())
                 Toast.makeText(
                     requireActivity().applicationContext, R.string.msg_save_draft,
                     Toast.LENGTH_LONG
@@ -1740,12 +1735,12 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
 
     private fun reloadSubs() {
         mSwipeRefreshLayout!!.isRefreshing = true
-        comments!!.setSorting(commentSorting)
+        comments!!.setSorting(commentSorting!!)
         rv!!.scrollToPosition(0)
     }
 
     private fun openPopup(view: View?) {
-        if (comments!!.comments != null && comments!!.comments.isNotEmpty()) {
+        if (comments!!.comments != null && comments!!.comments!!.isNotEmpty()) {
             val l2 = DialogInterface.OnClickListener { dialogInterface, i ->
                 when (i) {
                     0 -> commentSorting = CommentSort.CONFIDENCE
@@ -1756,8 +1751,15 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
                     5 -> commentSorting = CommentSort.QA
                 }
             }
-            val i =
-                if (commentSorting == CommentSort.CONFIDENCE) 0 else if (commentSorting == CommentSort.TOP) 1 else if (commentSorting == CommentSort.NEW) 2 else if (commentSorting == CommentSort.CONTROVERSIAL) 3 else if (commentSorting == CommentSort.OLD) 4 else if (commentSorting == CommentSort.QA) 5 else 0
+            val i = when (commentSorting) {
+                CommentSort.CONFIDENCE -> 0
+                CommentSort.TOP -> 1
+                CommentSort.NEW -> 2
+                CommentSort.CONTROVERSIAL -> 3
+                CommentSort.OLD -> 4
+                CommentSort.QA -> 5
+                else -> 0
+            }
             val res = requireActivity().baseContext.resources
             AlertDialog.Builder(requireActivity())
                 .setTitle(R.string.sorting_choose)
@@ -1790,44 +1792,44 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
     fun doGoUp(old: Int) {
         var depth = -1
         if (adapter!!.currentlySelected != null) {
-            depth = adapter!!.currentNode.depth
+            depth = adapter!!.currentNode!!.comment.depth
         }
         val pos = if (old < 2) 0 else old - 1
         for (i in pos - 1 downTo 0) {
             try {
-                val o = adapter!!.currentComments[adapter!!.getRealPosition(i)]
+                val o = adapter!!.currentComments!![adapter!!.getRealPosition(i)]
                 if (o is CommentItem && pos - 1 != i) {
                     var matches = false
                     when (currentSort) {
-                        CommentNavType.PARENTS -> matches = o.comment.isTopLevel
+                        CommentNavType.PARENTS -> matches = o.comment!!.comment.isTopLevel
                         CommentNavType.CHILDREN -> if (depth == -1) {
-                            matches = o.comment.isTopLevel
+                            matches = o.comment!!.comment.isTopLevel
                         } else {
-                            matches = o.comment.depth == depth
+                            matches = o.comment!!.comment.depth == depth
                             if (matches) {
-                                adapter!!.currentNode = o.comment
-                                adapter!!.currentSelectedItem = o.comment.comment.fullName
+                                adapter!!.currentNode = o.comment!!
+                                adapter!!.currentSelectedItem = o.comment!!.comment.id.id
                             }
                         }
 
-                        CommentNavType.TIME -> matches = (o.comment.comment != null
-                                && o.comment.comment.created.time > sortTime)
+                        CommentNavType.TIME -> matches = (o.comment!!.comment != null
+                                && o.comment!!.comment.published.toInstant(UtcOffset.ZERO).toEpochMilliseconds() > sortTime)
 
-                        CommentNavType.GILDED -> matches = o.comment.comment.timesGilded > 0 || o.comment.comment.timesSilvered > 0 || o.comment.comment.timesPlatinized > 0
+                        /*
+                        CommentNavType.GILDED -> matches = o.comment!!.comment.timesGilded > 0 || o.comment!!.comment.timesSilvered > 0 || o.comment!!.comment.timesPlatinized > 0
+                         */
                         CommentNavType.OP -> matches =
-                            adapter!!.submission != null && (o.comment.comment
-                                .author
-                                    == adapter!!.submission.author)
+                            adapter!!.submission != null && (o.comment!!.creator.name
+                                    == adapter!!.submission!!.creator.name)
 
                         CommentNavType.YOU -> matches =
-                            adapter!!.submission != null && (o.comment.comment
-                                .author
+                            adapter!!.submission != null && (o.comment!!.creator.name
                                     == Authentication.name)
 
-                        CommentNavType.LINK -> matches = o.comment.comment
-                            .dataNode["body_html"]
-                            .asText()
+                        CommentNavType.LINK -> matches = o.comment!!.comment.content
                             .contains("&lt;/a")
+
+                        else -> {}
                     }
                     if (matches) {
                         if (i + 2 == old) {
@@ -1850,8 +1852,8 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
 
     private fun goUp() {
         val toGoto = mLayoutManager!!.findFirstVisibleItemPosition()
-        if (adapter != null && adapter!!.currentComments != null && !adapter!!.currentComments.isEmpty()) {
-            if (adapter!!.currentlyEditing != null && adapter!!.currentlyEditing.text
+        if (adapter != null && adapter!!.currentComments != null && !adapter!!.currentComments!!.isEmpty()) {
+            if (adapter!!.currentlyEditing != null && adapter!!.currentlyEditing!!.text
                     .toString().isNotEmpty()
             ) {
                 AlertDialog.Builder(requireActivity())
@@ -1872,57 +1874,57 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
     fun doGoDown(old: Int) {
         var depth = -1
         if (adapter!!.currentlySelected != null) {
-            depth = adapter!!.currentNode.depth
+            depth = adapter!!.currentNode!!.comment.depth
         }
         var pos = old - 2
         if (pos < 0) pos = 0
-        val original = adapter!!.currentComments[adapter!!.getRealPosition(pos)].getName()
+        val original = adapter!!.currentComments!![adapter!!.getRealPosition(pos)]!!.comment!!.comment.id.id.toString()
         if (old < 2) {
             (rv!!.layoutManager as PreCachingLayoutManagerComments?)!!.scrollToPositionWithOffset(
                 2,
                 if ((toolbar!!.parent as View).translationY != 0f) 0 else v!!.findViewById<View>(R.id.header).height
             )
         } else {
-            for (i in pos + 1 until adapter!!.currentComments.size) {
+            for (i in pos + 1 until adapter!!.currentComments!!.size) {
                 try {
-                    val o = adapter!!.currentComments[adapter!!.getRealPosition(i)]
+                    val o = adapter!!.currentComments!![adapter!!.getRealPosition(i)]
                     if (o is CommentItem) {
                         var matches = false
                         when (currentSort) {
-                            CommentNavType.PARENTS -> matches = o.comment.isTopLevel
+                            CommentNavType.PARENTS -> matches = o.comment!!.comment.isTopLevel
                             CommentNavType.CHILDREN -> if (depth == -1) {
-                                matches = o.comment.isTopLevel
+                                matches = o.comment!!.comment.isTopLevel
                             } else {
-                                matches = o.comment.depth == depth
+                                matches = o.comment!!.comment.depth == depth
                                 if (matches) {
-                                    adapter!!.currentNode = o.comment
-                                    adapter!!.currentSelectedItem = o.comment.comment.fullName
+                                    adapter!!.currentNode = o.comment!!
+                                    adapter!!.currentSelectedItem = o.comment!!.comment.id.id
                                 }
                             }
 
                             CommentNavType.TIME -> matches =
-                                o.comment.comment.created.time > sortTime
+                                o.comment!!.comment.published.toInstant(UtcOffset.ZERO).toEpochMilliseconds() > sortTime
 
+                            /*
                             CommentNavType.GILDED -> matches =
-                                (o.comment.comment.timesGilded > 0 || o.comment.comment.timesSilvered > 0 || o.comment.comment.timesPlatinized > 0)
+                                (o.comment!!.comment.timesGilded > 0 || o.comment!!.comment.timesSilvered > 0 || o.comment!!.comment.timesPlatinized > 0)
+                             */
 
                             CommentNavType.OP -> matches =
-                                adapter!!.submission != null && (o.comment.comment
-                                    .author
-                                        == adapter!!.submission.author)
+                                adapter!!.submission != null && (o.comment!!.creator.name
+                                        == adapter!!.submission!!.creator.name)
 
                             CommentNavType.YOU -> matches =
-                                adapter!!.submission != null && (o.comment.comment
-                                    .author
+                                adapter!!.submission != null && (o.comment!!.creator.name
                                         == Authentication.name)
 
-                            CommentNavType.LINK -> matches = o.comment.comment
-                                .dataNode["body_html"]
-                                .asText()
+                            CommentNavType.LINK -> matches = o.comment!!.comment.content
                                 .contains("&lt;/a")
+
+                            else -> {}
                         }
                         if (matches) {
-                            if (o.getName() == original) {
+                            if (o!!.comment!!.comment.id.id.toString() == original) {
                                 doGoDown(i + 2)
                             } else {
                                 (rv!!.layoutManager as PreCachingLayoutManagerComments?)!!.scrollToPositionWithOffset(
@@ -1944,8 +1946,8 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
     private fun goDown() {
         (toolbar!!.parent as View).translationY = -(toolbar!!.parent as View).height.toFloat()
         val toGoto = mLayoutManager!!.findFirstVisibleItemPosition()
-        if (adapter != null && adapter!!.currentComments != null && !adapter!!.currentComments.isEmpty()) {
-            if (adapter!!.currentlyEditing != null && adapter!!.currentlyEditing.text
+        if (adapter != null && adapter!!.currentComments != null && !adapter!!.currentComments!!.isEmpty()) {
+            if (adapter!!.currentlyEditing != null && adapter!!.currentlyEditing!!.text
                     .toString().isNotEmpty()
             ) {
                 AlertDialog.Builder(requireActivity())

@@ -21,7 +21,4 @@ data class GetSiteResponse (
     @SerialName("discussion_languages") val discussionLanguages: List<Int>,
     val taglines: List<Tagline>? = null,
 ) {
-    fun toResult(): GetSiteResponse {
-        return this
-    }
 }

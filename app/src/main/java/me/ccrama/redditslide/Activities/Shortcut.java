@@ -8,6 +8,7 @@ import android.widget.ListView;
 
 import java.util.ArrayList;
 
+import ltd.ucode.slide.ui.BaseActivity;
 import me.ccrama.redditslide.Adapters.SubChooseAdapter;
 import ltd.ucode.slide.R;
 import me.ccrama.redditslide.UserSubscriptions;

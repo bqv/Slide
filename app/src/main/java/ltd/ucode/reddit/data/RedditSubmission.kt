@@ -1,6 +1,7 @@
 package ltd.ucode.reddit.data
 
 import kotlinx.datetime.Instant
+import ltd.ucode.lemmy.data.type.CommunityId
 import ltd.ucode.slide.data.IPost
 import ltd.ucode.slide.data.IUser
 import me.ccrama.redditslide.ContentType
@@ -29,6 +30,8 @@ class RedditSubmission(val data: Submission) : IPost() {
 
     override val groupName: String
         get() = data.subredditName
+    override val groupId: CommunityId?
+        get() = TODO()
 
     override val link: String
         get() = data.fullName // on reddit: Kind + UniqueId

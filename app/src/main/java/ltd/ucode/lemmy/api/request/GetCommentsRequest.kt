@@ -2,7 +2,6 @@ package ltd.ucode.lemmy.api.request
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import ltd.ucode.lemmy.api.toForm
 import ltd.ucode.lemmy.data.type.CommentId
 import ltd.ucode.lemmy.data.type.CommentListingType
 import ltd.ucode.lemmy.data.type.CommentSortType
@@ -22,4 +21,4 @@ data class GetCommentsRequest (
     @SerialName("post_id") val postId: PostId? = null,
     @SerialName("parent_id") val parentId: CommentId? = null,
     @SerialName("saved_only") val savedOnly: Boolean? = null,
-) : Authenticated, HashMap<String, String>(this.toForm())
+) : Authenticated

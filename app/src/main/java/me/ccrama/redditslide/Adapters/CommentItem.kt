@@ -1,19 +1,14 @@
-package me.ccrama.redditslide.Adapters;
+package me.ccrama.redditslide.Adapters
 
-import net.dean.jraw.models.CommentNode;
+import ltd.ucode.lemmy.data.type.CommentView
 
-/**
- * Created by carlo_000 on 10/27/2015.
- */
-public class CommentItem extends CommentObject {
-    public CommentItem(CommentNode node) {
-        comment = node;
-        this.name = comment.getComment().getFullName();
+class CommentItem(node: CommentView) : CommentObject() {
+    init {
+        comment = node
+        id = comment!!.comment.id.id
     }
 
-    @Override
-    public boolean isComment() {
-        return true;
+    override fun isComment(): Boolean {
+        return true
     }
-
 }

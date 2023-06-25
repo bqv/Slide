@@ -11,7 +11,4 @@ data class UploadImageResponse(
     val msg: String,
     val url: String? = null,
 ) {
-    fun toResult(): UploadImageResponse {
-        return this
-    }
 }

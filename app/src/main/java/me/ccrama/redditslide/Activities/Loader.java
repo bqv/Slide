@@ -6,7 +6,8 @@ package me.ccrama.redditslide.Activities;
 
 import android.os.Bundle;
 
-import ltd.ucode.slide.activity.MainActivity;
+import ltd.ucode.slide.ui.BaseActivity;
+import ltd.ucode.slide.ui.main.MainActivity;
 import ltd.ucode.slide.R;
 
 /**

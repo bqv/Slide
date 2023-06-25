@@ -13,7 +13,4 @@ data class GetPostResponse(
     val online: Int = -1, // REMOVED in 0.18.0
     @SerialName("post_view") val postView: PostView,
 ) {
-    fun toResult(): GetPostResponse {
-        return this
-    }
 }

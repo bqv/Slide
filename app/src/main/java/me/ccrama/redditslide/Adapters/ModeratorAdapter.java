@@ -619,7 +619,9 @@ public class ModeratorAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
                         mContext.startActivity(i);
                         break;
                     case 23:
+                        /*
                         CommentAdapterHelper.showBan(mContext, holder.itemView, comment, "", "", "", "");
+                         */
                         break;
                     case 24:
                         ToolboxUI.showUsernotes(mContext, comment.getAuthor(), comment.getSubredditName(),

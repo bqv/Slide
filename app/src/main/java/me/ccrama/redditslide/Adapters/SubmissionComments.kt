@@ -1,277 +1,219 @@
-package me.ccrama.redditslide.Adapters;
+package me.ccrama.redditslide.Adapters
 
-import android.os.AsyncTask;
+import android.os.AsyncTask
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import kotlinx.coroutines.runBlocking
+import ltd.ucode.lemmy.data.LemmyPost
+import ltd.ucode.lemmy.data.type.CommentId
+import ltd.ucode.lemmy.data.type.CommentSortType
+import ltd.ucode.lemmy.data.type.CommentView
+import ltd.ucode.lemmy.data.type.PostId
+import ltd.ucode.slide.Authentication
+import ltd.ucode.slide.data.IPost
+import me.ccrama.redditslide.Fragments.CommentPage
+import me.ccrama.redditslide.LastComments.setComments
+import me.ccrama.redditslide.util.NetworkUtil
+import net.dean.jraw.models.CommentSort
+import java.util.TreeMap
 
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+class SubmissionComments {
+    @JvmField var single = false
+    @JvmField val refreshLayout: SwipeRefreshLayout
+    private val fullName: String
+    private val page: CommentPage
+    @JvmField var comments: ArrayList<CommentObject?>? = null
+    @JvmField var commentOPs = HashMap<Int, String>()
+    var submission: IPost? = null
+    private var context: String? = null
+    private var defaultSorting = CommentSort.CONFIDENCE
+    private var adapter: CommentAdapter? = null
+    var mLoadData: LoadData? = null
+    @JvmField var online = true
+    var contextNumber = 5
 
-import com.fasterxml.jackson.databind.JsonNode;
-
-import net.dean.jraw.http.RestResponse;
-import net.dean.jraw.http.SubmissionRequest;
-import net.dean.jraw.models.CommentNode;
-import net.dean.jraw.models.CommentSort;
-import net.dean.jraw.models.Submission;
-import net.dean.jraw.models.meta.SubmissionSerializer;
-import net.dean.jraw.util.JrawUtils;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.TreeMap;
-
-import ltd.ucode.reddit.data.RedditSubmission;
-import ltd.ucode.slide.Authentication;
-import me.ccrama.redditslide.Fragments.CommentPage;
-import me.ccrama.redditslide.LastComments;
-import me.ccrama.redditslide.util.NetworkUtil;
-
-/**
- * Created by ccrama on 9/17/2015.
- */
-public class SubmissionComments {
-
-    public boolean single;
-    public final SwipeRefreshLayout refreshLayout;
-    private final String fullName;
-    private final CommentPage page;
-    public ArrayList<CommentObject> comments;
-    public HashMap<String, String> commentOPs = new HashMap<>();
-    public Submission submission;
-    private String context;
-    private CommentSort defaultSorting = CommentSort.CONFIDENCE;
-    private CommentAdapter adapter;
-    public LoadData mLoadData;
-    public boolean online = true;
-    int contextNumber = 5;
-
-    public SubmissionComments(String fullName, CommentPage commentPage, SwipeRefreshLayout layout, Submission s) {
-        this.fullName = fullName;
-        this.page = commentPage;
-        online = NetworkUtil.isConnected(page.getActivity());
-
-        this.refreshLayout = layout;
-
-        if (s.getComments() != null) {
-            submission = s;
-            CommentNode baseComment = s.getComments();
-            comments = new ArrayList<>();
-            Map<Integer, MoreChildItem> waiting = new HashMap<>();
-
-            for (CommentNode n : baseComment.walkTree()) {
-
-                CommentObject obj = new CommentItem(n);
-                List<Integer> removed = new ArrayList<>();
-                Map<Integer, MoreChildItem> map = new TreeMap<>(Collections.reverseOrder());
-                map.putAll(waiting);
-
-                for (Integer i : map.keySet()) {
-                    if (i >= n.getDepth()) {
-                        comments.add(waiting.get(i));
-                        removed.add(i);
-                        waiting.remove(i);
-
+    constructor(
+        fullName: String,
+        commentPage: CommentPage,
+        layout: SwipeRefreshLayout,
+        s: IPost
+    ) {
+        this.fullName = fullName
+        page = commentPage
+        online = NetworkUtil.isConnected(page.activity)
+        refreshLayout = layout
+        if (s.comments != null) {
+            submission = s
+            /*
+            val baseComment = s.comments
+            comments = ArrayList()
+            val waiting: MutableMap<Int, MoreChildItem> = HashMap()
+            for (n in baseComment.walkTree()) {
+                val obj: CommentObject = CommentItem(n)
+                val removed: MutableList<Int> = ArrayList()
+                val map: MutableMap<Int, MoreChildItem> = TreeMap(Collections.reverseOrder())
+                map.putAll(waiting)
+                for (i in map.keys) {
+                    if (i >= n.depth) {
+                        comments!!.add(waiting[i])
+                        removed.add(i)
+                        waiting.remove(i)
                     }
                 }
-
-                comments.add(obj);
-
+                comments!!.add(obj)
                 if (n.hasMoreComments() && online) {
-                    waiting.put(n.getDepth(), new MoreChildItem(n, n.getMoreChildren()));
+                    waiting[n.depth] = MoreChildItem(n, n.moreChildren)
                 }
             }
-            Map<Integer, MoreChildItem> map = new TreeMap<>(Collections.reverseOrder());
-            map.putAll(waiting);
-            for (Integer i : map.keySet()) {
-                comments.add(waiting.get(i));
-                waiting.remove(i);
+            val map: MutableMap<Int, MoreChildItem> = TreeMap(Collections.reverseOrder())
+            map.putAll(waiting)
+            for (i in map.keys) {
+                comments!!.add(waiting[i])
+                waiting.remove(i)
             }
             if (baseComment.hasMoreComments() && online) {
-                comments.add(new MoreChildItem(baseComment, baseComment.getMoreChildren()));
+                comments!!.add(MoreChildItem(baseComment, baseComment.moreChildren))
             }
-
+            */
             if (adapter != null) {
-                adapter.notifyDataSetChanged();
+                adapter!!.notifyDataSetChanged()
             }
-
-            refreshLayout.setRefreshing(false);
-            refreshLayout.setEnabled(false);
+            refreshLayout.isRefreshing = false
+            refreshLayout.isEnabled = false
         }
     }
 
-    public SubmissionComments(String fullName, CommentPage commentPage, SwipeRefreshLayout layout) {
-        this.fullName = fullName;
-        this.page = commentPage;
-        this.refreshLayout = layout;
+    constructor(fullName: String, commentPage: CommentPage, layout: SwipeRefreshLayout) {
+        this.fullName = fullName
+        page = commentPage
+        refreshLayout = layout
     }
 
-    public SubmissionComments(String fullName, CommentPage commentPage, SwipeRefreshLayout layout, String context, int contextNumber) {
-        this.fullName = fullName;
-        this.page = commentPage;
-        this.context = context;
-        this.refreshLayout = layout;
-        this.contextNumber = contextNumber;
+    constructor(
+        fullName: String,
+        commentPage: CommentPage,
+        layout: SwipeRefreshLayout,
+        context: String?,
+        contextNumber: Int
+    ) {
+        this.fullName = fullName
+        page = commentPage
+        this.context = context
+        refreshLayout = layout
+        this.contextNumber = contextNumber
     }
 
-    public void cancelLoad() {
+    fun cancelLoad() {
         if (mLoadData != null) {
-            mLoadData.cancel(true);
+            mLoadData!!.cancel(true)
         }
     }
 
-    public void setSorting(CommentSort sort) {
-        defaultSorting = sort;
-        mLoadData = new LoadData(true);
-        mLoadData.execute(fullName);
-
+    fun setSorting(sort: CommentSort) {
+        defaultSorting = sort
+        mLoadData = LoadData(true)
+        mLoadData!!.execute(fullName)
     }
 
-    public void loadMore(CommentAdapter adapter, String subreddit) {
-        this.adapter = adapter;
-        mLoadData = new LoadData(true);
-        mLoadData.execute(fullName);
+    fun loadMore(adapter: CommentAdapter?, subreddit: String?) {
+        this.adapter = adapter
+        mLoadData = LoadData(true)
+        mLoadData!!.execute(fullName)
     }
 
-    public void loadMoreReply(CommentAdapter adapter) {
-        this.adapter = adapter;
-        adapter.currentSelectedItem = context;
-        mLoadData = new LoadData(false);
-        mLoadData.execute(fullName);
+    fun loadMoreReply(adapter: CommentAdapter) {
+        this.adapter = adapter
+        adapter.currentSelectedItem = context?.toInt()
+        mLoadData = LoadData(false)
+        mLoadData!!.execute(fullName)
     }
 
-    public void loadMore(CommentAdapter adapter, String subreddit, boolean forgetPlace) {
-        adapter.currentSelectedItem = "";
-        this.adapter = adapter;
-        mLoadData = new LoadData(true);
-        mLoadData.execute(fullName);
-
+    fun loadMore(adapter: CommentAdapter, subreddit: String?, forgetPlace: Boolean) {
+        adapter.currentSelectedItem = 0
+        this.adapter = adapter
+        mLoadData = LoadData(true)
+        mLoadData!!.execute(fullName)
     }
 
-    public JsonNode getSubmissionNode(SubmissionRequest request) {
-        Map<String, String> args = new HashMap<>();
-        if (request.getDepth() != null)
-            args.put("depth", Integer.toString(request.getDepth()));
-        if (request.getContext() != null)
-            args.put("context", Integer.toString(request.getContext()));
-        if (request.getLimit() != null)
-            args.put("limit", Integer.toString(request.getLimit()));
-        if (request.getFocus() != null && request.getFocus().length() >= 3 && !JrawUtils.isFullname(request.getFocus()))
-            args.put("comment", request.getFocus());
-        args.put("feature", "link_preview");
-        args.put("sr_detail", "true");
-        args.put("expand_srs", "true");
-        args.put("from_detail", "true");
-        args.put("always_show_media", "1");
-
-
-        CommentSort sort = request.getSort();
-        if (sort == null)
-            // Reddit sorts by confidence by default
-            sort = CommentSort.CONFIDENCE;
-        args.put("sort", sort.name().toLowerCase(Locale.ENGLISH));
-
-        RestResponse response = Authentication.reddit.execute(Authentication.reddit.request()
-                .path(String.format("/comments/%s", request.getId()))
-                .query(args)
-                .build());
-
-
-        return response.getJson();
-    }
-
-    public void reloadSubmission(CommentAdapter commentAdapter) {
-        commentAdapter.submission = Authentication.reddit.getSubmission(submission.getFullName().substring(3));
-    }
-
-    public class LoadData extends AsyncTask<String, Void, ArrayList<CommentObject>> {
-        final boolean reset;
-
-        public LoadData(boolean reset) {
-            this.reset = reset;
+    fun reloadSubmission(commentAdapter: CommentAdapter) {
+        val post = runBlocking {
+            Authentication.api!!.getPost(id = PostId(fullName.toInt()))
         }
+        commentAdapter.submission = LemmyPost(Authentication.api!!.instance, post.postView)
+    }
 
-        @Override
-        public void onPostExecute(ArrayList<CommentObject> subs) {
-            if (page.isVisible() && submission != null) {
-                refreshLayout.setRefreshing(false);
-                page.doRefresh(false);
-                if ((submission.isArchived() && !page.archived) || (submission.isLocked() && !page.locked) || (submission.getDataNode().get("contest_mode").asBoolean() && !page.contest))
-                    page.doTopBarNotify(submission, adapter);
-
-                page.doData(reset);
-                LastComments.setComments(new RedditSubmission(submission));
+    inner class LoadData(val reset: Boolean) :
+        AsyncTask<String?, Void?, ArrayList<CommentObject?>?>() {
+        override fun onPostExecute(subs: ArrayList<CommentObject?>?) {
+            if (page.isVisible && submission != null) {
+                refreshLayout.isRefreshing = false
+                page.doRefresh(false)
+                /*
+                if (submission!!.isArchived && !page.archived || submission!!.isLocked && !page.locked || submission!!.dataNode["contest_mode"].asBoolean() && !page.contest) page.doTopBarNotify(
+                    submission!!, adapter
+                )
+                 */
+                page.doData(reset)
+                setComments(submission!!)
             }
         }
 
-        @Override
-        protected ArrayList<CommentObject> doInBackground(String... subredditPaginators) {
-            SubmissionRequest.Builder builder;
-            if (context == null) {
-                single = false;
-                builder = new SubmissionRequest.Builder(fullName).sort(defaultSorting);
-            } else {
-                single = true;
-                builder = new SubmissionRequest.Builder(fullName).sort(defaultSorting).focus(context).context(contextNumber);
+        override fun doInBackground(vararg subredditPaginators: String?): ArrayList<CommentObject?>? {
+            single = context != null
+
+            val paginator = Authentication.api!!.getComments(
+                auth = null,
+                communityId = submission?.groupId,
+                communityName = null,
+                parentId = context?.toInt()?.let(::CommentId),
+                postId = PostId(fullName.split("/").last().toInt()),
+                maxDepth = null, // contextNumber?
+                limit = null,
+                sort = CommentSortType.from(defaultSorting),
+                type = null
+            )
+
+            val commentViews: MutableList<CommentView> = mutableListOf<CommentView>().also {
+                while (paginator.hasNext) {
+                    val page = runBlocking { paginator.next() }
+                    it.addAll(page)
+                } // assume closed set
             }
-            try {
+            val commentQueue = commentViews
+                .associateBy { it.comment.id.id }.toMutableMap()
+            val commentSort = commentViews
+                .mapIndexed { index, commentView -> commentView.comment.id.id to index + 1 }.toMap()
+            val rootSort: List<CommentView> = commentViews
+                .filter { it.comment.parent.id == 0 }
+            val commentChildren = commentViews
+                .groupBy { it.comment.parent.id }
+            // TODO: unfsck this ^
 
-                JsonNode node = getSubmissionNode(builder.build());
-                submission = SubmissionSerializer.withComments(node, defaultSorting);
-                CommentNode baseComment = submission.getComments();
+            val x = TreeMap<Int, CommentView>()
+            comments = ArrayList<CommentObject?>()
+            commentOPs = HashMap<Int, String>()
+            for (headComment in rootSort) {
+                commentQueue.remove(headComment.comment.id.id)
 
-              /* if (page.o != null)
-                    page.o.setCommentAndWrite(submission.getFullName(), node, submission).writeToMemory();*/
+                comments!!.add(CommentItem(node = headComment))
+                commentOPs!!.put(headComment.comment.id.id, headComment.creator.run { displayName ?: name })
 
-                comments = new ArrayList<>();
-                Map<Integer, MoreChildItem> waiting = new HashMap<>();
-                commentOPs = new HashMap<>();
-                String currentOP = "";
+                val queue = commentChildren[headComment.comment.id.id].orEmpty()
+                    .sortedBy { commentSort[it.comment.id.id]!! }
+                    .toMutableList()
 
-                for (CommentNode n : baseComment.walkTree()) {
-                    if(n.getDepth() == 1){
-                        currentOP = n.getComment().getAuthor();
-                    }
-                    commentOPs.put(n.getComment().getId(), currentOP);
-                    CommentObject obj = new CommentItem(n);
-                    List<Integer> removed = new ArrayList<>();
-                    Map<Integer, MoreChildItem> map = new TreeMap<>(Collections.reverseOrder());
-                    map.putAll(waiting);
+                while (queue.isNotEmpty()) {
+                    val nextComment = queue.removeFirst()
+                    commentQueue.remove(nextComment.comment.id.id)
 
-                    for (Integer i : map.keySet()) {
-                        if (i >= n.getDepth()) {
-                            comments.add(waiting.get(i));
-                            removed.add(i);
-                            waiting.remove(i);
+                    queue.addAll(0, commentChildren[nextComment.comment.id.id].orEmpty()
+                        .sortedBy { commentSort[it.comment.id.id]!! })
 
-                        }
-                    }
-
-                    comments.add(obj);
-
-                    if (n.hasMoreComments()) {
-                        waiting.put(n.getDepth(), new MoreChildItem(n, n.getMoreChildren()));
-                    }
+                    comments!!.add(CommentItem(node = nextComment))
+                    commentOPs!!.put(nextComment.comment.id.id, nextComment.creator.run { displayName ?: name })
                 }
-                Map<Integer, MoreChildItem> map = new TreeMap<>(Collections.reverseOrder());
-                map.putAll(waiting);
-                for (Integer i : map.keySet()) {
-                    comments.add(waiting.get(i));
-                    waiting.remove(i);
-                }
-                if (baseComment.hasMoreComments()) {
-                    comments.add(new MoreChildItem(baseComment, baseComment.getMoreChildren()));
-                }
+            } // runs in O(infinity)
 
-
-                return comments;
-            } catch (Exception e) {
-                //Todo reauthenticate
-            }
-            return null;
+            return comments!!
         }
     }
-
-
 }

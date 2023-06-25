@@ -10,7 +10,6 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.encodeToJsonElement
 import kotlinx.serialization.json.jsonObject
-import ltd.ucode.Util
 import ltd.ucode.Util.SnakeCaseSerializer
 import ltd.ucode.Util.filterNotNullValues
 import ltd.ucode.lemmy.api.request.GetCommentsRequest
@@ -35,7 +34,6 @@ import ltd.ucode.lemmy.data.type.webfinger.Resource
 import ltd.ucode.lemmy.data.type.webfinger.Uri
 import ltd.ucode.slide.BuildConfig
 import me.ccrama.redditslide.util.LogUtil
-import okhttp3.Headers.Companion.toHeaders
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
@@ -43,6 +41,7 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import retrofit2.Response
 import retrofit2.Retrofit
 import java.net.HttpCookie
+import javax.inject.Inject
 
 const val MAX_RETRIES: Int = 3
 const val SECONDS: Long = 1000
@@ -50,12 +49,10 @@ const val RETRY_DELAY: Long = 3 * SECONDS
 const val RETRY_BACKOFF: Float = 2f
 const val DELAY_MAX: Long = 60 * SECONDS
 
-open class InstanceDataSource(
+open class InstanceDataSource @Inject constructor(
     val context: Context,
     val instance: String,
-    protected open val headers: Map<String, String> = mapOf(
-        Pair("User-Agent", Util.userAgent)
-    ),
+    private val okHttpClient: OkHttpClient,
 ) {
     protected val api: ILemmyHttpApi by lazy { createApi() }
     private val pictrs: String = "https://$instance/pictrs/image"
@@ -383,29 +380,14 @@ open class InstanceDataSource(
         return call()
     }
 
-    private var client: OkHttpClient = OkHttpClient.Builder()
-        .addInterceptor { chain ->
-            val request = chain.request()
-            if (BuildConfig.DEBUG) LogUtil.v("OkHttp: ${request.method} ${request.url}")
-            val reqBuilder = request.newBuilder()
-                .headers(headers.toHeaders())
-                .header(
-                    "User-Agent",
-                    "android:ltd.ucode.slide:v" + BuildConfig.VERSION_NAME
-                )
-            val response = chain.proceed(reqBuilder.build())
-            if (BuildConfig.DEBUG) LogUtil.v("OkHttp: ${request.method} ${request.url} returned ${response.code}")
-            response
-        }
-        .build()
-
     private fun createApi(): ILemmyHttpApi {
         if (BuildConfig.DEBUG) LogUtil.v("Creating API Object")
 
         val retrofit = Retrofit.Builder()
             .baseUrl("https://${instance}/api/v3/")
-            .client(client)
-            .addConverterFactory(SnakeCaseSerializer.asConverterFactory("application/json".toMediaType()))
+            .client(okHttpClient)
+            .addConverterFactory(SnakeCaseSerializer.asConverterFactory(
+                "application/json".toMediaType()))
             .build()
 
         return retrofit.create(ILemmyHttpApi::class.java)

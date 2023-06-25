@@ -20,7 +20,7 @@ import net.dean.jraw.models.Subreddit;
 
 import java.util.List;
 
-import me.ccrama.redditslide.Activities.BaseActivity;
+import ltd.ucode.slide.ui.BaseActivity;
 import me.ccrama.redditslide.Adapters.SubredditAdapter;
 import me.ccrama.redditslide.Adapters.SubredditNames;
 import me.ccrama.redditslide.Constants;

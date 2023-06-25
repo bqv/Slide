@@ -38,8 +38,8 @@ import ltd.ucode.slide.Authentication
 import ltd.ucode.slide.R
 import ltd.ucode.slide.SettingValues
 import ltd.ucode.slide.SettingValues.isSelftextEnabled
-import ltd.ucode.slide.activity.MainActivity
 import ltd.ucode.slide.data.IPost
+import ltd.ucode.slide.ui.main.MainActivity
 import me.ccrama.redditslide.ActionStates
 import me.ccrama.redditslide.Activities.Album
 import me.ccrama.redditslide.Activities.AlbumPager
@@ -2083,7 +2083,7 @@ class PopulateSubmissionViewHolder() {
 
         //Save the score so we can use it in the OnClickListeners for the vote buttons
         val SUBMISSION_SCORE = submissionScore
-        val hideButton: ImageView? = holder.hide as ImageView
+        val hideButton: ImageView? = holder.hide as ImageView?
         if (hideButton != null) {
             if (SettingValues.hideButton && Authentication.isLoggedIn) {
                 hideButton.setOnClickListener(View.OnClickListener { hideSubmission(submission, posts, baseSub, recyclerview, mContext) })

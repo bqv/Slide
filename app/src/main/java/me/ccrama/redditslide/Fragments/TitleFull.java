@@ -11,7 +11,7 @@ import androidx.fragment.app.Fragment;
 import net.dean.jraw.models.Submission;
 
 import ltd.ucode.reddit.data.RedditSubmission;
-import me.ccrama.redditslide.Activities.CommentsScreen;
+import ltd.ucode.slide.ui.commentsScreen.CommentsScreen;
 import me.ccrama.redditslide.Activities.Shadowbox;
 import ltd.ucode.slide.R;
 import me.ccrama.redditslide.SubmissionViews.PopulateShadowboxInfo;
