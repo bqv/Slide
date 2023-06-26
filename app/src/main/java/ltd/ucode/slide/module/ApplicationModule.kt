@@ -40,6 +40,6 @@ class ApplicationModule {
 
     @Provides
     @Singleton
-    fun providesInstanceRepository(context: Context): InstanceRepository =
-        InstanceRepository(context = context)
+    fun providesInstanceRepository(context: Context, okHttpClient: OkHttpClient): InstanceRepository =
+        InstanceRepository(context = context, okHttpClient = okHttpClient)
 }

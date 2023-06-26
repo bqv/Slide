@@ -781,7 +781,7 @@
     <string name="title_crosspost">Кросспост</string>
     <string name="title_settings">Настройки</string>
     <string name="title_share">Поделиться через</string>
-    <string name="title_login">Войдите в Reddit</string>
+    <string name="title_login">Войдите в Lemmy</string>
     <string name="title_multireddits">Мультиреддиты</string>
     <string name="title_inbox">Входящие</string>
     <string name="title_theme_settings">Тема</string>

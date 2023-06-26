@@ -6,6 +6,8 @@ buildscript {
         set("retrofitVersion", "2.9.0")
         set("exoPlayerVersion", "2.14.2")
         set("commonmarkVersion", "0ebc0749c7")
+        set("graphqlVersion", "6.5.3")
+        set("ktorVersion", "2.3.1")
     }
 
     repositories {
@@ -17,11 +19,14 @@ buildscript {
 
     dependencies {
         val kotlinVersion: String by rootProject.extra
+        val graphqlVersion: String by rootProject.extra
 
         classpath("com.android.tools.build:gradle:8.0.2")
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")
         classpath("org.jetbrains.kotlin:kotlin-serialization:$kotlinVersion")
-        classpath("com.google.dagger:hilt-android-gradle-plugin:+")
+        classpath("com.google.dagger:hilt-android-gradle-plugin:2.46.1")
+        classpath("com.expediagroup:graphql-kotlin-gradle-plugin:$graphqlVersion")
+
 
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files

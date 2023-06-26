@@ -1,0 +1,28 @@
+query GetLemmyServersQuery($plat: String = "lemmy", $limit: Int) {
+  thefederation_platform(where: {name: {_eq: $plat}}) {
+    name
+    display_name
+    latest_version
+  }
+  thefederation_node(
+    where: {thefederation_platform: {name: {_eq: $plat}}}
+    order_by: {thefederation_stats_aggregate: {max: {local_posts: desc_nulls_last, users_monthly: desc_nulls_last}}}
+    limit: $limit
+  ) {
+    name
+    version
+    country
+    updated
+    thefederation_stats(order_by: {date: desc_nulls_last}, limit: 1) {
+      local_comments
+      local_posts
+      users_total
+      users_half_year
+      users_monthly
+      users_weekly
+    }
+    thefederation_platform {
+      name
+    }
+  }
+}

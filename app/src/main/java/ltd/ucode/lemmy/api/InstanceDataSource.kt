@@ -13,6 +13,7 @@ import kotlinx.serialization.json.jsonObject
 import ltd.ucode.Util.SnakeCaseSerializer
 import ltd.ucode.Util.filterNotNullValues
 import ltd.ucode.lemmy.api.request.GetCommentsRequest
+import ltd.ucode.lemmy.api.request.GetFederatedInstancesRequest
 import ltd.ucode.lemmy.api.request.GetPostRequest
 import ltd.ucode.lemmy.api.request.GetPostsRequest
 import ltd.ucode.lemmy.api.request.GetSiteRequest
@@ -21,6 +22,7 @@ import ltd.ucode.lemmy.api.request.ListCommunitiesRequest
 import ltd.ucode.lemmy.api.request.LoginRequest
 import ltd.ucode.lemmy.api.request.UploadImageRequest
 import ltd.ucode.lemmy.api.response.GetCommentsResponse
+import ltd.ucode.lemmy.api.response.GetFederatedInstancesResponse
 import ltd.ucode.lemmy.api.response.GetPostResponse
 import ltd.ucode.lemmy.api.response.GetPostsResponse
 import ltd.ucode.lemmy.api.response.GetSiteResponse
@@ -181,8 +183,8 @@ open class InstanceDataSource @Inject constructor(
     //open suspend fun getCommunity(request: GetCommunityRequest): GetCommunityResponse =
     //    retryOnError { api.getCommunity(request.toForm()) }
 
-    //open suspend fun getFederatedInstances(request: GetFederatedInstancesRequest): GetFederatedInstancesResponse =
-    //    retryOnError { api.getFederatedInstances(request.toForm()) }
+    open suspend fun getFederatedInstances(request: GetFederatedInstancesRequest = GetFederatedInstancesRequest()): GetFederatedInstancesResponse =
+        retryOnError { api.getFederatedInstances(request.toForm()) }
 
     //open suspend fun getModlog(request: GetModlogRequest): GetModlogResponse =
     //    retryOnError { api.getModlog(request.toForm()) }

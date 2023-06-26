@@ -733,7 +733,7 @@
     <string name="title_crosspost">Crosspost</string>
     <string name="title_settings">Configuración</string>
     <string name="title_share">Compartir con</string>
-    <string name="title_login">Iniciar sesión en Reddit</string>
+    <string name="title_login">Iniciar sesión en Lemmy</string>
     <string name="title_multireddits">Multireddits</string>
     <string name="title_inbox">Recibidos</string>
     <string name="title_theme_settings">Ajustes del Tema</string>

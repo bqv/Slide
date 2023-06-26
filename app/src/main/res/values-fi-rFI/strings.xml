@@ -390,7 +390,7 @@
     <string name="display">Näyttö</string>
     <!-- Titles displayed in action bar / head / recents overview-->
     <string name="title_share">Jaa</string>
-    <string name="title_login">Kirjaudu Reddittiin</string>
+    <string name="title_login">Kirjaudu Lemmyyn</string>
     <string name="title_multireddits">Multiredditit</string>
     <string name="title_inbox">Postilaatikko</string>
     <string name="title_theme_settings">Teema</string>

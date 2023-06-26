@@ -757,7 +757,7 @@
     <string name="title_submit_post">Wyślij post</string>
     <string name="title_settings">Ustawienia</string>
     <string name="title_share">Udostępnij za pomocą</string>
-    <string name="title_login">Zaloguj się do Reddit</string>
+    <string name="title_login">Zaloguj się do Lemmy</string>
     <string name="title_multireddits">Multireddity</string>
     <string name="title_inbox">Skrzynka pocztowa</string>
     <string name="title_theme_settings">Motyw</string>

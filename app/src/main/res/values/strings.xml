@@ -837,7 +837,7 @@
     <string name="title_crosspost">Crosspost</string>
     <string name="title_settings">Settings</string>
     <string name="title_share">Share using</string>
-    <string name="title_login">Log into Reddit</string>
+    <string name="title_login">Log in to Lemmy</string>
     <string name="title_multireddits">Multireddits</string>
     <string name="title_inbox">Inbox</string>
     <string name="title_theme_settings">Theme</string>

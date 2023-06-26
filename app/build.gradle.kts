@@ -116,6 +116,7 @@ dependencies {
     /** Flavors **/
 
     /** Custom **/
+    implementation(project(mapOf("path" to ":stats")))
     implementation("com.github.Haptic-Apps:JRAW:9c8a410a06")
     implementation("com.github.Haptic-Apps:TedBottomPicker:496623c9b6")
     val commonmarkVersion: String by rootProject.extra

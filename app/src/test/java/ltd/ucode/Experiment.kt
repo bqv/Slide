@@ -15,6 +15,8 @@ import ltd.ucode.lemmy.api.InstanceDataSource
 import ltd.ucode.lemmy.api.request.LoginRequest
 import ltd.ucode.lemmy.data.type.jwt.Token
 import ltd.ucode.slide.repository.AccountRepository
+import ltd.ucode.slide.repository.InstanceRepository
+import okhttp3.OkHttpClient
 import org.junit.Before
 import org.junit.runner.RunWith
 import org.mockito.Mockito
@@ -73,7 +75,8 @@ class Experiment {
 
         val source: InstanceDataSource = AccountDataSource(
             context, accounts,
-            account.usernameOrEmail,"lemmy.ml")
+            account.usernameOrEmail,"lemmy.ml", OkHttpClient()
+        )
 
 
         runBlocking { source.nodeInfo() }
@@ -82,5 +85,13 @@ class Experiment {
             .also { println("${it.siteView}") }
         runBlocking { source.getUnreadCount() }
             .also { println("$it") }
+    }
+
+    @Test
+    fun testFed() {
+        val instanceRepository = InstanceRepository(context, OkHttpClient())
+
+        runBlocking { instanceRepository.getInstanceList() }
+            .also { println("${it.size}") }
     }
 }

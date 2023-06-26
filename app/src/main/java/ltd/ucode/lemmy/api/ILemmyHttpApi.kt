@@ -186,8 +186,8 @@ interface ILemmyHttpApi {
     suspend fun getCommunity(@QueryMap form: Map<String, String>): Response<GetCommunityResponse> // GetCommunityRequest
 
     /* Fetch federated instances. */
-    //@Get("federated_instances")
-    //suspend fun getFederatedInstances(@QueryMap form: Map<String, String>): Response<GetFederatedInstancesResponse> // GetFederatedInstancesRequest
+    @GET("federated_instances")
+    suspend fun getFederatedInstances(@QueryMap form: Map<String, String>): Response<GetFederatedInstancesResponse> // GetFederatedInstancesRequest
 
     /* Get the modlog. */
     //@GET("modlog")

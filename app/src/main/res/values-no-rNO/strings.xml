@@ -430,7 +430,7 @@
     <string name="title_submit_post">Send inn post</string>
     <string name="title_settings">Innstillinger</string>
     <string name="title_share">Del via</string>
-    <string name="title_login">Logg inn på Reddit</string>
+    <string name="title_login">Logg inn på Lemmy</string>
     <string name="title_multireddits">Multireddits</string>
     <string name="title_inbox">Innboks</string>
     <string name="title_theme_settings">Temainnstillinger</string>

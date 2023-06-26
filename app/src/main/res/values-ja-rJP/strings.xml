@@ -760,7 +760,7 @@
     <string name="title_crosspost">クロスポスト</string>
     <string name="title_settings">設定</string>
     <string name="title_share">次で共有</string>
-    <string name="title_login">Reddit にログイン</string>
+    <string name="title_login">Lemmy にログイン</string>
     <string name="title_multireddits">Multireddits</string>
     <string name="title_inbox">受信箱</string>
     <string name="title_theme_settings">テーマ</string>

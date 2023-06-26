@@ -98,7 +98,7 @@
     <!-- Titles displayed in action bar / head / recents overview-->
     <string name="title_edit_theme">Rediģēt motīvu</string>
     <string name="title_settings">Iestatījumi</string>
-    <string name="title_login">Ielogoties Reddit</string>
+    <string name="title_login">Ielogoties Lemmy</string>
     <string name="title_multireddits">Multiredditi</string>
     <string name="title_inbox">Iesūtne</string>
     <string name="title_theme_settings">Motīvs</string>

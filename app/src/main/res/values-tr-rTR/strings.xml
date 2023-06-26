@@ -748,7 +748,7 @@
     <string name="title_crosspost">Crosspost</string>
     <string name="title_settings">Ayarlar</string>
     <string name="title_share">Kullanarak paylaş</string>
-    <string name="title_login">Reddit\'e bağlan</string>
+    <string name="title_login">Lemmy\'e bağlan</string>
     <string name="title_multireddits">Multireddit\'ler</string>
     <string name="title_inbox">Gelen Kutusu</string>
     <string name="title_theme_settings">Tema ayarları</string>

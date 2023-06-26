@@ -763,7 +763,7 @@
     <string name="title_crosspost">交叉发帖</string>
     <string name="title_settings">设置</string>
     <string name="title_share">分享通过</string>
-    <string name="title_login">登录到 Reddit</string>
+    <string name="title_login">登录到 Lemmy</string>
     <string name="title_multireddits">多版块</string>
     <string name="title_inbox">站内信</string>
     <string name="title_theme_settings">主题设置</string>

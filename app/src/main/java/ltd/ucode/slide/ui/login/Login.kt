@@ -13,6 +13,7 @@ import android.webkit.CookieManager
 import android.webkit.CookieSyncManager
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import com.afollestad.materialdialogs.MaterialDialog
 import ltd.ucode.slide.App.Companion.forceRestart
@@ -37,8 +38,11 @@ import net.dean.jraw.http.oauth.OAuthHelper
 import net.dean.jraw.models.Subreddit
 
 class Login : BaseActivityAnim() {
+    private val viewModel: LoginViewModel by viewModels()
+
     var d: Dialog? = null
     var subNames: CaseInsensitiveArrayList? = null
+
     public override fun onCreate(savedInstance: Bundle?) {
         overrideSwipeFromAnywhere()
         super.onCreate(savedInstance)

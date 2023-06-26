@@ -748,7 +748,7 @@
     <string name="title_crosspost">Publicació creuada</string>
     <string name="title_settings">Configuració</string>
     <string name="title_share">Compartir mitjançant</string>
-    <string name="title_login">Accedir a Reddit</string>
+    <string name="title_login">Accedir a Lemmy</string>
     <string name="title_multireddits">Multireddits</string>
     <string name="title_inbox">Bústia d\'entrada</string>
     <string name="title_theme_settings">Tema</string>

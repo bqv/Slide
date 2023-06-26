@@ -673,7 +673,7 @@
     <string name="title_submit_post">提交貼文</string>
     <string name="title_settings">設定</string>
     <string name="title_share">分享透過</string>
-    <string name="title_login">登入至 Reddit</string>
+    <string name="title_login">登入至 Lemmy</string>
     <string name="title_multireddits">Multireddits</string>
     <string name="title_inbox">收件匣</string>
     <string name="title_theme_settings">主題設定</string>
