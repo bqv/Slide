@@ -310,10 +310,10 @@ class SettingsActivity : BaseActivity(), FolderChooserDialogCreate.FolderCallbac
                 startActivity(i)
             }
         })
-        findViewById<View>(R.id.settings_child_offline).setOnClickListener(View.OnClickListener {
+        findViewById<View>(R.id.settings_child_offline).setOnClickListener {
             val i = Intent(this@SettingsActivity, ManageOfflineContent::class.java)
             startActivity(i)
-        })
+        }
         findViewById<View>(R.id.settings_child_datasave).setOnClickListener(object :
             OnSingleClickListener() {
             override fun onSingleClick(v: View) {
@@ -457,14 +457,9 @@ class SettingsActivity : BaseActivity(), FolderChooserDialogCreate.FolderCallbac
                     })
                     val s3 = dialog.findViewById<SwitchCompat>(R.id.singlecolumnmultiwindow)
                     s3.isChecked = SettingValues.singleColumnMultiWindow
-                    s3.setOnCheckedChangeListener(object : CompoundButton.OnCheckedChangeListener {
-                        override fun onCheckedChanged(
-                            buttonView: CompoundButton,
-                            isChecked: Boolean
-                        ) {
-                            SettingValues.singleColumnMultiWindow = isChecked
-                        }
-                    })
+                    s3.setOnCheckedChangeListener { buttonView, isChecked ->
+                        SettingValues.singleColumnMultiWindow = isChecked
+                    }
                 } else {
                     ProUtil.proUpgradeMsg(this@SettingsActivity, R.string.general_multicolumn_ispro)
                         .setNegativeButton(R.string.btn_no_thanks) { dialog: DialogInterface, whichButton: Int -> dialog.dismiss() }
@@ -474,7 +469,7 @@ class SettingsActivity : BaseActivity(), FolderChooserDialogCreate.FolderCallbac
         })
         if (BuildConfig.isFDroid) {
             (findViewById<View>(R.id.settings_child_donatetext) as TextView).text =
-                "Donate via PayPal"
+                "Donate via Ko-fi"
         }
         findViewById<View>(R.id.settings_child_support).setOnClickListener(object :
             OnSingleClickListener() {
@@ -507,13 +502,10 @@ class SettingsActivity : BaseActivity(), FolderChooserDialogCreate.FolderCallbac
         }
         if (Authentication.mod) {
             findViewById<View>(R.id.settings_child_moderation).visibility = View.VISIBLE
-            findViewById<View>(R.id.settings_child_moderation).setOnClickListener(object :
-                View.OnClickListener {
-                override fun onClick(v: View) {
-                    val i = Intent(this@SettingsActivity, SettingsModeration::class.java)
-                    startActivity(i)
-                }
-            })
+            findViewById<View>(R.id.settings_child_moderation).setOnClickListener {
+                val i = Intent(this@SettingsActivity, SettingsModeration::class.java)
+                startActivity(i)
+            }
         }
     }
 
