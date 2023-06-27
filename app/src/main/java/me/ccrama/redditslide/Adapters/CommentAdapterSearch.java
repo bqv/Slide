@@ -46,7 +46,7 @@ import ltd.ucode.slide.R;
 import ltd.ucode.slide.SettingValues;
 import me.ccrama.redditslide.UserSubscriptions;
 import me.ccrama.redditslide.UserTags;
-import me.ccrama.redditslide.Views.RoundedBackgroundSpan;
+import me.ccrama.redditslide.views.RoundedBackgroundSpan;
 import me.ccrama.redditslide.Visuals.FontPreferences;
 import me.ccrama.redditslide.Visuals.Palette;
 import me.ccrama.redditslide.util.CompatUtil;

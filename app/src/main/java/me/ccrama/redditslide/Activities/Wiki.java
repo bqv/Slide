@@ -22,7 +22,7 @@ import java.util.List;
 import ltd.ucode.slide.Authentication;
 import me.ccrama.redditslide.Fragments.WikiPage;
 import ltd.ucode.slide.R;
-import me.ccrama.redditslide.Views.ToggleSwipeViewPager;
+import me.ccrama.redditslide.views.ToggleSwipeViewPager;
 import me.ccrama.redditslide.Visuals.ColorPreferences;
 import me.ccrama.redditslide.Visuals.Palette;
 import me.ccrama.redditslide.util.LogUtil;

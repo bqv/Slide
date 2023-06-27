@@ -20,7 +20,7 @@ import ltd.ucode.slide.ui.BaseActivity
 import me.ccrama.redditslide.OpenRedditLink
 import me.ccrama.redditslide.SpoilerRobotoTextView
 import me.ccrama.redditslide.UserSubscriptions
-import me.ccrama.redditslide.Views.CommentOverflow
+import me.ccrama.redditslide.views.CommentOverflow
 import me.ccrama.redditslide.util.SubmissionParser
 import me.ccrama.redditslide.util.stubs.SimpleTextWatcher
 import net.dean.jraw.ApiException

@@ -5,7 +5,7 @@ import android.content.SharedPreferences
 import android.content.res.Configuration
 import ltd.ucode.slide.App.Companion.appContext
 import me.ccrama.redditslide.Constants
-import me.ccrama.redditslide.Views.CreateCardView.CardEnum
+import me.ccrama.redditslide.views.CreateCardView.CardEnum
 import me.ccrama.redditslide.Visuals.Palette.ThemeEnum
 import me.ccrama.redditslide.ui.settings.SettingsHandlingFragment
 import me.ccrama.redditslide.util.SortingUtil

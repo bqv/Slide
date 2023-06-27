@@ -18,7 +18,7 @@ import me.ccrama.redditslide.Activities.Shadowbox;
 import ltd.ucode.slide.R;
 import me.ccrama.redditslide.SpoilerRobotoTextView;
 import me.ccrama.redditslide.SubmissionViews.PopulateShadowboxInfo;
-import me.ccrama.redditslide.Views.CommentOverflow;
+import me.ccrama.redditslide.views.CommentOverflow;
 import me.ccrama.redditslide.util.SubmissionParser;
 
 

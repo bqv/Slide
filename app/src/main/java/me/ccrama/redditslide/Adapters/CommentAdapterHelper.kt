@@ -58,8 +58,8 @@ import me.ccrama.redditslide.Toolbox.ToolboxUI.showRemoval
 import me.ccrama.redditslide.Toolbox.ToolboxUI.showUsernotes
 import me.ccrama.redditslide.UserSubscriptions
 import me.ccrama.redditslide.UserTags
-import me.ccrama.redditslide.Views.DoEditorActions
-import me.ccrama.redditslide.Views.RoundedBackgroundSpan
+import me.ccrama.redditslide.views.DoEditorActions
+import me.ccrama.redditslide.views.RoundedBackgroundSpan
 import me.ccrama.redditslide.Visuals.Palette
 import me.ccrama.redditslide.util.BlendModeUtil
 import me.ccrama.redditslide.util.ClipboardUtil

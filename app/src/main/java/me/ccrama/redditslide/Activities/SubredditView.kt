@@ -68,11 +68,11 @@ import me.ccrama.redditslide.OfflineSubreddit
 import me.ccrama.redditslide.PostMatch
 import me.ccrama.redditslide.SpoilerRobotoTextView
 import me.ccrama.redditslide.UserSubscriptions
-import me.ccrama.redditslide.Views.CatchStaggeredGridLayoutManager
-import me.ccrama.redditslide.Views.CommentOverflow
-import me.ccrama.redditslide.Views.PreCachingLayoutManager
-import me.ccrama.redditslide.Views.SidebarLayout
-import me.ccrama.redditslide.Views.ToggleSwipeViewPager
+import me.ccrama.redditslide.views.CatchStaggeredGridLayoutManager
+import me.ccrama.redditslide.views.CommentOverflow
+import me.ccrama.redditslide.views.PreCachingLayoutManager
+import me.ccrama.redditslide.views.SidebarLayout
+import me.ccrama.redditslide.views.ToggleSwipeViewPager
 import me.ccrama.redditslide.Visuals.ColorPreferences
 import me.ccrama.redditslide.Visuals.Palette
 import me.ccrama.redditslide.ui.settings.SettingsSubAdapter

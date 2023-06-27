@@ -18,7 +18,7 @@ import java.io.File;
 import java.io.IOException;
 
 import ltd.ucode.slide.SettingValues;
-import me.ccrama.redditslide.Views.SubsamplingScaleImageView;
+import me.ccrama.redditslide.views.SubsamplingScaleImageView;
 
 /**
  * Created by carlo_000 on 10/19/2015.

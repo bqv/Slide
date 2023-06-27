@@ -15,12 +15,15 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
+import androidx.lifecycle.Observer
 import com.afollestad.materialdialogs.MaterialDialog
 import ltd.ucode.slide.App.Companion.forceRestart
 import ltd.ucode.slide.Authentication
 import ltd.ucode.slide.R
 import ltd.ucode.slide.SettingValues.appRestart
 import ltd.ucode.slide.SettingValues.authentication
+import ltd.ucode.slide.databinding.ActivityLoginBinding
+import ltd.ucode.slide.table.Instance
 import me.ccrama.redditslide.Activities.BaseActivityAnim
 import me.ccrama.redditslide.CaseInsensitiveArrayList
 import me.ccrama.redditslide.UserSubscriptions.setSubscriptions
@@ -39,27 +42,60 @@ import net.dean.jraw.models.Subreddit
 
 class Login : BaseActivityAnim() {
     private val viewModel: LoginViewModel by viewModels()
+    private lateinit var binding: ActivityLoginBinding
+    private lateinit var adapter: LoginAdapter
 
     var d: Dialog? = null
-    var subNames: CaseInsensitiveArrayList? = null
+    private var subNames: CaseInsensitiveArrayList? = null
 
     public override fun onCreate(savedInstance: Bundle?) {
         overrideSwipeFromAnywhere()
         super.onCreate(savedInstance)
-        applyColorTheme("")
+        applyColorTheme(subreddit = "")
         try {
-            setContentView(R.layout.activity_login)
+            binding = ActivityLoginBinding.inflate(layoutInflater)
+            val view = binding.root
+            setContentView(view)
         } catch (e: Exception) {
+            e.printStackTrace()
             finish()
             return
         }
-        setupAppBar(R.id.toolbar, R.string.title_login, true, true)
-        val scopes = arrayOf(
-            "identity", "modcontributors", "modconfig", "modothers", "modwiki", "creddits",
-            "livemanage", "account", "privatemessages", "modflair", "modlog", "report",
-            "modposts", "modwiki", "read", "vote", "edit", "submit", "subscribe", "save",
-            "wikiread", "flair", "history", "mysubreddits", "wikiedit"
-        )
+        setupAppBar(binding.toolbar.id, R.string.title_login, enableUpButton = true, colorToolbar = true)
+        setupUI()
+        setupObservers()
+    }
+
+    private fun setupUI() {
+        adapter = LoginAdapter(this)
+
+        binding.loginInstance.apply {
+            threshold = 1
+            setAdapter(this@Login.adapter)
+        }
+
+        binding.loginButton.setOnClickListener {
+            val username = binding.loginUsername.text?.toString()
+            val password = binding.loginPassword.text?.toString()
+
+            android.widget.Toast.makeText(this,
+                "Would login as $username:$password",
+                android.widget.Toast.LENGTH_LONG)
+        }
+    }
+
+    private fun setupObservers() {
+        viewModel.instanceList.observe(this, Observer {
+            renderInstanceList(it)
+        })
+    }
+
+    private fun renderInstanceList(instances: List<Instance>) {
+        adapter.addData(instances.map { instance -> instance.name })
+        adapter.notifyDataSetChanged()
+    }
+
+    fun setupWebView(savedInstance: Bundle?) {
         //if (Authentication.reddit == null) {
         //    Authentication(applicationContext)
         //}
@@ -91,7 +127,7 @@ class Login : BaseActivityAnim() {
             cookieSyncMngr.sync()
         }
         webView.webViewClient = object : WebViewClient() {
-            override fun onPageStarted(view: WebView, url: String, favicon: Bitmap) {
+            override fun onPageStarted(view: WebView, url: String, favicon: Bitmap?) {
                 LogUtil.v(url)
                 if (url.contains("code=")) {
                     Log.v(LogUtil.getTag(), "WebView URL: $url")
@@ -265,7 +301,7 @@ class Login : BaseActivityAnim() {
     }
 
     companion object {
-        private const val CLIENT_ID = "KI2Nl9A_ouG9Qw"
-        private const val REDIRECT_URL = "http://www.ccrama.me"
+        private const val CLIENT_ID = ""
+        private const val REDIRECT_URL = "about:blank"
     }
 }

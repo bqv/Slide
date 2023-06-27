@@ -74,8 +74,8 @@ import me.ccrama.redditslide.SubmissionCache
 import me.ccrama.redditslide.Toolbox.ToolboxUI
 import me.ccrama.redditslide.Toolbox.ToolboxUI.CompletedRemovalCallback
 import me.ccrama.redditslide.UserSubscriptions
-import me.ccrama.redditslide.Views.CreateCardView
-import me.ccrama.redditslide.Views.DoEditorActions
+import me.ccrama.redditslide.views.CreateCardView
+import me.ccrama.redditslide.views.DoEditorActions
 import me.ccrama.redditslide.Visuals.FontPreferences
 import me.ccrama.redditslide.Visuals.Palette
 import me.ccrama.redditslide.util.AnimatorUtil

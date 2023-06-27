@@ -14,7 +14,7 @@ import me.ccrama.redditslide.Adapters.SubredditPosts
 import me.ccrama.redditslide.ContentType
 import me.ccrama.redditslide.OfflineSubreddit
 import me.ccrama.redditslide.PostLoader
-import me.ccrama.redditslide.Views.CatchStaggeredGridLayoutManager
+import me.ccrama.redditslide.views.CatchStaggeredGridLayoutManager
 import me.ccrama.redditslide.util.LayoutUtils
 
 class Gallery : FullScreenActivity(), SubmissionDisplay {

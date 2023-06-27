@@ -66,7 +66,7 @@ import me.ccrama.redditslide.Activities.Website;
 import ltd.ucode.slide.R;
 import ltd.ucode.slide.App;
 import ltd.ucode.slide.SettingValues;
-import me.ccrama.redditslide.Views.ExoVideoView;
+import me.ccrama.redditslide.views.ExoVideoView;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;

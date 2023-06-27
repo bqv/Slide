@@ -18,7 +18,7 @@ import ltd.ucode.slide.SettingValues.votesInfoLine
 import ltd.ucode.slide.data.IPost
 import me.ccrama.redditslide.Adapters.CommentAdapterHelper
 import me.ccrama.redditslide.Toolbox.ToolboxUI.appendToolboxNote
-import me.ccrama.redditslide.Views.RoundedBackgroundSpan
+import me.ccrama.redditslide.views.RoundedBackgroundSpan
 import me.ccrama.redditslide.Visuals.FontPreferences
 import me.ccrama.redditslide.Visuals.Palette
 import me.ccrama.redditslide.util.CompatUtil

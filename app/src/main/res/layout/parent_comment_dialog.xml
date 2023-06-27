@@ -22,7 +22,7 @@
             android:text="@string/empty_preview_text"
             android:textSize="14sp"/>
 
-        <me.ccrama.redditslide.Views.CommentOverflow
+        <me.ccrama.redditslide.views.CommentOverflow
             android:id="@+id/commentOverflow"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

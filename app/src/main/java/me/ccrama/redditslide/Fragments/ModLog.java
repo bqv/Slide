@@ -14,7 +14,7 @@ import me.ccrama.redditslide.Adapters.ModLogAdapter;
 import me.ccrama.redditslide.Adapters.ModLogPosts;
 import me.ccrama.redditslide.Constants;
 import ltd.ucode.slide.R;
-import me.ccrama.redditslide.Views.PreCachingLayoutManager;
+import me.ccrama.redditslide.views.PreCachingLayoutManager;
 import me.ccrama.redditslide.Visuals.Palette;
 import me.ccrama.redditslide.handler.ToolbarScrollHideHandler;
 

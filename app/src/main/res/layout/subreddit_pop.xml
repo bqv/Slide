@@ -67,7 +67,7 @@
                 android:textColor="@android:color/white"
                 android:textSize="14sp"/>
 
-        <me.ccrama.redditslide.Views.CommentOverflow
+        <me.ccrama.redditslide.views.CommentOverflow
                 android:id="@+id/sub_title_overflow"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

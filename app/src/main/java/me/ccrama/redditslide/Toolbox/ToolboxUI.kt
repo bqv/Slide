@@ -36,19 +36,16 @@ import ltd.ucode.slide.data.IPost
 import me.ccrama.redditslide.Activities.Reauthenticate
 import me.ccrama.redditslide.OpenRedditLink
 import me.ccrama.redditslide.Toolbox.RemovalReasons.RemovalReason
-import me.ccrama.redditslide.Views.RoundedBackgroundSpan
+import me.ccrama.redditslide.views.RoundedBackgroundSpan
 import net.dean.jraw.ApiException
 import net.dean.jraw.http.NetworkException
 import net.dean.jraw.http.oauth.InvalidScopeException
-import net.dean.jraw.managers.AccountManager
-import net.dean.jraw.managers.AccountManager.SubmissionBuilder
 import net.dean.jraw.managers.InboxManager
 import net.dean.jraw.managers.ModerationManager
 import net.dean.jraw.models.Comment
 import net.dean.jraw.models.DistinguishedStatus
 import java.lang.ref.WeakReference
 import java.net.MalformedURLException
-import java.net.URL
 import java.text.SimpleDateFormat
 import java.util.Date
 

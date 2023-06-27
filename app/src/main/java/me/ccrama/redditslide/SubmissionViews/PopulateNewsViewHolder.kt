@@ -56,7 +56,7 @@ import me.ccrama.redditslide.OfflineSubreddit
 import me.ccrama.redditslide.OpenRedditLink
 import me.ccrama.redditslide.PostMatch
 import me.ccrama.redditslide.SubmissionCache
-import me.ccrama.redditslide.Views.CreateCardView
+import me.ccrama.redditslide.views.CreateCardView
 import me.ccrama.redditslide.Visuals.Palette
 import me.ccrama.redditslide.util.BlendModeUtil
 import me.ccrama.redditslide.util.ClipboardUtil

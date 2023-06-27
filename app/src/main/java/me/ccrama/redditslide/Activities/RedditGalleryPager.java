@@ -41,7 +41,7 @@ import me.ccrama.redditslide.Notifications.ImageDownloadNotificationService;
 import ltd.ucode.slide.R;
 import ltd.ucode.slide.App;
 import ltd.ucode.slide.SettingValues;
-import me.ccrama.redditslide.Views.ToolbarColorizeHelper;
+import me.ccrama.redditslide.views.ToolbarColorizeHelper;
 import me.ccrama.redditslide.Visuals.ColorPreferences;
 import me.ccrama.redditslide.util.BlendModeUtil;
 import me.ccrama.redditslide.util.DialogUtil;

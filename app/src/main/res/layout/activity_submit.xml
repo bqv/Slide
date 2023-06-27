@@ -131,7 +131,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content">
 
-                    <me.ccrama.redditslide.Views.ImageInsertEditText
+                    <me.ccrama.redditslide.views.ImageInsertEditText
                         android:id="@+id/bodytext"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -231,7 +231,7 @@
                 android:textColor="?attr/fontColor"
                 android:textSize="?attr/font_commentbody" />
 
-            <me.ccrama.redditslide.Views.CommentOverflow
+            <me.ccrama.redditslide.views.CommentOverflow
                 android:id="@+id/commentOverflow"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

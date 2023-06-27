@@ -36,8 +36,8 @@ import me.ccrama.redditslide.ActionStates.setVoteDirection
 import me.ccrama.redditslide.Activities.Profile
 import me.ccrama.redditslide.Activities.SubredditView
 import me.ccrama.redditslide.HasSeen
-import me.ccrama.redditslide.Views.RoundedBackgroundSpan
-import me.ccrama.redditslide.Views.TitleTextView
+import me.ccrama.redditslide.views.RoundedBackgroundSpan
+import me.ccrama.redditslide.views.TitleTextView
 import me.ccrama.redditslide.Visuals.Palette
 import me.ccrama.redditslide.Vote
 import me.ccrama.redditslide.util.AnimatorUtil

@@ -105,7 +105,7 @@
                     android:layout_height="wrap_content"
                     android:textColorHint="?attr/fontColor">
 
-                    <me.ccrama.redditslide.Views.ImageInsertEditText
+                    <me.ccrama.redditslide.views.ImageInsertEditText
                         android:id="@+id/body"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"

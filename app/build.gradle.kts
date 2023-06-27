@@ -64,6 +64,7 @@ android {
 
     kapt {
         correctErrorTypes = true
+        generateStubs = true
     }
 
     lint {
@@ -89,6 +90,7 @@ android {
 
     buildFeatures {
         viewBinding = true
+        dataBinding = true
     }
 
     namespace = "ltd.ucode.slide"
@@ -251,6 +253,9 @@ dependencies {
     kapt("com.google.dagger:hilt-android-compiler:+")
     implementation("androidx.hilt:hilt-common:+")
     kapt("androidx.hilt:hilt-compiler:+")
+
+    // Databinding
+    kapt("com.android.databinding:compiler:+")
 
 
     /** Testing **/

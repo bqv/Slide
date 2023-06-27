@@ -56,7 +56,6 @@ import me.ccrama.redditslide.Activities.Album
 import me.ccrama.redditslide.Activities.AlbumPager
 import me.ccrama.redditslide.Activities.CommentSearch
 import ltd.ucode.slide.ui.commentsScreen.CommentsScreen
-import me.ccrama.redditslide.Activities.FullscreenVideo
 import me.ccrama.redditslide.Activities.MediaView
 import me.ccrama.redditslide.Activities.Profile
 import me.ccrama.redditslide.Activities.Related
@@ -70,7 +69,6 @@ import me.ccrama.redditslide.Activities.Wiki
 import me.ccrama.redditslide.Adapters.CommentAdapter
 import me.ccrama.redditslide.Adapters.CommentItem
 import me.ccrama.redditslide.Adapters.CommentNavType
-import me.ccrama.redditslide.Adapters.CommentUrlObject
 import me.ccrama.redditslide.Adapters.MoreChildItem
 import me.ccrama.redditslide.Adapters.SubmissionComments
 import me.ccrama.redditslide.Constants
@@ -89,9 +87,9 @@ import me.ccrama.redditslide.UserSubscriptions
 import me.ccrama.redditslide.UserSubscriptions.addSubreddit
 import me.ccrama.redditslide.UserSubscriptions.getSubscriptions
 import me.ccrama.redditslide.UserSubscriptions.syncMultiReddits
-import me.ccrama.redditslide.Views.CommentOverflow
-import me.ccrama.redditslide.Views.DoEditorActions
-import me.ccrama.redditslide.Views.PreCachingLayoutManagerComments
+import me.ccrama.redditslide.views.CommentOverflow
+import me.ccrama.redditslide.views.DoEditorActions
+import me.ccrama.redditslide.views.PreCachingLayoutManagerComments
 import me.ccrama.redditslide.Visuals.ColorPreferences
 import me.ccrama.redditslide.Visuals.Palette
 import me.ccrama.redditslide.handler.ToolbarScrollHideHandler

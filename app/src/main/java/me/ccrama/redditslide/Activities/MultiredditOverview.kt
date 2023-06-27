@@ -31,14 +31,12 @@ import ltd.ucode.slide.Authentication
 import ltd.ucode.slide.R
 import ltd.ucode.slide.SettingValues
 import ltd.ucode.slide.SettingValues.decreasePreviewsLeft
-import me.ccrama.redditslide.Activities.Shadowbox
-import me.ccrama.redditslide.Activities.SubredditView
 import me.ccrama.redditslide.CaseInsensitiveArrayList
 import me.ccrama.redditslide.Fragments.MultiredditView
 import me.ccrama.redditslide.UserSubscriptions
 import me.ccrama.redditslide.UserSubscriptions.MultiCallback
-import me.ccrama.redditslide.Views.CatchStaggeredGridLayoutManager
-import me.ccrama.redditslide.Views.PreCachingLayoutManager
+import me.ccrama.redditslide.views.CatchStaggeredGridLayoutManager
+import me.ccrama.redditslide.views.PreCachingLayoutManager
 import me.ccrama.redditslide.Visuals.ColorPreferences
 import me.ccrama.redditslide.Visuals.Palette
 import me.ccrama.redditslide.util.BlendModeUtil

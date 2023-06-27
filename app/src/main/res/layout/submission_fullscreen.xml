@@ -31,7 +31,7 @@
                 android:paddingStart="16dp"
                 android:paddingTop="20dp">
 
-            <me.ccrama.redditslide.Views.TitleTextView
+            <me.ccrama.redditslide.views.TitleTextView
                     android:id="@+id/title"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -171,7 +171,7 @@
                     android:textColor="?attr/fontColor"
                     android:textSize="?attr/font_commentbody"/>
 
-            <me.ccrama.redditslide.Views.CommentOverflow
+            <me.ccrama.redditslide.views.CommentOverflow
                     android:id="@+id/commentOverflow"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -181,7 +181,7 @@
                     android:visibility="gone"/>
         </LinearLayout>
 
-        <me.ccrama.redditslide.Views.RevealRelativeLayout
+        <me.ccrama.redditslide.views.RevealRelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="36dp"
                 android:gravity="center_vertical">
@@ -339,7 +339,7 @@
                     android:tint="?attr/tintColor"
                     android:contentDescription="@string/btn_mod"
                     app:srcCompat="@drawable/ic_verified_user"/>
-        </me.ccrama.redditslide.Views.RevealRelativeLayout>
+        </me.ccrama.redditslide.views.RevealRelativeLayout>
 
 
         <LinearLayout
@@ -359,7 +359,7 @@
                     android:padding="5dp"
                     android:layout_height="wrap_content"/>
 
-            <me.ccrama.redditslide.Views.ImageInsertEditText
+            <me.ccrama.redditslide.views.ImageInsertEditText
                     android:id="@+id/replyLine"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"

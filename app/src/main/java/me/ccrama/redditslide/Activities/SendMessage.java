@@ -30,7 +30,7 @@ import ltd.ucode.slide.ui.BaseActivity;
 import me.ccrama.redditslide.DataShare;
 import ltd.ucode.slide.R;
 import me.ccrama.redditslide.UserSubscriptions;
-import me.ccrama.redditslide.Views.DoEditorActions;
+import me.ccrama.redditslide.views.DoEditorActions;
 import me.ccrama.redditslide.Visuals.Palette;
 
 /**

@@ -32,7 +32,7 @@
                     android:layout_height="wrap_content"
                     android:orientation="vertical">
 
-                    <me.ccrama.redditslide.Views.TitleTextView
+                    <me.ccrama.redditslide.views.TitleTextView
                         android:id="@+id/submission_dialog_title"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -47,7 +47,7 @@
                         android:textColor="?attr/fontColor"
                         android:textSize="?attr/font_commentbody" />
 
-                    <me.ccrama.redditslide.Views.CommentOverflow
+                    <me.ccrama.redditslide.views.CommentOverflow
                         android:id="@+id/submission_dialog_commentOverflow"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"

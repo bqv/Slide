@@ -38,7 +38,6 @@ import com.mikepenz.itemanimators.AlphaInAnimator
 import com.mikepenz.itemanimators.SlideRightAlphaAnimator
 import kotlinx.datetime.UtcOffset
 import kotlinx.datetime.toInstant
-import ltd.ucode.lemmy.data.type.Comment
 import ltd.ucode.lemmy.data.type.CommentView
 import ltd.ucode.slide.App
 import ltd.ucode.slide.Authentication
@@ -60,9 +59,9 @@ import me.ccrama.redditslide.OpenRedditLink
 import me.ccrama.redditslide.SpoilerRobotoTextView
 import me.ccrama.redditslide.SubmissionViews.PopulateSubmissionViewHolder
 import me.ccrama.redditslide.UserSubscriptions
-import me.ccrama.redditslide.Views.CommentOverflow
-import me.ccrama.redditslide.Views.DoEditorActions
-import me.ccrama.redditslide.Views.PreCachingLayoutManagerComments
+import me.ccrama.redditslide.views.CommentOverflow
+import me.ccrama.redditslide.views.DoEditorActions
+import me.ccrama.redditslide.views.PreCachingLayoutManagerComments
 import me.ccrama.redditslide.Visuals.FontPreferences
 import me.ccrama.redditslide.Visuals.Palette
 import me.ccrama.redditslide.util.AnimatorUtil

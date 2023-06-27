@@ -7,7 +7,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import ltd.ucode.slide.R;
 import me.ccrama.redditslide.SpoilerRobotoTextView;
-import me.ccrama.redditslide.Views.CommentOverflow;
+import me.ccrama.redditslide.views.CommentOverflow;
 
 /**
  * Created by ccrama on 9/17/2015.

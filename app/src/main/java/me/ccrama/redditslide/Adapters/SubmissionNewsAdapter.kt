@@ -23,9 +23,9 @@ import me.ccrama.redditslide.Activities.SubredditView
 import me.ccrama.redditslide.Activities.SubredditView.SubredditPagerAdapterComment
 import me.ccrama.redditslide.Fragments.SubmissionsView.Companion.createLayoutManager
 import me.ccrama.redditslide.SubmissionViews.PopulateNewsViewHolder
-import me.ccrama.redditslide.Views.CatchStaggeredGridLayoutManager
-import me.ccrama.redditslide.Views.CreateCardView.CreateViewNews
-import me.ccrama.redditslide.Views.CreateCardView.colorCard
+import me.ccrama.redditslide.views.CatchStaggeredGridLayoutManager
+import me.ccrama.redditslide.views.CreateCardView.CreateViewNews
+import me.ccrama.redditslide.views.CreateCardView.colorCard
 import me.ccrama.redditslide.util.LayoutUtils
 import me.ccrama.redditslide.util.OnSingleClickListener
 import net.dean.jraw.models.Submission

@@ -14,9 +14,9 @@ import ltd.ucode.slide.ui.BaseActivity;
 import me.ccrama.redditslide.OpenRedditLink;
 import ltd.ucode.slide.R;
 import me.ccrama.redditslide.SpoilerRobotoTextView;
-import me.ccrama.redditslide.Views.CommentOverflow;
-import me.ccrama.redditslide.Views.SidebarLayout;
-import me.ccrama.redditslide.Views.TitleTextView;
+import me.ccrama.redditslide.views.CommentOverflow;
+import me.ccrama.redditslide.views.SidebarLayout;
+import me.ccrama.redditslide.views.TitleTextView;
 import me.ccrama.redditslide.Visuals.ColorPreferences;
 import me.ccrama.redditslide.util.SubmissionParser;
 

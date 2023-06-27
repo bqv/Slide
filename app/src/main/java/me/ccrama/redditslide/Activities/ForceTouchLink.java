@@ -10,7 +10,7 @@ import android.widget.ImageView;
 import me.ccrama.redditslide.ContentType;
 import ltd.ucode.slide.R;
 import ltd.ucode.slide.App;
-import me.ccrama.redditslide.Views.ExoVideoView;
+import me.ccrama.redditslide.views.ExoVideoView;
 import me.ccrama.redditslide.util.GifUtils;
 
 /**

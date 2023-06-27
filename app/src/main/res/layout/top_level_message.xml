@@ -17,7 +17,7 @@
         android:orientation="vertical"
         android:padding="16dp">
 
-        <me.ccrama.redditslide.Views.TitleTextView
+        <me.ccrama.redditslide.views.TitleTextView
             android:id="@+id/title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -74,7 +74,7 @@
             android:textColor="?attr/fontColor"
             android:textSize="?attr/font_commentbody" />
 
-        <me.ccrama.redditslide.Views.CommentOverflow
+        <me.ccrama.redditslide.views.CommentOverflow
             android:id="@+id/commentOverflow"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

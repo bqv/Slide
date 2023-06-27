@@ -1,4 +1,4 @@
-package me.ccrama.redditslide.Views;
+package me.ccrama.redditslide.views;
 
 //Manually ported to 3.10.0
 

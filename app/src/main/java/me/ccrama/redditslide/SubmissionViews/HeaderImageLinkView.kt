@@ -35,8 +35,8 @@ import me.ccrama.redditslide.ForceTouch.builder.Peek
 import me.ccrama.redditslide.ForceTouch.builder.PeekViewOptions
 import me.ccrama.redditslide.ForceTouch.callback.SimpleOnPeek
 import me.ccrama.redditslide.HasSeen
-import me.ccrama.redditslide.Views.PeekMediaView
-import me.ccrama.redditslide.Views.TransparentTagTextView
+import me.ccrama.redditslide.views.PeekMediaView
+import me.ccrama.redditslide.views.TransparentTagTextView
 import me.ccrama.redditslide.util.BlendModeUtil
 import me.ccrama.redditslide.util.CompatUtil
 import me.ccrama.redditslide.util.LinkUtil

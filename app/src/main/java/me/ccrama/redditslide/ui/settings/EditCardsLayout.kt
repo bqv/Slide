@@ -13,19 +13,19 @@ import ltd.ucode.slide.R
 import ltd.ucode.slide.SettingValues
 import me.ccrama.redditslide.Activities.BaseActivityAnim
 import me.ccrama.redditslide.SubmissionCache
-import me.ccrama.redditslide.Views.CreateCardView
-import me.ccrama.redditslide.Views.CreateCardView.CreateView
-import me.ccrama.redditslide.Views.CreateCardView.isCard
-import me.ccrama.redditslide.Views.CreateCardView.isDesktop
-import me.ccrama.redditslide.Views.CreateCardView.isMiddle
-import me.ccrama.redditslide.Views.CreateCardView.setActionbarVisible
-import me.ccrama.redditslide.Views.CreateCardView.setBigPicCropped
-import me.ccrama.redditslide.Views.CreateCardView.setBigPicEnabled
-import me.ccrama.redditslide.Views.CreateCardView.setCardViewType
-import me.ccrama.redditslide.Views.CreateCardView.setMiddleCard
-import me.ccrama.redditslide.Views.CreateCardView.setNoThumbnails
-import me.ccrama.redditslide.Views.CreateCardView.setSmallTag
-import me.ccrama.redditslide.Views.CreateCardView.setSwitchThumb
+import me.ccrama.redditslide.views.CreateCardView
+import me.ccrama.redditslide.views.CreateCardView.CreateView
+import me.ccrama.redditslide.views.CreateCardView.isCard
+import me.ccrama.redditslide.views.CreateCardView.isDesktop
+import me.ccrama.redditslide.views.CreateCardView.isMiddle
+import me.ccrama.redditslide.views.CreateCardView.setActionbarVisible
+import me.ccrama.redditslide.views.CreateCardView.setBigPicCropped
+import me.ccrama.redditslide.views.CreateCardView.setBigPicEnabled
+import me.ccrama.redditslide.views.CreateCardView.setCardViewType
+import me.ccrama.redditslide.views.CreateCardView.setMiddleCard
+import me.ccrama.redditslide.views.CreateCardView.setNoThumbnails
+import me.ccrama.redditslide.views.CreateCardView.setSmallTag
+import me.ccrama.redditslide.views.CreateCardView.setSwitchThumb
 
 class EditCardsLayout : BaseActivityAnim() {
     public override fun onCreate(savedInstance: Bundle?) {
