@@ -17,6 +17,7 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.Observer
 import com.afollestad.materialdialogs.MaterialDialog
+import dagger.hilt.android.AndroidEntryPoint
 import ltd.ucode.slide.App.Companion.forceRestart
 import ltd.ucode.slide.Authentication
 import ltd.ucode.slide.R
@@ -40,6 +41,7 @@ import net.dean.jraw.http.oauth.OAuthException
 import net.dean.jraw.http.oauth.OAuthHelper
 import net.dean.jraw.models.Subreddit
 
+@AndroidEntryPoint
 class Login : BaseActivityAnim() {
     private val viewModel: LoginViewModel by viewModels()
     private lateinit var binding: ActivityLoginBinding

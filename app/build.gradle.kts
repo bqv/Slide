@@ -249,13 +249,14 @@ dependencies {
     implementation("org.mp4parser:muxer:1.9.41")
 
     // Dependency Injection
-    implementation("com.google.dagger:hilt-android:+")
-    kapt("com.google.dagger:hilt-android-compiler:+")
-    implementation("androidx.hilt:hilt-common:+")
-    kapt("androidx.hilt:hilt-compiler:+")
+    val hiltVersion: String by rootProject.extra
+    implementation("com.google.dagger:hilt-android:$hiltVersion")
+    kapt("com.google.dagger:hilt-android-compiler:$hiltVersion")
+    implementation("androidx.hilt:hilt-common:1.0.0-alpha03")
+    kapt("androidx.hilt:hilt-compiler:1.0.0-alpha03")
 
     // Databinding
-    kapt("com.android.databinding:compiler:+")
+    kapt("com.android.databinding:compiler:2.3.0")
 
 
     /** Testing **/

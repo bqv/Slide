@@ -13,8 +13,6 @@ class LoginAdapter : ArrayAdapter<String> {
         this.objects = objects
     }
 
-    override fun getCount(): Int = objects.size
-
     fun addData(list: List<String>) {
         objects.addAll(list.minus(objects.toSet()))
     }

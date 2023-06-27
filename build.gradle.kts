@@ -8,6 +8,7 @@ buildscript {
         set("commonmarkVersion", "0ebc0749c7")
         set("graphqlVersion", "6.5.3")
         set("ktorVersion", "2.3.1")
+        set("hiltVersion", "2.46.1")
     }
 
     repositories {
@@ -20,11 +21,12 @@ buildscript {
     dependencies {
         val kotlinVersion: String by rootProject.extra
         val graphqlVersion: String by rootProject.extra
+        val hiltVersion: String by rootProject.extra
 
         classpath("com.android.tools.build:gradle:8.0.2")
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")
         classpath("org.jetbrains.kotlin:kotlin-serialization:$kotlinVersion")
-        classpath("com.google.dagger:hilt-android-gradle-plugin:2.46.1")
+        classpath("com.google.dagger:hilt-android-gradle-plugin:$hiltVersion")
         classpath("com.expediagroup:graphql-kotlin-gradle-plugin:$graphqlVersion")
 
 
