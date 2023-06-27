@@ -26,6 +26,7 @@ import me.ccrama.redditslide.Visuals.ColorPreferences
 import me.ccrama.redditslide.Visuals.FontPreferences
 import me.ccrama.redditslide.Visuals.Palette
 import me.ccrama.redditslide.util.BlendModeUtil
+import uz.shift.colorpicker.OnColorChangedListener
 
 class Tutorial : AppCompatActivity() {
     private var back = 0
@@ -113,7 +114,7 @@ class Tutorial : AppCompatActivity() {
                 )
                 choosemainBinding.title.setBackgroundColor(Palette.getDefaultColor())
                 choosemainBinding.picker.colors = ColorPreferences.getBaseColors(context)
-                for (i in choosemainBinding.picker.colors) {
+                for (i in choosemainBinding.picker.colors!!) {
                     for (i2 in ColorPreferences.getColors(context, i)) {
                         if (i2 == Palette.getDefaultColor()) {
                             choosemainBinding.picker.setSelectedColor(i)
@@ -124,19 +125,23 @@ class Tutorial : AppCompatActivity() {
                         }
                     }
                 }
-                choosemainBinding.picker.setOnColorChangedListener { c: Int ->
-                    choosemainBinding.picker2.colors = ColorPreferences.getColors(context, c)
-                    choosemainBinding.picker2.setSelectedColor(c)
-                }
-                choosemainBinding.picker2.setOnColorChangedListener { i: Int ->
-                    choosemainBinding.title.setBackgroundColor(choosemainBinding.picker2.color)
-                    personalizeBinding!!.header.setBackgroundColor(choosemainBinding.picker2.color)
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                        val window = requireActivity().window
-                        window.statusBarColor =
-                            Palette.getDarkerColor(choosemainBinding.picker2.color)
+                choosemainBinding.picker.setOnColorChangedListener(object : OnColorChangedListener {
+                    override fun onColorChanged(c: Int) {
+                        choosemainBinding.picker2.colors = ColorPreferences.getColors(context, c)
+                        choosemainBinding.picker2.setSelectedColor(c)
                     }
-                }
+                })
+                choosemainBinding.picker2.setOnColorChangedListener(object : OnColorChangedListener {
+                    override fun onColorChanged(c: Int) {
+                        choosemainBinding.title.setBackgroundColor(choosemainBinding.picker2.color)
+                        personalizeBinding!!.header.setBackgroundColor(choosemainBinding.picker2.color)
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                            val window = requireActivity().window
+                            window.statusBarColor =
+                                Palette.getDarkerColor(choosemainBinding.picker2.color)
+                        }
+                    }
+                })
                 choosemainBinding.ok.setOnClickListener { v13: View? ->
                     SettingValues.colours.edit().putInt("DEFAULTCOLOR", choosemainBinding.picker2.color)
                         .apply()

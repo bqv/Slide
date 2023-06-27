@@ -1,287 +1,234 @@
-package uz.shift.colorpicker;
+package uz.shift.colorpicker
 
-import android.content.Context;
-import android.content.res.TypedArray;
-import android.graphics.Canvas;
-import android.graphics.Paint;
-import android.graphics.Paint.Style;
-import android.graphics.Rect;
-import android.os.Parcel;
-import android.os.Parcelable;
-import android.util.AttributeSet;
-import android.view.MotionEvent;
-import android.view.View;
-import android.widget.LinearLayout;
+import android.content.Context
+import android.graphics.Canvas
+import android.graphics.Paint
+import android.graphics.Rect
+import android.os.Parcel
+import android.os.Parcelable
+import android.util.AttributeSet
+import android.view.MotionEvent
+import android.view.View
+import android.widget.LinearLayout
+import ltd.ucode.slide.R
 
-import ltd.ucode.slide.R;
+class LineColorPicker(context: Context, attrs: AttributeSet?) : View(context, attrs) {
+    /**
+     * Return current picker palete
+     */
+    var colors: IntArray = IntArray(1)
+        set(colors: IntArray) {
+            // TODO: selected color can be NOT in set of colors
+            // FIXME: colors can be null
+            field = colors
+            if (!containsColor(colors, color)) {
+                color = colors[0]
+            }
+            recalcCellSize()
+            invalidate()
+        }
 
-public class LineColorPicker extends View {
-
-    int[] colors;
     // indicate if nothing selected
-    boolean isColorSelected = false;
-    private Paint paint;
-    private Rect rect = new Rect();
-    private int selectedColor;
-    private OnColorChangedListener onColorChanged;
-    private int cellSize;
-    private int mOrientation;
-    private boolean isClick = false;
-    private int screenW;
-    private int screenH;
+    var isColorSelected = false
+    private val paint: Paint = Paint()
+    private val rect = Rect()
 
-    {
-        if (isInEditMode()) {
-            colors = Palette.DEFAULT;
+    /**
+     * Return currently selected color.
+     */
+    var color: Int
+        private set
+    private var onColorChanged: OnColorChangedListener? = null
+    private var cellSize = 0
+    private var mOrientation = 0
+    private var isClick = false
+    private var screenW = 0
+    private var screenH = 0
+
+    init {
+        colors = if (isInEditMode) {
+            Palette.DEFAULT
         } else {
-            colors = new int[1];
+            IntArray(1)
         }
     }
 
-    public LineColorPicker(Context context, AttributeSet attrs) {
-        super(context, attrs);
-
-        paint = new Paint();
-        paint.setStyle(Style.FILL);
-
-        final TypedArray a = context.getTheme().obtainStyledAttributes(attrs, R.styleable.LineColorPicker, 0, 0);
-
+    init {
+        paint.style = Paint.Style.FILL
+        val a = context.theme.obtainStyledAttributes(attrs, R.styleable.LineColorPicker, 0, 0)
         try {
-            mOrientation = a.getInteger(R.styleable.LineColorPicker_android_orientation, LinearLayout.HORIZONTAL);
-
-            if (!isInEditMode()) {
-                final int colorsArrayResId = a.getResourceId(R.styleable.LineColorPicker_colors, -1);
-
+            mOrientation = a.getInteger(
+                R.styleable.LineColorPicker_android_orientation,
+                LinearLayout.HORIZONTAL
+            )
+            if (!isInEditMode) {
+                val colorsArrayResId = a.getResourceId(R.styleable.LineColorPicker_colors, -1)
                 if (colorsArrayResId > 0) {
-                    final int[] colors = context.getResources().getIntArray(colorsArrayResId);
-                    setColors(colors);
+                    colors = context.resources.getIntArray(colorsArrayResId)
                 }
             }
-
-            final int selected = a.getInteger(R.styleable.LineColorPicker_selectedColorIndex, -1);
-
+            val selected = a.getInteger(R.styleable.LineColorPicker_selectedColorIndex, -1)
             if (selected != -1) {
-                final int[] currentColors = getColors();
-
-                final int currentColorsLength = currentColors != null ? currentColors.length : 0;
-
+                val currentColors = colors
+                val currentColorsLength = currentColors?.size ?: 0
                 if (selected < currentColorsLength) {
-                    setSelectedColorPosition(selected);
+                    setSelectedColorPosition(selected)
                 }
             }
         } finally {
-            a.recycle();
+            a.recycle()
         }
-
-        selectedColor = colors[0];
+        color = colors!![0]
     }
 
-    @Override
-    protected void onDraw(Canvas canvas) {
-        super.onDraw(canvas);
-
+    override fun onDraw(canvas: Canvas) {
+        super.onDraw(canvas)
         if (mOrientation == LinearLayout.HORIZONTAL) {
-            drawHorizontalPicker(canvas);
+            drawHorizontalPicker(canvas)
         } else {
-            drawVerticalPicker(canvas);
+            drawVerticalPicker(canvas)
         }
-
     }
 
-    private void drawVerticalPicker(Canvas canvas) {
-        rect.left = 0;
-        rect.top = 0;
-        rect.right = canvas.getWidth();
-        rect.bottom = 0;
+    private fun drawVerticalPicker(canvas: Canvas) {
+        rect.left = 0
+        rect.top = 0
+        rect.right = canvas.width
+        rect.bottom = 0
 
         // 8%
-        int margin = Math.round(canvas.getWidth() * 0.08f);
-
-        for (int color : colors) {
-
-            paint.setColor(color);
-
-            rect.top = rect.bottom;
-            rect.bottom += cellSize;
-
-            if (isColorSelected && color == selectedColor) {
-                rect.left = 0;
-                rect.right = canvas.getWidth();
+        val margin = Math.round(canvas.width * 0.08f)
+        for (color in colors!!) {
+            paint.color = color
+            rect.top = rect.bottom
+            rect.bottom += cellSize
+            if (isColorSelected && color == this.color) {
+                rect.left = 0
+                rect.right = canvas.width
             } else {
-                rect.left = margin;
-                rect.right = canvas.getWidth() - margin;
+                rect.left = margin
+                rect.right = canvas.width - margin
             }
-
-            canvas.drawRect(rect, paint);
+            canvas.drawRect(rect, paint)
         }
-
     }
 
-    private void drawHorizontalPicker(Canvas canvas) {
-        rect.left = 0;
-        rect.top = 0;
-        rect.right = 0;
-        rect.bottom = canvas.getHeight();
+    private fun drawHorizontalPicker(canvas: Canvas) {
+        rect.left = 0
+        rect.top = 0
+        rect.right = 0
+        rect.bottom = canvas.height
 
         // 8%
-        int margin = Math.round(canvas.getHeight() * 0.08f);
-
-        for (int color : colors) {
-
-            paint.setColor(color);
-
-            rect.left = rect.right;
-            rect.right += cellSize;
-
-            if (isColorSelected && color == selectedColor) {
-                rect.top = 0;
-                rect.bottom = canvas.getHeight();
+        val margin = Math.round(canvas.height * 0.08f)
+        for (color in colors!!) {
+            paint.color = color
+            rect.left = rect.right
+            rect.right += cellSize
+            if (isColorSelected && color == this.color) {
+                rect.top = 0
+                rect.bottom = canvas.height
             } else {
-                rect.top = margin;
-                rect.bottom = canvas.getHeight() - margin;
+                rect.top = margin
+                rect.bottom = canvas.height - margin
             }
-
-            canvas.drawRect(rect, paint);
+            canvas.drawRect(rect, paint)
         }
     }
 
-    private void onColorChanged(int color) {
+    private fun onColorChanged(color: Int) {
         if (onColorChanged != null) {
-            onColorChanged.onColorChanged(color);
+            onColorChanged!!.onColorChanged(color)
         }
     }
 
-    @Override
-    public boolean onTouchEvent(MotionEvent event) {
-
-        int actionId = event.getAction();
-
-        int newColor;
-
-        switch (actionId) {
-            case MotionEvent.ACTION_DOWN:
-                isClick = true;
-                break;
-            case MotionEvent.ACTION_UP:
-                newColor = getColorAtXY(event.getX(), event.getY());
-
-                setSelectedColor(newColor);
-
+    override fun onTouchEvent(event: MotionEvent): Boolean {
+        val actionId = event.action
+        val newColor: Int
+        when (actionId) {
+            MotionEvent.ACTION_DOWN -> isClick = true
+            MotionEvent.ACTION_UP -> {
+                newColor = getColorAtXY(event.x, event.y)
+                setSelectedColor(newColor)
                 if (isClick) {
-                    performClick();
+                    performClick()
                 }
+            }
 
-                break;
+            MotionEvent.ACTION_MOVE -> {
+                newColor = getColorAtXY(event.x, event.y)
+                setSelectedColor(newColor)
+            }
 
-            case MotionEvent.ACTION_MOVE:
-                newColor = getColorAtXY(event.getX(), event.getY());
-
-                setSelectedColor(newColor);
-
-                break;
-
-            case MotionEvent.ACTION_CANCEL:
-            case MotionEvent.ACTION_OUTSIDE:
-                isClick = false;
-                break;
-
-            default:
-                break;
+            MotionEvent.ACTION_CANCEL, MotionEvent.ACTION_OUTSIDE -> isClick = false
+            else -> {}
         }
-
-        return true;
+        return true
     }
 
     /**
      * Return color at x,y coordinate of view.
      */
-    private int getColorAtXY(float x, float y) {
+    private fun getColorAtXY(x: Float, y: Float): Int {
 
         // FIXME: colors.length == 0 -> division by ZERO.s
-
         if (mOrientation == LinearLayout.HORIZONTAL) {
-            int left = 0;
-            int right = 0;
-
-            for (int color : colors) {
-                left = right;
-                right += cellSize;
-
+            var left = 0
+            var right = 0
+            for (color in colors!!) {
+                left = right
+                right += cellSize
                 if (left <= x && right >= x) {
-                    return color;
+                    return color
                 }
             }
-
         } else {
-            int top = 0;
-            int bottom = 0;
-
-            for (int color : colors) {
-                top = bottom;
-                bottom += cellSize;
-
+            var top = 0
+            var bottom = 0
+            for (color in colors!!) {
+                top = bottom
+                bottom += cellSize
                 if (y >= top && y <= bottom) {
-                    return color;
+                    return color
                 }
             }
         }
-
-        return selectedColor;
+        return color
     }
 
-    @Override
-    protected Parcelable onSaveInstanceState() {
+    override fun onSaveInstanceState(): Parcelable? {
         // begin boilerplate code that allows parent classes to save state
-        Parcelable superState = super.onSaveInstanceState();
-
-        SavedState ss = new SavedState(superState);
+        val superState = super.onSaveInstanceState()
+        val ss = SavedState(superState)
         // end
-
-        ss.selectedColor = this.selectedColor;
-        ss.isColorSelected = this.isColorSelected;
-
-        return ss;
+        ss.selectedColor = color
+        ss.isColorSelected = isColorSelected
+        return ss
     }
 
-    @Override
-    protected void onRestoreInstanceState(Parcelable state) {
+    override fun onRestoreInstanceState(state: Parcelable) {
         // begin boilerplate code so parent classes can restore state
-        if (!(state instanceof SavedState)) {
-            super.onRestoreInstanceState(state);
-            return;
+        if (state !is SavedState) {
+            super.onRestoreInstanceState(state)
+            return
         }
-
-        SavedState ss = (SavedState) state;
-        super.onRestoreInstanceState(ss.getSuperState());
+        val ss = state
+        super.onRestoreInstanceState(ss.superState)
         // end
-
-        this.selectedColor = ss.selectedColor;
-        this.isColorSelected = ss.isColorSelected;
+        color = ss.selectedColor
+        isColorSelected = ss.isColorSelected
     }
 
-    @Override
-    public boolean performClick() {
-        return super.performClick();
+    override fun performClick(): Boolean {
+        return super.performClick()
     }
 
-    @Override
-    protected void onSizeChanged(int w, int h, int oldw, int oldh) {
-
-        screenW = w;
-        screenH = h;
-
-        recalcCellSize();
-
-        super.onSizeChanged(w, h, oldw, oldh);
+    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
+        screenW = w
+        screenH = h
+        recalcCellSize()
+        super.onSizeChanged(w, h, oldw, oldh)
     }
-
-    /**
-     * Return currently selected color.
-     */
-    public int getColor() {
-        return selectedColor;
-    }
-
     // @Override
     // protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
     // int parentWidth = MeasureSpec.getSize(widthMeasureSpec);
@@ -289,80 +236,48 @@ public class LineColorPicker extends View {
     // this.setMeasuredDimension(parentWidth, parentHeight);
     // super.onMeasure(widthMeasureSpec, heightMeasureSpec);
     // }
-
     /**
      * Set selected color as color value from palette.
      */
-    public void setSelectedColor(int color) {
+    fun setSelectedColor(color: Int) {
 
         // not from current palette
         if (!containsColor(colors, color)) {
-            return;
+            return
         }
 
         // do we need to re-draw view?
-        if (!isColorSelected || selectedColor != color) {
-            this.selectedColor = color;
-
-            isColorSelected = true;
-
-            invalidate();
-
-            onColorChanged(color);
+        if (!isColorSelected || this.color != color) {
+            this.color = color
+            isColorSelected = true
+            invalidate()
+            onColorChanged(color)
         }
     }
 
     /**
      * Set selected color as index from palete
      */
-    public void setSelectedColorPosition(int position) {
-        setSelectedColor(colors[position]);
+    fun setSelectedColorPosition(position: Int) {
+        setSelectedColor(colors!![position])
     }
 
-    private void recalcCellSize() {
-
-        if (mOrientation == LinearLayout.HORIZONTAL) {
-            cellSize = Math.round(screenW / (colors.length * 1f));
+    private fun recalcCellSize() {
+        cellSize = if (mOrientation == LinearLayout.HORIZONTAL) {
+            Math.round(screenW / (colors!!.size * 1f))
         } else {
-            cellSize = Math.round(screenH / (colors.length * 1f));
+            Math.round(screenH / (colors!!.size * 1f))
         }
-    }
-
-    /**
-     * Return current picker palete
-     */
-    public int[] getColors() {
-        return colors;
-    }
-
-    /**
-     * Set picker palette
-     */
-    public void setColors(int[] colors) {
-        // TODO: selected color can be NOT in set of colors
-        // FIXME: colors can be null
-        this.colors = colors;
-
-        if (!containsColor(colors, selectedColor)) {
-            selectedColor = colors[0];
-        }
-
-        recalcCellSize();
-
-        invalidate();
     }
 
     /**
      * Return true if palette contains this color
      */
-    private boolean containsColor(int[] colors, int c) {
-        for (int color : colors) {
-            if (color == c)
-                return true;
-
+    private fun containsColor(colors: IntArray?, c: Int): Boolean {
+        for (color in colors!!) {
+            if (color == c) return true
         }
-
-        return false;
+        return false
     }
 
     /**
@@ -370,39 +285,38 @@ public class LineColorPicker extends View {
      *
      * @param l
      */
-    public void setOnColorChangedListener(OnColorChangedListener l) {
-        this.onColorChanged = l;
+    fun setOnColorChangedListener(l: OnColorChangedListener?) {
+        onColorChanged = l
     }
 
-    static class SavedState extends BaseSavedState {
-        // required field that makes Parcelables from a Parcel
-        public static final Parcelable.Creator<SavedState> CREATOR = new Parcelable.Creator<SavedState>() {
-            public SavedState createFromParcel(Parcel in) {
-                return new SavedState(in);
-            }
+    internal class SavedState : BaseSavedState {
+        var selectedColor = 0
+        var isColorSelected = false
 
-            public SavedState[] newArray(int size) {
-                return new SavedState[size];
-            }
-        };
-        int selectedColor;
-        boolean isColorSelected;
-
-        SavedState(Parcelable superState) {
-            super(superState);
+        constructor(superState: Parcelable?) : super(superState) {}
+        private constructor(`in`: Parcel) : super(`in`) {
+            selectedColor = `in`.readInt()
+            isColorSelected = `in`.readInt() == 1
         }
 
-        private SavedState(Parcel in) {
-            super(in);
-            this.selectedColor = in.readInt();
-            this.isColorSelected = in.readInt() == 1;
+        override fun writeToParcel(out: Parcel, flags: Int) {
+            super.writeToParcel(out, flags)
+            out.writeInt(selectedColor)
+            out.writeInt(if (isColorSelected) 1 else 0)
         }
 
-        @Override
-        public void writeToParcel(Parcel out, int flags) {
-            super.writeToParcel(out, flags);
-            out.writeInt(this.selectedColor);
-            out.writeInt(this.isColorSelected ? 1 : 0);
+        companion object {
+            // required field that makes Parcelables from a Parcel
+            @JvmField
+            val CREATOR: Parcelable.Creator<SavedState?> = object : Parcelable.Creator<SavedState?> {
+                override fun createFromParcel(`in`: Parcel): SavedState? {
+                    return SavedState(`in`)
+                }
+
+                override fun newArray(size: Int): Array<SavedState?> {
+                    return arrayOfNulls(size)
+                }
+            }
         }
     }
 }
