@@ -26,6 +26,9 @@ class RedditSubmission(val data: Submission) : IPost() {
     override val body: String?
         get() = data.selftext
 
+    override val bodyHtml: String?
+        get() = data.dataNode["body_html"]?.asText()
+
     override val isLocked: Boolean
         get() = data.isLocked
 

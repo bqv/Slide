@@ -26,4 +26,6 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:${serializationVersion}")
     implementation("com.jakewharton.retrofit:retrofit2-kotlinx-serialization-converter:1.0.0")
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.3.2")
+
+    implementation("org.jetbrains:markdown:0.2.2")
 }

@@ -3,6 +3,7 @@ package ltd.ucode.lemmy.data
 import kotlinx.datetime.Instant
 import kotlinx.datetime.UtcOffset
 import kotlinx.datetime.toInstant
+import ltd.ucode.lemmy.Markdown
 import ltd.ucode.lemmy.data.type.PostView
 import ltd.ucode.slide.ContentType
 import ltd.ucode.slide.data.IGroup
@@ -28,6 +29,9 @@ open class LemmyPost(val instance: String, val data: PostView) : IPost() {
 
     override val body: String?
         get() = data.post.body
+
+    override val bodyHtml: String?
+        get() = Markdown.parseToHtml(data.post.body)
 
     override val isLocked: Boolean
         get() = data.post.isLocked

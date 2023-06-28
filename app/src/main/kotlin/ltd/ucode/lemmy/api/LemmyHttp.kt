@@ -7,6 +7,8 @@ import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.encodeToJsonElement
+import kotlinx.serialization.json.int
+import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonObject
 import ltd.ucode.SnakeCaseSerializer
 import ltd.ucode.lemmy.api.request.GetCommentsRequest
@@ -226,7 +228,9 @@ class LemmyHttp(val instance: String = "lemmy.ml",
             .toMap()
             .mapValues { (_, element) -> when (element) {
                 is JsonNull -> null
-                is JsonPrimitive -> if (element.isString) element.content else TODO()
+                is JsonPrimitive -> if (element.isString) element.content
+                else if (element.intOrNull != null) element.int.toString()
+                else TODO()
                 is JsonArray -> TODO()
                 is JsonObject -> TODO()
             } }

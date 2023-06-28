@@ -38,6 +38,7 @@ class AccountRepository @Inject constructor(
         try {
             val dataSource = instanceRepository.createLogin(username, password, instance)
             dataSource.getUnreadCount()
+            dataSource
         } catch (e: ApiException) {
             instanceRepository.deleteLogin(username, instance)
             passwordStore.edit().remove("${username}@${instance}").apply()

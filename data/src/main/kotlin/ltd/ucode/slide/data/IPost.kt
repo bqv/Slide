@@ -17,6 +17,7 @@ abstract class IPost : IItem {
     abstract val title: String
     abstract val url: String?
     abstract val body: String?
+    abstract val bodyHtml: String?
     abstract val isLocked: Boolean
     abstract val isNsfw: Boolean
     abstract val groupName: String

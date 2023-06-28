@@ -263,6 +263,9 @@ dependencies {
     // Databinding
     kapt("com.android.databinding:compiler:2.3.0")
 
+    // Markdown
+    implementation("org.jetbrains:markdown:0.2.2")
+
 
     /** Testing **/
     testImplementation(kotlin("test"))

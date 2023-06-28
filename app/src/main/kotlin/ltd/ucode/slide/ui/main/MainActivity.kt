@@ -95,6 +95,7 @@ import ltd.ucode.slide.ui.BaseActivity
 import ltd.ucode.slide.ui.Slide
 import ltd.ucode.slide.ui.Tutorial
 import ltd.ucode.slide.ui.login.Login
+import ltd.ucode.util.CoroutineScopeExtensions.executeAsyncTask
 import me.ccrama.redditslide.Activities.Announcement
 import me.ccrama.redditslide.Activities.CancelSubNotifs
 import me.ccrama.redditslide.Activities.Discover
@@ -115,8 +116,6 @@ import me.ccrama.redditslide.Adapters.SideArrayAdapter
 import me.ccrama.redditslide.Autocache.AutoCacheScheduler
 import me.ccrama.redditslide.CaseInsensitiveArrayList
 import me.ccrama.redditslide.CommentCacheAsync
-import ltd.ucode.slide.ContentType
-import ltd.ucode.util.CoroutineScopeExtensions.executeAsyncTask
 import me.ccrama.redditslide.ForceTouch.util.DensityUtils
 import me.ccrama.redditslide.Fragments.CommentPage
 import me.ccrama.redditslide.Fragments.DrawerItemsDialog.SettingsDrawerEnum
@@ -132,11 +131,6 @@ import me.ccrama.redditslide.SpoilerRobotoTextView
 import me.ccrama.redditslide.Synccit.MySynccitUpdateTask
 import me.ccrama.redditslide.Synccit.SynccitRead
 import me.ccrama.redditslide.UserSubscriptions
-import me.ccrama.redditslide.views.CatchStaggeredGridLayoutManager
-import me.ccrama.redditslide.views.CommentOverflow
-import me.ccrama.redditslide.views.PreCachingLayoutManager
-import me.ccrama.redditslide.views.SidebarLayout
-import me.ccrama.redditslide.views.ToggleSwipeViewPager
 import me.ccrama.redditslide.Visuals.ColorPreferences
 import me.ccrama.redditslide.Visuals.Palette
 import me.ccrama.redditslide.ui.settings.ManageOfflineContent
@@ -146,6 +140,11 @@ import me.ccrama.redditslide.ui.settings.SettingsSubAdapter
 import me.ccrama.redditslide.ui.settings.SettingsThemeFragment
 import me.ccrama.redditslide.util.LogUtil
 import me.ccrama.redditslide.util.NetworkStateReceiver.NetworkStateReceiverListener
+import me.ccrama.redditslide.views.CatchStaggeredGridLayoutManager
+import me.ccrama.redditslide.views.CommentOverflow
+import me.ccrama.redditslide.views.PreCachingLayoutManager
+import me.ccrama.redditslide.views.SidebarLayout
+import me.ccrama.redditslide.views.ToggleSwipeViewPager
 import net.dean.jraw.ApiException
 import net.dean.jraw.http.MultiRedditUpdateRequest
 import net.dean.jraw.http.NetworkException
@@ -1080,7 +1079,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             val clipboard = ContextCompat.getSystemService(this, ClipboardManager::class.java)
             if (clipboard != null && clipboard.hasPrimaryClip()) {
                 val data = clipboard.primaryClip
-                val s = data!!.getItemAt(0).text as String
+                val s = data!!.getItemAt(0).text.toString()
                 if (!s.isEmpty()) {
                     if (ltd.ucode.slide.ContentType.getContentType(s) == ltd.ucode.slide.ContentType.Type.REDDIT && !HasSeen.getSeen(
                             s

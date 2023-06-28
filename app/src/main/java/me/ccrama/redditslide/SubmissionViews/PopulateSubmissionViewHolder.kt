@@ -550,7 +550,7 @@ class PopulateSubmissionViewHolder() {
                     25 -> {
                         val showText = TextView(mContext)
                         showText.text = StringEscapeUtils.unescapeHtml4(
-                            submission.title + "\n\n" + submission.body
+                            submission.title + "\n\n" + submission.bodyHtml
                         )
                         showText.setTextIsSelectable(true)
                         val sixteen = DisplayUtil.dpToPxVertical(24)
@@ -580,7 +580,7 @@ class PopulateSubmissionViewHolder() {
                                         CompatUtil.fromHtml(
                                             (submission.title
                                                     + "\n\n"
-                                                    + submission.body)
+                                                    + submission.bodyHtml)
                                         )
                                     )
                                 }
@@ -599,7 +599,7 @@ class PopulateSubmissionViewHolder() {
                                     StringEscapeUtils.unescapeHtml4(
                                         (submission.title
                                                 + "\n\n"
-                                                + submission.body)
+                                                + submission.bodyHtml)
                                     )
                                 )
                                 Toast.makeText(
@@ -2175,12 +2175,12 @@ class PopulateSubmissionViewHolder() {
         if ((!full
                     && isSelftextEnabled(baseSub)
                     && submission.url == null
-                    && submission.body.orEmpty().isNotEmpty()
+                    && !submission.body.isNullOrEmpty()
                     && !submission.isNsfw
                     && !submission.isSpoiler)
         ) {
             holder.body.visibility = View.VISIBLE
-            val text = submission.body!!
+            val text = submission.bodyHtml!!
             val typef = FontPreferences(mContext).fontTypeComment.typeface
             val typeface: Typeface = if (typef >= 0) {
                 RobotoTypefaces.obtainTypeface(mContext, typef)
@@ -2214,7 +2214,7 @@ class PopulateSubmissionViewHolder() {
                 }
                 holder.firstTextView.setTypeface(typeface)
                 setViews(
-                    submission.body!!,
+                    submission.bodyHtml!!,
                     if (submission.groupName == null) "all" else submission.groupName,
                     holder
                 )
@@ -2444,7 +2444,7 @@ class PopulateSubmissionViewHolder() {
                                             )
                                             e.setText(
                                                 StringEscapeUtils.unescapeHtml4(
-                                                    submission.body
+                                                    submission.bodyHtml
                                                 )
                                             )
                                             DoEditorActions.doActions(
