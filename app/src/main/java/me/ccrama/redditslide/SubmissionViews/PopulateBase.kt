@@ -10,6 +10,7 @@ import ltd.ucode.slide.data.IPost
 import me.ccrama.redditslide.Activities.MediaView
 import me.ccrama.redditslide.Fragments.SubmissionsView.Companion.currentPosition
 import me.ccrama.redditslide.Fragments.SubmissionsView.Companion.currentSubmission
+import me.ccrama.redditslide.submission
 import me.ccrama.redditslide.util.LayoutUtils
 import net.dean.jraw.ApiException
 import net.dean.jraw.managers.AccountManager

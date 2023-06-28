@@ -25,8 +25,6 @@ import ltd.ucode.slide.databinding.FragmentWelcomeBinding
 import me.ccrama.redditslide.Visuals.ColorPreferences
 import me.ccrama.redditslide.Visuals.FontPreferences
 import me.ccrama.redditslide.Visuals.Palette
-import me.ccrama.redditslide.util.BlendModeUtil
-import uz.shift.colorpicker.OnColorChangedListener
 
 class Tutorial : AppCompatActivity() {
     private var back = 0
@@ -95,11 +93,11 @@ class Tutorial : AppCompatActivity() {
             val getFontColor = requireActivity().resources.getColor(
                 ColorPreferences(context).fontStyle.color
             )
-            BlendModeUtil.tintImageViewAsSrcAtop(
+            me.ccrama.redditslide.util.BlendModeUtil.tintImageViewAsSrcAtop(
                 personalizeBinding!!.secondaryColorPreview,
                 getFontColor
             )
-            BlendModeUtil.tintImageViewAsSrcAtop(
+            me.ccrama.redditslide.util.BlendModeUtil.tintImageViewAsSrcAtop(
                 personalizeBinding!!.primaryColorPreview,
                 Palette.getDefaultColor()
             )
@@ -125,13 +123,15 @@ class Tutorial : AppCompatActivity() {
                         }
                     }
                 }
-                choosemainBinding.picker.setOnColorChangedListener(object : OnColorChangedListener {
+                choosemainBinding.picker.setOnColorChangedListener(object :
+                    uz.shift.colorpicker.OnColorChangedListener {
                     override fun onColorChanged(c: Int) {
                         choosemainBinding.picker2.colors = ColorPreferences.getColors(context, c)
                         choosemainBinding.picker2.setSelectedColor(c)
                     }
                 })
-                choosemainBinding.picker2.setOnColorChangedListener(object : OnColorChangedListener {
+                choosemainBinding.picker2.setOnColorChangedListener(object :
+                    uz.shift.colorpicker.OnColorChangedListener {
                     override fun onColorChanged(c: Int) {
                         choosemainBinding.title.setBackgroundColor(choosemainBinding.picker2.color)
                         personalizeBinding!!.header.setBackgroundColor(choosemainBinding.picker2.color)

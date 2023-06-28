@@ -46,7 +46,7 @@ import java.util.List;
 import java.util.Locale;
 
 import ltd.ucode.slide.Authentication;
-import me.ccrama.redditslide.ContentType;
+import ltd.ucode.slide.ContentType;
 import ltd.ucode.slide.R;
 import ltd.ucode.slide.App;
 import me.ccrama.redditslide.SpoilerRobotoTextView;

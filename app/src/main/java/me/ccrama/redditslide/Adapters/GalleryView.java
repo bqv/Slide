@@ -37,7 +37,7 @@ import me.ccrama.redditslide.Activities.RedditGallery;
 import me.ccrama.redditslide.Activities.RedditGalleryPager;
 import me.ccrama.redditslide.Activities.Tumblr;
 import me.ccrama.redditslide.Activities.TumblrPager;
-import me.ccrama.redditslide.ContentType;
+import ltd.ucode.slide.ContentType;
 import me.ccrama.redditslide.PostMatch;
 import ltd.ucode.slide.R;
 import ltd.ucode.slide.App;

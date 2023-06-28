@@ -41,11 +41,12 @@ import me.ccrama.redditslide.HasSeen
 import me.ccrama.redditslide.Hidden
 import me.ccrama.redditslide.OfflineSubreddit
 import me.ccrama.redditslide.UserSubscriptions
-import me.ccrama.redditslide.views.CatchStaggeredGridLayoutManager
-import me.ccrama.redditslide.views.CreateCardView
 import me.ccrama.redditslide.Visuals.Palette
 import me.ccrama.redditslide.handler.ToolbarScrollHideHandler
+import me.ccrama.redditslide.submission
 import me.ccrama.redditslide.util.LayoutUtils
+import me.ccrama.redditslide.views.CatchStaggeredGridLayoutManager
+import me.ccrama.redditslide.views.CreateCardView
 import net.dean.jraw.models.MultiReddit
 import net.dean.jraw.models.MultiSubreddit
 

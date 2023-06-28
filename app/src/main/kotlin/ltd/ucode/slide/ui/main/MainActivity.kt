@@ -83,7 +83,6 @@ import com.google.android.material.tabs.TabLayout
 import com.lusfold.androidkeyvaluestore.KVStore
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.runBlocking
-import ltd.ucode.Util.executeAsyncTask
 import ltd.ucode.lemmy.data.LemmyPost
 import ltd.ucode.lemmy.data.type.PostSortType
 import ltd.ucode.slide.App
@@ -116,8 +115,8 @@ import me.ccrama.redditslide.Adapters.SideArrayAdapter
 import me.ccrama.redditslide.Autocache.AutoCacheScheduler
 import me.ccrama.redditslide.CaseInsensitiveArrayList
 import me.ccrama.redditslide.CommentCacheAsync
-import me.ccrama.redditslide.Constants
-import me.ccrama.redditslide.ContentType
+import ltd.ucode.slide.ContentType
+import ltd.ucode.util.CoroutineScopeExtensions.executeAsyncTask
 import me.ccrama.redditslide.ForceTouch.util.DensityUtils
 import me.ccrama.redditslide.Fragments.CommentPage
 import me.ccrama.redditslide.Fragments.DrawerItemsDialog.SettingsDrawerEnum
@@ -145,24 +144,8 @@ import me.ccrama.redditslide.ui.settings.SettingsActivity
 import me.ccrama.redditslide.ui.settings.SettingsGeneralFragment
 import me.ccrama.redditslide.ui.settings.SettingsSubAdapter
 import me.ccrama.redditslide.ui.settings.SettingsThemeFragment
-import me.ccrama.redditslide.util.AnimatorUtil
-import me.ccrama.redditslide.util.DrawableUtil
-import me.ccrama.redditslide.util.EditTextValidator
-import me.ccrama.redditslide.util.ImageUtil
-import me.ccrama.redditslide.util.KeyboardUtil
-import me.ccrama.redditslide.util.LayoutUtils
 import me.ccrama.redditslide.util.LogUtil
-import me.ccrama.redditslide.util.MiscUtil
-import me.ccrama.redditslide.util.NetworkStateReceiver
 import me.ccrama.redditslide.util.NetworkStateReceiver.NetworkStateReceiverListener
-import me.ccrama.redditslide.util.NetworkUtil
-import me.ccrama.redditslide.util.OnSingleClickListener
-import me.ccrama.redditslide.util.ProUtil
-import me.ccrama.redditslide.util.SortingUtil
-import me.ccrama.redditslide.util.StringUtil
-import me.ccrama.redditslide.util.SubmissionParser
-import me.ccrama.redditslide.util.TimeUtils
-import me.ccrama.redditslide.util.stubs.SimpleTextWatcher
 import net.dean.jraw.ApiException
 import net.dean.jraw.http.MultiRedditUpdateRequest
 import net.dean.jraw.http.NetworkException
@@ -261,13 +244,13 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             pager!!.currentItem = current
             if (mTabLayout != null) {
                 mTabLayout!!.setupWithViewPager(pager)
-                LayoutUtils.scrollToTabAfterLayout(mTabLayout, current)
+                me.ccrama.redditslide.util.LayoutUtils.scrollToTabAfterLayout(mTabLayout, current)
             }
             setToolbarClick()
         } else if ((requestCode == 2001 || requestCode == 2002) && resultCode == RESULT_OK) {
-            if (SettingValues.subredditSearchMethod == Constants.SUBREDDIT_SEARCH_METHOD_DRAWER
+            if (SettingValues.subredditSearchMethod == me.ccrama.redditslide.Constants.SUBREDDIT_SEARCH_METHOD_DRAWER
                 || SettingValues.subredditSearchMethod
-                == Constants.SUBREDDIT_SEARCH_METHOD_BOTH
+                == me.ccrama.redditslide.Constants.SUBREDDIT_SEARCH_METHOD_BOTH
             ) {
                 drawerLayout!!.closeDrawers()
                 drawerSearch!!.setText("")
@@ -279,7 +262,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             }
             val view = this@MainActivity.currentFocus
             if (view != null) {
-                KeyboardUtil.hideKeyboard(this, view.windowToken, 0)
+                me.ccrama.redditslide.util.KeyboardUtil.hideKeyboard(this, view.windowToken, 0)
             }
         } else if (requestCode == 2002 && resultCode != RESULT_OK) {
             mToolbar!!.performLongClick() //search was init from the toolbar, so return focus to the toolbar
@@ -336,21 +319,21 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             drawerLayout!!.closeDrawers()
         } else if (commentPager && pager!!.currentItem == toOpenComments) {
             pager!!.currentItem = pager!!.currentItem - 1
-        } else if ((SettingValues.subredditSearchMethod == Constants.SUBREDDIT_SEARCH_METHOD_TOOLBAR
-                    || SettingValues.subredditSearchMethod == Constants.SUBREDDIT_SEARCH_METHOD_BOTH)
+        } else if ((SettingValues.subredditSearchMethod == me.ccrama.redditslide.Constants.SUBREDDIT_SEARCH_METHOD_TOOLBAR
+                    || SettingValues.subredditSearchMethod == me.ccrama.redditslide.Constants.SUBREDDIT_SEARCH_METHOD_BOTH)
             && findViewById<AutoCompleteTextView>(R.id.toolbar_search).visibility == View.VISIBLE
         ) {
             findViewById<ImageView>(R.id.close_search_toolbar).performClick() //close GO_TO_SUB_FIELD
         } else if (SettingValues.backButtonBehavior
-            == Constants.BackButtonBehaviorOptions.OpenDrawer.value
+            == me.ccrama.redditslide.Constants.BackButtonBehaviorOptions.OpenDrawer.value
         ) {
             drawerLayout!!.openDrawer(GravityCompat.START)
         } else if (SettingValues.backButtonBehavior
-            == Constants.BackButtonBehaviorOptions.GotoFirst.value
+            == me.ccrama.redditslide.Constants.BackButtonBehaviorOptions.GotoFirst.value
         ) {
             pager!!.currentItem = 0
         } else if (SettingValues.backButtonBehavior
-            == Constants.BackButtonBehaviorOptions.ConfirmExit.value
+            == me.ccrama.redditslide.Constants.BackButtonBehaviorOptions.ConfirmExit.value
         ) {
             AlertDialog.Builder(this@MainActivity)
                 .setTitle(R.string.general_confirm_exit)
@@ -461,7 +444,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         val inflater = menuInflater
-        if (NetworkUtil.isConnected(this)) {
+        if (me.ccrama.redditslide.util.NetworkUtil.isConnected(this)) {
             if (SettingValues.expandedToolbar) {
                 inflater.inflate(R.menu.menu_subreddit_overview_expanded, menu)
             } else {
@@ -471,7 +454,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             if (SettingValues.isPro) {
                 menu.findItem(R.id.share).isVisible = false
             }
-            if (SettingValues.fab && SettingValues.fabType == Constants.FAB_DISMISS) {
+            if (SettingValues.fab && SettingValues.fabType == me.ccrama.redditslide.Constants.FAB_DISMISS) {
                 menu.findItem(R.id.hide_posts).isVisible = false
             }
         } else {
@@ -608,7 +591,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                         findViewById(R.id.anchor),
                         getString(R.string.friends_sort_error), Snackbar.LENGTH_SHORT
                     )
-                    LayoutUtils.showSnackbar(s)
+                    me.ccrama.redditslide.util.LayoutUtils.showSnackbar(s)
                 } else {
                     openPopup()
                 }
@@ -639,7 +622,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                             i.putExtra(Search.EXTRA_TERM, term)
                             i.putExtra(Search.EXTRA_SUBREDDIT, subreddit)
                             Log.v(
-                                LogUtil.getTag(),
+                                me.ccrama.redditslide.util.LogUtil.getTag(),
                                 "INTENT SHOWS $term AND $subreddit"
                             )
                             startActivity(i)
@@ -711,7 +694,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                         startActivity(i2)
                     }
                 } else {
-                    val b = ProUtil.proUpgradeMsg(this, R.string.general_gallerymode_ispro)
+                    val b = me.ccrama.redditslide.util.ProUtil.proUpgradeMsg(this, R.string.general_gallerymode_ispro)
                         .setNegativeButton(R.string.btn_no_thanks) { dialog: DialogInterface, whichButton: Int -> dialog.dismiss() }
                     if (SettingValues.previews > 0) {
                         b.setNeutralButton(
@@ -760,7 +743,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                         startActivity(i2)
                     }
                 } else {
-                    val b = ProUtil.proUpgradeMsg(this, R.string.general_shadowbox_ispro)
+                    val b = me.ccrama.redditslide.util.ProUtil.proUpgradeMsg(this, R.string.general_shadowbox_ispro)
                         .setNegativeButton(R.string.btn_no_thanks) { dialog: DialogInterface, whichButton: Int -> dialog.dismiss() }
                     if (SettingValues.previews > 0) {
                         b.setNeutralButton(
@@ -820,7 +803,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             startActivity(i)
         } else {
             if (Authentication.didOnline
-                && NetworkUtil.isConnected(this@MainActivity)
+                && me.ccrama.redditslide.util.NetworkUtil.isConnected(this@MainActivity)
                 && !checkedPopups
             ) {
                 runAfterLoad = Runnable {
@@ -906,7 +889,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                                     pager!!, s.title,
                                     Snackbar.LENGTH_INDEFINITE
                                 )
-                                    .setAction(title, object : OnSingleClickListener() {
+                                    .setAction(title, object : me.ccrama.redditslide.util.OnSingleClickListener() {
                                         override fun onSingleClick(v: View) {
                                             val i = Intent(
                                                 this@MainActivity,
@@ -915,7 +898,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                                             startActivity(i)
                                         }
                                     })
-                                LayoutUtils.showSnackbar(snack)
+                                me.ccrama.redditslide.util.LayoutUtils.showSnackbar(snack)
                             }
                         }
                     }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR)
@@ -976,12 +959,12 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                 "Tutorial"
             )
         ) {
-            LogUtil.v("Starting main " + Authentication.name)
+            me.ccrama.redditslide.util.LogUtil.v("Starting main " + Authentication.name)
             Authentication.isLoggedIn = SettingValues.appRestart.getBoolean("loggedin", false)
             Authentication.name = SettingValues.appRestart.getString("name", "LOGGEDOUT")
             UserSubscriptions.doMainActivitySubs(this)
         } else if (!first) {
-            LogUtil.v("Starting main 2 " + Authentication.name)
+            me.ccrama.redditslide.util.LogUtil.v("Starting main 2 " + Authentication.name)
             Authentication.isLoggedIn = SettingValues.appRestart.getBoolean("loggedin", false)
             Authentication.name = SettingValues.appRestart.getString("name", "LOGGEDOUT")
             SettingValues.appRestart.edit().putBoolean("isRestarting", false).commit()
@@ -1032,7 +1015,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                 dismissProgressDialog()
             })
         }
-        if (!BuildConfig.isFDroid && Authentication.isLoggedIn && NetworkUtil.isConnected(this@MainActivity)) {
+        if (!BuildConfig.isFDroid && Authentication.isLoggedIn && me.ccrama.redditslide.util.NetworkUtil.isConnected(this@MainActivity)) {
             // Display an snackbar that asks the user to rate the app after this
             // activity was created 6 times, never again when once clicked or with a maximum of
             // two times.
@@ -1052,8 +1035,8 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                 .build()
                 .engageWhenAppropriate()
         }
-        if (SettingValues.subredditSearchMethod == Constants.SUBREDDIT_SEARCH_METHOD_TOOLBAR
-            || SettingValues.subredditSearchMethod == Constants.SUBREDDIT_SEARCH_METHOD_BOTH
+        if (SettingValues.subredditSearchMethod == me.ccrama.redditslide.Constants.SUBREDDIT_SEARCH_METHOD_TOOLBAR
+            || SettingValues.subredditSearchMethod == me.ccrama.redditslide.Constants.SUBREDDIT_SEARCH_METHOD_BOTH
         ) {
             setupSubredditSearchToolbar()
         }
@@ -1062,7 +1045,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
          * 0 = Dark, 1 = Light, 2 = AMOLED, 3 = Dark blue, 4 = AMOLED with contrast, 5 = Sepia
          */
         SettingValues.currentTheme = ColorPreferences(this).fontStyle.themeType
-        networkStateReceiver = NetworkStateReceiver()
+        networkStateReceiver = me.ccrama.redditslide.util.NetworkStateReceiver()
         networkStateReceiver!!.addListener(this)
         try {
             this.registerReceiver(
@@ -1071,7 +1054,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             )
         } catch (e: Exception) {
         }
-        LogUtil.v("Installed browsers")
+        me.ccrama.redditslide.util.LogUtil.v("Installed browsers")
         val intent = Intent()
         intent.action = Intent.ACTION_VIEW
         intent.data = Uri.parse("http://ccrama.me/")
@@ -1080,7 +1063,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             PackageManager.GET_DISABLED_COMPONENTS
         )
         for (i in allApps) {
-            if (i.activityInfo.isEnabled) LogUtil.v(i.activityInfo.packageName)
+            if (i.activityInfo.isEnabled) me.ccrama.redditslide.util.LogUtil.v(i.activityInfo.packageName)
         }
     }
 
@@ -1090,7 +1073,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
         }
     }
 
-    var networkStateReceiver: NetworkStateReceiver? = null
+    var networkStateReceiver: me.ccrama.redditslide.util.NetworkStateReceiver? = null
     override fun networkUnavailable() {}
     fun checkClipboard() {
         try {
@@ -1099,7 +1082,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                 val data = clipboard.primaryClip
                 val s = data!!.getItemAt(0).text as String
                 if (!s.isEmpty()) {
-                    if (ContentType.getContentType(s) == ContentType.Type.REDDIT && !HasSeen.getSeen(
+                    if (ltd.ucode.slide.ContentType.getContentType(s) == ltd.ucode.slide.ContentType.Type.REDDIT && !HasSeen.getSeen(
                             s
                         )
                     ) {
@@ -1125,7 +1108,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
     override fun onResume() {
         super.onResume()
         if (Authentication.isLoggedIn && Authentication.didOnline &&
-                NetworkUtil.isConnected(this@MainActivity) &&
+                me.ccrama.redditslide.util.NetworkUtil.isConnected(this@MainActivity) &&
                 headerMain != null && runAfterLoad == null) {
             AsyncNotificationBadge().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR)
         } else if (Authentication.isLoggedIn &&
@@ -1176,18 +1159,18 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             if (SettingsGeneralFragment.searchChanged) {
                 setDrawerSubList()
                 if (SettingValues.subredditSearchMethod
-                    == Constants.SUBREDDIT_SEARCH_METHOD_DRAWER
+                    == me.ccrama.redditslide.Constants.SUBREDDIT_SEARCH_METHOD_DRAWER
                 ) {
                     mToolbar!!.setOnLongClickListener(
                         null
                     ) //remove the long click listener from the toolbar
                     findViewById<View>(R.id.drawer_divider).visibility = View.GONE
                 } else if (SettingValues.subredditSearchMethod
-                    == Constants.SUBREDDIT_SEARCH_METHOD_TOOLBAR
+                    == me.ccrama.redditslide.Constants.SUBREDDIT_SEARCH_METHOD_TOOLBAR
                 ) {
                     setupSubredditSearchToolbar()
                 } else if (SettingValues.subredditSearchMethod
-                    == Constants.SUBREDDIT_SEARCH_METHOD_BOTH
+                    == me.ccrama.redditslide.Constants.SUBREDDIT_SEARCH_METHOD_BOTH
                 ) {
                     findViewById<View>(R.id.drawer_divider).visibility = View.GONE
                     setupSubredditSearchToolbar()
@@ -1232,7 +1215,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             drawerSubList!!.addHeaderView(header, null, false)
             (header.findViewById<View>(R.id.name) as TextView?)!!.text = Authentication.name
             header.findViewById<View>(R.id.multi)
-                .setOnClickListener(object : OnSingleClickListener() {
+                .setOnClickListener(object : me.ccrama.redditslide.util.OnSingleClickListener() {
                     override fun onSingleClick(view: View) {
                         if (runAfterLoad == null) {
                             val inte = Intent(this@MainActivity, MultiredditOverview::class.java)
@@ -1245,7 +1228,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                     .alwaysCallInputCallback()
                     .input(getString(R.string.user_enter), null) { dialog, input ->
                         val editText = dialog.inputEditText
-                        EditTextValidator.validateUsername(editText)
+                        me.ccrama.redditslide.util.EditTextValidator.validateUsername(editText)
                         if (input.length >= 3 && input.length <= 20) {
                             dialog.getActionButton(DialogAction.POSITIVE).isEnabled = true
                         }
@@ -1269,14 +1252,14 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                 true
             }
             header.findViewById<View>(R.id.discover)
-                .setOnClickListener(object : OnSingleClickListener() {
+                .setOnClickListener(object : me.ccrama.redditslide.util.OnSingleClickListener() {
                     override fun onSingleClick(view: View) {
                         val inte = Intent(this@MainActivity, Discover::class.java)
                         this@MainActivity.startActivity(inte)
                     }
                 })
             header.findViewById<View>(R.id.prof_click)
-                .setOnClickListener(object : OnSingleClickListener() {
+                .setOnClickListener(object : me.ccrama.redditslide.util.OnSingleClickListener() {
                     override fun onSingleClick(view: View) {
                         val inte = Intent(this@MainActivity, Profile::class.java)
                         inte.putExtra(Profile.EXTRA_PROFILE, Authentication.name)
@@ -1284,7 +1267,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                     }
                 })
             header.findViewById<View>(R.id.saved)
-                .setOnClickListener(object : OnSingleClickListener() {
+                .setOnClickListener(object : me.ccrama.redditslide.util.OnSingleClickListener() {
                     override fun onSingleClick(view: View) {
                         val inte = Intent(this@MainActivity, Profile::class.java)
                         inte.putExtra(Profile.EXTRA_PROFILE, Authentication.name)
@@ -1293,14 +1276,14 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                     }
                 })
             header.findViewById<View>(R.id.later)
-                .setOnClickListener(object : OnSingleClickListener() {
+                .setOnClickListener(object : me.ccrama.redditslide.util.OnSingleClickListener() {
                     override fun onSingleClick(view: View) {
                         val inte = Intent(this@MainActivity, PostReadLater::class.java)
                         this@MainActivity.startActivity(inte)
                     }
                 })
             header.findViewById<View>(R.id.history)
-                .setOnClickListener(object : OnSingleClickListener() {
+                .setOnClickListener(object : me.ccrama.redditslide.util.OnSingleClickListener() {
                     override fun onSingleClick(view: View) {
                         val inte = Intent(this@MainActivity, Profile::class.java)
                         inte.putExtra(Profile.EXTRA_PROFILE, Authentication.name)
@@ -1309,7 +1292,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                     }
                 })
             header.findViewById<View>(R.id.commented)
-                .setOnClickListener(object : OnSingleClickListener() {
+                .setOnClickListener(object : me.ccrama.redditslide.util.OnSingleClickListener() {
                     override fun onSingleClick(view: View) {
                         val inte = Intent(this@MainActivity, Profile::class.java)
                         inte.putExtra(Profile.EXTRA_PROFILE, Authentication.name)
@@ -1318,7 +1301,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                     }
                 })
             header.findViewById<View>(R.id.submitted)
-                .setOnClickListener(object : OnSingleClickListener() {
+                .setOnClickListener(object : me.ccrama.redditslide.util.OnSingleClickListener() {
                     override fun onSingleClick(view: View) {
                         val inte = Intent(this@MainActivity, Profile::class.java)
                         inte.putExtra(Profile.EXTRA_PROFILE, Authentication.name)
@@ -1327,7 +1310,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                     }
                 })
             header.findViewById<View>(R.id.upvoted)
-                .setOnClickListener(object : OnSingleClickListener() {
+                .setOnClickListener(object : me.ccrama.redditslide.util.OnSingleClickListener() {
                     override fun onSingleClick(view: View) {
                         val inte = Intent(this@MainActivity, Profile::class.java)
                         inte.putExtra(Profile.EXTRA_PROFILE, Authentication.name)
@@ -1349,11 +1332,11 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                 if (profStuff.visibility == View.GONE) {
                     expand(profStuff)
                     header.contentDescription = resources.getString(R.string.btn_collapse)
-                    AnimatorUtil.flipAnimator(false, header.findViewById(R.id.headerflip)).start()
+                    me.ccrama.redditslide.util.AnimatorUtil.flipAnimator(false, header.findViewById(R.id.headerflip)).start()
                 } else {
                     collapse(profStuff)
                     header.contentDescription = resources.getString(R.string.btn_expand)
-                    AnimatorUtil.flipAnimator(true, header.findViewById(R.id.headerflip)).start()
+                    me.ccrama.redditslide.util.AnimatorUtil.flipAnimator(true, header.findViewById(R.id.headerflip)).start()
                 }
             }
             for (s in SettingValues.authentication!!.getStringSet("accounts", HashSet())!!) {
@@ -1368,13 +1351,13 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             val keys = ArrayList(accounts.keys)
             val accountList = header.findViewById<LinearLayout>(R.id.accountsarea)
             for (accName in keys) {
-                LogUtil.v(accName)
+                me.ccrama.redditslide.util.LogUtil.v(accName)
                 val t = layoutInflater.inflate(
                     R.layout.account_textview_white, accountList,
                     false
                 )
                 (t.findViewById<View>(R.id.name) as TextView?)!!.text = accName
-                LogUtil.v("Adding click to " + (t.findViewById<View>(R.id.name) as TextView?)?.text)
+                me.ccrama.redditslide.util.LogUtil.v("Adding click to " + (t.findViewById<View>(R.id.name) as TextView?)?.text)
                 t.findViewById<View>(R.id.remove).setOnClickListener {
                     AlertDialog.Builder(this@MainActivity)
                         .setTitle(R.string.profile_remove)
@@ -1399,9 +1382,9 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                                 for (s in keys) {
                                     if (!s.equals(accName, ignoreCase = true)) {
                                         d = true
-                                        LogUtil.v("Switching to $s")
+                                        me.ccrama.redditslide.util.LogUtil.v("Switching to $s")
                                         for ((key, value) in accounts) {
-                                            LogUtil.v("$key:$value")
+                                            me.ccrama.redditslide.util.LogUtil.v("$key:$value")
                                         }
                                         if (accounts.containsKey(s) && !accounts[s]
                                                 !!.isEmpty()
@@ -1454,11 +1437,11 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                 }
                 t.setOnClickListener {
                     val accName = (t.findViewById<View>(R.id.name) as TextView?)?.text.toString()
-                    LogUtil.v("Found name is $accName")
+                    me.ccrama.redditslide.util.LogUtil.v("Found name is $accName")
                     if (!accName.equals(Authentication.name, ignoreCase = true)) {
-                        LogUtil.v("Switching to $accName")
+                        me.ccrama.redditslide.util.LogUtil.v("Switching to $accName")
                         if (!accounts[accName]!!.isEmpty()) {
-                            LogUtil.v("Using token " + accounts[accName])
+                            me.ccrama.redditslide.util.LogUtil.v("Using token " + accounts[accName])
                             SettingValues.authentication.edit()
                                 .putString("lasttoken", accounts[accName])
                                 .remove("backedCreds")
@@ -1483,18 +1466,18 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                 val body = header.findViewById<LinearLayout>(R.id.expand_profile)
                 if (body.visibility == View.GONE) {
                     expand(body)
-                    AnimatorUtil.flipAnimator(false, view).start()
+                    me.ccrama.redditslide.util.AnimatorUtil.flipAnimator(false, view).start()
                     view.findViewById<View>(R.id.godown).contentDescription =
                         resources.getString(R.string.btn_collapse)
                 } else {
                     collapse(body)
-                    AnimatorUtil.flipAnimator(true, view).start()
+                    me.ccrama.redditslide.util.AnimatorUtil.flipAnimator(true, view).start()
                     view.findViewById<View>(R.id.godown).contentDescription =
                         resources.getString(R.string.btn_expand)
                 }
             }
             header.findViewById<View>(R.id.guest_mode)
-                .setOnClickListener(object : OnSingleClickListener() {
+                .setOnClickListener(object : me.ccrama.redditslide.util.OnSingleClickListener() {
                     override fun onSingleClick(v: View) {
                         Authentication.name = "LOGGEDOUT"
                         Authentication.isLoggedIn = false
@@ -1507,21 +1490,21 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                     }
                 })
             header.findViewById<View>(R.id.add)
-                .setOnClickListener(object : OnSingleClickListener() {
+                .setOnClickListener(object : me.ccrama.redditslide.util.OnSingleClickListener() {
                     override fun onSingleClick(view: View) {
                         val inte = Intent(this@MainActivity, Login::class.java)
                         this@MainActivity.startActivity(inte)
                     }
                 })
             header.findViewById<View>(R.id.offline)
-                .setOnClickListener(object : OnSingleClickListener() {
+                .setOnClickListener(object : me.ccrama.redditslide.util.OnSingleClickListener() {
                     override fun onSingleClick(view: View) {
                         SettingValues.appRestart.edit().putBoolean("forceoffline", true).commit()
                         App.forceRestart(this@MainActivity, false)
                     }
                 })
             header.findViewById<View>(R.id.inbox)
-                .setOnClickListener(object : OnSingleClickListener() {
+                .setOnClickListener(object : me.ccrama.redditslide.util.OnSingleClickListener() {
                     override fun onSingleClick(view: View) {
                         val inte = Intent(this@MainActivity, Inbox::class.java)
                         this@MainActivity.startActivityForResult(inte, INBOX_RESULT)
@@ -1541,12 +1524,12 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             findViewById<View>(R.id.back).setOnClickListener {
                 if (profStuff.visibility == View.GONE) {
                     expand(profStuff)
-                    AnimatorUtil.flipAnimator(false, header.findViewById(R.id.headerflip)).start()
+                    me.ccrama.redditslide.util.AnimatorUtil.flipAnimator(false, header.findViewById(R.id.headerflip)).start()
                     header.findViewById<View>(R.id.headerflip).contentDescription =
                         resources.getString(R.string.btn_collapse)
                 } else {
                     collapse(profStuff)
-                    AnimatorUtil.flipAnimator(true, header.findViewById(R.id.headerflip)).start()
+                    me.ccrama.redditslide.util.AnimatorUtil.flipAnimator(true, header.findViewById(R.id.headerflip)).start()
                     header.findViewById<View>(R.id.headerflip).contentDescription =
                         resources.getString(R.string.btn_expand)
                 }
@@ -1564,7 +1547,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             val keys = ArrayList(accounts.keys)
             val accountList = header.findViewById<LinearLayout>(R.id.accountsarea)
             for (accName in keys) {
-                LogUtil.v(accName)
+                me.ccrama.redditslide.util.LogUtil.v(accName)
                 val t = layoutInflater.inflate(
                     R.layout.account_textview_white, accountList,
                     false
@@ -1594,7 +1577,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                                 for (s in keys) {
                                     if (!s.equals(accName, ignoreCase = true)) {
                                         d = true
-                                        LogUtil.v("Switching to $s")
+                                        me.ccrama.redditslide.util.LogUtil.v("Switching to $s")
                                         if (!accounts[s]!!.isEmpty()) {
                                             SettingValues.authentication.edit()
                                                 .putString("lasttoken", accounts[s])
@@ -1634,7 +1617,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                         .setPositiveButton(R.string.btn_cancel, null)
                         .show()
                 }
-                t.setOnClickListener(object : OnSingleClickListener() {
+                t.setOnClickListener(object : me.ccrama.redditslide.util.OnSingleClickListener() {
                     override fun onSingleClick(v: View) {
                         if (!accName.equals(Authentication.name, ignoreCase = true)) {
                             if (!accounts[accName]!!.isEmpty()) {
@@ -1661,14 +1644,14 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                 accountList.addView(t)
             }
             header.findViewById<View>(R.id.add)
-                .setOnClickListener(object : OnSingleClickListener() {
+                .setOnClickListener(object : me.ccrama.redditslide.util.OnSingleClickListener() {
                     override fun onSingleClick(view: View) {
                         val inte = Intent(this@MainActivity, Login::class.java)
                         this@MainActivity.startActivity(inte)
                     }
                 })
             header.findViewById<View>(R.id.offline)
-                .setOnClickListener(object : OnSingleClickListener() {
+                .setOnClickListener(object : me.ccrama.redditslide.util.OnSingleClickListener() {
                     override fun onSingleClick(view: View) {
                         SettingValues.appRestart.edit().putBoolean("forceoffline", true).commit()
                         App.forceRestart(this@MainActivity, false)
@@ -1680,7 +1663,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                     .alwaysCallInputCallback()
                     .input(getString(R.string.user_enter), null) { dialog, input ->
                         val editText = dialog.inputEditText
-                        EditTextValidator.validateUsername(editText)
+                        me.ccrama.redditslide.util.EditTextValidator.validateUsername(editText)
                         if (input.length >= 3 && input.length <= 20) {
                             dialog.getActionButton(DialogAction.POSITIVE).isEnabled = true
                         }
@@ -1708,7 +1691,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             drawerSubList!!.addHeaderView(header, null, false)
             hea = header.findViewById(R.id.back)
             header.findViewById<View>(R.id.online)
-                .setOnClickListener(object : OnSingleClickListener() {
+                .setOnClickListener(object : me.ccrama.redditslide.util.OnSingleClickListener() {
                     override fun onSingleClick(view: View) {
                         SettingValues.appRestart.edit().remove("forceoffline").commit()
                         App.forceRestart(this@MainActivity, false)
@@ -1721,12 +1704,12 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                 expand(expandSettings)
                 header.findViewById<View>(R.id.godown_settings).contentDescription =
                     resources.getString(R.string.btn_collapse)
-                AnimatorUtil.flipAnimator(false, v).start()
+                me.ccrama.redditslide.util.AnimatorUtil.flipAnimator(false, v).start()
             } else {
                 collapse(expandSettings)
                 header.findViewById<View>(R.id.godown_settings).contentDescription =
                     resources.getString(R.string.btn_expand)
-                AnimatorUtil.flipAnimator(true, v).start()
+                me.ccrama.redditslide.util.AnimatorUtil.flipAnimator(true, v).start()
             }
         }
         run {
@@ -1772,7 +1755,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                 SettingValues.readerMode = isChecked
             }
         }
-        header.findViewById<View>(R.id.manage).setOnClickListener(object : OnSingleClickListener() {
+        header.findViewById<View>(R.id.manage).setOnClickListener(object : me.ccrama.redditslide.util.OnSingleClickListener() {
             override fun onSingleClick(view: View) {
                 val i = Intent(this@MainActivity, ManageOfflineContent::class.java)
                 startActivity(i)
@@ -1783,9 +1766,9 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             if (SettingValues.isPro) {
                 support.visibility = View.GONE
             } else {
-                support.setOnClickListener(object : OnSingleClickListener() {
+                support.setOnClickListener(object : me.ccrama.redditslide.util.OnSingleClickListener() {
                     override fun onSingleClick(view: View) {
-                        ProUtil.proUpgradeMsg(this@MainActivity, R.string.settings_support_slide)
+                        me.ccrama.redditslide.util.ProUtil.proUpgradeMsg(this@MainActivity, R.string.settings_support_slide)
                             .setNegativeButton(R.string.btn_no_thanks) { dialog: DialogInterface, whichButton: Int -> dialog.dismiss() }
                             .show()
                     }
@@ -1796,7 +1779,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                     .alwaysCallInputCallback()
                     .input(getString(R.string.user_enter), null) { dialog, input ->
                         val editText = dialog.inputEditText
-                        EditTextValidator.validateUsername(editText)
+                        me.ccrama.redditslide.util.EditTextValidator.validateUsername(editText)
                         if (input.length >= 3 && input.length <= 20) {
                             dialog.getActionButton(DialogAction.POSITIVE).isEnabled = true
                         }
@@ -1815,7 +1798,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             }
         }
         header.findViewById<View>(R.id.settings)
-            .setOnClickListener(object : OnSingleClickListener() {
+            .setOnClickListener(object : me.ccrama.redditslide.util.OnSingleClickListener() {
                 override fun onSingleClick(v: View) {
                     val i = Intent(this@MainActivity, SettingsActivity::class.java)
                     startActivity(i)
@@ -1869,7 +1852,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
 
             override fun onDrawerClosed(view: View) {
                 super.onDrawerClosed(view)
-                KeyboardUtil.hideKeyboard(this@MainActivity, drawerLayout!!.windowToken, 0)
+                me.ccrama.redditslide.util.KeyboardUtil.hideKeyboard(this@MainActivity, drawerLayout!!.windowToken, 0)
             }
         }
         drawerLayout!!.addDrawerListener(actionBarDrawerToggle)
@@ -1913,7 +1896,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             if (friends != null && !friends.isEmpty() && headerMain!!.findViewById<View?>(R.id.friends) != null) {
                 headerMain!!.findViewById<View>(R.id.friends).visibility = View.VISIBLE
                 headerMain!!.findViewById<View>(R.id.friends)
-                    .setOnClickListener(object : OnSingleClickListener() {
+                    .setOnClickListener(object : me.ccrama.redditslide.util.OnSingleClickListener() {
                         override fun onSingleClick(view: View) {
                             MaterialDialog.Builder(this@MainActivity).title("Friends")
                                 .items(friends)
@@ -1954,7 +1937,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                 Toast.makeText(
                     this@MainActivity, getString(
                         R.string.offline_last_update,
-                        TimeUtils.getTimeAgo(p.cached!!.time, this@MainActivity)
+                        me.ccrama.redditslide.util.TimeUtils.getTimeAgo(p.cached!!.time, this@MainActivity)
                     ), Toast.LENGTH_LONG
                 )
                     .show()
@@ -1999,7 +1982,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
 
             //get all subs that have Notifications enabled
             val rawSubs =
-                StringUtil.stringToArray(SettingValues.appRestart.getString(CheckForMail.SUBS_TO_GET, ""))
+                me.ccrama.redditslide.util.StringUtil.stringToArray(SettingValues.appRestart.getString(CheckForMail.SUBS_TO_GET, ""))
             val subThresholds = HashMap<String, Int>()
             for (s in rawSubs) {
                 try {
@@ -2070,7 +2053,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                                                 ),
                                                 Snackbar.LENGTH_LONG
                                             )
-                                            LayoutUtils.showSnackbar(s)
+                                            me.ccrama.redditslide.util.LayoutUtils.showSnackbar(s)
                                         }
                                     } catch (e: NetworkException) {
                                         runOnUiThread {
@@ -2141,7 +2124,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                                     .itemsCallbackSingleChoice(
                                         0
                                     ) { dialog, itemView, which, text ->
-                                        val subs = StringUtil.stringToArray(
+                                        val subs = me.ccrama.redditslide.util.StringUtil.stringToArray(
                                             SettingValues.appRestart
                                                 .getString(
                                                     CheckForMail.SUBS_TO_GET,
@@ -2157,7 +2140,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                                             .edit()
                                             .putString(
                                                 CheckForMail.SUBS_TO_GET,
-                                                StringUtil.arrayToString(
+                                                me.ccrama.redditslide.util.StringUtil.arrayToString(
                                                     subs
                                                 )
                                             )
@@ -2197,7 +2180,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             currentlySubbed = !Authentication.isLoggedIn && usedArray!!.contains(
                 subreddit.displayName.lowercase()
             ) || subreddit.isUserSubscriber
-            MiscUtil.doSubscribeButtonText(currentlySubbed, subscribe)
+            me.ccrama.redditslide.util.MiscUtil.doSubscribeButtonText(currentlySubbed, subscribe)
             assert(subscribe != null)
             subscribe!!.setOnClickListener(object : View.OnClickListener {
                 private fun doSubscribe() {
@@ -2221,7 +2204,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                                                         getString(R.string.misc_subscribed),
                                                         Snackbar.LENGTH_LONG
                                                     )
-                                                    LayoutUtils.showSnackbar(s)
+                                                    me.ccrama.redditslide.util.LayoutUtils.showSnackbar(s)
                                                 }
                                                 .setNegativeButton(R.string.btn_no, null)
                                                 .setCancelable(false)
@@ -2253,7 +2236,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                                     mToolbar!!, R.string.sub_added,
                                     Snackbar.LENGTH_LONG
                                 )
-                                LayoutUtils.showSnackbar(s)
+                                me.ccrama.redditslide.util.LayoutUtils.showSnackbar(s)
                             }
                             .setNegativeButton(R.string.btn_cancel, null)
                             .show()
@@ -2283,7 +2266,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                                                         getString(R.string.misc_unsubscribed),
                                                         Snackbar.LENGTH_LONG
                                                     )
-                                                    LayoutUtils.showSnackbar(s)
+                                                    me.ccrama.redditslide.util.LayoutUtils.showSnackbar(s)
                                                 }
                                                 .setNegativeButton(R.string.btn_no, null)
                                                 .setCancelable(false)
@@ -2316,7 +2299,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                                     R.string.misc_unsubscribed,
                                     Snackbar.LENGTH_LONG
                                 )
-                                LayoutUtils.showSnackbar(s)
+                                me.ccrama.redditslide.util.LayoutUtils.showSnackbar(s)
                             }
                             .setNegativeButton(R.string.btn_cancel, null)
                             .show()
@@ -2331,7 +2314,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                     } else {
                         doUnsubscribe()
                     }
-                    MiscUtil.doSubscribeButtonText(currentlySubbed, subscribe)
+                    me.ccrama.redditslide.util.MiscUtil.doSubscribeButtonText(currentlySubbed, subscribe)
                 }
             })
         }
@@ -2409,10 +2392,10 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                 if (!Authentication.isLoggedIn || !Authentication.didOnline) {
                     submit.visibility = View.GONE
                 }
-                if (SettingValues.fab && SettingValues.fabType == Constants.FAB_POST) {
+                if (SettingValues.fab && SettingValues.fabType == me.ccrama.redditslide.Constants.FAB_POST) {
                     submit.visibility = View.GONE
                 }
-                submit.setOnClickListener(object : OnSingleClickListener() {
+                submit.setOnClickListener(object : me.ccrama.redditslide.util.OnSingleClickListener() {
                     override fun onSingleClick(view: View) {
                         val inte = Intent(this@MainActivity, Submit::class.java)
                         if (!subreddit.contains("/m/") && canSubmit) {
@@ -2446,7 +2429,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             } else {
                 sort.text = "Set default sorting"
             }
-            val sortid = SortingUtil.getSortingId(sortingis)
+            val sortid = me.ccrama.redditslide.util.SortingUtil.getSortingId(sortingis)
             dialoglayout.findViewById<View>(R.id.sorting).setOnClickListener(View.OnClickListener {
                 val l2 = DialogInterface.OnClickListener { dialogInterface, i ->
                     when (i) {
@@ -2474,7 +2457,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                 }
                 AlertDialog.Builder(this@MainActivity)
                     .setTitle(R.string.sorting_choose)
-                    .setSingleChoiceItems(SortingUtil.getSortingStrings(), sortid, l2)
+                    .setSingleChoiceItems(me.ccrama.redditslide.util.SortingUtil.getSortingStrings(), sortid, l2)
                     .setNegativeButton("Reset default sorting") { dialog: DialogInterface?, which: Int ->
                         SettingValues.clearSort(subreddit)
                         val sort1 = dialoglayout.findViewById<TextView>(R.id.sort)
@@ -2686,7 +2669,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                                                             if (s
                                                                 != null
                                                             ) {
-                                                                LayoutUtils.showSnackbar(s)
+                                                                me.ccrama.redditslide.util.LayoutUtils.showSnackbar(s)
                                                             }
                                                         }
                                                     }.executeOnExecutor(
@@ -2752,7 +2735,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                                                         )
                                                     }
                                                     if (s != null) {
-                                                        LayoutUtils.showSnackbar(s)
+                                                        me.ccrama.redditslide.util.LayoutUtils.showSnackbar(s)
                                                     }
                                                 }
                                             }.executeOnExecutor(
@@ -2789,8 +2772,8 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                 5 -> time = TimePeriod.ALL
             }
             SettingValues.setSubSorting(sort, time, sub)
-            SortingUtil.setSorting(sub, sort)
-            SortingUtil.setTime(sub, time)
+            me.ccrama.redditslide.util.SortingUtil.setSorting(sub, sort)
+            me.ccrama.redditslide.util.SortingUtil.setTime(sub, time)
             val sort = dialoglayout.findViewById<TextView>(R.id.sort)
             if (SettingValues.hasSort(sub)) {
                 val sortingis = SettingValues.getBaseSubmissionSort(sub)
@@ -2805,8 +2788,8 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
         AlertDialog.Builder(this@MainActivity)
             .setTitle(R.string.sorting_choose)
             .setSingleChoiceItems(
-                SortingUtil.getSortingTimesStrings(),
-                SortingUtil.getSortingTimeId(""),
+                me.ccrama.redditslide.util.SortingUtil.getSortingTimesStrings(),
+                me.ccrama.redditslide.util.SortingUtil.getSortingTimeId(""),
                 l2
             )
             .show()
@@ -3010,7 +2993,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
     fun openPopup() {
         val popup = PopupMenu(this@MainActivity, findViewById(R.id.anchor), Gravity.RIGHT)
         val id = ((pager!!.adapter as MainPagerAdapter?)!!.currentFragment as SubmissionsView?)!!.id
-        val base = SortingUtil.getSortingSpannables(id)
+        val base = me.ccrama.redditslide.util.SortingUtil.getSortingSpannables(id)
         for (s in base) {
             // Do not add option for "Best" in any subreddit except for the frontpage.
             if (id != "frontpage" && s.toString() == getString(R.string.sorting_best)) {
@@ -3019,7 +3002,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             val m = popup.menu.add(s)
         }
         popup.setOnMenuItemClickListener { item ->
-            LogUtil.v("Chosen is " + item.order)
+            me.ccrama.redditslide.util.LogUtil.v("Chosen is " + item.order)
             var i = 0
             for (s in base) {
                 if (s == item.title) {
@@ -3029,7 +3012,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             }
             when (i) {
                 0 -> {
-                    SortingUtil.setSorting(
+                    me.ccrama.redditslide.util.SortingUtil.setSorting(
                         ((pager!!.adapter as MainPagerAdapter?)!!.currentFragment as SubmissionsView?)!!.id,
                         Sorting.HOT
                     )
@@ -3037,7 +3020,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                 }
 
                 1 -> {
-                    SortingUtil.setSorting(
+                    me.ccrama.redditslide.util.SortingUtil.setSorting(
                         ((pager!!.adapter as MainPagerAdapter?)!!.currentFragment as SubmissionsView?)!!.id,
                         Sorting.NEW
                     )
@@ -3045,7 +3028,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                 }
 
                 2 -> {
-                    SortingUtil.setSorting(
+                    me.ccrama.redditslide.util.SortingUtil.setSorting(
                         ((pager!!.adapter as MainPagerAdapter?)!!.currentFragment as SubmissionsView?)!!.id,
                         Sorting.RISING
                     )
@@ -3053,7 +3036,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                 }
 
                 3 -> {
-                    SortingUtil.setSorting(
+                    me.ccrama.redditslide.util.SortingUtil.setSorting(
                         ((pager!!.adapter as MainPagerAdapter?)!!.currentFragment as SubmissionsView?)!!.id,
                         Sorting.TOP
                     )
@@ -3061,7 +3044,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                 }
 
                 4 -> {
-                    SortingUtil.setSorting(
+                    me.ccrama.redditslide.util.SortingUtil.setSorting(
                         ((pager!!.adapter as MainPagerAdapter?)!!.currentFragment as SubmissionsView?)!!.id,
                         Sorting.CONTROVERSIAL
                     )
@@ -3069,7 +3052,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                 }
 
                 5 -> {
-                    SortingUtil.setSorting(
+                    me.ccrama.redditslide.util.SortingUtil.setSorting(
                         ((pager!!.adapter as MainPagerAdapter?)!!.currentFragment as SubmissionsView?)!!.id,
                         Sorting.BEST
                     )
@@ -3084,12 +3067,12 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
     fun openPopupTime() {
         val popup = PopupMenu(this@MainActivity, findViewById(R.id.anchor), Gravity.RIGHT)
         val id = ((pager!!.adapter as MainPagerAdapter?)!!.currentFragment as SubmissionsView?)!!.id
-        val base = SortingUtil.getSortingTimesSpannables(id)
+        val base = me.ccrama.redditslide.util.SortingUtil.getSortingTimesSpannables(id)
         for (s in base) {
             val m = popup.menu.add(s)
         }
         popup.setOnMenuItemClickListener { item ->
-            LogUtil.v("Chosen is " + item.order)
+            me.ccrama.redditslide.util.LogUtil.v("Chosen is " + item.order)
             var i = 0
             for (s in base) {
                 if (s == item.title) {
@@ -3099,7 +3082,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             }
             when (i) {
                 0 -> {
-                    SortingUtil.setTime(
+                    me.ccrama.redditslide.util.SortingUtil.setTime(
                         ((pager!!.adapter as MainPagerAdapter?)!!.currentFragment as SubmissionsView?)!!.id,
                         TimePeriod.HOUR
                     )
@@ -3107,7 +3090,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                 }
 
                 1 -> {
-                    SortingUtil.setTime(
+                    me.ccrama.redditslide.util.SortingUtil.setTime(
                         ((pager!!.adapter as MainPagerAdapter?)!!.currentFragment as SubmissionsView?)!!.id,
                         TimePeriod.DAY
                     )
@@ -3115,7 +3098,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                 }
 
                 2 -> {
-                    SortingUtil.setTime(
+                    me.ccrama.redditslide.util.SortingUtil.setTime(
                         ((pager!!.adapter as MainPagerAdapter?)!!.currentFragment as SubmissionsView?)!!.id,
                         TimePeriod.WEEK
                     )
@@ -3123,7 +3106,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                 }
 
                 3 -> {
-                    SortingUtil.setTime(
+                    me.ccrama.redditslide.util.SortingUtil.setTime(
                         ((pager!!.adapter as MainPagerAdapter?)!!.currentFragment as SubmissionsView?)!!.id,
                         TimePeriod.MONTH
                     )
@@ -3131,7 +3114,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                 }
 
                 4 -> {
-                    SortingUtil.setTime(
+                    me.ccrama.redditslide.util.SortingUtil.setTime(
                         ((pager!!.adapter as MainPagerAdapter?)!!.currentFragment as SubmissionsView?)!!.id,
                         TimePeriod.YEAR
                     )
@@ -3139,7 +3122,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                 }
 
                 5 -> {
-                    SortingUtil.setTime(
+                    me.ccrama.redditslide.util.SortingUtil.setTime(
                         ((pager!!.adapter as MainPagerAdapter?)!!.currentFragment as SubmissionsView?)!!.id,
                         TimePeriod.ALL
                     )
@@ -3172,14 +3155,14 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
         pager!!.currentItem = current
         if (mTabLayout != null) {
             mTabLayout!!.setupWithViewPager(pager)
-            LayoutUtils.scrollToTabAfterLayout(mTabLayout, current)
+            me.ccrama.redditslide.util.LayoutUtils.scrollToTabAfterLayout(mTabLayout, current)
         }
         if (SettingValues.single) {
             supportActionBar!!.title = shouldLoad
         }
         setToolbarClick()
-        if (SettingValues.subredditSearchMethod == Constants.SUBREDDIT_SEARCH_METHOD_TOOLBAR
-            || SettingValues.subredditSearchMethod == Constants.SUBREDDIT_SEARCH_METHOD_BOTH
+        if (SettingValues.subredditSearchMethod == me.ccrama.redditslide.Constants.SUBREDDIT_SEARCH_METHOD_TOOLBAR
+            || SettingValues.subredditSearchMethod == me.ccrama.redditslide.Constants.SUBREDDIT_SEARCH_METHOD_BOTH
         ) {
             setupSubredditSearchToolbar()
         }
@@ -3195,7 +3178,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                 pager!!.adapter = adapter
                 if (mTabLayout != null) {
                     mTabLayout!!.setupWithViewPager(pager)
-                    LayoutUtils.scrollToTabAfterLayout(mTabLayout, usedArray!!.indexOf(subToDo))
+                    me.ccrama.redditslide.util.LayoutUtils.scrollToTabAfterLayout(mTabLayout, usedArray!!.indexOf(subToDo))
                 }
                 setToolbarClick()
                 pager!!.currentItem = usedArray!!.indexOf(subToDo)
@@ -3309,7 +3292,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                 mTabLayout!!.setupWithViewPager(pager)
                 if (mTabLayout != null) {
                     mTabLayout!!.setupWithViewPager(pager)
-                    LayoutUtils.scrollToTabAfterLayout(mTabLayout, toGoto)
+                    me.ccrama.redditslide.util.LayoutUtils.scrollToTabAfterLayout(mTabLayout, toGoto)
                 }
             } else {
                 supportActionBar!!.title = usedArray!![toGoto]
@@ -3318,14 +3301,14 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             setToolbarClick()
             setRecentBar(usedArray!![toGoto])
             doSubSidebarNoLoad(usedArray!![toGoto])
-        } else if (NetworkUtil.isConnected(this)) {
+        } else if (me.ccrama.redditslide.util.NetworkUtil.isConnected(this)) {
             UserSubscriptions.doMainActivitySubs(this)
         }
     }
 
     fun setDrawerSubList() {
         val copy: ArrayList<String?>
-        copy = if (NetworkUtil.isConnected(this)) {
+        copy = if (me.ccrama.redditslide.util.NetworkUtil.isConnected(this)) {
             ArrayList(usedArray)
         } else {
             UserSubscriptions.getAllUserSubreddits(this)
@@ -3337,7 +3320,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
         )
         drawerSubList!!.adapter = sideArrayAdapter
         if (SettingValues.subredditSearchMethod
-            != Constants.SUBREDDIT_SEARCH_METHOD_TOOLBAR
+            != me.ccrama.redditslide.Constants.SUBREDDIT_SEARCH_METHOD_TOOLBAR
         ) {
             drawerSearch = headerMain!!.findViewById(R.id.sort)
             drawerSearch!!.setVisibility(View.VISIBLE)
@@ -3408,7 +3391,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                         drawerSearch!!.setText("")
                         val view = this@MainActivity.currentFocus
                         if (view != null) {
-                            KeyboardUtil.hideKeyboard(this@MainActivity, view.windowToken, 0)
+                            me.ccrama.redditslide.util.KeyboardUtil.hideKeyboard(this@MainActivity, view.windowToken, 0)
                         }
                     }
                 }
@@ -3416,7 +3399,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             })
             val close = findViewById<View>(R.id.close_search_drawer)
             close.visibility = View.GONE
-            drawerSearch!!.addTextChangedListener(object : SimpleTextWatcher() {
+            drawerSearch!!.addTextChangedListener(object : me.ccrama.redditslide.util.stubs.SimpleTextWatcher() {
                 override fun afterTextChanged(editable: Editable) {
                     val result = editable.toString()
                     if (result.isEmpty()) {
@@ -3447,7 +3430,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                     }
                 })
         } else {
-            LogUtil.v("TabLayout notnull")
+            me.ccrama.redditslide.util.LogUtil.v("TabLayout notnull")
             mToolbar!!.setOnClickListener { scrollToTop() }
         }
     }
@@ -3471,7 +3454,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
     }
 
     fun updateSubs(subs: ArrayList<String>) {
-        if (subs.isEmpty() && !NetworkUtil.isConnected(this)) {
+        if (subs.isEmpty() && !me.ccrama.redditslide.util.NetworkUtil.isConnected(this)) {
             findViewById<View>(R.id.toolbar).visibility = View.GONE
             d = MaterialDialog.Builder(this@MainActivity).title(
                 R.string.offline_no_content_found
@@ -3488,9 +3471,9 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
         } else {
             drawerLayout = findViewById<DrawerLayout>(R.id.drawer_layout)
             if (!resources.getBoolean(R.bool.isTablet)) {
-                setDrawerEdge(this, Constants.DRAWER_SWIPE_EDGE, drawerLayout)
+                setDrawerEdge(this, me.ccrama.redditslide.Constants.DRAWER_SWIPE_EDGE, drawerLayout)
             } else {
-                setDrawerEdge(this, Constants.DRAWER_SWIPE_EDGE_TABLET, drawerLayout)
+                setDrawerEdge(this, me.ccrama.redditslide.Constants.DRAWER_SWIPE_EDGE_TABLET, drawerLayout)
             }
             if (loader != null) {
                 header!!.visibility = View.VISIBLE
@@ -3507,7 +3490,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                 doDrawer()
             }
         }
-        if (NetworkUtil.isConnected(this@MainActivity)) {
+        if (me.ccrama.redditslide.util.NetworkUtil.isConnected(this@MainActivity)) {
             val shortcuts = ArrayList<ShortcutInfoCompat?>()
             if (Authentication.isLoggedIn) {
                 shortcuts.add(
@@ -3595,9 +3578,9 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             DensityUtils.toDp(this, 148), Bitmap.Config.RGB_565
         )
         color.eraseColor(Palette.getColor(subreddit))
-        color = ImageUtil.clipToCircle(color)
+        color = me.ccrama.redditslide.util.ImageUtil.clipToCircle(color)
         val over =
-            DrawableUtil.drawableToBitmap(ResourcesCompat.getDrawable(resources, overlay, null))
+            me.ccrama.redditslide.util.DrawableUtil.drawableToBitmap(ResourcesCompat.getDrawable(resources, overlay, null))
         val canvas = Canvas(color)
         canvas.drawBitmap(
             over, color.width / 2.0f - over.width / 2.0f,
@@ -3625,7 +3608,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
 
     private fun collapse(v: LinearLayout) {
         val finalHeight = v.height
-        val mAnimator = AnimatorUtil.slideAnimator(finalHeight, 0, v)
+        val mAnimator = me.ccrama.redditslide.util.AnimatorUtil.slideAnimator(finalHeight, 0, v)
         mAnimator.addListener(object : AnimatorListenerAdapter() {
             override fun onAnimationEnd(animator: Animator) {
                 v.visibility = View.GONE
@@ -3646,7 +3629,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
         val widthSpec = View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
         val heightSpec = View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
         v.measure(widthSpec, heightSpec)
-        val mAnimator = AnimatorUtil.slideAnimator(0, v.measuredHeight, v)
+        val mAnimator = me.ccrama.redditslide.util.AnimatorUtil.slideAnimator(0, v.measuredHeight, v)
         mAnimator.start()
     }
 
@@ -3657,7 +3640,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
         if (rawHTML.isEmpty()) {
             return
         }
-        val blocks = SubmissionParser.getBlocks(rawHTML)
+        val blocks = me.ccrama.redditslide.util.SubmissionParser.getBlocks(rawHTML)
         var startIndex = 0
         // the <div class="md"> case is when the body contains a table or code block first
         if (blocks[0] != "<div class=\"md\">") {
@@ -3693,18 +3676,18 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
      * onClicks for the views of the search bar.
      */
     private fun setupSubredditSearchToolbar() {
-        if (!NetworkUtil.isConnected(this)) {
+        if (!me.ccrama.redditslide.util.NetworkUtil.isConnected(this)) {
             if (findViewById<View>(R.id.drawer_divider) != null) {
                 findViewById<View>(R.id.drawer_divider).visibility = View.GONE
             }
         } else {
-            if ((SettingValues.subredditSearchMethod == Constants.SUBREDDIT_SEARCH_METHOD_TOOLBAR
+            if ((SettingValues.subredditSearchMethod == me.ccrama.redditslide.Constants.SUBREDDIT_SEARCH_METHOD_TOOLBAR
                         || SettingValues.subredditSearchMethod
-                        == Constants.SUBREDDIT_SEARCH_METHOD_BOTH) && usedArray != null && !usedArray!!.isEmpty()
+                        == me.ccrama.redditslide.Constants.SUBREDDIT_SEARCH_METHOD_BOTH) && usedArray != null && !usedArray!!.isEmpty()
             ) {
                 if (findViewById<View>(R.id.drawer_divider) != null) {
                     if (SettingValues.subredditSearchMethod
-                        == Constants.SUBREDDIT_SEARCH_METHOD_BOTH
+                        == me.ccrama.redditslide.Constants.SUBREDDIT_SEARCH_METHOD_BOTH
                     ) {
                         findViewById<View>(R.id.drawer_divider).visibility = View.GONE
                     } else {
@@ -3749,7 +3732,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
 
                             //Get focus of the search field and show the keyboard
                             GO_TO_SUB_FIELD.requestFocus()
-                            KeyboardUtil.toggleKeyboard(
+                            me.ccrama.redditslide.util.KeyboardUtil.toggleKeyboard(
                                 this@MainActivity,
                                 InputMethodManager.SHOW_FORCED,
                                 InputMethodManager.HIDE_IMPLICIT_ONLY
@@ -3760,7 +3743,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                                 val view = this@MainActivity.currentFocus
                                 if (view != null) {
                                     //Hide the keyboard
-                                    KeyboardUtil.hideKeyboard(
+                                    me.ccrama.redditslide.util.KeyboardUtil.hideKeyboard(
                                         this@MainActivity,
                                         view.windowToken,
                                         0
@@ -3849,7 +3832,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                                     val view = this@MainActivity.currentFocus
                                     if (view != null) {
                                         //Hide the keyboard
-                                        KeyboardUtil.hideKeyboard(
+                                        me.ccrama.redditslide.util.KeyboardUtil.hideKeyboard(
                                             this@MainActivity, view.windowToken, 0
                                         )
                                     }
@@ -3867,7 +3850,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                                 }
                                 false
                             }
-                            GO_TO_SUB_FIELD.addTextChangedListener(object : SimpleTextWatcher() {
+                            GO_TO_SUB_FIELD.addTextChangedListener(object : me.ccrama.redditslide.util.stubs.SimpleTextWatcher() {
                                 override fun afterTextChanged(editable: Editable) {
                                     val RESULT = GO_TO_SUB_FIELD.text
                                         .toString()
@@ -3973,7 +3956,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                 count = me.inboxCount //Force reload of the LoggedInAccount object
                 UserSubscriptions.doFriendsOfMain(this@MainActivity)
             } catch (e: Exception) {
-                Log.w(LogUtil.getTag(), "Cannot fetch inbox count")
+                Log.w(me.ccrama.redditslide.util.LogUtil.getTag(), "Cannot fetch inbox count")
                 count = -1
             }
             return null
@@ -3987,7 +3970,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             if (Authentication.mod && Authentication.didOnline) {
                 val mod = headerMain!!.findViewById<RelativeLayout>(R.id.mod)
                 mod.visibility = View.VISIBLE
-                mod.setOnClickListener(object : OnSingleClickListener() {
+                mod.setOnClickListener(object : me.ccrama.redditslide.util.OnSingleClickListener() {
                     override fun onSingleClick(view: View) {
                         if (!UserSubscriptions.modOf.isNullOrEmpty()) {
                             val inte = Intent(this@MainActivity, ModQueue::class.java)
@@ -4006,14 +3989,14 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                             count - oldCount, count - oldCount
                         ), Snackbar.LENGTH_LONG
                     )
-                        .setAction(R.string.btn_view, object : OnSingleClickListener() {
+                        .setAction(R.string.btn_view, object : me.ccrama.redditslide.util.OnSingleClickListener() {
                             override fun onSingleClick(v: View) {
                                 val i = Intent(this@MainActivity, Inbox::class.java)
                                 i.putExtra(Inbox.EXTRA_UNREAD, true)
                                 startActivity(i)
                             }
                         })
-                    LayoutUtils.showSnackbar(s)
+                    me.ccrama.redditslide.util.LayoutUtils.showSnackbar(s)
                 }
                 SettingValues.appRestart.edit().putInt("inbox", count).apply()
             }
@@ -4098,9 +4081,9 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                     if (SettingValues.single || mTabLayout == null) {
                         //Smooth out the fading animation for the toolbar subreddit search UI
                         if ((SettingValues.subredditSearchMethod
-                                    == Constants.SUBREDDIT_SEARCH_METHOD_TOOLBAR
+                                    == me.ccrama.redditslide.Constants.SUBREDDIT_SEARCH_METHOD_TOOLBAR
                                     || SettingValues.subredditSearchMethod
-                                    == Constants.SUBREDDIT_SEARCH_METHOD_BOTH)
+                                    == me.ccrama.redditslide.Constants.SUBREDDIT_SEARCH_METHOD_BOTH)
                             && findViewById<AutoCompleteTextView>(R.id.toolbar_search).visibility
                             == View.VISIBLE
                         ) {
@@ -4191,7 +4174,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
 
         override fun getPageTitle(position: Int): CharSequence? {
             return if (usedArray != null) {
-                StringUtil.abbreviate(usedArray!![position], 25)
+                me.ccrama.redditslide.util.StringUtil.abbreviate(usedArray!![position], 25)
             } else {
                 ""
             }
@@ -4335,7 +4318,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
 
         override fun getPageTitle(position: Int): CharSequence? {
             return if (usedArray != null && position != toOpenComments) {
-                StringUtil.abbreviate(usedArray!![position], 25)
+                me.ccrama.redditslide.util.StringUtil.abbreviate(usedArray!![position], 25)
             } else {
                 ""
             }
@@ -4393,7 +4376,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                     Math.max(currentEdgeSize, (displaySize.x * displayWidthPercentage).toInt())
                 )
             } catch (e: Exception) {
-                LogUtil.e("$e: Exception thrown while changing navdrawer edge size")
+                me.ccrama.redditslide.util.LogUtil.e("$e: Exception thrown while changing navdrawer edge size")
             }
         }
 

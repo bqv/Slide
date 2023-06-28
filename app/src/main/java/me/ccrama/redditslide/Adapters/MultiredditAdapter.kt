@@ -17,10 +17,11 @@ import ltd.ucode.slide.R
 import ltd.ucode.slide.ui.commentsScreen.CommentsScreen
 import me.ccrama.redditslide.Fragments.MultiredditView
 import me.ccrama.redditslide.SubmissionViews.PopulateSubmissionViewHolder
+import me.ccrama.redditslide.submission
+import me.ccrama.redditslide.util.LayoutUtils
 import me.ccrama.redditslide.views.CatchStaggeredGridLayoutManager
 import me.ccrama.redditslide.views.CreateCardView.CreateView
 import me.ccrama.redditslide.views.CreateCardView.colorCard
-import me.ccrama.redditslide.util.LayoutUtils
 import net.dean.jraw.models.Submission
 
 class MultiredditAdapter(

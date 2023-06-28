@@ -40,7 +40,7 @@ import me.ccrama.redditslide.Activities.MediaView;
 import me.ccrama.redditslide.Activities.ShadowboxComments;
 import me.ccrama.redditslide.Activities.Website;
 import me.ccrama.redditslide.Adapters.CommentUrlObject;
-import me.ccrama.redditslide.ContentType;
+import ltd.ucode.slide.ContentType;
 import me.ccrama.redditslide.OpenRedditLink;
 import ltd.ucode.slide.R;
 import ltd.ucode.slide.App;

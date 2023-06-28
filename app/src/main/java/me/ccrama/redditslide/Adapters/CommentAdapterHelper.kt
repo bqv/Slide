@@ -58,8 +58,6 @@ import me.ccrama.redditslide.Toolbox.ToolboxUI.showRemoval
 import me.ccrama.redditslide.Toolbox.ToolboxUI.showUsernotes
 import me.ccrama.redditslide.UserSubscriptions
 import me.ccrama.redditslide.UserTags
-import me.ccrama.redditslide.views.DoEditorActions
-import me.ccrama.redditslide.views.RoundedBackgroundSpan
 import me.ccrama.redditslide.Visuals.Palette
 import me.ccrama.redditslide.util.BlendModeUtil
 import me.ccrama.redditslide.util.ClipboardUtil
@@ -67,6 +65,8 @@ import me.ccrama.redditslide.util.CompatUtil
 import me.ccrama.redditslide.util.DisplayUtil
 import me.ccrama.redditslide.util.LayoutUtils
 import me.ccrama.redditslide.util.TimeUtils
+import me.ccrama.redditslide.views.DoEditorActions
+import me.ccrama.redditslide.views.RoundedBackgroundSpan
 import net.dean.jraw.ApiException
 import net.dean.jraw.http.NetworkException
 import net.dean.jraw.http.oauth.InvalidScopeException
@@ -1378,7 +1378,7 @@ object CommentAdapterHelper {
         titleString.append(timeSpan)
         titleString.append(
             (if ((comment.comment.updated != null)) " (edit " + TimeUtils.getTimeAgo(
-                comment.comment.updated.toInstant(UtcOffset.ZERO).toEpochMilliseconds(), mContext
+                comment.comment.updated!!.toInstant(UtcOffset.ZERO).toEpochMilliseconds(), mContext
             ) + ")" else "")
         )
         titleString.append("  ")

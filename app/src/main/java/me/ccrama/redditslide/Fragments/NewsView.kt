@@ -51,6 +51,7 @@ import me.ccrama.redditslide.views.CreateCardView
 import me.ccrama.redditslide.Visuals.ColorPreferences
 import me.ccrama.redditslide.Visuals.Palette
 import me.ccrama.redditslide.handler.ToolbarScrollHideHandler
+import me.ccrama.redditslide.submission
 import me.ccrama.redditslide.util.LayoutUtils
 
 class NewsView : Fragment(), SubmissionDisplay {

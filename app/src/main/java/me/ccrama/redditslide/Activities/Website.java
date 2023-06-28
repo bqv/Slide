@@ -29,7 +29,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import me.ccrama.redditslide.ContentType;
+import ltd.ucode.slide.ContentType;
 import me.ccrama.redditslide.Fragments.SubmissionsView;
 import me.ccrama.redditslide.OpenRedditLink;
 import me.ccrama.redditslide.PostMatch;

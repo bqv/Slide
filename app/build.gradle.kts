@@ -8,8 +8,6 @@ plugins {
     id("com.github.ben-manes.versions") version "0.42.0"
 }
 
-apply(plugin = "dagger.hilt.android.plugin")
-
 android {
     compileSdk = 34
     buildToolsVersion = "30.0.3"
@@ -64,7 +62,6 @@ android {
 
     kapt {
         correctErrorTypes = true
-        generateStubs = true
     }
 
     lint {
@@ -96,7 +93,15 @@ android {
     namespace = "ltd.ucode.slide"
 }
 
+apply(plugin = "dagger.hilt.android.plugin")
+
 dependencies {
+    implementation(project(mapOf("path" to ":data")))
+    implementation(project(mapOf("path" to ":data:lemmy")))
+    implementation(project(mapOf("path" to ":data:reddit")))
+    implementation(project(mapOf("path" to ":stats")))
+    implementation(project(mapOf("path" to ":util")))
+
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:1.1.1")
 
     implementation("androidx.collection:collection-ktx:1.2.0")
@@ -118,7 +123,6 @@ dependencies {
     /** Flavors **/
 
     /** Custom **/
-    implementation(project(mapOf("path" to ":stats")))
     implementation("com.github.Haptic-Apps:JRAW:9c8a410a06")
     implementation("com.github.Haptic-Apps:TedBottomPicker:496623c9b6")
     val commonmarkVersion: String by rootProject.extra
@@ -150,10 +154,11 @@ dependencies {
     implementation("com.google.android.exoplayer:extension-okhttp:$exoPlayerVersion")
 
 
-    /** Third-party **/
+    /** Logging **/
+    implementation("io.github.oshai:kotlin-logging-jvm:4.0.0")
+    implementation("org.slf4j:slf4j-android:1.7.32")
 
     /**** Frontend (UI-related) ****/
-
     // Custom dialogs
     implementation("com.afollestad.material-dialogs:commons:0.9.6.0")
 

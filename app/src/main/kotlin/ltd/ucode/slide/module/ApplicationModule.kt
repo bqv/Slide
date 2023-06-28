@@ -4,9 +4,7 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import ltd.ucode.Util
 import ltd.ucode.slide.BuildConfig
-import me.ccrama.redditslide.util.LogUtil
 import okhttp3.OkHttpClient
 import javax.inject.Named
 import javax.inject.Singleton
@@ -16,18 +14,22 @@ import javax.inject.Singleton
 object ApplicationModule {
     @Provides
     @Named("buildFlavor")
-    fun provideFlavor() = BuildConfig.FLAVOR
+    fun provideFlavor(): String = BuildConfig.FLAVOR
+
+    @Provides
+    @Named("userAgent")
+    fun provideUserAgent(): String = "android:${BuildConfig.APPLICATION_ID}:v${BuildConfig.VERSION_NAME}"
 
     @Provides
     @Singleton
-    fun providesOkHttpClient() = OkHttpClient.Builder()
+    fun providesOkHttpClient(@Named("userAgent") userAgent: String): OkHttpClient = OkHttpClient.Builder()
         .addInterceptor { chain ->
             val request = chain.request()
-            if (BuildConfig.DEBUG) LogUtil.v("OkHttp: ${request.method} ${request.url}")
+            if (BuildConfig.DEBUG) me.ccrama.redditslide.util.LogUtil.v("OkHttp: ${request.method} ${request.url}")
             val reqBuilder = request.newBuilder()
-                .header("User-Agent", Util.userAgent)
+                .header("User-Agent", userAgent)
             val response = chain.proceed(reqBuilder.build())
-            if (BuildConfig.DEBUG) LogUtil.v("OkHttp: ${request.method} ${request.url} returned ${response.code}")
+            if (BuildConfig.DEBUG) me.ccrama.redditslide.util.LogUtil.v("OkHttp: ${request.method} ${request.url} returned ${response.code}")
             response
         }
         .build()

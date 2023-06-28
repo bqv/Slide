@@ -3,7 +3,7 @@ package ltd.ucode.slide.repository
 import android.content.Context
 import dagger.hilt.android.qualifiers.ApplicationContext
 import info.`the-federation`.FediverseStats
-import ltd.ucode.Util
+import ltd.ucode.lemmy.api.AccountDataSource
 import ltd.ucode.lemmy.api.InstanceDataSource
 import ltd.ucode.lemmy.data.type.NodeInfoResult
 import ltd.ucode.slide.table.Instance
@@ -13,25 +13,49 @@ import javax.inject.Inject
 class InstanceRepository @Inject constructor(
     @ApplicationContext val context: Context,
     val okHttpClient: OkHttpClient,
+    val userAgent: String,
 ) {
-    private val instances: Map<String, InstanceDataSource> = InstanceMap()
+    private val instances = InstanceMap()
 
     inner class InstanceMap : HashMap<String, InstanceDataSource>() {
         override fun get(key: String): InstanceDataSource {
             return super.get(key)
-                ?: InstanceDataSource(context, key, okHttpClient)
+                ?: InstanceDataSource(key, okHttpClient)
                     .also { value -> put(key, value) }
+        }
+
+        fun get(username: String, password: String, instance: String): AccountDataSource {
+            val key = "$username@$instance"
+            return AccountDataSource(username, password, instance, okHttpClient)
+                .also { value -> put(key, value) }
+        }
+
+        fun remove(username: String, instance: String): InstanceDataSource? {
+            val key = "$username@$instance"
+            return remove(key)
         }
     }
 
-    suspend fun getInstanceList(limit: Int? = null): List<Instance> {
-        val nodeList = FediverseStats.getLemmyServers(Util.userAgent, limit)
+    operator fun get(key: String): InstanceDataSource {
+        return instances[key]
+    }
+
+    fun createLogin(username: String, password: String, instance: String): AccountDataSource {
+        return instances.get(username, password, instance)
+    }
+
+    fun deleteLogin(username: String, instance: String) {
+        instances.remove(username, instance)
+    }
+
+    suspend fun fetchInstanceList(limit: Int? = null): List<Instance> {
+        val nodeList = FediverseStats.getLemmyServers(userAgent, limit)
             ?.thefederation_node.orEmpty()
 
         return nodeList.map {
             val stat = it.thefederation_stats.firstOrNull()
             Instance(it.name, it.version, it.country, stat?.local_posts, stat?.local_comments,
-                    stat?.users_total, stat?.users_half_year, stat?.users_monthly, stat?.users_weekly)
+                stat?.users_total, stat?.users_half_year, stat?.users_monthly, stat?.users_weekly)
         }
     }
 

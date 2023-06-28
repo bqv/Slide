@@ -42,7 +42,7 @@ import java.util.List;
 import java.util.Map;
 
 import me.ccrama.redditslide.Adapters.ImageGridAdapter;
-import me.ccrama.redditslide.ContentType;
+import ltd.ucode.slide.ContentType;
 import me.ccrama.redditslide.ForceTouch.PeekViewActivity;
 import me.ccrama.redditslide.ImgurAlbum.AlbumUtils;
 import me.ccrama.redditslide.ImgurAlbum.Image;

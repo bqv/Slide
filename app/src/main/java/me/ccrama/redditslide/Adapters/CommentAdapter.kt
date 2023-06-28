@@ -50,6 +50,7 @@ import ltd.ucode.slide.SettingValues.commentLastVisit
 import ltd.ucode.slide.data.IPost
 import ltd.ucode.slide.ui.BaseActivity
 import me.ccrama.redditslide.ActionStates.getVoteDirection
+import me.ccrama.redditslide.submission
 import me.ccrama.redditslide.Constants
 import me.ccrama.redditslide.Drafts
 import me.ccrama.redditslide.Fragments.CommentPage

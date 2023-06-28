@@ -15,7 +15,7 @@ import androidx.fragment.app.FragmentStatePagerAdapter
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager.widget.ViewPager
 import androidx.viewpager.widget.ViewPager.SimpleOnPageChangeListener
-import ltd.ucode.lemmy.data.type.PostId
+import ltd.ucode.lemmy.data.id.PostId
 import ltd.ucode.slide.App.Companion.setDefaultErrorHandler
 import ltd.ucode.slide.Authentication
 import ltd.ucode.slide.R
@@ -35,7 +35,6 @@ import me.ccrama.redditslide.LastComments
 import me.ccrama.redditslide.OfflineSubreddit
 import me.ccrama.redditslide.PostLoader
 import me.ccrama.redditslide.Visuals.Palette
-import me.ccrama.redditslide.util.KeyboardUtil
 
 /**
  * This activity is responsible for the view when clicking on a post, showing the post and its
@@ -77,7 +76,7 @@ class CommentsScreen : BaseActivityAnim(), SubmissionDisplay {
 
     override fun onPause() {
         super.onPause()
-        KeyboardUtil.hideKeyboard(this, findViewById<View>(android.R.id.content).windowToken, 0)
+        me.ccrama.redditslide.util.KeyboardUtil.hideKeyboard(this, findViewById<View>(android.R.id.content).windowToken, 0)
     }
 
     override fun onDestroy() {

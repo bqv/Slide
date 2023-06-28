@@ -4,7 +4,7 @@ import android.content.Context
 import ltd.ucode.slide.App
 import ltd.ucode.slide.SettingValues
 import ltd.ucode.slide.data.IPost
-import me.ccrama.redditslide.ContentType
+import ltd.ucode.slide.ContentType
 import net.dean.jraw.models.Submission.ThumbnailType
 import net.dean.jraw.models.Thumbnails
 

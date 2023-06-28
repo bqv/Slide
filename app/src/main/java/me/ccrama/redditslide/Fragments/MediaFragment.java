@@ -54,7 +54,7 @@ import me.ccrama.redditslide.Activities.Shadowbox;
 import me.ccrama.redditslide.Activities.Tumblr;
 import me.ccrama.redditslide.Activities.TumblrPager;
 import me.ccrama.redditslide.Activities.Website;
-import me.ccrama.redditslide.ContentType;
+import ltd.ucode.slide.ContentType;
 import ltd.ucode.slide.R;
 import ltd.ucode.slide.App;
 import me.ccrama.redditslide.SecretConstants;
@@ -293,7 +293,7 @@ public class MediaFragment extends Fragment {
         sub = ((Shadowbox) getActivity()).subreddit;
         i = bundle.getInt("page");
         if (((Shadowbox) getActivity()).subredditPosts.getPosts().size() != 0) {
-            s = ((Shadowbox) getActivity()).subredditPosts.getPosts().get(i).getSubmission();
+            //s = ((Shadowbox) getActivity()).subredditPosts.getPosts().get(i).getSubmission();
         } else {
             getActivity().finish();
         }

@@ -56,7 +56,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
-import me.ccrama.redditslide.ContentType;
+import ltd.ucode.slide.ContentType;
 import me.ccrama.redditslide.Fragments.FolderChooserDialogCreate;
 import me.ccrama.redditslide.Fragments.SubmissionsView;
 import me.ccrama.redditslide.Notifications.ImageDownloadNotificationService;

@@ -9,13 +9,13 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromStream
-import ltd.ucode.Util.ago
+import ltd.ucode.util.Util.ago
 import ltd.ucode.lemmy.api.AccountDataSource
 import ltd.ucode.lemmy.api.InstanceDataSource
 import ltd.ucode.lemmy.api.request.LoginRequest
 import ltd.ucode.lemmy.data.type.jwt.Token
-import ltd.ucode.slide.repository.AccountRepository
-import ltd.ucode.slide.repository.InstanceRepository
+import ltd.ucode.slide.data.repository.AccountRepository
+import ltd.ucode.slide.data.repository.InstanceRepository
 import okhttp3.OkHttpClient
 import org.junit.Before
 import org.junit.runner.RunWith

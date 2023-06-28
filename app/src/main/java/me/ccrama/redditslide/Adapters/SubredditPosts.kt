@@ -7,19 +7,21 @@ import android.widget.Toast
 import androidx.appcompat.app.ActionBar
 import kotlinx.coroutines.runBlocking
 import ltd.ucode.lemmy.api.ApiException
-import ltd.ucode.lemmy.api.iter.PagedData
 import ltd.ucode.lemmy.data.LemmyPost
 import ltd.ucode.lemmy.data.type.PostListingType
-import ltd.ucode.lemmy.data.type.PostView
 import ltd.ucode.lemmy.data.type.PostSortType
+import ltd.ucode.lemmy.data.type.PostView
 import ltd.ucode.slide.App
 import ltd.ucode.slide.Authentication
 import ltd.ucode.slide.BuildConfig
+import ltd.ucode.slide.PagedData
 import ltd.ucode.slide.R
 import ltd.ucode.slide.SettingValues
-import ltd.ucode.slide.ui.main.MainActivity
+import ltd.ucode.slide.SettingValues.getSubmissionSort
+import ltd.ucode.slide.SettingValues.getSubmissionTimePeriod
 import ltd.ucode.slide.data.IPost
 import ltd.ucode.slide.ui.BaseActivity
+import ltd.ucode.slide.ui.main.MainActivity
 import me.ccrama.redditslide.Activities.SubredditView
 import me.ccrama.redditslide.Constants
 import me.ccrama.redditslide.Fragments.SubmissionsView
@@ -217,35 +219,35 @@ class SubredditPosts @JvmOverloads constructor(
                     //SubredditPaginator(Authentication.reddit)
                     Authentication.api!!.getPosts(
                         type = PostListingType.Subscribed,
-                        sort = PostSortType.forSubreddit(subreddit),
+                        sort = PostSortType.from(getSubmissionSort(subreddit), getSubmissionTimePeriod(subreddit)),
                         limit = Constants.PAGINATOR_POST_LIMIT
                     )
                 } else if (sub == "local") {
                     //SubredditPaginator(Authentication.reddit)
                     Authentication.api!!.getPosts(
                         type = PostListingType.Local,
-                        sort = PostSortType.forSubreddit(subreddit),
+                        sort = PostSortType.from(getSubmissionSort(subreddit), getSubmissionTimePeriod(subreddit)),
                         limit = Constants.PAGINATOR_POST_LIMIT
                     )
                 } else if (sub == "all") {
                     //SubredditPaginator(Authentication.reddit)
                     Authentication.api!!.getPosts(
                         type = PostListingType.All,
-                        sort = PostSortType.forSubreddit(subreddit),
+                        sort = PostSortType.from(getSubmissionSort(subreddit), getSubmissionTimePeriod(subreddit)),
                         limit = Constants.PAGINATOR_POST_LIMIT
                     )
                 } else if (!sub.contains(".")) {
                     //SubredditPaginator(Authentication.reddit, sub)
                     Authentication.api!!.getPosts(
                         communityName = sub,
-                        sort = PostSortType.forSubreddit(subreddit),
+                        sort = PostSortType.from(getSubmissionSort(subreddit), getSubmissionTimePeriod(subreddit)),
                         limit = Constants.PAGINATOR_POST_LIMIT
                     )
                 } else {
                     //DomainPaginator(Authentication.reddit, sub)
                     Authentication.api!!.getPosts(
                         communityName = sub,
-                        sort = PostSortType.forSubreddit(subreddit),
+                        sort = PostSortType.from(getSubmissionSort(subreddit), getSubmissionTimePeriod(subreddit)),
                         limit = Constants.PAGINATOR_POST_LIMIT
                     )
                 }

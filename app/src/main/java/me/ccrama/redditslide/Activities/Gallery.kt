@@ -5,17 +5,18 @@ import android.os.Bundle
 import android.view.View
 import androidx.recyclerview.widget.RecyclerView
 import ltd.ucode.slide.Authentication
+import ltd.ucode.slide.ContentType
 import ltd.ucode.slide.R
 import ltd.ucode.slide.data.IPost
 import me.ccrama.redditslide.Adapters.GalleryView
 import me.ccrama.redditslide.Adapters.MultiredditPosts
 import me.ccrama.redditslide.Adapters.SubmissionDisplay
 import me.ccrama.redditslide.Adapters.SubredditPosts
-import me.ccrama.redditslide.ContentType
 import me.ccrama.redditslide.OfflineSubreddit
 import me.ccrama.redditslide.PostLoader
-import me.ccrama.redditslide.views.CatchStaggeredGridLayoutManager
+import me.ccrama.redditslide.submission
 import me.ccrama.redditslide.util.LayoutUtils
+import me.ccrama.redditslide.views.CatchStaggeredGridLayoutManager
 
 class Gallery : FullScreenActivity(), SubmissionDisplay {
     @JvmField

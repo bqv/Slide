@@ -43,6 +43,7 @@ import androidx.core.content.ContextCompat;
 import com.cocosw.bottomsheet.BottomSheet;
 import com.devspark.robototextview.widget.RobotoTextView;
 
+import me.ccrama.redditslide.ContentType;
 import ltd.ucode.slide.R;
 
 import org.apache.commons.lang3.StringUtils;

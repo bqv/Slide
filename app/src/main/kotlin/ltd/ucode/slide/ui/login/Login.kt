@@ -15,6 +15,7 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
+import androidx.core.widget.addTextChangedListener
 import androidx.lifecycle.Observer
 import com.afollestad.materialdialogs.MaterialDialog
 import dagger.hilt.android.AndroidEntryPoint
@@ -24,7 +25,6 @@ import ltd.ucode.slide.R
 import ltd.ucode.slide.SettingValues.appRestart
 import ltd.ucode.slide.SettingValues.authentication
 import ltd.ucode.slide.databinding.ActivityLoginBinding
-import ltd.ucode.slide.table.Instance
 import me.ccrama.redditslide.Activities.BaseActivityAnim
 import me.ccrama.redditslide.CaseInsensitiveArrayList
 import me.ccrama.redditslide.UserSubscriptions.setSubscriptions
@@ -33,7 +33,6 @@ import me.ccrama.redditslide.UserSubscriptions.switchAccounts
 import me.ccrama.redditslide.UserSubscriptions.syncSubredditsGetObjectAsync
 import me.ccrama.redditslide.Visuals.GetClosestColor
 import me.ccrama.redditslide.Visuals.Palette
-import me.ccrama.redditslide.util.LogUtil
 import net.dean.jraw.http.NetworkException
 import net.dean.jraw.http.oauth.Credentials
 import net.dean.jraw.http.oauth.OAuthData
@@ -76,6 +75,18 @@ class Login : BaseActivityAnim() {
             setAdapter(this@Login.adapter)
         }
 
+        binding.loginUsername.addTextChangedListener {
+            viewModel.updateUsername(it.toString())
+        }
+
+        binding.loginPassword.addTextChangedListener {
+            viewModel.updatePassword(it.toString())
+        }
+
+        binding.loginInstance.addTextChangedListener {
+            viewModel.updateInstance(it.toString())
+        }
+
         binding.loginButton.setOnClickListener {
             val username = binding.loginUsername.text?.toString()
             val password = binding.loginPassword.text?.toString()
@@ -83,17 +94,20 @@ class Login : BaseActivityAnim() {
             android.widget.Toast.makeText(this,
                 "Would login as $username:$password",
                 android.widget.Toast.LENGTH_LONG)
+
+            viewModel.doLogin()
         }
     }
 
     private fun setupObservers() {
         viewModel.instanceList.observe(this, Observer {
-            renderInstanceList(it)
+            renderInstanceList(it.keys)
         })
     }
 
-    private fun renderInstanceList(instances: List<Instance>) {
-        adapter.addData(instances.map { instance -> instance.name })
+    private fun renderInstanceList(instances: Set<String>) {
+        adapter.clear()
+        adapter.addData(instances.toList())
         adapter.notifyDataSetChanged()
     }
 
@@ -130,9 +144,9 @@ class Login : BaseActivityAnim() {
         }
         webView.webViewClient = object : WebViewClient() {
             override fun onPageStarted(view: WebView, url: String, favicon: Bitmap?) {
-                LogUtil.v(url)
+                me.ccrama.redditslide.util.LogUtil.v(url)
                 if (url.contains("code=")) {
-                    Log.v(LogUtil.getTag(), "WebView URL: $url")
+                    Log.v(me.ccrama.redditslide.util.LogUtil.getTag(), "WebView URL: $url")
                     // Authentication code received, prevent HTTP call from being made.
                     webView.stopLoading()
                     //UserChallengeTask(oAuthHelper, credentials).execute(url)
@@ -216,7 +230,7 @@ class Login : BaseActivityAnim() {
         private var mMaterialDialog: MaterialDialog? = null
 
         init {
-            Log.v(LogUtil.getTag(), "UserChallengeTask()")
+            Log.v(me.ccrama.redditslide.util.LogUtil.getTag(), "UserChallengeTask()")
             mOAuthHelper = oAuthHelper
             mCredentials = credentials
         }
@@ -258,19 +272,19 @@ class Login : BaseActivityAnim() {
                     appRestart.edit().remove("back").commit()
                     editor.commit()
                 } else {
-                    Log.e(LogUtil.getTag(), "Passed in OAuthData was null")
+                    Log.e(me.ccrama.redditslide.util.LogUtil.getTag(), "Passed in OAuthData was null")
                 }
                 return oAuthData
             } catch (e: IllegalStateException) {
                 // Handle me gracefully
-                Log.e(LogUtil.getTag(), "OAuth failed")
-                Log.e(LogUtil.getTag(), e.message!!)
+                Log.e(me.ccrama.redditslide.util.LogUtil.getTag(), "OAuth failed")
+                Log.e(me.ccrama.redditslide.util.LogUtil.getTag(), e.message!!)
             } catch (e: NetworkException) {
-                Log.e(LogUtil.getTag(), "OAuth failed")
-                Log.e(LogUtil.getTag(), e.message!!)
+                Log.e(me.ccrama.redditslide.util.LogUtil.getTag(), "OAuth failed")
+                Log.e(me.ccrama.redditslide.util.LogUtil.getTag(), e.message!!)
             } catch (e: OAuthException) {
-                Log.e(LogUtil.getTag(), "OAuth failed")
-                Log.e(LogUtil.getTag(), e.message!!)
+                Log.e(me.ccrama.redditslide.util.LogUtil.getTag(), "OAuth failed")
+                Log.e(me.ccrama.redditslide.util.LogUtil.getTag(), e.message!!)
             }
             return null
         }

@@ -18,6 +18,7 @@ import me.ccrama.redditslide.PostMatch
 import me.ccrama.redditslide.SubmissionCache
 import me.ccrama.redditslide.Synccit.MySynccitReadTask
 import me.ccrama.redditslide.UserSubscriptions
+import me.ccrama.redditslide.submission
 import me.ccrama.redditslide.util.LogUtil
 import me.ccrama.redditslide.util.NetworkUtil
 import me.ccrama.redditslide.util.PhotoLoader

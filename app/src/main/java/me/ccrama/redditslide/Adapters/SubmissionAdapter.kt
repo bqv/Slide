@@ -26,11 +26,12 @@ import me.ccrama.redditslide.Activities.SubredditView.SubredditPagerAdapterComme
 import me.ccrama.redditslide.Fragments.SubmissionsView
 import me.ccrama.redditslide.Fragments.SubmissionsView.Companion.createLayoutManager
 import me.ccrama.redditslide.SubmissionViews.PopulateSubmissionViewHolder
+import me.ccrama.redditslide.submission
+import me.ccrama.redditslide.util.LayoutUtils
+import me.ccrama.redditslide.util.OnSingleClickListener
 import me.ccrama.redditslide.views.CatchStaggeredGridLayoutManager
 import me.ccrama.redditslide.views.CreateCardView.CreateView
 import me.ccrama.redditslide.views.CreateCardView.colorCard
-import me.ccrama.redditslide.util.LayoutUtils
-import me.ccrama.redditslide.util.OnSingleClickListener
 
 class SubmissionAdapter(
     context: Activity, dataSet: SubredditPosts, listView: RecyclerView?,

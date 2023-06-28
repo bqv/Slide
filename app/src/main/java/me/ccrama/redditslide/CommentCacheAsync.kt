@@ -13,9 +13,10 @@ import ltd.ucode.lemmy.api.ApiException
 import ltd.ucode.lemmy.data.LemmyPost
 import ltd.ucode.lemmy.data.type.CommentSortType
 import ltd.ucode.lemmy.data.type.CommentView
-import ltd.ucode.lemmy.data.type.PostId
+import ltd.ucode.lemmy.data.id.PostId
 import ltd.ucode.slide.App
 import ltd.ucode.slide.Authentication
+import ltd.ucode.slide.ContentType
 import ltd.ucode.slide.R
 import ltd.ucode.slide.SettingValues
 import ltd.ucode.slide.SettingValues.getCommentSorting
@@ -140,7 +141,7 @@ class CommentCacheAsync : AsyncTask<Any?, Any?, Any?> {
                 for (s in submissions) {
                     try {
                         val commentStore = getSubmission(
-                            id = s.postId,
+                            id = s.postId as PostId,
                             limit = commentCount,
                             depth = commentDepth,
                             sort = CommentSortType.from(sortType)

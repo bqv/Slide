@@ -53,7 +53,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import me.ccrama.redditslide.Adapters.ImageGridAdapterTumblr;
-import me.ccrama.redditslide.ContentType;
+import ltd.ucode.slide.ContentType;
 import me.ccrama.redditslide.Fragments.BlankFragment;
 import me.ccrama.redditslide.Fragments.FolderChooserDialogCreate;
 import me.ccrama.redditslide.Fragments.SubmissionsView;

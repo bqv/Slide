@@ -72,7 +72,7 @@ import me.ccrama.redditslide.Adapters.CommentNavType
 import me.ccrama.redditslide.Adapters.MoreChildItem
 import me.ccrama.redditslide.Adapters.SubmissionComments
 import me.ccrama.redditslide.Constants
-import me.ccrama.redditslide.ContentType
+import ltd.ucode.slide.ContentType
 import me.ccrama.redditslide.DataShare
 import me.ccrama.redditslide.Drafts
 import me.ccrama.redditslide.ImageFlairs
@@ -93,6 +93,7 @@ import me.ccrama.redditslide.views.PreCachingLayoutManagerComments
 import me.ccrama.redditslide.Visuals.ColorPreferences
 import me.ccrama.redditslide.Visuals.Palette
 import me.ccrama.redditslide.handler.ToolbarScrollHideHandler
+import me.ccrama.redditslide.submission
 import me.ccrama.redditslide.ui.settings.SettingsSubAdapter
 import me.ccrama.redditslide.util.BlendModeUtil
 import me.ccrama.redditslide.util.LayoutUtils

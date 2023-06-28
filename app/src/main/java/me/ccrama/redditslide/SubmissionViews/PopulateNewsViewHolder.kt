@@ -45,7 +45,7 @@ import me.ccrama.redditslide.Activities.TumblrPager
 import me.ccrama.redditslide.Adapters.CommentAdapter
 import me.ccrama.redditslide.Adapters.NewsViewHolder
 import me.ccrama.redditslide.CommentCacheAsync
-import me.ccrama.redditslide.ContentType
+import ltd.ucode.slide.ContentType
 import me.ccrama.redditslide.DataShare
 import me.ccrama.redditslide.ForceTouch.PeekViewActivity
 import me.ccrama.redditslide.HasSeen

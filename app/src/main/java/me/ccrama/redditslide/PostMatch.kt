@@ -1,6 +1,7 @@
 package me.ccrama.redditslide
 
 import android.content.SharedPreferences
+import ltd.ucode.slide.ContentType
 import ltd.ucode.slide.SettingValues.alwaysExternal
 import ltd.ucode.slide.SettingValues.domainFilters
 import ltd.ucode.slide.SettingValues.flairFilters

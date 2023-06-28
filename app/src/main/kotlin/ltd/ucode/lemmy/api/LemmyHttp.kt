@@ -1,8 +1,14 @@
 package ltd.ucode.lemmy.api
 
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
-import ltd.ucode.Util.SnakeCaseSerializer
-import ltd.ucode.lemmy.api.iter.PagedData
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonNull
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.encodeToJsonElement
+import kotlinx.serialization.json.jsonObject
+import ltd.ucode.SnakeCaseSerializer
 import ltd.ucode.lemmy.api.request.GetCommentsRequest
 import ltd.ucode.lemmy.api.request.GetPersonDetailsRequest
 import ltd.ucode.lemmy.api.request.GetPostRequest
@@ -14,19 +20,20 @@ import ltd.ucode.lemmy.api.response.GetPersonDetailsResponse
 import ltd.ucode.lemmy.api.response.GetPostResponse
 import ltd.ucode.lemmy.api.response.GetSiteResponse
 import ltd.ucode.lemmy.api.response.LoginResponse
-import ltd.ucode.lemmy.data.type.CommentId
+import ltd.ucode.lemmy.data.id.CommentId
 import ltd.ucode.lemmy.data.type.CommentListingType
 import ltd.ucode.lemmy.data.type.CommentSortType
 import ltd.ucode.lemmy.data.type.CommentView
-import ltd.ucode.lemmy.data.type.CommunityId
+import ltd.ucode.lemmy.data.id.CommunityId
 import ltd.ucode.lemmy.data.type.CommunityView
 import ltd.ucode.lemmy.data.type.NodeInfoResult
-import ltd.ucode.lemmy.data.type.PersonId
-import ltd.ucode.lemmy.data.type.PostId
+import ltd.ucode.lemmy.data.id.PersonId
+import ltd.ucode.lemmy.data.id.PostId
 import ltd.ucode.lemmy.data.type.PostListingType
 import ltd.ucode.lemmy.data.type.PostSortType
 import ltd.ucode.lemmy.data.type.PostView
 import ltd.ucode.slide.BuildConfig
+import ltd.ucode.slide.PagedData
 import me.ccrama.redditslide.util.LogUtil
 import okhttp3.Headers.Companion.toHeaders
 import okhttp3.MediaType.Companion.toMediaType
@@ -208,6 +215,28 @@ class LemmyHttp(val instance: String = "lemmy.ml",
 
         return response
     }
+
+    private val json: Json by lazy {
+        Json { encodeDefaults = true }
+    }
+
+    private inline fun <reified T> T.toForm(): Map<String, String> {
+        return json.encodeToJsonElement(this)
+            .jsonObject
+            .toMap()
+            .mapValues { (_, element) -> when (element) {
+                is JsonNull -> null
+                is JsonPrimitive -> if (element.isString) element.content else TODO()
+                is JsonArray -> TODO()
+                is JsonObject -> TODO()
+            } }
+            .filterNotNullValues()
+    }
+}
+
+private fun <K, V> Map<K, V?>.filterNotNullValues(): Map<K, V> {
+    return mapNotNull { it.value?.let { value -> it.key to value } }
+        .toMap()
 }
 
 private fun <T> Response<T>.unwrap(): T {

@@ -7,7 +7,7 @@ import com.fasterxml.jackson.databind.ObjectReader
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import ltd.ucode.lemmy.data.LemmyPostWithComments
+import ltd.ucode.lemmy.data.LemmyPost
 import ltd.ucode.slide.App
 import ltd.ucode.slide.data.IPost
 import me.ccrama.redditslide.CommentCacheAsync.CommentStore
@@ -201,7 +201,7 @@ class OfflineSubreddit {
             val toStore = File(getCacheDirectory(c).toString() + File.separator + s.permalink)
             try {
                 val writer = FileWriter(toStore)
-                writer.append(Json.encodeToString(s.withComments(comments)))
+                writer.append(Json.encodeToString(s))
                 writer.flush()
                 writer.close()
             } catch (e: IOException) {
@@ -285,7 +285,7 @@ class OfflineSubreddit {
         ): IPost? {
             val gotten = getStringFromFile(permalink, c)
             if (gotten.isEmpty()) return null
-            return Json.decodeFromString<LemmyPostWithComments>(gotten)
+            return Json.decodeFromString<LemmyPost>(gotten)
         }
 
         fun getStringFromFile(name: String, c: Context?): String {

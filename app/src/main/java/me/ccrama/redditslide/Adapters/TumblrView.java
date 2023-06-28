@@ -25,7 +25,7 @@ import java.util.List;
 
 import me.ccrama.redditslide.Activities.MediaView;
 import me.ccrama.redditslide.Activities.Tumblr;
-import me.ccrama.redditslide.ContentType;
+import ltd.ucode.slide.ContentType;
 import ltd.ucode.slide.R;
 import ltd.ucode.slide.App;
 import ltd.ucode.slide.SettingValues;

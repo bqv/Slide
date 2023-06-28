@@ -28,7 +28,7 @@ import ltd.ucode.slide.SettingValues
 import ltd.ucode.slide.SettingValues.isNSFWEnabled
 import ltd.ucode.slide.SettingValues.isPicsEnabled
 import ltd.ucode.slide.data.IPost
-import me.ccrama.redditslide.ContentType
+import ltd.ucode.slide.ContentType
 import me.ccrama.redditslide.ForceTouch.PeekView
 import me.ccrama.redditslide.ForceTouch.PeekViewActivity
 import me.ccrama.redditslide.ForceTouch.builder.Peek

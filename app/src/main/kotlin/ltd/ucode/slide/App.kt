@@ -38,7 +38,6 @@ import com.nostra13.universalimageloader.core.ImageLoader
 import dagger.hilt.android.HiltAndroidApp
 import ltd.ucode.slide.ui.main.MainActivity
 import me.ccrama.redditslide.Autocache.AutoCacheScheduler
-import me.ccrama.redditslide.ContentType
 import me.ccrama.redditslide.ImageFlairs
 import me.ccrama.redditslide.ImgurAlbum.AlbumUtils
 import me.ccrama.redditslide.Notifications.NotificationJobScheduler

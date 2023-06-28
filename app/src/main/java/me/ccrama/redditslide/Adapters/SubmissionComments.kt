@@ -4,10 +4,11 @@ import android.os.AsyncTask
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import kotlinx.coroutines.runBlocking
 import ltd.ucode.lemmy.data.LemmyPost
-import ltd.ucode.lemmy.data.type.CommentId
+import ltd.ucode.lemmy.data.id.CommentId
+import ltd.ucode.lemmy.data.id.CommunityId
+import ltd.ucode.lemmy.data.id.PostId
 import ltd.ucode.lemmy.data.type.CommentSortType
 import ltd.ucode.lemmy.data.type.CommentView
-import ltd.ucode.lemmy.data.type.PostId
 import ltd.ucode.slide.Authentication
 import ltd.ucode.slide.data.IPost
 import me.ccrama.redditslide.Fragments.CommentPage
@@ -162,7 +163,7 @@ class SubmissionComments {
 
             val paginator = Authentication.api!!.getComments(
                 auth = null,
-                communityId = submission?.groupId,
+                communityId = submission?.groupId as CommunityId?,
                 communityName = null,
                 parentId = context?.toInt()?.let(::CommentId),
                 postId = PostId(fullName.split("/").last().toInt()),

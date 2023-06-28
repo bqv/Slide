@@ -14,7 +14,7 @@ import ltd.ucode.slide.data.IPost
 import me.ccrama.redditslide.Adapters.MultiredditPosts
 import me.ccrama.redditslide.Adapters.SubmissionDisplay
 import me.ccrama.redditslide.Adapters.SubredditPosts
-import me.ccrama.redditslide.ContentType
+import ltd.ucode.slide.ContentType
 import me.ccrama.redditslide.Fragments.AlbumFull
 import me.ccrama.redditslide.Fragments.MediaFragment
 import me.ccrama.redditslide.Fragments.SelftextFull
@@ -24,6 +24,7 @@ import me.ccrama.redditslide.HasSeen
 import me.ccrama.redditslide.LastComments
 import me.ccrama.redditslide.OfflineSubreddit
 import me.ccrama.redditslide.PostLoader
+import me.ccrama.redditslide.submission
 
 class Shadowbox : FullScreenActivity(), SubmissionDisplay {
     @JvmField
