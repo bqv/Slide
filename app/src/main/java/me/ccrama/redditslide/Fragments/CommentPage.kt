@@ -441,7 +441,7 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
                                 opCount++
                             }
                             if (o.comment!!.comment.content.isNotBlank()
-                                && o.comment!!.comment.content
+                                && o.comment!!.comment.contentHtml
                                     .contains("&lt;/a")
                             ) {
                                 linkCount++
@@ -651,10 +651,10 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
                         ShadowboxComments.comments = ArrayList()
                         for (c in comments!!.comments!!) {
                             if (c is CommentItem) {
-                                if (c.comment!!.comment.content
+                                if (c.comment!!.comment.contentHtml
                                         .contains("&lt;/a")
                                 ) {
-                                    val body = c.comment!!.comment.content
+                                    val body = c.comment!!.comment.contentHtml
                                     var url: String
                                     val split = body.split("&lt;a href=\"".toRegex())
                                         .dropLastWhile { it.isEmpty() }
@@ -1825,7 +1825,7 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
                             adapter!!.submission != null && (o.comment!!.creator.name
                                     == Authentication.name)
 
-                        CommentNavType.LINK -> matches = o.comment!!.comment.content
+                        CommentNavType.LINK -> matches = o.comment!!.comment.contentHtml
                             .contains("&lt;/a")
 
                         else -> {}
@@ -1917,7 +1917,7 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
                                 adapter!!.submission != null && (o.comment!!.creator.name
                                         == Authentication.name)
 
-                            CommentNavType.LINK -> matches = o.comment!!.comment.content
+                            CommentNavType.LINK -> matches = o.comment!!.comment.contentHtml
                                 .contains("&lt;/a")
 
                             else -> {}

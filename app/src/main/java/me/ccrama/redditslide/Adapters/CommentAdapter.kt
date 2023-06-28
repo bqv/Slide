@@ -314,7 +314,7 @@ class CommentAdapter(
             holder.commentOverflow.setOnClickListener(singleClick)
             if (!toCollapse.contains(comment!!.comment.id.id) || !SettingValues.collapseComments) {
                 setViews(
-                    comment.comment.content,
+                    comment.comment.contentHtml,
                     submission!!.groupName, holder, singleClick, onLongClickListener
                 )
             }
@@ -929,7 +929,7 @@ class CommentAdapter(
             unhideAll(baseNode, holder.bindingAdapterPosition + 1)
             if (toCollapse.contains(n.comment.id.id) && SettingValues.collapseComments) {
                 setViews(
-                    n!!.comment.content, submission!!.groupName,
+                    n!!.comment.contentHtml, submission!!.groupName,
                     holder
                 )
             }
@@ -1610,11 +1610,11 @@ class CommentAdapter(
             }
             setCommentStateUnhighlighted(holder, comment, baseNode, true)
         } else {
-            doOnClick(holder, baseNode, comment)
+            doOnClick(holder, baseNode, comment, null)
         }
     }
 
-    fun doOnClick(holder: CommentViewHolder, baseNode: CommentView?, comment: CommentView?, TODO: Nothing) {
+    fun doOnClick(holder: CommentViewHolder, baseNode: CommentView?, comment: CommentView?, TODO: Nothing?) {
         if (currentlyEditing != null && !currentlyEditing!!.text.toString()
                 .isEmpty() && holder.bindingAdapterPosition <= editingPosition
         ) {
@@ -1652,7 +1652,7 @@ class CommentAdapter(
                         && SettingValues.collapseComments
                     ) {
                         setViews(
-                            comment.comment.content,
+                            comment.comment.contentHtml,
                             submission!!.groupName, holder
                         )
                     }

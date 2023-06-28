@@ -3,6 +3,7 @@ package ltd.ucode.lemmy.data.type
 import kotlinx.datetime.LocalDateTime
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import ltd.ucode.lemmy.Markdown
 import ltd.ucode.lemmy.data.id.CommentId
 import ltd.ucode.lemmy.data.id.LanguageId
 import ltd.ucode.lemmy.data.id.PersonId
@@ -27,6 +28,10 @@ data class Comment (
     @delegate:Transient
     val pathIds: List<CommentId> by lazy {
         path.split(".").map { CommentId(it.toInt()) }
+    }
+
+    val contentHtml: String by lazy {
+        Markdown.parseToHtml(content).orEmpty()
     }
 
     val parent: CommentId

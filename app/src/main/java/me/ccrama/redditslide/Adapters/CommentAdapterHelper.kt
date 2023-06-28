@@ -101,7 +101,7 @@ object CommentAdapterHelper {
         )
         BlendModeUtil.tintDrawablesAsSrcAtop(drawableSet, color)
         ta.recycle()
-        val b = BottomSheet.Builder((mContext as Activity)).title(CompatUtil.fromHtml(n.comment.content))
+        val b = BottomSheet.Builder((mContext as Activity)).title(CompatUtil.fromHtml(n.comment.contentHtml))
         if (Authentication.didOnline) {
             b.sheet(1, profile, "/u/" + n.creator.name)
             var save: String = mContext.getString(R.string.btn_save)
@@ -243,7 +243,7 @@ object CommentAdapterHelper {
                     7 -> {
                         //Show select and copy text to clipboard
                         val showText = TextView(mContext)
-                        showText.text = StringEscapeUtils.unescapeHtml4(n.comment.content)
+                        showText.text = StringEscapeUtils.unescapeHtml4(n.comment.contentHtml)
                         showText.setTextIsSelectable(true)
                         val sixteen = DisplayUtil.dpToPxVertical(24)
                         showText.setPadding(sixteen, 0, sixteen, 0)
@@ -270,7 +270,7 @@ object CommentAdapterHelper {
                             ) { dialog12: DialogInterface?, which12: Int ->
                                 ClipboardUtil.copyToClipboard(
                                     mContext, "Comment text",
-                                    n.comment.content
+                                    n.comment.contentHtml
                                 )
                                 Toast.makeText(
                                     mContext,
@@ -592,7 +592,7 @@ object CommentAdapterHelper {
 
         //Bottom sheet builder
         val b = BottomSheet.Builder((mContext as Activity)).title(
-            CompatUtil.fromHtml(comment.comment.content)
+            CompatUtil.fromHtml(comment.comment.contentHtml)
         )
         val reportCount = reports.size + reports2.size
         if (reportCount == 0) {
@@ -1544,7 +1544,7 @@ object CommentAdapterHelper {
         val inflater = (mContext as Activity).layoutInflater
         val dialoglayout = inflater.inflate(R.layout.edit_comment, null)
         val e = dialoglayout.findViewById<EditText>(R.id.entry)
-        e.setText(StringEscapeUtils.unescapeHtml4(baseNode.comment.content))
+        e.setText(StringEscapeUtils.unescapeHtml4(baseNode.comment.contentHtml))
         DoEditorActions.doActions(
             e, dialoglayout, fm, mContext,
             StringEscapeUtils.unescapeHtml4(replyText), null

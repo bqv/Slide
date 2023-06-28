@@ -30,8 +30,9 @@ open class LemmyPost(val instance: String, val data: PostView) : IPost() {
     override val body: String?
         get() = data.post.body
 
-    override val bodyHtml: String?
-        get() = Markdown.parseToHtml(data.post.body)
+    override val bodyHtml: String? by lazy {
+        Markdown.parseToHtml(data.post.body)
+    }
 
     override val isLocked: Boolean
         get() = data.post.isLocked
