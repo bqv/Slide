@@ -7,7 +7,7 @@ import android.widget.TextView;
 
 import androidx.appcompat.widget.PopupMenu;
 
-import me.ccrama.redditslide.Activities.BaseActivityAnim;
+import ltd.ucode.slide.ui.BaseActivityAnim;
 import ltd.ucode.slide.R;
 import ltd.ucode.slide.SettingValues;
 

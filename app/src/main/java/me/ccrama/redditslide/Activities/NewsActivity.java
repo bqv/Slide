@@ -198,7 +198,7 @@ public class NewsActivity extends BaseActivity
             restartTheme();
         }
 
-        App.setDefaultErrorHandler(this);
+        //CrashReportHandler.reinstall()
     }
 
     @Override

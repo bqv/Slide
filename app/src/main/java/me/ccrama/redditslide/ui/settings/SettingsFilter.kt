@@ -16,7 +16,7 @@ import android.widget.TextView.OnEditorActionListener
 import androidx.core.util.Consumer
 import ltd.ucode.slide.R
 import ltd.ucode.slide.SettingValues
-import me.ccrama.redditslide.Activities.BaseActivityAnim
+import ltd.ucode.slide.ui.BaseActivityAnim
 import me.ccrama.redditslide.Visuals.Palette
 
 class SettingsFilter : BaseActivityAnim() {

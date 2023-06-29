@@ -8,7 +8,7 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import me.ccrama.redditslide.Activities.BaseActivityAnim;
+import ltd.ucode.slide.ui.BaseActivityAnim;
 import ltd.ucode.slide.BuildConfig;
 import me.ccrama.redditslide.OpenRedditLink;
 import ltd.ucode.slide.R;

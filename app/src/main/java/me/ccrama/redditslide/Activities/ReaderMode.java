@@ -18,6 +18,7 @@ import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
+import ltd.ucode.slide.ui.BaseActivityAnim;
 import me.ccrama.redditslide.Constants;
 import ltd.ucode.slide.R;
 import ltd.ucode.slide.App;

@@ -11,7 +11,7 @@ import androidx.appcompat.widget.PopupMenu
 import androidx.appcompat.widget.SwitchCompat
 import ltd.ucode.slide.R
 import ltd.ucode.slide.SettingValues
-import me.ccrama.redditslide.Activities.BaseActivityAnim
+import ltd.ucode.slide.ui.BaseActivityAnim
 import me.ccrama.redditslide.SubmissionCache
 import me.ccrama.redditslide.views.CreateCardView
 import me.ccrama.redditslide.views.CreateCardView.CreateView

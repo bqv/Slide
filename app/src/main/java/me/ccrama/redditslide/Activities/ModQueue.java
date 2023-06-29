@@ -13,6 +13,7 @@ import androidx.viewpager.widget.ViewPager;
 
 import com.google.android.material.tabs.TabLayout;
 
+import ltd.ucode.slide.ui.BaseActivityAnim;
 import me.ccrama.redditslide.Fragments.InboxPage;
 import me.ccrama.redditslide.Fragments.ModLog;
 import me.ccrama.redditslide.Fragments.ModPage;

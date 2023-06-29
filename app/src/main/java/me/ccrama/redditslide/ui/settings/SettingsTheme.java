@@ -4,7 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.ViewGroup;
 
-import me.ccrama.redditslide.Activities.BaseActivityAnim;
+import ltd.ucode.slide.ui.BaseActivityAnim;
 import ltd.ucode.slide.R;
 
 

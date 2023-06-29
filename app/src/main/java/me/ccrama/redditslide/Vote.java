@@ -30,7 +30,7 @@ public class Vote extends AsyncTask<PublicContribution, Void, Void> {
         direction = b ? VoteDirection.UPVOTE : VoteDirection.DOWNVOTE;
         this.v = v;
         this.c = c;
-        App.setDefaultErrorHandler(c);
+        //CrashReportHandler.reinstall()
     }
 
     public Vote(View v, Context c) {

@@ -96,6 +96,7 @@ android {
 apply(plugin = "dagger.hilt.android.plugin")
 
 dependencies {
+    implementation(project(mapOf("path" to ":app:crash")))
     implementation(project(mapOf("path" to ":data")))
     implementation(project(mapOf("path" to ":data:lemmy")))
     implementation(project(mapOf("path" to ":data:reddit")))

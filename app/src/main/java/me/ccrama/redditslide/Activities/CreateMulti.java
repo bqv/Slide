@@ -54,6 +54,7 @@ import java.util.regex.Pattern;
 
 import ltd.ucode.slide.Authentication;
 import ltd.ucode.slide.R;
+import ltd.ucode.slide.ui.BaseActivityAnim;
 import me.ccrama.redditslide.UserSubscriptions;
 import me.ccrama.redditslide.Visuals.Palette;
 import me.ccrama.redditslide.util.BlendModeUtil;

@@ -19,6 +19,7 @@ import com.afollestad.materialdialogs.DialogAction;
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.google.android.material.tabs.TabLayout;
 
+import ltd.ucode.slide.ui.BaseActivityAnim;
 import me.ccrama.redditslide.Fragments.SubredditListView;
 import ltd.ucode.slide.R;
 import me.ccrama.redditslide.Visuals.ColorPreferences;

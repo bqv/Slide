@@ -31,6 +31,7 @@ import ltd.ucode.slide.Authentication
 import ltd.ucode.slide.R
 import ltd.ucode.slide.SettingValues
 import ltd.ucode.slide.SettingValues.decreasePreviewsLeft
+import ltd.ucode.slide.ui.BaseActivityAnim
 import me.ccrama.redditslide.CaseInsensitiveArrayList
 import me.ccrama.redditslide.Fragments.MultiredditView
 import me.ccrama.redditslide.UserSubscriptions

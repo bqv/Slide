@@ -11,6 +11,7 @@ import net.dean.jraw.models.CommentNode;
 import java.util.ArrayList;
 import java.util.List;
 
+import ltd.ucode.slide.ui.BaseActivityAnim;
 import me.ccrama.redditslide.Adapters.CommentAdapterSearch;
 import me.ccrama.redditslide.Adapters.CommentItem;
 import me.ccrama.redditslide.Adapters.CommentObject;

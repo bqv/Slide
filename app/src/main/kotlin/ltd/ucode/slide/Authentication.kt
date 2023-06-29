@@ -8,7 +8,6 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import ltd.ucode.lemmy.api.ApiException
 import ltd.ucode.lemmy.api.LemmyHttp
-import ltd.ucode.slide.App.Companion.setDefaultErrorHandler
 import me.ccrama.redditslide.util.LogUtil
 import me.ccrama.redditslide.util.NetworkUtil
 import net.dean.jraw.RedditClient
@@ -37,7 +36,7 @@ class Authentication(context: Context?) {
     }
 
     init {
-        setDefaultErrorHandler(context)
+        //CrashReportHandler.reinstall()
         if (NetworkUtil.isConnected(context)) {
             hasDone = true
             httpAdapter = OkHttpAdapter(App.client, Protocol.HTTP_2)
@@ -58,7 +57,7 @@ class Authentication(context: Context?) {
                 e.printStackTrace()
                 null
             }
-            Log.v(LogUtil.getTag(), with(nodeinfo?.software) { "NodeInfo: ${name} ${this?.version}" })
+            Log.v(LogUtil.getTag(), with(nodeinfo?.software) { "NodeInfo: ${this?.name} ${this?.version}" })
             //VerifyCredentials(context).execute()
         } else {
             isLoggedIn = SettingValues.appRestart.getBoolean("loggedin", false)

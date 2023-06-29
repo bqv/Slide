@@ -1130,7 +1130,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                 }
             }
         }
-        App.setDefaultErrorHandler(this)
+        //CrashReportHandler.reinstall()
         if (sideArrayAdapter != null) {
             sideArrayAdapter!!.updateHistory(UserSubscriptions.history)
         }

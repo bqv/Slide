@@ -25,6 +25,7 @@ import org.apache.commons.text.StringEscapeUtils;
 
 import java.util.Locale;
 
+import ltd.ucode.slide.ui.BaseActivityAnim;
 import me.ccrama.redditslide.Adapters.ContributionAdapter;
 import me.ccrama.redditslide.Adapters.SubredditSearchPosts;
 import me.ccrama.redditslide.Constants;

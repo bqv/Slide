@@ -1,4 +1,5 @@
 include(":app")
+include(":app:crash")
 include(":stats")
 include(":data")
 include(":data:lemmy")

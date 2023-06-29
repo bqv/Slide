@@ -24,6 +24,7 @@ import java.util.Set;
 
 import ltd.ucode.reddit.data.RedditSubmission;
 import ltd.ucode.slide.Authentication;
+import ltd.ucode.slide.ui.BaseActivityAnim;
 import me.ccrama.redditslide.Autocache.AutoCacheScheduler;
 import me.ccrama.redditslide.Fragments.BlankFragment;
 import me.ccrama.redditslide.Fragments.CommentPage;

@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ltd.ucode.slide.Authentication;
+import ltd.ucode.slide.ui.BaseActivityAnim;
 import me.ccrama.redditslide.Fragments.WikiPage;
 import ltd.ucode.slide.R;
 import me.ccrama.redditslide.views.ToggleSwipeViewPager;

@@ -1,7 +1,6 @@
 package me.ccrama.redditslide.ui.settings;
 
 import android.app.Dialog;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.EditText;
@@ -12,7 +11,7 @@ import com.afollestad.materialdialogs.MaterialDialog;
 
 import java.util.Collections;
 
-import me.ccrama.redditslide.Activities.BaseActivityAnim;
+import ltd.ucode.slide.ui.BaseActivityAnim;
 import ltd.ucode.slide.R;
 import ltd.ucode.slide.SettingValues;
 import me.ccrama.redditslide.Synccit.MySynccitReadTask;

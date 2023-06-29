@@ -54,6 +54,7 @@ import java.util.Locale;
 import java.util.Map;
 
 import ltd.ucode.slide.Authentication;
+import ltd.ucode.slide.ui.BaseActivityAnim;
 import me.ccrama.redditslide.Fragments.ContributionsView;
 import me.ccrama.redditslide.Fragments.HistoryView;
 import ltd.ucode.slide.R;

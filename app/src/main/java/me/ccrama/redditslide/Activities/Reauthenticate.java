@@ -29,7 +29,7 @@ import java.util.Set;
 import ltd.ucode.slide.Authentication;
 import ltd.ucode.slide.SettingValues;
 import ltd.ucode.slide.R;
-import ltd.ucode.slide.App;
+import ltd.ucode.slide.ui.BaseActivityAnim;
 import me.ccrama.redditslide.util.LogUtil;
 
 

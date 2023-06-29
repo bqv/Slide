@@ -16,7 +16,6 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager.widget.ViewPager
 import androidx.viewpager.widget.ViewPager.SimpleOnPageChangeListener
 import ltd.ucode.lemmy.data.id.PostId
-import ltd.ucode.slide.App.Companion.setDefaultErrorHandler
 import ltd.ucode.slide.Authentication
 import ltd.ucode.slide.R
 import ltd.ucode.slide.SettingValues
@@ -24,7 +23,7 @@ import ltd.ucode.slide.SettingValues.appRestart
 import ltd.ucode.slide.SettingValues.fullCommentOverride
 import ltd.ucode.slide.data.IPost
 import ltd.ucode.slide.ui.commentsScreen.CommentsScreen.CommentsScreenPagerAdapter
-import me.ccrama.redditslide.Activities.BaseActivityAnim
+import ltd.ucode.slide.ui.BaseActivityAnim
 import me.ccrama.redditslide.Activities.SwipeTutorial
 import me.ccrama.redditslide.Adapters.MultiredditPosts
 import me.ccrama.redditslide.Adapters.SubmissionDisplay
@@ -123,7 +122,7 @@ class CommentsScreen : BaseActivityAnim(), SubmissionDisplay {
             super.onCreate(savedInstance)
             setContentView(R.layout.activity_slide)
         }
-        setDefaultErrorHandler(this)
+        //CrashReportHandler.reinstall()
         firstPage = intent.extras!!.getInt(EXTRA_PAGE, -1)
         baseSubreddit = intent.extras!!.getString(EXTRA_SUBREDDIT)
         subreddit = baseSubreddit

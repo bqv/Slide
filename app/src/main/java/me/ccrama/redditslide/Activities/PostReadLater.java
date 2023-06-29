@@ -8,6 +8,7 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentStatePagerAdapter;
 import androidx.viewpager.widget.ViewPager;
 
+import ltd.ucode.slide.ui.BaseActivityAnim;
 import me.ccrama.redditslide.Fragments.ReadLaterView;
 import ltd.ucode.slide.R;
 import me.ccrama.redditslide.Visuals.ColorPreferences;

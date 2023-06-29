@@ -5,7 +5,7 @@ import android.os.Bundle;
 import com.mikepenz.aboutlibraries.LibsBuilder;
 import com.mikepenz.aboutlibraries.ui.LibsSupportFragment;
 
-import me.ccrama.redditslide.Activities.BaseActivityAnim;
+import ltd.ucode.slide.ui.BaseActivityAnim;
 import ltd.ucode.slide.R;
 
 public class SettingsLibs extends BaseActivityAnim {

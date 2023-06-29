@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:tools="http://schemas.android.com/tools"
+	android:versionCode="1" android:versionName="1.0">
+
+	<uses-permission android:name="android.permission.READ_LOGS" />
+
+    <application>
+
+		<activity android:name="com.demondevelopers.crashreporting.ReportActivity" android:label="@string/report_activity"
+			android:noHistory="true" android:process=":report_process"
+			android:theme="@android:style/Theme.NoDisplay"
+			/>
+
+		<provider android:name="com.demondevelopers.crashreporting.ReportFilesProvider" android:process=":report_process"
+			android:authorities="com.demondevelopers.example.crashreporting.filesprovider"
+			android:exported="true" tools:ignore="ExportedContentProvider"
+			/>
+
+	</application>
+
+</manifest>

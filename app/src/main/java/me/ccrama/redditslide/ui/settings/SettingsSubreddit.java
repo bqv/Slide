@@ -20,10 +20,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-import me.ccrama.redditslide.Activities.BaseActivityAnim;
+import ltd.ucode.slide.ui.BaseActivityAnim;
 import ltd.ucode.slide.Authentication;
 import ltd.ucode.slide.R;
-import ltd.ucode.slide.App;
 import ltd.ucode.slide.SettingValues;
 import me.ccrama.redditslide.UserSubscriptions;
 import me.ccrama.redditslide.Visuals.ColorPreferences;

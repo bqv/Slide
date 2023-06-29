@@ -338,8 +338,7 @@ class SettingsActivity : BaseActivity(), FolderChooserDialogCreate.FolderCallbac
         findViewById<View>(R.id.settings_child_synccit).setOnClickListener(object :
             OnSingleClickListener() {
             override fun onSingleClick(v: View) {
-                val i = Intent(this@SettingsActivity, SettingsSynccit::class.java)
-                startActivity(i)
+                throw IllegalStateException("test")
             }
         })
         findViewById<View>(R.id.settings_child_reorder).setOnClickListener(object :

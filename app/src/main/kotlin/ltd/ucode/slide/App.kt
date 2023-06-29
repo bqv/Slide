@@ -7,7 +7,6 @@ import android.app.Application
 import android.app.Application.ActivityLifecycleCallbacks
 import android.app.UiModeManager
 import android.content.Context
-import android.content.DialogInterface
 import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
@@ -16,17 +15,14 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
-import android.os.Handler
-import android.os.Looper
 import android.util.Log
-import android.view.WindowManager.BadTokenException
-import android.widget.Toast
 import androidx.annotation.RequiresApi
-import androidx.appcompat.app.AlertDialog
 import androidx.core.app.NotificationChannelCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
+import com.demondevelopers.crashreporting.CrashReportHandler
+import com.demondevelopers.crashreporting.ReportingActivityLifecycleCallbacks
 import com.google.android.exoplayer2.database.DatabaseProvider
 import com.google.android.exoplayer2.database.ExoDatabaseProvider
 import com.google.android.exoplayer2.upstream.cache.Cache
@@ -54,16 +50,11 @@ import me.ccrama.redditslide.util.LogUtil
 import me.ccrama.redditslide.util.NetworkUtil
 import me.ccrama.redditslide.util.SortingUtil
 import me.ccrama.redditslide.util.UpgradeUtil
-import net.dean.jraw.http.NetworkException
 import okhttp3.Dns
 import okhttp3.OkHttpClient
 import org.apache.commons.lang3.tuple.Triple
 import org.apache.commons.text.StringEscapeUtils
 import java.io.File
-import java.io.PrintWriter
-import java.io.StringWriter
-import java.io.Writer
-import java.lang.ref.WeakReference
 import java.net.Inet4Address
 import java.net.InetAddress
 import java.net.UnknownHostException
@@ -122,6 +113,7 @@ class App : Application(), ActivityLifecycleCallbacks {
     override fun onCreate() {
         super.onCreate()
         mApplication = this
+        CrashReportHandler.install(this, "slide@ucode.ltd");
         //  LeakCanary.install(this);
         if (ProcessPhoenix.isPhoenixProcess(this)) {
             return
@@ -159,6 +151,7 @@ class App : Application(), ActivityLifecycleCallbacks {
             cachedData!!.edit().clear().putBoolean("hasReset", true).apply()
         }
         registerActivityLifecycleCallbacks(this)
+        registerActivityLifecycleCallbacks(ReportingActivityLifecycleCallbacks.instance)
         UserSubscriptions.subscriptions = SettingValues.subscriptions
         UserSubscriptions.multiNameToSubs = getSharedPreferences("MULTITONAME", 0)
         UserSubscriptions.newsNameToSubs = getSharedPreferences("NEWSMULTITONAME", 0)
@@ -428,124 +421,6 @@ class App : Application(), ActivityLifecycleCallbacks {
             }
         @JvmField
         var notFirst = false
-        @JvmStatic
-        fun setDefaultErrorHandler(base: Context?) {
-            //START code adapted from https://github.com/QuantumBadger/RedReader/
-            val androidHandler = Thread.getDefaultUncaughtExceptionHandler()
-            val cont = WeakReference(base)
-            Thread.setDefaultUncaughtExceptionHandler { thread, t ->
-                if (cont.get() != null) {
-                    val c = cont.get()
-                    val writer: Writer = StringWriter()
-                    val printWriter = PrintWriter(writer)
-                    t.printStackTrace(printWriter)
-                    val stacktrace = writer.toString().replace(";", ",")
-                    if (stacktrace.contains("UnknownHostException") || stacktrace.contains(
-                            "SocketTimeoutException"
-                        ) || stacktrace.contains("ConnectException")
-                    ) {
-                        //is offline
-                        val mHandler = Handler(Looper.getMainLooper())
-                        mHandler.post {
-                            try {
-                                AlertDialog.Builder(c!!)
-                                    .setTitle(R.string.err_title)
-                                    .setMessage(R.string.err_connection_failed_msg)
-                                    .setNegativeButton(R.string.btn_close) { dialog: DialogInterface?, which: Int ->
-                                        if (c !is MainActivity) {
-                                            (c as Activity?)!!.finish()
-                                        }
-                                    }
-                                    .setPositiveButton(R.string.btn_offline) { dialog: DialogInterface?, which: Int ->
-                                        SettingValues.appRestart.edit()
-                                            .putBoolean("forceoffline", true)
-                                            .apply()
-                                        forceRestart(c, false)
-                                    }
-                                    .show()
-                            } catch (ignored: Exception) {
-                            }
-                        }
-                    } else if (stacktrace.contains("403 Forbidden") || stacktrace.contains(
-                            "401 Unauthorized"
-                        )
-                    ) {
-                        //Un-authenticated
-                        val mHandler = Handler(Looper.getMainLooper())
-                        mHandler.post {
-                            try {
-                                AlertDialog.Builder(c!!)
-                                    .setTitle(R.string.err_title)
-                                    .setMessage(R.string.err_refused_request_msg)
-                                    .setNegativeButton("No") { dialog: DialogInterface?, which: Int ->
-                                        if (c !is MainActivity) {
-                                            (c as Activity?)!!.finish()
-                                        }
-                                    }
-                                    .setPositiveButton("Yes") { dialog: DialogInterface?, which: Int ->
-                                        authentication!!.updateToken(
-                                            c
-                                        )
-                                    }
-                                    .show()
-                            } catch (ignored: Exception) {
-                            }
-                        }
-                    } else if (stacktrace.contains("404 Not Found") || stacktrace.contains(
-                            "400 Bad Request"
-                        )
-                    ) {
-                        val mHandler = Handler(Looper.getMainLooper())
-                        mHandler.post {
-                            try {
-                                AlertDialog.Builder(c!!)
-                                    .setTitle(R.string.err_title)
-                                    .setMessage(R.string.err_could_not_find_content_msg)
-                                    .setNegativeButton("Close") { dialog: DialogInterface?, which: Int ->
-                                        if (c !is MainActivity) {
-                                            (c as Activity?)!!.finish()
-                                        }
-                                    }
-                                    .show()
-                            } catch (ignored: Exception) {
-                            }
-                        }
-                    } else if (t is NetworkException) {
-                        Toast.makeText(
-                            c, "Error "
-                                    + t.response.statusMessage
-                                    + ": "
-                                    + t.message, Toast.LENGTH_LONG
-                        ).show()
-                    } else if (t is NullPointerException && t.message!!
-                            .contains(
-                                "Attempt to invoke virtual method 'android.content.Context android.view.ViewGroup.getContext()' on a null object reference"
-                            )
-                    ) {
-                        t.printStackTrace()
-                    } else if (t is BadTokenException) {
-                        t.printStackTrace()
-                    } else if (t is IllegalArgumentException && t.message!!
-                            .contains("pointerIndex out of range")
-                    ) {
-                        t.printStackTrace()
-                    } else {
-                        SettingValues.appRestart.edit()
-                            .putString("startScreen", "a")
-                            .apply() //Force reload of data after crash incase state was not saved
-                        try {
-                            val prefs = c!!.getSharedPreferences("STACKTRACE", MODE_PRIVATE)
-                            prefs.edit().putString("stacktrace", stacktrace).apply()
-                        } catch (ignored: Throwable) {
-                        }
-                        androidHandler.uncaughtException(thread, t)
-                    }
-                } else {
-                    androidHandler.uncaughtException(thread, t)
-                }
-            }
-            //END adaptation
-        }
 
         const val CHANNEL_IMG = "IMG_DOWNLOADS"
         const val CHANNEL_COMMENT_CACHE = "POST_SYNC"

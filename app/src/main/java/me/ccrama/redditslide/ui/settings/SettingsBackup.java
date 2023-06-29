@@ -27,7 +27,7 @@ import java.io.StringWriter;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 
-import me.ccrama.redditslide.Activities.BaseActivityAnim;
+import ltd.ucode.slide.ui.BaseActivityAnim;
 import ltd.ucode.slide.R;
 import ltd.ucode.slide.SettingValues;
 import me.ccrama.redditslide.util.FileUtil;

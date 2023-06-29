@@ -7,7 +7,7 @@ import androidx.annotation.NonNull;
 
 import java.io.File;
 
-import me.ccrama.redditslide.Activities.BaseActivityAnim;
+import ltd.ucode.slide.ui.BaseActivityAnim;
 import me.ccrama.redditslide.Fragments.FolderChooserDialogCreate;
 import ltd.ucode.slide.R;
 

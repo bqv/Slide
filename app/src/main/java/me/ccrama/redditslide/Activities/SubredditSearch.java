@@ -15,6 +15,7 @@ import androidx.fragment.app.FragmentTransaction;
 import com.afollestad.materialdialogs.DialogAction;
 import com.afollestad.materialdialogs.MaterialDialog;
 
+import ltd.ucode.slide.ui.BaseActivityAnim;
 import me.ccrama.redditslide.Fragments.SubredditListView;
 import ltd.ucode.slide.R;
 

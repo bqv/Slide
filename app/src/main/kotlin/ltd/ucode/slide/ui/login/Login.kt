@@ -25,7 +25,7 @@ import ltd.ucode.slide.R
 import ltd.ucode.slide.SettingValues.appRestart
 import ltd.ucode.slide.SettingValues.authentication
 import ltd.ucode.slide.databinding.ActivityLoginBinding
-import me.ccrama.redditslide.Activities.BaseActivityAnim
+import ltd.ucode.slide.ui.BaseActivityAnim
 import me.ccrama.redditslide.CaseInsensitiveArrayList
 import me.ccrama.redditslide.UserSubscriptions.setSubscriptions
 import me.ccrama.redditslide.UserSubscriptions.sort

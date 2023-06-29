@@ -49,6 +49,7 @@ import ltd.ucode.slide.Authentication;
 import ltd.ucode.slide.ContentType;
 import ltd.ucode.slide.R;
 import ltd.ucode.slide.App;
+import ltd.ucode.slide.ui.BaseActivityAnim;
 import me.ccrama.redditslide.SpoilerRobotoTextView;
 import me.ccrama.redditslide.views.CommentOverflow;
 import me.ccrama.redditslide.views.SidebarLayout;

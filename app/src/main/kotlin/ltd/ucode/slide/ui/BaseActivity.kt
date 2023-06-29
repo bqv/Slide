@@ -14,7 +14,6 @@ import androidx.annotation.IdRes
 import androidx.annotation.RequiresApi
 import androidx.annotation.StringRes
 import androidx.appcompat.widget.Toolbar
-import ltd.ucode.slide.App.Companion.setDefaultErrorHandler
 import ltd.ucode.slide.R
 import ltd.ucode.slide.SettingValues
 import me.ccrama.redditslide.ForceTouch.PeekViewActivity
@@ -249,15 +248,19 @@ open class BaseActivity : PeekViewActivity(), SwipeBackActivityBase {
         theme.applyStyle(FontPreferences(this).commentFontStyle.resId, true)
     }
 
+    override fun onPause() {
+        super.onPause()
+    }
+
     public override fun onResume() {
         super.onResume()
-        setDefaultErrorHandler(this) //set defualt reddit api issue handler
+        //CrashReportHandler.reinstall()
         hideDecor()
     }
 
     public override fun onDestroy() {
         super.onDestroy()
-        setDefaultErrorHandler(null) //remove defualt reddit api issue handler (mem leaks)
+        //CrashReportHandler.uninstall()
     }
 
     /**

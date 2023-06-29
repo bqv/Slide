@@ -1,12 +1,10 @@
 package me.ccrama.redditslide.ui.settings;
 
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.ViewGroup;
 
-import me.ccrama.redditslide.Activities.BaseActivityAnim;
+import ltd.ucode.slide.ui.BaseActivityAnim;
 import ltd.ucode.slide.R;
-import ltd.ucode.slide.SettingValues;
 
 
 /**
