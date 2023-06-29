@@ -7,6 +7,7 @@ import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.FragmentStatePagerAdapter
 import androidx.viewpager.widget.ViewPager
 import androidx.viewpager.widget.ViewPager.SimpleOnPageChangeListener
+import dagger.hilt.android.AndroidEntryPoint
 import ltd.ucode.slide.Authentication
 import ltd.ucode.slide.R
 import ltd.ucode.slide.SettingValues
@@ -15,6 +16,7 @@ import me.ccrama.redditslide.Adapters.MultiredditPosts
 import me.ccrama.redditslide.Adapters.SubmissionDisplay
 import me.ccrama.redditslide.Adapters.SubredditPosts
 import ltd.ucode.slide.ContentType
+import ltd.ucode.slide.repository.PostRepository
 import me.ccrama.redditslide.Fragments.AlbumFull
 import me.ccrama.redditslide.Fragments.MediaFragment
 import me.ccrama.redditslide.Fragments.SelftextFull
@@ -25,8 +27,13 @@ import me.ccrama.redditslide.LastComments
 import me.ccrama.redditslide.OfflineSubreddit
 import me.ccrama.redditslide.PostLoader
 import me.ccrama.redditslide.submission
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class Shadowbox : FullScreenActivity(), SubmissionDisplay {
+    @Inject
+    lateinit var postRepository: PostRepository
+
     @JvmField
     var subredditPosts: PostLoader? = null
     @JvmField
@@ -35,6 +42,7 @@ class Shadowbox : FullScreenActivity(), SubmissionDisplay {
     private var count = 0
     @JvmField
     var pager: ViewPager? = null
+
     public override fun onCreate(savedInstance: Bundle?) {
         overrideSwipeFromAnywhere()
         subreddit = intent.extras!!.getString(EXTRA_SUBREDDIT)
@@ -44,7 +52,7 @@ class Shadowbox : FullScreenActivity(), SubmissionDisplay {
         val profile = intent.extras!!
             .getString(EXTRA_PROFILE, "")
         subredditPosts = multireddit?.let { MultiredditPosts(it, profile) } ?: SubredditPosts(
-            subreddit!!, this@Shadowbox
+            subreddit!!, this@Shadowbox, postRepository
         )
         subreddit = if (multireddit == null) subreddit else "multi$multireddit"
         if (multireddit == null) {

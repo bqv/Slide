@@ -24,6 +24,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.snackbar.Snackbar
 import com.mikepenz.itemanimators.AlphaInAnimator
 import com.mikepenz.itemanimators.SlideUpAlphaAnimator
+import dagger.hilt.android.AndroidEntryPoint
 import ltd.ucode.slide.App
 import ltd.ucode.slide.R
 import ltd.ucode.slide.SettingValues
@@ -31,6 +32,8 @@ import ltd.ucode.slide.SettingValues.colours
 import ltd.ucode.slide.SettingValues.defaultCardView
 import ltd.ucode.slide.SettingValues.fabType
 import ltd.ucode.slide.data.IPost
+import ltd.ucode.slide.repository.CommentRepository
+import ltd.ucode.slide.repository.PostRepository
 import me.ccrama.redditslide.Activities.Search
 import me.ccrama.redditslide.Activities.Submit
 import me.ccrama.redditslide.Adapters.MultiredditAdapter
@@ -49,8 +52,15 @@ import me.ccrama.redditslide.views.CatchStaggeredGridLayoutManager
 import me.ccrama.redditslide.views.CreateCardView
 import net.dean.jraw.models.MultiReddit
 import net.dean.jraw.models.MultiSubreddit
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class MultiredditView : Fragment(), SubmissionDisplay {
+    @Inject
+    lateinit var postRepository: PostRepository
+    @Inject
+    lateinit var commentRepository: CommentRepository
+
     var adapter: MultiredditAdapter? = null
     var posts: MultiredditPosts? = null
     var rv: RecyclerView? = null

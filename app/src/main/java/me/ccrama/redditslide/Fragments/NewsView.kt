@@ -26,6 +26,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.snackbar.Snackbar
 import com.mikepenz.itemanimators.AlphaInAnimator
 import com.mikepenz.itemanimators.SlideUpAlphaAnimator
+import dagger.hilt.android.AndroidEntryPoint
 import ltd.ucode.slide.App
 import ltd.ucode.slide.R
 import ltd.ucode.slide.SettingValues
@@ -36,6 +37,8 @@ import ltd.ucode.slide.SettingValues.single
 import ltd.ucode.slide.SettingValues.subredditSearchMethod
 import ltd.ucode.slide.ui.main.MainActivity
 import ltd.ucode.slide.data.IPost
+import ltd.ucode.slide.repository.CommentRepository
+import ltd.ucode.slide.repository.PostRepository
 import ltd.ucode.slide.ui.BaseActivity
 import me.ccrama.redditslide.Activities.Submit
 import me.ccrama.redditslide.Activities.SubredditView
@@ -53,8 +56,15 @@ import me.ccrama.redditslide.Visuals.Palette
 import me.ccrama.redditslide.handler.ToolbarScrollHideHandler
 import me.ccrama.redditslide.submission
 import me.ccrama.redditslide.util.LayoutUtils
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class NewsView : Fragment(), SubmissionDisplay {
+    @Inject
+    lateinit var postRepository: PostRepository
+    @Inject
+    lateinit var commentRepository: CommentRepository
+
     @JvmField
     var posts: SubredditPostsRealm? = null
     @JvmField

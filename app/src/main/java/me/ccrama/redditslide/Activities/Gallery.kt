@@ -4,10 +4,12 @@ import android.content.res.Configuration
 import android.os.Bundle
 import android.view.View
 import androidx.recyclerview.widget.RecyclerView
+import dagger.hilt.android.AndroidEntryPoint
 import ltd.ucode.slide.Authentication
 import ltd.ucode.slide.ContentType
 import ltd.ucode.slide.R
 import ltd.ucode.slide.data.IPost
+import ltd.ucode.slide.repository.PostRepository
 import me.ccrama.redditslide.Adapters.GalleryView
 import me.ccrama.redditslide.Adapters.MultiredditPosts
 import me.ccrama.redditslide.Adapters.SubmissionDisplay
@@ -17,12 +19,18 @@ import me.ccrama.redditslide.PostLoader
 import me.ccrama.redditslide.submission
 import me.ccrama.redditslide.util.LayoutUtils
 import me.ccrama.redditslide.views.CatchStaggeredGridLayoutManager
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class Gallery : FullScreenActivity(), SubmissionDisplay {
+    @Inject
+    lateinit var postRepository: PostRepository
+
     @JvmField
     var subredditPosts: PostLoader? = null
     var subreddit: String? = null
     var baseSubs: ArrayList<IPost>? = null
+
     public override fun onCreate(savedInstance: Bundle?) {
         overrideSwipeFromAnywhere()
         subreddit = intent.extras!!.getString(EXTRA_SUBREDDIT)
@@ -32,7 +40,7 @@ class Gallery : FullScreenActivity(), SubmissionDisplay {
         if (multireddit != null) {
             subredditPosts = MultiredditPosts(multireddit, profile)
         } else {
-            subredditPosts = SubredditPosts(subreddit!!, this@Gallery)
+            subredditPosts = SubredditPosts(subreddit!!, this@Gallery, postRepository)
         }
         subreddit = if (multireddit == null) subreddit else "multi$multireddit"
         if (multireddit == null) {

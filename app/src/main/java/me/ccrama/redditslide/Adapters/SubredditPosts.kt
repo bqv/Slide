@@ -20,6 +20,7 @@ import ltd.ucode.slide.SettingValues
 import ltd.ucode.slide.SettingValues.getSubmissionSort
 import ltd.ucode.slide.SettingValues.getSubmissionTimePeriod
 import ltd.ucode.slide.data.IPost
+import ltd.ucode.slide.repository.PostRepository
 import ltd.ucode.slide.ui.BaseActivity
 import ltd.ucode.slide.ui.main.MainActivity
 import me.ccrama.redditslide.Activities.SubredditView
@@ -41,6 +42,7 @@ import java.util.Collections
 class SubredditPosts @JvmOverloads constructor(
     subreddit: String,
     c: Context,
+    private val postRepository: PostRepository,
     force18: Boolean = false
 ) : PostLoader {
     override var posts: MutableList<IPost> = mutableListOf()
@@ -155,7 +157,7 @@ class SubredditPosts @JvmOverloads constructor(
                 displayer!!.updateSuccess(posts, start)
                 currentid = 0
                 OfflineSubreddit.currentid = currentid
-                (c as? BaseActivity)?.let { it.shareUrl = "https://reddit.com/r/$subreddit" }
+                (c as? BaseActivity)?.let { it.shareUrl = "https://reddit.com/c/$subreddit" }
                 if (subreddit == "random" || subreddit == "myrandom" || subreddit == "randnsfw") {
                     subredditRandom = submissions[0]!!.groupName
                 }
@@ -217,35 +219,40 @@ class SubredditPosts @JvmOverloads constructor(
                 }
                 paginator = if (sub == "subscribed") {
                     //SubredditPaginator(Authentication.reddit)
-                    Authentication.api!!.getPosts(
+                    postRepository.getPosts(
+                        Authentication.api,
                         type = PostListingType.Subscribed,
                         sort = PostSortType.from(getSubmissionSort(subreddit), getSubmissionTimePeriod(subreddit)),
                         limit = Constants.PAGINATOR_POST_LIMIT
                     )
                 } else if (sub == "local") {
                     //SubredditPaginator(Authentication.reddit)
-                    Authentication.api!!.getPosts(
+                    postRepository.getPosts(
+                        Authentication.api,
                         type = PostListingType.Local,
                         sort = PostSortType.from(getSubmissionSort(subreddit), getSubmissionTimePeriod(subreddit)),
                         limit = Constants.PAGINATOR_POST_LIMIT
                     )
                 } else if (sub == "all") {
                     //SubredditPaginator(Authentication.reddit)
-                    Authentication.api!!.getPosts(
+                    postRepository.getPosts(
+                        Authentication.api,
                         type = PostListingType.All,
                         sort = PostSortType.from(getSubmissionSort(subreddit), getSubmissionTimePeriod(subreddit)),
                         limit = Constants.PAGINATOR_POST_LIMIT
                     )
                 } else if (!sub.contains(".")) {
                     //SubredditPaginator(Authentication.reddit, sub)
-                    Authentication.api!!.getPosts(
+                    postRepository.getPosts(
+                        Authentication.api,
                         communityName = sub,
                         sort = PostSortType.from(getSubmissionSort(subreddit), getSubmissionTimePeriod(subreddit)),
                         limit = Constants.PAGINATOR_POST_LIMIT
                     )
                 } else {
                     //DomainPaginator(Authentication.reddit, sub)
-                    Authentication.api!!.getPosts(
+                    postRepository.getPosts(
+                        Authentication.api,
                         communityName = sub,
                         sort = PostSortType.from(getSubmissionSort(subreddit), getSubmissionTimePeriod(subreddit)),
                         limit = Constants.PAGINATOR_POST_LIMIT
@@ -295,7 +302,7 @@ class SubredditPosts @JvmOverloads constructor(
                         //    (paginator as SubredditPaginator).setObeyOver18(false)
                         //}
                         val page = runBlocking { paginator!!.next() }
-                        adding.addAll(page.map { LemmyPost(Authentication.api!!.instance, it) })
+                        adding.addAll(page.map { LemmyPost(it.instanceName, it) })
                     } else {
                         nomore = true
                     }

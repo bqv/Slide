@@ -2,12 +2,6 @@ package ltd.ucode.slide
 
 import android.content.Context
 import android.os.AsyncTask
-import android.util.Log
-import kotlinx.coroutines.runBlocking
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
-import ltd.ucode.lemmy.api.ApiException
-import ltd.ucode.lemmy.api.LemmyHttp
 import me.ccrama.redditslide.util.LogUtil
 import me.ccrama.redditslide.util.NetworkUtil
 import net.dean.jraw.RedditClient
@@ -41,9 +35,10 @@ class Authentication(context: Context?) {
             hasDone = true
             httpAdapter = OkHttpAdapter(App.client, Protocol.HTTP_2)
             isLoggedIn = false
-            api = LemmyHttp()
-            api!!.retryLimit = 2
+            api = null
+            //api!!.retryLimit = 2
             didOnline = true
+            /*
             val site = try {
                 runBlocking { api!!.getSite() }
             } catch (e: ApiException) {
@@ -58,6 +53,7 @@ class Authentication(context: Context?) {
                 null
             }
             Log.v(LogUtil.getTag(), with(nodeinfo?.software) { "NodeInfo: ${this?.name} ${this?.version}" })
+             */
             //VerifyCredentials(context).execute()
         } else {
             isLoggedIn = SettingValues.appRestart.getBoolean("loggedin", false)
@@ -208,18 +204,19 @@ class Authentication(context: Context?) {
         private const val REDIRECT_URL = "http://slide.ucode.ltd"
         @JvmField val reddit: RedditClient? = null
         @JvmField var isLoggedIn = false
-        @JvmField var api: LemmyHttp? = null
+        @JvmField var api: String? = null
         @JvmField var me: LoggedInAccount? = null
         @JvmField var mod = false
         @JvmField var name: String? = null
         @JvmField var refresh: String? = null
         @JvmField var didOnline = false
         private var httpAdapter: OkHttpAdapter? = null
+
         fun resetAdapter() {
             object : AsyncTask<Void?, Void?, Void?>() {
                 override fun doInBackground(vararg params: Void?): Void? {
                     if (httpAdapter != null && httpAdapter!!.nativeClient != null) {
-                        httpAdapter!!.nativeClient.connectionPool.evictAll()
+                        //httpAdapter!!.nativeClient.connectionPool.evictAll()
                     }
                     return null
                 }
@@ -229,7 +226,7 @@ class Authentication(context: Context?) {
         var authedOnce = false
         @JvmStatic fun doVerify(
             lastToken: String?,
-            api: LemmyHttp?,
+            api: String?,
             single: Boolean,
             mContext: Context?
         ) {

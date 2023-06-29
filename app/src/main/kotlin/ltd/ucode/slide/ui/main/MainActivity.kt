@@ -91,6 +91,8 @@ import ltd.ucode.slide.BuildConfig
 import ltd.ucode.slide.R
 import ltd.ucode.slide.SettingValues
 import ltd.ucode.slide.data.IPost
+import ltd.ucode.slide.repository.CommentRepository
+import ltd.ucode.slide.repository.PostRepository
 import ltd.ucode.slide.ui.BaseActivity
 import ltd.ucode.slide.ui.Slide
 import ltd.ucode.slide.ui.Tutorial
@@ -169,12 +171,18 @@ import java.util.Arrays
 import java.util.Collections
 import java.util.Locale
 import java.util.concurrent.Executors
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : BaseActivity(), NetworkStateReceiverListener {
     var menu: Menu? = null
     var mTabLayout: TabLayout? = null
     var drawerSubList: ListView? = null
+
+    @Inject
+    lateinit var postRepository: PostRepository
+    @Inject
+    lateinit var commentRepository: CommentRepository
 
     val ANIMATE_DURATION: Long = 250 //duration of animations
     private val ANIMATE_DURATION_OFFSET: Long = 45 //offset for smoothing out the exit animations
@@ -467,7 +475,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
         this.menu = menu
         /**
          * Hide the "Submit" and "Sidebar" menu items if the currently viewed sub is a multi,
-         * domain, the frontpage, or /r/all. If the subreddit has a "." in it, we know it's a domain because
+         * domain, the frontpage, or /c/all. If the subreddit has a "." in it, we know it's a domain because
          * subreddits aren't allowed to have hard-stops in the name.
          */
         if (Authentication.didOnline && usedArray != null) {
@@ -821,12 +829,13 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                         override fun doInBackground(vararg params: Void?): IPost? {
                             if (Authentication.isLoggedIn) UserSubscriptions.doOnlineSyncing()
                             try {
-                                val p = Authentication.api!!.getPosts(
+                                val pager = postRepository.getPosts(
+                                    null,
                                     communityName = "slide@feddit.uk",
                                     sort = PostSortType.New
                                 )
-                                val page = runBlocking { p!!.next() }
-                                val posts = page.map { LemmyPost(Authentication.api!!.instance, it) }
+                                val posts = runBlocking { pager.next() }
+                                    .map { LemmyPost(it.instanceName, it) }
                                 for (s in posts) {
                                     var version = BuildConfig.VERSION_NAME
                                     if (version.length > 5 && version.contains(".")) {
@@ -2529,7 +2538,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                                     this@MainActivity,
                                     SendMessage::class.java
                                 )
-                                i.putExtra(SendMessage.EXTRA_NAME, "/r/$subreddit")
+                                i.putExtra(SendMessage.EXTRA_NAME, "/c/$subreddit")
                                 startActivity(i)
                             }
                             .show()
@@ -2935,7 +2944,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             if (currentSubredditName == "frontpage") {
                 getString(R.string.content_to_hide, "frontpage")
             } else {
-                getString(R.string.content_to_hide, "/r/$currentSubredditName")
+                getString(R.string.content_to_hide, "/c/$currentSubredditName")
             }
         }
         AlertDialog.Builder(this)
@@ -3218,6 +3227,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             .setPositiveButton(R.string.btn_save) { dialog: DialogInterface?, which: Int ->
                 caching = CommentCacheAsync(
                     submissions, this@MainActivity, subreddit,
+                    postRepository, commentRepository,
                     chosen
                 ).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR)
             }
@@ -3225,6 +3235,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                 val service = Executors.newSingleThreadExecutor()
                 CommentCacheAsync(
                     submissions, this@MainActivity, subreddit,
+                    postRepository, commentRepository,
                     chosen
                 ).executeOnExecutor(service)
             }
@@ -3530,7 +3541,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                         )
                         sub.putExtra(SubredditView.EXTRA_SUBREDDIT, s)
                         val frontpage =
-                            (if (s.equals("frontpage", ignoreCase = true)) "" else "/r/") + s
+                            (if (s.equals("frontpage", ignoreCase = true)) "" else "/c/") + s
                         shortcuts.add(
                             ShortcutInfoCompat.Builder(this, "sub$s")
                                 .setShortLabel(frontpage)
@@ -3555,7 +3566,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                         )
                         sub.putExtra(SubredditView.EXTRA_SUBREDDIT, s)
                         val frontpage =
-                            (if (s.equals("frontpage", ignoreCase = true)) "" else "/r/") + s
+                            (if (s.equals("frontpage", ignoreCase = true)) "" else "/c/") + s
                         ShortcutInfoCompat.Builder(this, "sub$s")
                             .setShortLabel(frontpage)
                             .setLongLabel(frontpage)

@@ -393,7 +393,7 @@ public class RedditItemView extends RelativeLayout {
 
         if (comment.getSubredditName() != null) {
             String subname = comment.getSubredditName();
-            SpannableStringBuilder subreddit = new SpannableStringBuilder("/r/" + subname);
+            SpannableStringBuilder subreddit = new SpannableStringBuilder("/c/" + subname);
             if ((SettingValues.colorSubName
                     && Palette.getColor(subname) != Palette.getDefaultColor())) {
                 subreddit.setSpan(new ForegroundColorSpan(Palette.getColor(subname)), 0,
@@ -448,7 +448,7 @@ public class RedditItemView extends RelativeLayout {
             CreateCardView.colorCard(submission.getSubredditName().toLowerCase(Locale.ENGLISH), holder.itemView,
                     "no_subreddit", false);
         }
-        new PopulateSubmissionViewHolder().populateSubmissionViewHolder(holder, new RedditSubmission(submission),
+        new PopulateSubmissionViewHolder(null, null).populateSubmissionViewHolder(holder, new RedditSubmission(submission),
                 ((PeekViewActivity) getContext()), false, false, null, null, false, false, null,
                 null);
 

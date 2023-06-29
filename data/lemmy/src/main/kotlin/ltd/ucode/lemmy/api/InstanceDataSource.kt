@@ -10,10 +10,13 @@ import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.encodeToJsonElement
+import kotlinx.serialization.json.int
+import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonObject
 import ltd.ucode.SnakeCaseSerializer
 import ltd.ucode.lemmy.api.request.GetCommentsRequest
 import ltd.ucode.lemmy.api.request.GetFederatedInstancesRequest
+import ltd.ucode.lemmy.api.request.GetPersonDetailsRequest
 import ltd.ucode.lemmy.api.request.GetPostRequest
 import ltd.ucode.lemmy.api.request.GetPostsRequest
 import ltd.ucode.lemmy.api.request.GetSiteRequest
@@ -23,6 +26,7 @@ import ltd.ucode.lemmy.api.request.LoginRequest
 import ltd.ucode.lemmy.api.request.UploadImageRequest
 import ltd.ucode.lemmy.api.response.GetCommentsResponse
 import ltd.ucode.lemmy.api.response.GetFederatedInstancesResponse
+import ltd.ucode.lemmy.api.response.GetPersonDetailsResponse
 import ltd.ucode.lemmy.api.response.GetPostResponse
 import ltd.ucode.lemmy.api.response.GetPostsResponse
 import ltd.ucode.lemmy.api.response.GetSiteResponse
@@ -189,8 +193,8 @@ open class InstanceDataSource (
     //open suspend fun getModlog(request: GetModlogRequest): GetModlogResponse =
     //    retryOnError { api.getModlog(request.toForm()) }
 
-    //open suspend fun getPersonDetails(request: GetPersonDetailsRequest): GetPersonDetailsResponse =
-    //    retryOnError { api.getPersonDetails(request.toForm()) }
+    open suspend fun getPersonDetails(request: GetPersonDetailsRequest): GetPersonDetailsResponse =
+        retryOnError { api.getPersonDetails(request.toForm()) }
 
     //open suspend fun getPersonMentions(request: GetPersonMentionsRequest): GetPersonMentionsResponse =
     //    retryOnError { api.getPersonMentions(request.toForm()) }
@@ -406,7 +410,9 @@ open class InstanceDataSource (
             .toMap()
             .mapValues { (_, element) -> when (element) {
                 is JsonNull -> null
-                is JsonPrimitive -> if (element.isString) element.content else TODO()
+                is JsonPrimitive -> if (element.isString) element.content
+                else if (element.intOrNull != null) element.int.toString()
+                else TODO()
                 is JsonArray -> TODO()
                 is JsonObject -> TODO()
             } }

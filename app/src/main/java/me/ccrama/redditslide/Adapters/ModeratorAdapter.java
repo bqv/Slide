@@ -170,7 +170,7 @@ public class ModeratorAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
                     title.setText(CompatUtil.fromHtml(submission.getTitle()));
 
                     ((TextView) dialoglayout.findViewById(R.id.userpopup)).setText("/u/" + submission.getAuthor());
-                    ((TextView) dialoglayout.findViewById(R.id.subpopup)).setText("/r/" + submission.getSubredditName());
+                    ((TextView) dialoglayout.findViewById(R.id.subpopup)).setText("/c/" + submission.getSubredditName());
                     dialoglayout.findViewById(R.id.sidebar).setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
@@ -287,7 +287,7 @@ public class ModeratorAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
                     return true;
                 }
             });
-            new PopulateSubmissionViewHolder().populateSubmissionViewHolder(holder, new RedditSubmission(submission), mContext, false, false, /*dataSet.posts*/Collections.emptyList(), listView, false, false, null, null);
+            new PopulateSubmissionViewHolder(null, null).populateSubmissionViewHolder(holder, new RedditSubmission(submission), mContext, false, false, /*dataSet.posts*/Collections.emptyList(), listView, false, false, null, null);
 
             final ImageView hideButton = holder.itemView.findViewById(R.id.hide);
             if (hideButton != null) {
@@ -404,7 +404,7 @@ public class ModeratorAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
             }
             if (comment.getSubredditName() != null) {
                 String subname = comment.getSubredditName();
-                SpannableStringBuilder subreddit = new SpannableStringBuilder("/r/" + subname);
+                SpannableStringBuilder subreddit = new SpannableStringBuilder("/c/" + subname);
                 if ((SettingValues.colorSubName && Palette.getColor(subname) != Palette.getDefaultColor())) {
                     subreddit.setSpan(new ForegroundColorSpan(Palette.getColor(subname)), 0, subreddit.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
                     subreddit.setSpan(new StyleSpan(Typeface.BOLD), 0, subreddit.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);

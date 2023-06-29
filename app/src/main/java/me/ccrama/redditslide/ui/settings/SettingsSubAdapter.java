@@ -57,7 +57,7 @@ public class SettingsSubAdapter extends RecyclerView.Adapter<SettingsSubAdapter.
         colorView.setBackgroundResource(R.drawable.circle);
         BlendModeUtil.tintDrawableAsModulate(colorView.getBackground(), Palette.getColor(subreddit));
 
-        final String DELETE_SUB_SETTINGS_TITLE = (subreddit.contains("/m/")) ? subreddit : ("/r/" + subreddit);
+        final String DELETE_SUB_SETTINGS_TITLE = (subreddit.contains("/m/")) ? subreddit : ("/c/" + subreddit);
         convertView.findViewById(R.id.remove).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -180,14 +180,14 @@ public class SettingsSubAdapter extends RecyclerView.Adapter<SettingsSubAdapter.
 
             StringBuilder titleStringBuilder = new StringBuilder();
             for (String sub : subreddits) {
-                //if the subreddit is the frontpage, don't put "/r/" in front of it
+                //if the subreddit is the frontpage, don't put "/c/" in front of it
                 if (sub.equals("frontpage")) {
                     titleStringBuilder.append(sub).append(", ");
                 } else {
                     if (sub.contains("/m/")) {
                         titleStringBuilder.append(sub).append(", ");
                     } else {
-                        titleStringBuilder.append("/r/").append(sub).append(", ");
+                        titleStringBuilder.append("/c/").append(sub).append(", ");
                     }
                 }
             }
@@ -199,8 +199,8 @@ public class SettingsSubAdapter extends RecyclerView.Adapter<SettingsSubAdapter.
             if (subreddit.contains("/m/")) {
                 title.setText(subreddit);
             } else {
-                //if the subreddit is the frontpage, don't put "/r/" in front of it
-                title.setText(((subreddit.equals("frontpage")) ? "frontpage" : "/r/" + subreddit));
+                //if the subreddit is the frontpage, don't put "/c/" in front of it
+                title.setText(((subreddit.equals("frontpage")) ? "frontpage" : "/c/" + subreddit));
             }
         }
 
@@ -321,23 +321,23 @@ public class SettingsSubAdapter extends RecyclerView.Adapter<SettingsSubAdapter.
                         if (multipleSubs) {
                             StringBuilder subTitlesBuilder = new StringBuilder();
                             for (String sub : subreddits) {
-                                //if the subreddit is the frontpage, don't put "/r/" in front of it
+                                //if the subreddit is the frontpage, don't put "/c/" in front of it
                                 if (sub.equals("frontpage")) {
                                     subTitlesBuilder.append(sub).append(", ");
                                 } else {
-                                    subTitlesBuilder.append("/r/").append(sub).append(", ");
+                                    subTitlesBuilder.append("/c/").append(sub).append(", ");
                                 }
                             }
                             subTitles = subTitlesBuilder.toString();
                             subTitles = subTitles.substring(0, subTitles.length() - 2);
                         } else {
-                            //if the subreddit is the frontpage, don't put "/r/" in front of it
-                            subTitles = (subreddit.equals("frontpage") ? "frontpage" : "/r/" + subreddit);
+                            //if the subreddit is the frontpage, don't put "/c/" in front of it
+                            subTitles = (subreddit.equals("frontpage") ? "frontpage" : "/c/" + subreddit);
                         }
                         String titleStart = context.getString(R.string.settings_delete_sub_settings, subTitles);
-                        titleStart = titleStart.replace("/r//r/", "/r/");
-                        if (titleStart.contains("/r/frontpage")) {
-                            titleStart = titleStart.replace("/r/frontpage", "frontpage");
+                        titleStart = titleStart.replace("/c//c/", "/c/");
+                        if (titleStart.contains("/c/frontpage")) {
+                            titleStart = titleStart.replace("/c/frontpage", "frontpage");
                         }
 
                         new AlertDialog.Builder(context)

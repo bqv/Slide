@@ -5,6 +5,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import ltd.ucode.lemmy.data.id.CommunityId
 import ltd.ucode.lemmy.data.id.InstanceId
+import java.net.URL
 
 @Serializable
 data class Community (
@@ -24,4 +25,8 @@ data class Community (
     @SerialName("removed") val isRemoved: Boolean,
     val title: String,
     val updated: LocalDateTime? = null,
-)
+) {
+    val instanceName: String
+        @Deprecated("there must be a better way")
+        get() = URL(actorId).host
+}

@@ -46,6 +46,8 @@ import me.ccrama.redditslide.Adapters.CommentAdapter
 import me.ccrama.redditslide.Adapters.NewsViewHolder
 import me.ccrama.redditslide.CommentCacheAsync
 import ltd.ucode.slide.ContentType
+import ltd.ucode.slide.repository.CommentRepository
+import ltd.ucode.slide.repository.PostRepository
 import me.ccrama.redditslide.DataShare
 import me.ccrama.redditslide.ForceTouch.PeekViewActivity
 import me.ccrama.redditslide.HasSeen
@@ -74,10 +76,13 @@ import net.dean.jraw.models.SubredditRule
 import org.apache.commons.text.StringEscapeUtils
 import java.util.Arrays
 
-class PopulateNewsViewHolder() {
+class PopulateNewsViewHolder(private val postRepository: PostRepository,
+                             private val commentRepository: CommentRepository
+) {
     var reason: String? = null
     var chosen = booleanArrayOf(false, false, false)
     var oldChosen = booleanArrayOf(false, false, false)
+
     fun <T : Contribution?> showBottomSheet(
         mContext: Activity,
         submission: Submission, holder: NewsViewHolder, posts: MutableList<T>,
@@ -123,7 +128,7 @@ class PopulateNewsViewHolder() {
         val isAddedToReadLaterList = ReadLater.isToBeReadLater(RedditSubmission(submission))
         if (Authentication.didOnline) {
             b.sheet(1, (profile)!!, "/u/" + submission.author)
-                .sheet(2, (sub)!!, "/r/" + submission.subredditName)
+                .sheet(2, (sub)!!, "/c/" + submission.subredditName)
             var save: String = mContext.getString(R.string.btn_save)
             if (ActionStates.isSaved(RedditSubmission(submission))) {
                 save = mContext.getString(R.string.comment_unsave)
@@ -368,7 +373,9 @@ class PopulateNewsViewHolder() {
                         if (NetworkUtil.isConnected(mContext)) {
                             CommentCacheAsync(
                                 listOf(RedditSubmission(submission)), mContext,
-                                CommentCacheAsync.SAVED_SUBMISSIONS, booleanArrayOf(true, true)
+                                CommentCacheAsync.SAVED_SUBMISSIONS,
+                                postRepository, commentRepository,
+                                booleanArrayOf(true, true)
                             ).executeOnExecutor(
                                 AsyncTask.THREAD_POOL_EXECUTOR
                             )

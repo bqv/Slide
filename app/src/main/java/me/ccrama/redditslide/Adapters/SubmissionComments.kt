@@ -18,6 +18,9 @@ import net.dean.jraw.models.CommentSort
 import java.util.TreeMap
 
 class SubmissionComments {
+    private val postRepository get() = page.postRepository
+    private val commentRepository get() = page.commentRepository
+
     @JvmField var single = false
     @JvmField val refreshLayout: SwipeRefreshLayout
     private val fullName: String
@@ -137,9 +140,9 @@ class SubmissionComments {
 
     fun reloadSubmission(commentAdapter: CommentAdapter) {
         val post = runBlocking {
-            Authentication.api!!.getPost(id = PostId(fullName.toInt()))
+            postRepository.getPost(Authentication.api, id = PostId(fullName.toInt()))
         }
-        commentAdapter.submission = LemmyPost(Authentication.api!!.instance, post.postView)
+        commentAdapter.submission = LemmyPost(post.postView.instanceName, post.postView)
     }
 
     inner class LoadData(val reset: Boolean) :
@@ -161,8 +164,8 @@ class SubmissionComments {
         override fun doInBackground(vararg subredditPaginators: String?): ArrayList<CommentObject?>? {
             single = context != null
 
-            val paginator = Authentication.api!!.getComments(
-                auth = null,
+            val paginator = commentRepository.getComments(
+                Authentication.api,
                 communityId = submission?.groupId as CommunityId?,
                 communityName = null,
                 parentId = context?.toInt()?.let(::CommentId),

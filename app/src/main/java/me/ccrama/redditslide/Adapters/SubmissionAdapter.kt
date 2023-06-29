@@ -18,6 +18,8 @@ import ltd.ucode.slide.R
 import ltd.ucode.slide.SettingValues.appRestart
 import ltd.ucode.slide.SettingValues.getLayoutSettings
 import ltd.ucode.slide.data.IPost
+import ltd.ucode.slide.repository.CommentRepository
+import ltd.ucode.slide.repository.PostRepository
 import ltd.ucode.slide.ui.commentsScreen.CommentsScreen
 import ltd.ucode.slide.ui.main.MainActivity
 import ltd.ucode.slide.ui.main.MainActivity.MainPagerAdapterComment
@@ -37,6 +39,18 @@ class SubmissionAdapter(
     context: Activity, dataSet: SubredditPosts, listView: RecyclerView?,
     subreddit: String, displayer: SubmissionDisplay
 ) : RecyclerView.Adapter<RecyclerView.ViewHolder>(), BaseAdapter {
+    val postRepository: PostRepository get() = when {
+        displayer is SubmissionsView -> { (displayer as SubmissionsView).postRepository }
+        context is MainActivity -> { (context as MainActivity).postRepository }
+        else -> { throw IllegalArgumentException() }
+    }
+
+    val commentRepository: CommentRepository get() = when {
+        displayer is SubmissionsView -> { (displayer as SubmissionsView).commentRepository }
+        context is MainActivity -> { (context as MainActivity).commentRepository }
+        else -> { throw IllegalArgumentException() }
+    }
+
     private val listView: RecyclerView?
     val subreddit: String
     var context: Activity
@@ -290,7 +304,7 @@ class SubmissionAdapter(
                 }
             }
             )
-            PopulateSubmissionViewHolder().populateSubmissionViewHolder(
+            PopulateSubmissionViewHolder(postRepository, commentRepository).populateSubmissionViewHolder(
                 holder, submission,
                 context, false, false, dataSet.posts, listView!!, custom, dataSet.offline,
                 dataSet.subreddit.lowercase(), null

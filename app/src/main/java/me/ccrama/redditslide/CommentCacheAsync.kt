@@ -21,6 +21,8 @@ import ltd.ucode.slide.R
 import ltd.ucode.slide.SettingValues
 import ltd.ucode.slide.SettingValues.getCommentSorting
 import ltd.ucode.slide.data.IPost
+import ltd.ucode.slide.repository.CommentRepository
+import ltd.ucode.slide.repository.PostRepository
 import me.ccrama.redditslide.util.GifUtils
 import me.ccrama.redditslide.util.LogUtil
 import me.ccrama.redditslide.util.PhotoLoader
@@ -29,24 +31,35 @@ class CommentCacheAsync : AsyncTask<Any?, Any?, Any?> {
     var alreadyReceived: List<IPost>? = null
     var mNotifyManager: NotificationManager? = null
 
+    private val postRepository: PostRepository
+    private val commentRepository: CommentRepository
+
     constructor(
         submissions: List<IPost>?, c: Context, subreddit: String,
+        postRepository: PostRepository, commentRepository: CommentRepository,
         otherChoices: BooleanArray
     ) {
         alreadyReceived = submissions
         context = c
         subs = arrayOf(subreddit)
+        this.postRepository = postRepository
+        this.commentRepository = commentRepository
         this.otherChoices = otherChoices
     }
 
     constructor(
         submissions: List<IPost>?, mContext: Activity, baseSub: String,
+        postRepository: PostRepository, commentRepository: CommentRepository,
         alternateSubName: String?
-    ) : this(submissions, mContext, baseSub, booleanArrayOf(true, true)) {
+    ) : this(submissions, mContext, baseSub, postRepository, commentRepository, booleanArrayOf(true, true)) {
     }
 
-    constructor(c: Context, subreddits: Array<String>) {
+    constructor(c: Context,
+                postRepository: PostRepository, commentRepository: CommentRepository,
+                subreddits: Array<String>) {
         context = c
+        this.postRepository = postRepository
+        this.commentRepository = commentRepository
         subs = subreddits
     }
 
@@ -108,7 +121,7 @@ class CommentCacheAsync : AsyncTask<Any?, Any?, Any?> {
                                     "frontpage",
                                     ignoreCase = true
                                 )
-                            ) fSub else if (fSub.contains("/m/")) fSub else "/r/$fSub"
+                            ) fSub else if (fSub.contains("/m/")) fSub else "/c/$fSub"
                         )
                     )
                         .setSmallIcon(R.drawable.ic_save)
@@ -121,15 +134,15 @@ class CommentCacheAsync : AsyncTask<Any?, Any?, Any?> {
                 } else {
                     var p = if (fSub.equals("frontpage", ignoreCase = true)) {
                         //SubredditPaginator(Authentication.reddit)
-                        Authentication.api!!.getPosts()
+                        postRepository.getPosts(Authentication.api)
                     } else {
                         //SubredditPaginator(Authentication.reddit, sub)
-                        Authentication.api!!.getPosts(communityName = sub)
+                        postRepository.getPosts(Authentication.api, communityName = sub)
                     }
                     //p.setLimit(Constants.PAGINATOR_POST_LIMIT)
                     try {
-                        val page = runBlocking { p!!.next() }
-                        submissions.addAll(page.map { LemmyPost(Authentication.api!!.instance, it) })
+                        val page = runBlocking { p.next() }
+                        submissions.addAll(page.map { LemmyPost(it.instanceName, it) })
                     } catch (e: Exception) {
                         e.printStackTrace()
                     }
@@ -202,7 +215,8 @@ class CommentCacheAsync : AsyncTask<Any?, Any?, Any?> {
                       depth: Int? = null,
                       limit: Int? = null,
                       sort: CommentSortType? = null): CommentStore {
-        val paginator = Authentication.api!!.getComments(
+        val paginator = commentRepository.getComments(
+            Authentication.api,
             postId = id,
             maxDepth = depth,
             limit = limit,

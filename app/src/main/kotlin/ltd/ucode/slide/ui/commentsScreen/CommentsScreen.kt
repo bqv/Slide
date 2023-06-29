@@ -15,6 +15,7 @@ import androidx.fragment.app.FragmentStatePagerAdapter
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager.widget.ViewPager
 import androidx.viewpager.widget.ViewPager.SimpleOnPageChangeListener
+import dagger.hilt.android.AndroidEntryPoint
 import ltd.ucode.lemmy.data.id.PostId
 import ltd.ucode.slide.Authentication
 import ltd.ucode.slide.R
@@ -22,8 +23,9 @@ import ltd.ucode.slide.SettingValues
 import ltd.ucode.slide.SettingValues.appRestart
 import ltd.ucode.slide.SettingValues.fullCommentOverride
 import ltd.ucode.slide.data.IPost
-import ltd.ucode.slide.ui.commentsScreen.CommentsScreen.CommentsScreenPagerAdapter
+import ltd.ucode.slide.repository.PostRepository
 import ltd.ucode.slide.ui.BaseActivityAnim
+import ltd.ucode.slide.ui.commentsScreen.CommentsScreen.CommentsScreenPagerAdapter
 import me.ccrama.redditslide.Activities.SwipeTutorial
 import me.ccrama.redditslide.Adapters.MultiredditPosts
 import me.ccrama.redditslide.Adapters.SubmissionDisplay
@@ -34,6 +36,7 @@ import me.ccrama.redditslide.LastComments
 import me.ccrama.redditslide.OfflineSubreddit
 import me.ccrama.redditslide.PostLoader
 import me.ccrama.redditslide.Visuals.Palette
+import javax.inject.Inject
 
 /**
  * This activity is responsible for the view when clicking on a post, showing the post and its
@@ -46,7 +49,11 @@ import me.ccrama.redditslide.Visuals.Palette
  *
  * Comments are displayed in the [CommentPage] fragment.
  */
+@AndroidEntryPoint
 class CommentsScreen : BaseActivityAnim(), SubmissionDisplay {
+    @Inject
+    lateinit var postRepository: PostRepository
+
     @JvmField var currentPosts: ArrayList<IPost?>? = null
     @JvmField var subredditPosts: PostLoader? = null
     var firstPage = 0
@@ -134,7 +141,7 @@ class CommentsScreen : BaseActivityAnim(), SubmissionDisplay {
             subredditPosts = MultiredditPosts(multireddit!!, profile!!)
         } else {
             baseSubreddit = subreddit!!.lowercase()
-            subredditPosts = SubredditPosts(baseSubreddit!!, this@CommentsScreen)
+            subredditPosts = SubredditPosts(baseSubreddit!!, this@CommentsScreen, postRepository)
         }
         if (firstPage == RecyclerView.NO_POSITION || firstPage < 0) {
             firstPage = 0

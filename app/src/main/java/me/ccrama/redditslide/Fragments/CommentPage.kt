@@ -36,6 +36,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.snackbar.Snackbar
 import com.rey.material.widget.Slider
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.datetime.UtcOffset
 import kotlinx.datetime.toInstant
 import ltd.ucode.reddit.data.RedditSubmission
@@ -73,6 +74,8 @@ import me.ccrama.redditslide.Adapters.MoreChildItem
 import me.ccrama.redditslide.Adapters.SubmissionComments
 import me.ccrama.redditslide.Constants
 import ltd.ucode.slide.ContentType
+import ltd.ucode.slide.repository.CommentRepository
+import ltd.ucode.slide.repository.PostRepository
 import me.ccrama.redditslide.DataShare
 import me.ccrama.redditslide.Drafts
 import me.ccrama.redditslide.ImageFlairs
@@ -122,13 +125,18 @@ import net.dean.jraw.paginators.UserRecordPaginator
 import java.io.IOException
 import java.util.Calendar
 import java.util.Locale
+import javax.inject.Inject
 
 /**
  * Fragment which displays comment trees.
  *
  * @see CommentsScreen
  */
+@AndroidEntryPoint
 class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
+    @Inject lateinit var postRepository: PostRepository
+    @Inject lateinit var commentRepository: CommentRepository
+
     var np = false
     @JvmField var archived = false
     @JvmField var locked = false
@@ -1081,7 +1089,7 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
                                                 )
                                                 i.putExtra(
                                                     SendMessage.EXTRA_NAME,
-                                                    "/r/$subreddit"
+                                                    "/c/$subreddit"
                                                 )
                                                 startActivity(i)
                                             }
@@ -1121,7 +1129,7 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
 
                                     protected override fun onPostExecute(aVoid: Void?) {
                                         MaterialDialog.Builder(requireContext()).title(
-                                            "Add /r/" + baseSub.displayName + " to"
+                                            "Add /c/" + baseSub.displayName + " to"
                                         )
                                             .items(multis.keys)
                                             .itemsCallback { dialog, itemView, which, text ->

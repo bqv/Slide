@@ -136,7 +136,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:id="@+id/settings_reddit_hideNsfwPreviewCollections_text"
-                    android:text="Hide NSFW previews in collections (like /r/all)"
+                    android:text="Hide NSFW previews in collections (like /c/all)"
                     android:textColor="?attr/fontColor"
                     android:textSize="14sp" />
             </LinearLayout>

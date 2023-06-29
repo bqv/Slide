@@ -392,7 +392,7 @@ public class CheckForMail extends BroadcastReceiver {
 
                         NotificationCompat.BigTextStyle notiStyle =
                                 new NotificationCompat.BigTextStyle();
-                        notiStyle.setBigContentTitle("/r/" + s.getSubredditName());
+                        notiStyle.setBigContentTitle("/c/" + s.getSubredditName());
 
                         notiStyle.bigText(Html.fromHtml(s.getTitle() + " " + c.getString(
                                 R.string.submission_properties_seperator_comments)) + " "
@@ -407,7 +407,7 @@ public class CheckForMail extends BroadcastReceiver {
                                                 s.getSubredditName()))
                                         .setWhen(System.currentTimeMillis())
                                         .setAutoCancel(true)
-                                        .setContentTitle("/r/"
+                                        .setContentTitle("/c/"
                                                 + s.getSubredditName()
                                                 + " " + c.getString(
                                                 R.string.submission_properties_seperator_comments) + " "

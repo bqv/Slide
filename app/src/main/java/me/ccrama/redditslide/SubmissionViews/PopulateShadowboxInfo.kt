@@ -699,7 +699,7 @@ object PopulateShadowboxInfo {
             .title(CompatUtil.fromHtml(submission.title))
         if (Authentication.didOnline) {
             b.sheet(1, profile, "/u/" + submission.creator.name)
-                .sheet(2, sub, "/r/" + submission.groupName)
+                .sheet(2, sub, "/c/" + submission.groupName)
             if (Authentication.isLoggedIn) {
                 b.sheet(12, report, mContext.getString(R.string.btn_report))
             }

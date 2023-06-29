@@ -85,12 +85,15 @@ import java.io.Writer
 import java.util.Arrays
 
 class CommentAdapter(
-    mContext: CommentPage, dataSet: SubmissionComments, listView: RecyclerView,
+    private val mPage: CommentPage, dataSet: SubmissionComments, listView: RecyclerView,
     submission: IPost?, fm: FragmentManager
 ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+    private val postRepository get() = mPage.postRepository
+    private val commentRepository get() = mPage.commentRepository
+
     private val SPACER = 6
     @JvmField var awardIcons: Array<Bitmap> = emptyArray()
-    var mContext: Context? = mContext.requireContext()
+    var mContext: Context? = mPage.requireContext()
     @JvmField var dataSet: SubmissionComments = dataSet
     @JvmField var submission: IPost? = submission
     var currentlySelected: CommentViewHolder? = null
@@ -106,7 +109,6 @@ class CommentAdapter(
     @JvmField var currentComments: ArrayList<CommentObject?>?
     @JvmField var deleted = ArrayList<Int>()
     @JvmField var listView: RecyclerView
-    var mPage: CommentPage
     var shifted: Int
     var toShiftTo = 0
     var hidden: HashSet<Int>
@@ -487,8 +489,8 @@ class CommentAdapter(
             }
         } else if (firstHolder is SubmissionViewHolder && submission != null) {
             submissionViewHolder = firstHolder
-            PopulateSubmissionViewHolder().populateSubmissionViewHolder(
-                firstHolder, submission!!, (mContext as Activity?)!!, true, true,
+            PopulateSubmissionViewHolder(postRepository, commentRepository).populateSubmissionViewHolder(
+                firstHolder, submission!!, mPage.requireActivity(), true, true,
                 mutableListOf<IPost>(), listView, false, false, submission!!.groupName, this
             )
             if (Authentication.isLoggedIn && Authentication.didOnline) {
@@ -516,7 +518,7 @@ class CommentAdapter(
                                 currentlyEditingId = 0
                                 backedText = ""
                                 val view =
-                                    (mContext as Activity?)!!.findViewById<View>(android.R.id.content)
+                                    mPage.requireActivity().findViewById<View>(android.R.id.content)
                                 if (view != null) {
                                     KeyboardUtil.hideKeyboard(mContext, view.windowToken, 0)
                                 }
@@ -607,7 +609,7 @@ class CommentAdapter(
                 replyLine,
                 submissionViewHolder.itemView,
                 fm,
-                mContext as Activity?,
+                mPage.requireActivity(),
                 if (submission!!.url.isNullOrBlank()) submission!!.body else null,
                 arrayOf(
                     submission!!.creator.name
@@ -688,7 +690,7 @@ class CommentAdapter(
                             editingPosition = -1
                             //Hide soft keyboard
                             val view =
-                                (mContext as Activity?)!!.findViewById<View>(android.R.id.content)
+                                mPage.requireActivity().findViewById<View>(android.R.id.content)
                             if (view != null) {
                                 KeyboardUtil.hideKeyboard(mContext, view.windowToken, 0)
                             }
@@ -696,7 +698,7 @@ class CommentAdapter(
                     }
                 })
         } else {
-            val view = (mContext as Activity?)!!.findViewById<View>(android.R.id.content)
+            val view = mPage.requireActivity().findViewById<View>(android.R.id.content)
             if (view != null) {
                 KeyboardUtil.hideKeyboard(mContext, view.windowToken, 0)
             }
@@ -942,7 +944,7 @@ class CommentAdapter(
             val color = Palette.getColor(n!!.community.name)
             currentSelectedItem = n!!.comment.id.id
             currentNode = baseNode
-            val inflater = (mContext as Activity?)!!.layoutInflater
+            val inflater = mPage.requireActivity().layoutInflater
             resetMenu(holder.menuArea, false)
             val baseView = inflater.inflate(
                 if (SettingValues.rightHandedCommentMenu) R.layout.comment_menu_right_handed else R.layout.comment_menu,
@@ -1207,7 +1209,7 @@ class CommentAdapter(
                         currentlyEditing = replyLine
                         DoEditorActions.doActions(
                             currentlyEditing, replyArea, fm,
-                            mContext as Activity?, comment.comment.content, getParents(baseNode)
+                            mPage.requireActivity(), comment.comment.content, getParents(baseNode)
                         )
                         currentlyEditing!!.onFocusChangeListener =
                             OnFocusChangeListener { v, hasFocus ->
@@ -1301,7 +1303,7 @@ class CommentAdapter(
                         }
                         //Hide soft keyboard
                         val view =
-                            (mContext as Activity?)!!.findViewById<View>(android.R.id.content)
+                            mPage.requireActivity().findViewById<View>(android.R.id.content)
                         if (view != null) {
                             KeyboardUtil.hideKeyboard(mContext, view.windowToken, 0)
                         }
@@ -1315,7 +1317,7 @@ class CommentAdapter(
                         backedText = ""
                         mPage.overrideFab = false
                         val view =
-                            (mContext as Activity?)!!.findViewById<View>(android.R.id.content)
+                            mPage.requireActivity().findViewById<View>(android.R.id.content)
                         if (view != null) {
                             KeyboardUtil.hideKeyboard(mContext, view.windowToken, 0)
                         }
@@ -1431,8 +1433,7 @@ class CommentAdapter(
     var currentlyEditing: EditText? = null
 
     init {
-        this.mContext = mContext.context
-        mPage = mContext
+        this.mContext = mPage.context
         this.listView = listView
         this.dataSet = dataSet
         this.fm = fm
@@ -1450,9 +1451,9 @@ class CommentAdapter(
 
         // As per reddit API gids: 0=silver, 1=gold, 2=platinum
         awardIcons = arrayOf(
-            BitmapFactory.decodeResource(mContext.resources, R.drawable.silver),
-            BitmapFactory.decodeResource(mContext.resources, R.drawable.gold),
-            BitmapFactory.decodeResource(mContext.resources, R.drawable.platinum)
+            BitmapFactory.decodeResource(mContext!!.resources, R.drawable.silver),
+            BitmapFactory.decodeResource(mContext!!.resources, R.drawable.gold),
+            BitmapFactory.decodeResource(mContext!!.resources, R.drawable.platinum)
         )
     }
 
@@ -1525,7 +1526,7 @@ class CommentAdapter(
                     mPage.overrideFab = false
                     currentlyEditingId = 0
                     backedText = ""
-                    val view = (mContext as Activity?)!!.findViewById<View>(android.R.id.content)
+                    val view = mPage.requireActivity().findViewById<View>(android.R.id.content)
                     if (view != null) {
                         KeyboardUtil.hideKeyboard(mContext, view.windowToken, 0)
                     }
@@ -1584,7 +1585,7 @@ class CommentAdapter(
                     mPage.overrideFab = false
                     currentlyEditingId = 0
                     backedText = ""
-                    val view = (mContext as Activity?)!!.findViewById<View>(android.R.id.content)
+                    val view = mPage.requireActivity().findViewById<View>(android.R.id.content)
                     if (view != null) {
                         KeyboardUtil.hideKeyboard(mContext, view.windowToken, 0)
                     }
@@ -1631,7 +1632,7 @@ class CommentAdapter(
                     mPage.overrideFab = false
                     currentlyEditingId = 0
                     backedText = ""
-                    val view = (mContext as Activity?)!!.findViewById<View>(android.R.id.content)
+                    val view = mPage.requireActivity().findViewById<View>(android.R.id.content)
                     if (view != null) {
                         KeyboardUtil.hideKeyboard(mContext, view.windowToken, 0)
                     }
@@ -1935,7 +1936,7 @@ class CommentAdapter(
             currentLoading = null
             if (!isCancelled && data != null) {
                 shifted += data
-                (mContext as Activity?)!!.runOnUiThread {
+                mPage.requireActivity().runOnUiThread {
                     currentComments!!.removeAt(position)
                     notifyItemRemoved(holderPos)
                 }
@@ -2087,7 +2088,7 @@ class CommentAdapter(
                 //Comment could not be found, force a reload
                 val handler2 = Handler()
                 handler2.postDelayed({
-                    (mContext as Activity?)!!.runOnUiThread {
+                    mPage.requireActivity().runOnUiThread {
                         dataSet.refreshLayout.isRefreshing = false
                         dataSet.loadMoreReply(this@CommentAdapter)
                     }
@@ -2134,7 +2135,7 @@ class CommentAdapter(
             currentComments!!.removeAt(position - 1)
             currentComments!!.add(position - 1, CommentItem(n))
             listView.itemAnimator = SlideRightAlphaAnimator()
-            (mContext as Activity?)!!.runOnUiThread { notifyItemChanged(holderpos) }
+            mPage.requireActivity().runOnUiThread { notifyItemChanged(holderpos) }
         }
     }
 

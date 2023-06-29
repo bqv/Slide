@@ -1,29 +1,32 @@
-package me.ccrama.redditslide.ui.settings;
+package me.ccrama.redditslide.ui.settings
 
-import android.os.Bundle;
-import android.view.ViewGroup;
+import android.os.Bundle
+import android.view.View
+import android.view.ViewGroup
+import dagger.hilt.android.AndroidEntryPoint
+import ltd.ucode.slide.R
+import ltd.ucode.slide.repository.CommentRepository
+import ltd.ucode.slide.repository.PostRepository
+import ltd.ucode.slide.ui.BaseActivityAnim
+import javax.inject.Inject
 
-import ltd.ucode.slide.ui.BaseActivityAnim;
-import ltd.ucode.slide.R;
+@AndroidEntryPoint
+class ManageOfflineContent : BaseActivityAnim() {
+    var fragment = ManageOfflineContentFragment(this)
 
+    @Inject
+    lateinit var postRepository: PostRepository
+    @Inject
+    lateinit var commentRepository: CommentRepository
 
-/**
- * Created by l3d00m on 11/13/2015.
- */
-public class ManageOfflineContent extends BaseActivityAnim {
-
-    ManageOfflineContentFragment fragment = new ManageOfflineContentFragment(this);
-
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        applyColorTheme();
-        setContentView(R.layout.activity_manage_history);
-        setupAppBar(R.id.toolbar, R.string.manage_offline_content, true, true);
-
-        ((ViewGroup) findViewById(R.id.manage_history)).addView(
-                getLayoutInflater().inflate(R.layout.activity_manage_history_child, null));
-
-        fragment.Bind();
+    public override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        applyColorTheme()
+        setContentView(R.layout.activity_manage_history)
+        setupAppBar(R.id.toolbar, R.string.manage_offline_content, true, true)
+        (findViewById<View>(R.id.manage_history) as ViewGroup).addView(
+            layoutInflater.inflate(R.layout.activity_manage_history_child, null)
+        )
+        fragment.Bind()
     }
-
 }

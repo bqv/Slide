@@ -155,7 +155,7 @@ class SubredditPostsRealm : PostLoader {
                 currentid = 0
                 OfflineSubreddit.currentid = currentid
                 if (c is BaseActivity) {
-                    (c as BaseActivity).shareUrl = "https://reddit.com/r/$subreddit"
+                    (c as BaseActivity).shareUrl = "https://reddit.com/c/$subreddit"
                 }
                 if (subreddit == "random" || subreddit == "myrandom" || subreddit == "randnsfw") {
                     subredditRandom = submissions[0]!!.groupName

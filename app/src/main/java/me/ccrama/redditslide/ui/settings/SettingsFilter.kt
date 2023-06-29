@@ -143,7 +143,7 @@ class SettingsFilter : BaseActivityAnim() {
             )
             val b = SpannableStringBuilder()
             val subname = s.split(":".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()[0]
-            val subreddit = SpannableStringBuilder(" /r/$subname ")
+            val subreddit = SpannableStringBuilder(" /c/$subname ")
             if (SettingValues.colorSubName && Palette.getColor(subname) != Palette.getDefaultColor()) {
                 subreddit.setSpan(
                     ForegroundColorSpan(Palette.getColor(subname)),

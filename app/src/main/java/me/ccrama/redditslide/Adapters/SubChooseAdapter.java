@@ -135,10 +135,10 @@ public class SubChooseAdapter extends ArrayAdapter<String> {
 
                     final float scale = getContext().getResources().getDisplayMetrics().density;
                     int p = (int) (50 * scale + 0.5f);
-                    shortcutIntent.putExtra(OpenContent.EXTRA_URL, "reddit.com/r/" + subreddit);
+                    shortcutIntent.putExtra(OpenContent.EXTRA_URL, "reddit.com/c/" + subreddit);
                     Intent intent = new Intent();
                     intent.putExtra(Intent.EXTRA_SHORTCUT_INTENT, shortcutIntent);
-                    intent.putExtra(Intent.EXTRA_SHORTCUT_NAME, "/r/" + subreddit);
+                    intent.putExtra(Intent.EXTRA_SHORTCUT_NAME, "/c/" + subreddit);
                     intent.putExtra(Intent.EXTRA_SHORTCUT_ICON, Bitmap.createScaledBitmap(bm2, p, p, false));
                     ((Shortcut)getContext()).setResult(Activity.RESULT_OK, intent);
 

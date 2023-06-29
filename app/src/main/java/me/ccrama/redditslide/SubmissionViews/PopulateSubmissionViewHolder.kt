@@ -61,6 +61,8 @@ import me.ccrama.redditslide.Adapters.CommentAdapter
 import me.ccrama.redditslide.Adapters.SubmissionViewHolder
 import me.ccrama.redditslide.CommentCacheAsync
 import ltd.ucode.slide.ContentType
+import ltd.ucode.slide.repository.CommentRepository
+import ltd.ucode.slide.repository.PostRepository
 import me.ccrama.redditslide.DataShare
 import me.ccrama.redditslide.ForceTouch.PeekViewActivity
 import me.ccrama.redditslide.HasSeen
@@ -103,10 +105,12 @@ import org.apache.commons.text.StringEscapeUtils
 import java.util.Arrays
 import java.util.Locale
 
-class PopulateSubmissionViewHolder() {
+class PopulateSubmissionViewHolder(private val postRepository: PostRepository,
+                                   private val commentRepository: CommentRepository) {
     var reason: String? = null
     var chosen = booleanArrayOf(false, false, false)
     var oldChosen = booleanArrayOf(false, false, false)
+
     private fun showBottomSheet(
         mContext: Activity,
         submission: IPost, holder: SubmissionViewHolder, posts: MutableList<IPost>,
@@ -401,7 +405,9 @@ class PopulateSubmissionViewHolder() {
                         if (NetworkUtil.isConnected(mContext)) {
                             CommentCacheAsync(
                                 listOf(submission), mContext,
-                                CommentCacheAsync.SAVED_SUBMISSIONS, booleanArrayOf(true, true)
+                                CommentCacheAsync.SAVED_SUBMISSIONS,
+                                postRepository, commentRepository,
+                                booleanArrayOf(true, true)
                             ).executeOnExecutor(
                                 AsyncTask.THREAD_POOL_EXECUTOR
                             )

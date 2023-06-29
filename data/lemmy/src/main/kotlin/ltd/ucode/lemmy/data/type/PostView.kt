@@ -16,4 +16,8 @@ data class PostView (
     @SerialName("saved") val isSaved: Boolean,
     val subscribed: SubscribedType,
     @SerialName("unread_comments") val unreadComments: Int,
-)
+) {
+    val instanceName: String
+        @Deprecated("there must be a better way")
+        get() = community.instanceName
+}

@@ -16,11 +16,14 @@ import ltd.ucode.slide.Authentication
 import ltd.ucode.slide.R
 import ltd.ucode.slide.SettingValues.appRestart
 import ltd.ucode.slide.SettingValues.getLayoutSettings
+import ltd.ucode.slide.repository.CommentRepository
+import ltd.ucode.slide.repository.PostRepository
 import ltd.ucode.slide.ui.commentsScreen.CommentsScreen
 import ltd.ucode.slide.ui.main.MainActivity
 import ltd.ucode.slide.ui.main.MainActivity.MainPagerAdapterComment
 import me.ccrama.redditslide.Activities.SubredditView
 import me.ccrama.redditslide.Activities.SubredditView.SubredditPagerAdapterComment
+import me.ccrama.redditslide.Fragments.NewsView
 import me.ccrama.redditslide.Fragments.SubmissionsView.Companion.createLayoutManager
 import me.ccrama.redditslide.SubmissionViews.PopulateNewsViewHolder
 import me.ccrama.redditslide.submission
@@ -35,6 +38,18 @@ class SubmissionNewsAdapter(
     context: Activity, dataSet: SubredditPostsRealm,
     listView: RecyclerView?, subreddit: String, displayer: SubmissionDisplay
 ) : RecyclerView.Adapter<RecyclerView.ViewHolder>(), BaseAdapter {
+    val postRepository: PostRepository get() = when {
+        displayer is NewsView -> { (displayer as NewsView).postRepository }
+        context is MainActivity -> { (context as MainActivity).postRepository }
+        else -> { throw IllegalArgumentException() }
+    }
+
+    val commentRepository: CommentRepository get() = when {
+        displayer is NewsView -> { (displayer as NewsView).commentRepository }
+        context is MainActivity -> { (context as MainActivity).commentRepository }
+        else -> { throw IllegalArgumentException() }
+    }
+
     private val listView: RecyclerView?
     val subreddit: String
     var context: Activity
@@ -257,7 +272,7 @@ class SubmissionNewsAdapter(
                     }
                 }
             })
-            PopulateNewsViewHolder().populateNewsViewHolder(
+            PopulateNewsViewHolder(postRepository, commentRepository).populateNewsViewHolder(
                 holder, submission, context, false,
                 false, dataSet.posts.mapNotNull { it?.submission }.toMutableList(), listView!!, custom, dataSet.offline,
                 dataSet.subreddit.lowercase(), null

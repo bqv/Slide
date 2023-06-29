@@ -110,7 +110,7 @@
                             android:layout_height="match_parent"
 
                             android:gravity="center_vertical"
-                            android:text="/r/Android"
+                            android:text="/c/Android"
 
                             android:textColor="?attr/fontColor"
 

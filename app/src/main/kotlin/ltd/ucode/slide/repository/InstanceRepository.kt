@@ -9,12 +9,15 @@ import ltd.ucode.lemmy.data.type.NodeInfoResult
 import ltd.ucode.slide.table.Instance
 import okhttp3.OkHttpClient
 import javax.inject.Inject
+import javax.inject.Named
 
 class InstanceRepository @Inject constructor(
     @ApplicationContext val context: Context,
     val okHttpClient: OkHttpClient,
-    val userAgent: String,
+    @Named("userAgent") val userAgent: String,
 ) {
+    var defaultInstance: String = "lemmy.ml"
+
     private val instances = InstanceMap()
 
     inner class InstanceMap : HashMap<String, InstanceDataSource>() {
@@ -36,7 +39,8 @@ class InstanceRepository @Inject constructor(
         }
     }
 
-    operator fun get(key: String): InstanceDataSource {
+    operator fun get(key: String?): InstanceDataSource {
+        if (key == null) return instances[defaultInstance]
         return instances[key]
     }
 
@@ -68,8 +72,8 @@ class InstanceRepository @Inject constructor(
         }
     }
 
-    suspend fun getFederatedInstances(instance: String = "lemmy.ml"): Set<String> {
-        return instances[instance]!!.getFederatedInstances().federatedInstances?.run {
+    suspend fun getFederatedInstances(fromInstance: String = "lemmy.ml"): Set<String> {
+        return instances[fromInstance]!!.getFederatedInstances().federatedInstances?.run {
             linked.toSortedSet().also {
                 it.addAll(allowed.orEmpty())
                 it.addAll(blocked.orEmpty())

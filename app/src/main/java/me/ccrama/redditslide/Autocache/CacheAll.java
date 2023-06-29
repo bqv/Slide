@@ -14,13 +14,12 @@ import ltd.ucode.slide.App;
 import me.ccrama.redditslide.util.NetworkUtil;
 
 public class CacheAll extends BroadcastReceiver {
-
     @Override
     public void onReceive(Context context, Intent intent) {
         if (NetworkUtil.isConnectedNoOverride(context)) {
             if (App.cachedData.getBoolean("wifiOnly", false) && !NetworkUtil.isConnectedWifi(context))
                 return;
-            new CommentCacheAsync(context, App.cachedData.getString("toCache", "").split(",")).executeOnExecutor(
+            new CommentCacheAsync(context, null, null, App.cachedData.getString("toCache", "").split(",")).executeOnExecutor(
                     AsyncTask.THREAD_POOL_EXECUTOR);
 
         }

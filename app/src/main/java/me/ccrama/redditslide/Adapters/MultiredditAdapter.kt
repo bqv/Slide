@@ -31,12 +31,15 @@ class MultiredditAdapter(
     refreshLayout: SwipeRefreshLayout,
     baseView: MultiredditView
 ) : RecyclerView.Adapter<RecyclerView.ViewHolder>(), BaseAdapter {
+    private val postRepository get() = baseView.postRepository
+    private val commentRepository get() = baseView.commentRepository
+
     var seen: List<Submission>
     private val LOADING_SPINNER = 5
     private val NO_MORE = 3
     private val SPACER = 6
     var refreshLayout: SwipeRefreshLayout
-    var baseView: MultiredditView
+    private var baseView: MultiredditView
     override fun setError(b: Boolean) {
         listView.adapter = ErrorAdapter()
     }
@@ -138,7 +141,7 @@ class MultiredditAdapter(
                     LayoutUtils.showSnackbar(s)
                 }
             }
-            PopulateSubmissionViewHolder().populateSubmissionViewHolder(
+            PopulateSubmissionViewHolder(postRepository, commentRepository).populateSubmissionViewHolder(
                 holder,
                 RedditSubmission(submission),
                 context,

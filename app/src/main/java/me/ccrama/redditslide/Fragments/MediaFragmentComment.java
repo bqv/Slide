@@ -166,22 +166,19 @@ public class MediaFragmentComment extends Fragment {
                         if (newState == SlidingUpPanelLayout.PanelState.EXPANDED) {
                             final Comment c = s.comment.getComment();
                             rootView.findViewById(R.id.base)
-                                    .setOnClickListener(new View.OnClickListener() {
-                                        @Override
-                                        public void onClick(View v) {
-                                            String url = "https://reddit.com"
-                                                    + "/r/"
-                                                    + c.getSubredditName()
-                                                    + "/comments/"
-                                                    + c.getDataNode()
-                                                    .get("link_id")
-                                                    .asText()
-                                                    .substring(3)
-                                                    + "/nothing/"
-                                                    + c.getId()
-                                                    + "?context=3";
-                                            OpenRedditLink.openUrl(getActivity(), url, true);
-                                        }
+                                    .setOnClickListener(v -> {
+                                        String url = "https://reddit.com"
+                                                + "/r/"
+                                                + c.getSubredditName()
+                                                + "/comments/"
+                                                + c.getDataNode()
+                                                .get("link_id")
+                                                .asText()
+                                                .substring(3)
+                                                + "/nothing/"
+                                                + c.getId()
+                                                + "?context=3";
+                                        OpenRedditLink.openUrl(getActivity(), url, true);
                                     });
                         } else {
                             rootView.findViewById(R.id.base).setOnClickListener(openClick);

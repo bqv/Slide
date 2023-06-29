@@ -18,4 +18,8 @@ data class CommentView (
 ) {
     val permalink: String
         get() = comment.apId
+
+    val instanceName: String
+        @Deprecated("there must be a better way")
+        get() = community.instanceName
 }

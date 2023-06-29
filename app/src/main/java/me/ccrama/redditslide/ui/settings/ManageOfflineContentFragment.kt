@@ -5,7 +5,6 @@ import android.content.DialogInterface
 import android.os.Build
 import android.util.TypedValue
 import android.view.View
-import android.widget.CompoundButton
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
@@ -15,6 +14,8 @@ import com.rey.material.app.TimePickerDialog
 import ltd.ucode.slide.App
 import ltd.ucode.slide.R
 import ltd.ucode.slide.SettingValues
+import ltd.ucode.slide.repository.CommentRepository
+import ltd.ucode.slide.repository.PostRepository
 import me.ccrama.redditslide.Autocache.AutoCacheScheduler
 import me.ccrama.redditslide.CommentCacheAsync
 import me.ccrama.redditslide.OfflineSubreddit
@@ -29,42 +30,49 @@ import java.util.Collections
 import java.util.Locale
 
 class ManageOfflineContentFragment(private val context: Activity) {
+    val postRepository: PostRepository get() = when (context) {
+        is ManageOfflineContent -> { context.postRepository }
+        is SettingsActivity -> { context.postRepository }
+        else -> { throw IllegalArgumentException(context.localClassName) }
+    }
+
+    val commentRepository: CommentRepository get() = when (context) {
+        is ManageOfflineContent -> { context.commentRepository }
+        is SettingsActivity -> { context.commentRepository }
+        else -> { throw IllegalArgumentException(context.localClassName) }
+    }
+
     fun Bind() {
         if (!NetworkUtil.isConnected(context)) SettingsThemeFragment.changed = true
-        context.findViewById<View>(R.id.manage_history_clear_all).setOnClickListener(
-            View.OnClickListener {
-                val wifi = App.cachedData!!.getBoolean("wifiOnly", false)
-                val sync = App.cachedData!!.getString("toCache", "")
-                val hour = (App.cachedData!!.getInt("hour", 0))
-                val minute = (App.cachedData!!.getInt("minute", 0))
-                App.cachedData!!.edit().clear().apply()
-                App.cachedData!!.edit().putBoolean("wifiOnly", wifi).putString(
-                    "toCache", sync
-                ).putInt("hour", hour).putInt("minute", minute).apply()
-                context.finish()
-            })
+        context.findViewById<View>(R.id.manage_history_clear_all).setOnClickListener {
+            val wifi = App.cachedData!!.getBoolean("wifiOnly", false)
+            val sync = App.cachedData!!.getString("toCache", "")
+            val hour = (App.cachedData!!.getInt("hour", 0))
+            val minute = (App.cachedData!!.getInt("minute", 0))
+            App.cachedData!!.edit().clear().apply()
+            App.cachedData!!.edit().putBoolean("wifiOnly", wifi).putString(
+                "toCache", sync
+            ).putInt("hour", hour).putInt("minute", minute).apply()
+            context.finish()
+        }
         if (NetworkUtil.isConnectedNoOverride(context)) {
             context.findViewById<View>(R.id.manage_history_sync_now)
-                .setOnClickListener(object : View.OnClickListener {
-                    override fun onClick(v: View) {
-                        CommentCacheAsync(
-                            context, App.cachedData!!.getString(
-                                "toCache", ""
-                            )!!.split(",".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
-                        ).execute()
-                    }
-                })
+                .setOnClickListener {
+                    CommentCacheAsync(
+                        context, postRepository, commentRepository, App.cachedData!!.getString(
+                            "toCache", ""
+                        )!!.split(",".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
+                    ).execute()
+                }
         } else {
             context.findViewById<View>(R.id.manage_history_sync_now).visibility = View.GONE
         }
         run {
             val single: SwitchCompat = context.findViewById(R.id.manage_history_wifi)
-            single.setChecked(App.cachedData!!.getBoolean("wifiOnly", false))
-            single.setOnCheckedChangeListener(object : CompoundButton.OnCheckedChangeListener {
-                override fun onCheckedChanged(buttonView: CompoundButton, isChecked: Boolean) {
-                    App.cachedData!!.edit().putBoolean("wifiOnly", isChecked).apply()
-                }
-            })
+            single.isChecked = App.cachedData!!.getBoolean("wifiOnly", false)
+            single.setOnCheckedChangeListener { buttonView, isChecked ->
+                App.cachedData!!.edit().putBoolean("wifiOnly", isChecked).apply()
+            }
         }
         updateBackup()
         updateFilters()
@@ -106,18 +114,16 @@ class ManageOfflineContentFragment(private val context: Activity) {
                 )
                 val all = arrayOfNulls<String>(sorted.size)
                 val checked = BooleanArray(all.size)
-                var i = 0
                 val s2: MutableList<String?> = ArrayList()
                 Collections.addAll(
                     s2, *App.cachedData!!.getString("toCache", "")!!
                         .split(",".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
                 )
-                for (s: String? in sorted) {
+                for ((i, s: String?) in sorted.withIndex()) {
                     all[i] = s
                     if (s2.contains(s)) {
                         checked[i] = true
                     }
-                    i++
                 }
                 val toCheck = ArrayList(s2)
                 AlertDialog.Builder(context)
@@ -165,18 +171,16 @@ class ManageOfflineContentFragment(private val context: Activity) {
                         ColorPreferences(context).fontStyle.color
                     )
                 )
-                d.positiveActionClickListener(object : View.OnClickListener {
-                    override fun onClick(v: View) {
-                        App.cachedData!!.edit()
-                            .putInt("hour", d.hour)
-                            .putInt("minute", d.minute)
-                            .commit()
-                        App.autoCache = AutoCacheScheduler(context)
-                        App.autoCache!!.start()
-                        updateTime()
-                        d.dismiss()
-                    }
-                })
+                d.positiveActionClickListener {
+                    App.cachedData!!.edit()
+                        .putInt("hour", d.hour)
+                        .putInt("minute", d.minute)
+                        .commit()
+                    App.autoCache = AutoCacheScheduler(context)
+                    App.autoCache!!.start()
+                    updateTime()
+                    d.dismiss()
+                }
                 theme.resolveAttribute(R.attr.fontColor, typedValue, true)
                 val color2 = typedValue.data
                 d.setTitle(context.getString(R.string.choose_sync_time))
@@ -232,7 +236,7 @@ class ManageOfflineContentFragment(private val context: Activity) {
                         sub = multiNameToSubsMap[sub]
                     }
                     val name =
-                        (if (sub!!.contains("/m/")) sub else "/r/$sub") + " → " + (if (split[1].toLong() == 0L) context.getString(
+                        (if (sub!!.contains("/m/")) sub else "/c/$sub") + " → " + (if (split[1].toLong() == 0L) context.getString(
                             R.string.settings_backup_submission_only
                         ) else TimeUtils.getTimeAgo(
                             split[1].toLong(), context
@@ -245,13 +249,11 @@ class ManageOfflineContentFragment(private val context: Activity) {
                     )
                     (t.findViewById<View>(R.id.name) as TextView).text = name
                     t.findViewById<View>(R.id.remove)
-                        .setOnClickListener(object : View.OnClickListener {
-                            override fun onClick(v: View) {
-                                domains.remove(name)
-                                App.cachedData!!.edit().remove(s).apply()
-                                updateFilters()
-                            }
-                        })
+                        .setOnClickListener {
+                            domains.remove(name)
+                            App.cachedData!!.edit().remove(s).apply()
+                            updateFilters()
+                        }
                     (context.findViewById<View>(R.id.manage_history_domainlist) as LinearLayout).addView(
                         t
                     )

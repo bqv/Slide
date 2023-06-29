@@ -28,6 +28,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.snackbar.Snackbar
 import com.mikepenz.itemanimators.AlphaInAnimator
 import com.mikepenz.itemanimators.SlideUpAlphaAnimator
+import dagger.hilt.android.AndroidEntryPoint
 import ltd.ucode.slide.App
 import ltd.ucode.slide.R
 import ltd.ucode.slide.SettingValues
@@ -38,6 +39,8 @@ import ltd.ucode.slide.SettingValues.fabType
 import ltd.ucode.slide.SettingValues.single
 import ltd.ucode.slide.SettingValues.subredditSearchMethod
 import ltd.ucode.slide.data.IPost
+import ltd.ucode.slide.repository.CommentRepository
+import ltd.ucode.slide.repository.PostRepository
 import ltd.ucode.slide.ui.BaseActivity
 import ltd.ucode.slide.ui.main.MainActivity
 import me.ccrama.redditslide.Activities.Search
@@ -57,9 +60,16 @@ import me.ccrama.redditslide.submission
 import me.ccrama.redditslide.util.LayoutUtils
 import me.ccrama.redditslide.views.CatchStaggeredGridLayoutManager
 import me.ccrama.redditslide.views.CreateCardView
+import javax.inject.Inject
 import kotlin.math.abs
 
+@AndroidEntryPoint
 class SubmissionsView : Fragment(), SubmissionDisplay {
+    @Inject
+    lateinit var postRepository: PostRepository
+    @Inject
+    lateinit var commentRepository: CommentRepository
+
     @JvmField var posts: SubredditPosts? = null
     @JvmField var rv: RecyclerView? = null
     @JvmField var adapter: SubmissionAdapter? = null
@@ -308,7 +318,7 @@ class SubmissionsView : Fragment(), SubmissionDisplay {
         if (!MainActivity.isRestart) {
             mSwipeRefreshLayout!!.post { mSwipeRefreshLayout!!.isRefreshing = true }
         }
-        posts = SubredditPosts(id!!, requireContext())
+        posts = SubredditPosts(id!!, requireContext(), postRepository)
         adapter = SubmissionAdapter(requireActivity(), posts!!, rv, id!!, this)
         adapter!!.setHasStableIds(true)
         rv!!.adapter = adapter
@@ -318,7 +328,7 @@ class SubmissionsView : Fragment(), SubmissionDisplay {
 
     fun doAdapter(force18: Boolean) {
         mSwipeRefreshLayout!!.post { mSwipeRefreshLayout!!.isRefreshing = true }
-        posts = SubredditPosts(id!!, requireContext(), force18)
+        posts = SubredditPosts(id!!, requireContext(), postRepository, force18)
         adapter = SubmissionAdapter(requireActivity(), posts!!, rv, id!!, this)
         adapter!!.setHasStableIds(true)
         rv!!.adapter = adapter

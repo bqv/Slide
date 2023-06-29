@@ -23,11 +23,14 @@ import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.SwitchCompat
 import com.google.common.base.Strings
+import dagger.hilt.android.AndroidEntryPoint
 import ltd.ucode.slide.App
 import ltd.ucode.slide.Authentication
 import ltd.ucode.slide.BuildConfig
 import ltd.ucode.slide.R
 import ltd.ucode.slide.SettingValues
+import ltd.ucode.slide.repository.CommentRepository
+import ltd.ucode.slide.repository.PostRepository
 import ltd.ucode.slide.ui.BaseActivity
 import me.ccrama.redditslide.Fragments.FolderChooserDialogCreate
 import me.ccrama.redditslide.Visuals.Palette
@@ -39,8 +42,15 @@ import me.ccrama.redditslide.util.stubs.SimpleTextWatcher
 import java.io.File
 import java.util.Arrays
 import java.util.Locale
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class SettingsActivity : BaseActivity(), FolderChooserDialogCreate.FolderCallback, RestartActivity {
+    @Inject
+    lateinit var postRepository: PostRepository
+    @Inject
+    lateinit var commentRepository: CommentRepository
+
     private var scrollY = 0
     private var prev_text: String? = null
     private val mSettingsGeneralFragment: SettingsGeneralFragment<*> =

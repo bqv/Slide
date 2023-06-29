@@ -123,52 +123,52 @@ object CommentAdapterHelper {
         if (!adapter.currentBaseNode!!.comment.isTopLevel) {
             b.sheet(10, parent, mContext.getString(R.string.comment_parent))
         }
-        b.listener(object : DialogInterface.OnClickListener {
-            override fun onClick(dialog: DialogInterface, which: Int) {
-                when (which) {
-                    1 -> {
+        b.listener { dialog, which ->
+            when (which) {
+                1 -> {
 
-                        //Go to author
-                        val i = Intent(mContext, Profile::class.java)
-                        i.putExtra(Profile.EXTRA_PROFILE, n.creator.name)
-                        mContext.startActivity(i)
-                    }
+                    //Go to author
+                    val i = Intent(mContext, Profile::class.java)
+                    i.putExtra(Profile.EXTRA_PROFILE, n.creator.name)
+                    mContext.startActivity(i)
+                }
 
-                    3 ->                         //Save comment
-                        saveComment(n, mContext, holder)
+                3 ->                         //Save comment
+                    saveComment(n, mContext, holder)
 
-                    23 -> {
+                23 -> {
 
-                        //Go to comment permalink
-                        val s = ("https://${Authentication.api!!.instance}/comment/${n.comment.id.id}"
-                                + "?context=3")
-                        OpenRedditLink.openUrl(mContext, s, true)
-                    }
+                    //Go to comment permalink
+                    val s = ("https://${n.instanceName}/comment/${n.comment.id.id}"
+                            + "?context=3")
+                    OpenRedditLink.openUrl(mContext, s, true)
+                }
 
-                    50 -> {
-                        setReplies(
-                            baseNode,
-                            holder,
-                            false
-                        )
-                    }
+                50 -> {
+                    setReplies(
+                        baseNode,
+                        holder,
+                        false
+                    )
+                }
 
-                    5 -> {
+                5 -> {
 
-                        //Gild comment
-                    }
+                    //Gild comment
+                }
 
-                    16 -> {
-                        //report
-                        val reportDialog = MaterialDialog.Builder(mContext)
-                            .customView(R.layout.report_dialog, true)
-                            .title(R.string.report_comment)
-                            .positiveText(R.string.btn_report)
-                            .negativeText(R.string.btn_cancel)
-                            .onPositive(SingleButtonCallback { dialog, which ->
-                                val reasonGroup = dialog.customView!!
-                                    .findViewById<RadioGroup>(R.id.report_reasons)
-                                val reportReason: String = if (reasonGroup.checkedRadioButtonId == R.id.report_other) {
+                16 -> {
+                    //report
+                    val reportDialog = MaterialDialog.Builder(mContext)
+                        .customView(R.layout.report_dialog, true)
+                        .title(R.string.report_comment)
+                        .positiveText(R.string.btn_report)
+                        .negativeText(R.string.btn_cancel)
+                        .onPositive(SingleButtonCallback { dialog, which ->
+                            val reasonGroup = dialog.customView!!
+                                .findViewById<RadioGroup>(R.id.report_reasons)
+                            val reportReason: String =
+                                if (reasonGroup.checkedRadioButtonId == R.id.report_other) {
                                     (dialog.customView!!
                                         .findViewById<View>(R.id.input_report_reason) as EditText).text.toString()
                                 } else {
@@ -176,120 +176,119 @@ object CommentAdapterHelper {
                                         .findViewById<View>(reasonGroup.checkedRadioButtonId) as RadioButton)
                                         .text.toString()
                                 }
-                                AsyncReportTask(adapter.currentBaseNode, adapter.listView)
-                                    .execute(reportReason)
-                            }).build()
-                        val reasonGroup =
-                            reportDialog.customView!!.findViewById<RadioGroup>(R.id.report_reasons)
-                        reasonGroup.setOnCheckedChangeListener { group, checkedId ->
-                            if (checkedId == R.id.report_other) reportDialog.customView!!.findViewById<View>(
-                                R.id.input_report_reason
-                            ).visibility = View.VISIBLE else reportDialog.customView!!
-                                .findViewById<View>(R.id.input_report_reason).visibility =
-                                View.GONE
-                        }
+                            AsyncReportTask(adapter.currentBaseNode, adapter.listView)
+                                .execute(reportReason)
+                        }).build()
+                    val reasonGroup =
+                        reportDialog.customView!!.findViewById<RadioGroup>(R.id.report_reasons)
+                    reasonGroup.setOnCheckedChangeListener { group, checkedId ->
+                        if (checkedId == R.id.report_other) reportDialog.customView!!.findViewById<View>(
+                            R.id.input_report_reason
+                        ).visibility = View.VISIBLE else reportDialog.customView!!
+                            .findViewById<View>(R.id.input_report_reason).visibility =
+                            View.GONE
+                    }
 
-                        // Load sub's report reasons and show the appropriate ones
-                        object : AsyncTask<Void?, Void?, Ruleset>() {
-                            override fun doInBackground(vararg voids: Void?): Ruleset {
-                                /*
-                                return Authentication.reddit!!.getRules(
-                                    adapter.currentBaseNode!!.community.name
-                                )
-                                 */throw Exception("TODO")
-                            }
-
-                            override fun onPostExecute(rules: Ruleset) {
-                                reportDialog.customView!!.findViewById<View>(R.id.report_loading).visibility =
-                                    View.GONE
-                                if (rules.subredditRules.size > 0) {
-                                    val subHeader = TextView(mContext)
-                                    subHeader.text = mContext.getString(
-                                        R.string.report_sub_rules,
+                    // Load sub's report reasons and show the appropriate ones
+                    object : AsyncTask<Void?, Void?, Ruleset>() {
+                        override fun doInBackground(vararg voids: Void?): Ruleset {
+                            /*
+                                    return Authentication.reddit!!.getRules(
                                         adapter.currentBaseNode!!.community.name
                                     )
-                                    reasonGroup.addView(subHeader, reasonGroup.childCount - 2)
-                                }
-                                for (rule: SubredditRule in rules.subredditRules) {
-                                    if ((rule.kind == SubredditRule.RuleKind.COMMENT
-                                                || rule.kind == SubredditRule.RuleKind.ALL)
-                                    ) {
-                                        val btn = RadioButton(mContext)
-                                        btn.text = rule.violationReason
-                                        reasonGroup.addView(btn, reasonGroup.childCount - 2)
-                                        btn.layoutParams.width =
-                                            WindowManager.LayoutParams.MATCH_PARENT
-                                    }
-                                }
-                                if (rules.siteRules.size > 0) {
-                                    val siteHeader = TextView(mContext)
-                                    siteHeader.setText(R.string.report_site_rules)
-                                    reasonGroup.addView(siteHeader, reasonGroup.childCount - 2)
-                                }
-                                for (rule: String? in rules.siteRules) {
-                                    val btn = RadioButton(mContext)
-                                    btn.text = rule
-                                    reasonGroup.addView(btn, reasonGroup.childCount - 2)
-                                    btn.layoutParams.width = WindowManager.LayoutParams.MATCH_PARENT
-                                }
-                            }
-                        }.execute()
-                        reportDialog.show()
-                    }
+                                     */throw Exception("TODO")
+                        }
 
-                    10 ->                         //View comment parent
-                        viewCommentParent(adapter, holder, mContext, baseNode)
-
-                    7 -> {
-                        //Show select and copy text to clipboard
-                        val showText = TextView(mContext)
-                        showText.text = StringEscapeUtils.unescapeHtml4(n.comment.contentHtml)
-                        showText.setTextIsSelectable(true)
-                        val sixteen = DisplayUtil.dpToPxVertical(24)
-                        showText.setPadding(sixteen, 0, sixteen, 0)
-                        AlertDialog.Builder(mContext)
-                            .setView(showText)
-                            .setTitle("Select text to copy")
-                            .setCancelable(true)
-                            .setPositiveButton("COPY") { dialog1: DialogInterface?, which1: Int ->
-                                val selected: String = showText.getText()
-                                    .toString()
-                                    .substring(
-                                        showText.getSelectionStart(),
-                                        showText.getSelectionEnd()
-                                    )
-                                ClipboardUtil.copyToClipboard(mContext, "Comment text", selected)
-                                Toast.makeText(
-                                    mContext, R.string.submission_comment_copied,
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                            }
-                            .setNegativeButton(R.string.btn_cancel, null)
-                            .setNeutralButton(
-                                "COPY ALL"
-                            ) { dialog12: DialogInterface?, which12: Int ->
-                                ClipboardUtil.copyToClipboard(
-                                    mContext, "Comment text",
-                                    n.comment.contentHtml
+                        override fun onPostExecute(rules: Ruleset) {
+                            reportDialog.customView!!.findViewById<View>(R.id.report_loading).visibility =
+                                View.GONE
+                            if (rules.subredditRules.size > 0) {
+                                val subHeader = TextView(mContext)
+                                subHeader.text = mContext.getString(
+                                    R.string.report_sub_rules,
+                                    adapter.currentBaseNode!!.community.name
                                 )
-                                Toast.makeText(
-                                    mContext,
-                                    R.string.submission_comment_copied,
-                                    Toast.LENGTH_SHORT
-                                ).show()
+                                reasonGroup.addView(subHeader, reasonGroup.childCount - 2)
                             }
-                            .show()
-                    }
-
-                    4 ->                         //Share comment
-                        defaultShareText(
-                            adapter.submission!!.title,
-                            ("https://${Authentication.api!!.instance}/comment/${n.comment.id.id}"
-                                    + "?context=3"), mContext
-                        )
+                            for (rule: SubredditRule in rules.subredditRules) {
+                                if ((rule.kind == SubredditRule.RuleKind.COMMENT
+                                            || rule.kind == SubredditRule.RuleKind.ALL)
+                                ) {
+                                    val btn = RadioButton(mContext)
+                                    btn.text = rule.violationReason
+                                    reasonGroup.addView(btn, reasonGroup.childCount - 2)
+                                    btn.layoutParams.width =
+                                        WindowManager.LayoutParams.MATCH_PARENT
+                                }
+                            }
+                            if (rules.siteRules.size > 0) {
+                                val siteHeader = TextView(mContext)
+                                siteHeader.setText(R.string.report_site_rules)
+                                reasonGroup.addView(siteHeader, reasonGroup.childCount - 2)
+                            }
+                            for (rule: String? in rules.siteRules) {
+                                val btn = RadioButton(mContext)
+                                btn.text = rule
+                                reasonGroup.addView(btn, reasonGroup.childCount - 2)
+                                btn.layoutParams.width = WindowManager.LayoutParams.MATCH_PARENT
+                            }
+                        }
+                    }.execute()
+                    reportDialog.show()
                 }
+
+                10 ->                         //View comment parent
+                    viewCommentParent(adapter, holder, mContext, baseNode)
+
+                7 -> {
+                    //Show select and copy text to clipboard
+                    val showText = TextView(mContext)
+                    showText.text = StringEscapeUtils.unescapeHtml4(n.comment.contentHtml)
+                    showText.setTextIsSelectable(true)
+                    val sixteen = DisplayUtil.dpToPxVertical(24)
+                    showText.setPadding(sixteen, 0, sixteen, 0)
+                    AlertDialog.Builder(mContext)
+                        .setView(showText)
+                        .setTitle("Select text to copy")
+                        .setCancelable(true)
+                        .setPositiveButton("COPY") { dialog1: DialogInterface?, which1: Int ->
+                            val selected: String = showText.getText()
+                                .toString()
+                                .substring(
+                                    showText.getSelectionStart(),
+                                    showText.getSelectionEnd()
+                                )
+                            ClipboardUtil.copyToClipboard(mContext, "Comment text", selected)
+                            Toast.makeText(
+                                mContext, R.string.submission_comment_copied,
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                        .setNegativeButton(R.string.btn_cancel, null)
+                        .setNeutralButton(
+                            "COPY ALL"
+                        ) { dialog12: DialogInterface?, which12: Int ->
+                            ClipboardUtil.copyToClipboard(
+                                mContext, "Comment text",
+                                n.comment.contentHtml
+                            )
+                            Toast.makeText(
+                                mContext,
+                                R.string.submission_comment_copied,
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                        .show()
+                }
+
+                4 ->                         //Share comment
+                    defaultShareText(
+                        adapter.submission!!.title,
+                        ("https://${n.instanceName}/comment/${n.comment.id.id}"
+                                + "?context=3"), mContext
+                    )
             }
-        })
+        }
         b.show()
     }
 
