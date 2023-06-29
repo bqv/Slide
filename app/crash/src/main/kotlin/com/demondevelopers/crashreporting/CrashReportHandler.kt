@@ -150,7 +150,6 @@ object CrashReportHandler {
                     return
                 }
                 bCrashing = true
-                Log.e(TAG, "FATAL EXCEPTION: " + thread.name, ex)
                 // Attempt to save a screenshot (no permissions required!)
                 var screenshot: String? = null
                 val bm = CrashReportHandler.screenshot

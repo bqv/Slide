@@ -19,6 +19,7 @@ import androidx.core.widget.addTextChangedListener
 import androidx.lifecycle.Observer
 import com.afollestad.materialdialogs.MaterialDialog
 import dagger.hilt.android.AndroidEntryPoint
+import ltd.ucode.slide.App
 import ltd.ucode.slide.App.Companion.forceRestart
 import ltd.ucode.slide.Authentication
 import ltd.ucode.slide.R
@@ -27,6 +28,7 @@ import ltd.ucode.slide.SettingValues.authentication
 import ltd.ucode.slide.databinding.ActivityLoginBinding
 import ltd.ucode.slide.ui.BaseActivityAnim
 import me.ccrama.redditslide.CaseInsensitiveArrayList
+import me.ccrama.redditslide.UserSubscriptions
 import me.ccrama.redditslide.UserSubscriptions.setSubscriptions
 import me.ccrama.redditslide.UserSubscriptions.sort
 import me.ccrama.redditslide.UserSubscriptions.switchAccounts
@@ -95,7 +97,14 @@ class Login : BaseActivityAnim() {
                 "Would login as $username:$password",
                 android.widget.Toast.LENGTH_LONG)
 
-            viewModel.doLogin()
+            binding.progress.visibility = View.VISIBLE
+            viewModel.doLogin(onSuccess = {
+                UserSubscriptions.switchAccounts()
+                App.forceRestart(this, true)
+                finish()
+            }, onFailure = {
+                binding.progress.visibility = View.INVISIBLE
+            })
         }
     }
 

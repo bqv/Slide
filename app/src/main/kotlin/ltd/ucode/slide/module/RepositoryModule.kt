@@ -22,8 +22,8 @@ import javax.inject.Named
 object RepositoryModule {
     @Provides
     @ViewModelScoped
-    fun providesAccountRepository(@ApplicationContext context: Context, instanceRepository: InstanceRepository): AccountRepository =
-        AccountRepository(context = context, instanceRepository = instanceRepository)
+    fun providesAccountRepository(@ApplicationContext context: Context): AccountRepository =
+        AccountRepository(context = context)
 
     @Provides
     @ViewModelScoped
@@ -37,8 +37,8 @@ object RepositoryModule {
 
     @Provides
     @ViewModelScoped
-    fun providesInstanceRepository(@ApplicationContext context: Context, okHttpClient: OkHttpClient, @Named("userAgent") userAgent: String): InstanceRepository =
-        InstanceRepository(context = context, okHttpClient = okHttpClient, userAgent = userAgent)
+    fun providesInstanceRepository(@ApplicationContext context: Context, okHttpClient: OkHttpClient, @Named("userAgent") userAgent: String, accountRepository: AccountRepository): InstanceRepository =
+        InstanceRepository(context = context, okHttpClient = okHttpClient, userAgent = userAgent, accountRepository = accountRepository)
 
     @Provides
     @ViewModelScoped

@@ -18,6 +18,6 @@ class LoginModel @Inject constructor(
     }
 
     suspend fun createAccount() {
-        return accountRepository.create(username, password, instance)
+        return instanceRepository.create(username, password, instance)
     }
 }

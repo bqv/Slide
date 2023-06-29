@@ -4,6 +4,7 @@ import android.content.Context
 import dagger.hilt.android.qualifiers.ApplicationContext
 import info.`the-federation`.FediverseStats
 import ltd.ucode.lemmy.api.AccountDataSource
+import ltd.ucode.lemmy.api.ApiException
 import ltd.ucode.lemmy.api.InstanceDataSource
 import ltd.ucode.lemmy.data.type.NodeInfoResult
 import ltd.ucode.slide.table.Instance
@@ -15,19 +16,23 @@ class InstanceRepository @Inject constructor(
     @ApplicationContext val context: Context,
     val okHttpClient: OkHttpClient,
     @Named("userAgent") val userAgent: String,
+    val accountRepository: AccountRepository,
 ) {
     var defaultInstance: String = "lemmy.ml"
 
     private val instances = InstanceMap()
 
     inner class InstanceMap : HashMap<String, InstanceDataSource>() {
-        override fun get(key: String): InstanceDataSource {
-            return super.get(key)
-                ?: InstanceDataSource(key, okHttpClient)
+        override fun get(key: String): InstanceDataSource? {
+            return super.get(key) ?: if (key.contains("@")) {
+                this@InstanceRepository.connect(key)
+            } else {
+                InstanceDataSource(key, okHttpClient)
                     .also { value -> put(key, value) }
+            }
         }
 
-        fun get(username: String, password: String, instance: String): AccountDataSource {
+        fun login(username: String, password: String, instance: String): AccountDataSource {
             val key = "$username@$instance"
             return AccountDataSource(username, password, instance, okHttpClient)
                 .also { value -> put(key, value) }
@@ -40,15 +45,15 @@ class InstanceRepository @Inject constructor(
     }
 
     operator fun get(key: String?): InstanceDataSource {
-        if (key == null) return instances[defaultInstance]
-        return instances[key]
+        if (key == null) return instances[defaultInstance]!!
+        return instances[key]!!
     }
 
-    fun createLogin(username: String, password: String, instance: String): AccountDataSource {
-        return instances.get(username, password, instance)
+    private fun createLogin(username: String, password: String, instance: String): AccountDataSource {
+        return instances.login(username, password, instance)
     }
 
-    fun deleteLogin(username: String, instance: String) {
+    private fun deleteLogin(username: String, instance: String) {
         instances.remove(username, instance)
     }
 
@@ -60,6 +65,36 @@ class InstanceRepository @Inject constructor(
             val stat = it.thefederation_stats.firstOrNull()
             Instance(it.name, it.version, it.country, stat?.local_posts, stat?.local_comments,
                 stat?.users_total, stat?.users_half_year, stat?.users_monthly, stat?.users_weekly)
+        }
+    }
+
+    fun connect(account: String): AccountDataSource {
+        val (username, instance) = account.split("@")
+            .let { Pair(it[0], it[1]) }
+
+        val password = accountRepository.getPassword(username, instance)!!
+
+        return createLogin(username, password, instance)
+    }
+
+    private suspend fun login(username: String, password: String, instance: String): AccountDataSource {
+        try {
+            val dataSource = createLogin(username, password, instance)
+            dataSource.getUnreadCount()
+            return dataSource
+        } catch (e: ApiException) {
+            deleteLogin(username, instance)
+            throw e
+        }
+    }
+
+    suspend fun create(username: String, password: String, instance: String) {
+        accountRepository.setPassword(username, instance, password)
+        try {
+            login(username, password, instance)
+        } catch (e: ApiException) {
+            accountRepository.deletePassword(username, instance)
+            throw e
         }
     }
 

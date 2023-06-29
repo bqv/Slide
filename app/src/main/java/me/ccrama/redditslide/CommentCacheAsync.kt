@@ -21,6 +21,7 @@ import ltd.ucode.slide.R
 import ltd.ucode.slide.SettingValues
 import ltd.ucode.slide.SettingValues.getCommentSorting
 import ltd.ucode.slide.data.IPost
+import ltd.ucode.slide.repository.AccountRepository
 import ltd.ucode.slide.repository.CommentRepository
 import ltd.ucode.slide.repository.PostRepository
 import me.ccrama.redditslide.util.GifUtils
@@ -134,10 +135,10 @@ class CommentCacheAsync : AsyncTask<Any?, Any?, Any?> {
                 } else {
                     var p = if (fSub.equals("frontpage", ignoreCase = true)) {
                         //SubredditPaginator(Authentication.reddit)
-                        postRepository.getPosts(Authentication.api)
+                        postRepository.getPosts(AccountRepository.currentAccount())
                     } else {
                         //SubredditPaginator(Authentication.reddit, sub)
-                        postRepository.getPosts(Authentication.api, communityName = sub)
+                        postRepository.getPosts(AccountRepository.currentAccount(), communityName = sub)
                     }
                     //p.setLimit(Constants.PAGINATOR_POST_LIMIT)
                     try {
@@ -216,7 +217,7 @@ class CommentCacheAsync : AsyncTask<Any?, Any?, Any?> {
                       limit: Int? = null,
                       sort: CommentSortType? = null): CommentStore {
         val paginator = commentRepository.getComments(
-            Authentication.api,
+            AccountRepository.currentAccount(),
             postId = id,
             maxDepth = depth,
             limit = limit,

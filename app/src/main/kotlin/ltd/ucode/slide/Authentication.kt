@@ -35,7 +35,6 @@ class Authentication(context: Context?) {
             hasDone = true
             httpAdapter = OkHttpAdapter(App.client, Protocol.HTTP_2)
             isLoggedIn = false
-            api = null
             //api!!.retryLimit = 2
             didOnline = true
             /*
@@ -194,7 +193,7 @@ class Authentication(context: Context?) {
         }
 
         override fun doInBackground(vararg subs: String?): Void? {
-            doVerify(lastToken, api, single, mContext)
+            doVerify(lastToken, name, single, mContext)
             return null
         }
     }
@@ -204,7 +203,6 @@ class Authentication(context: Context?) {
         private const val REDIRECT_URL = "http://slide.ucode.ltd"
         @JvmField val reddit: RedditClient? = null
         @JvmField var isLoggedIn = false
-        @JvmField var api: String? = null
         @JvmField var me: LoggedInAccount? = null
         @JvmField var mod = false
         @JvmField var name: String? = null

@@ -91,7 +91,9 @@ import ltd.ucode.slide.BuildConfig
 import ltd.ucode.slide.R
 import ltd.ucode.slide.SettingValues
 import ltd.ucode.slide.data.IPost
+import ltd.ucode.slide.repository.AccountRepository
 import ltd.ucode.slide.repository.CommentRepository
+import ltd.ucode.slide.repository.InstanceRepository
 import ltd.ucode.slide.repository.PostRepository
 import ltd.ucode.slide.ui.BaseActivity
 import ltd.ucode.slide.ui.Slide
@@ -140,8 +142,10 @@ import me.ccrama.redditslide.ui.settings.SettingsActivity
 import me.ccrama.redditslide.ui.settings.SettingsGeneralFragment
 import me.ccrama.redditslide.ui.settings.SettingsSubAdapter
 import me.ccrama.redditslide.ui.settings.SettingsThemeFragment
+import me.ccrama.redditslide.util.LayoutUtils
 import me.ccrama.redditslide.util.LogUtil
 import me.ccrama.redditslide.util.NetworkStateReceiver.NetworkStateReceiverListener
+import me.ccrama.redditslide.util.NetworkUtil
 import me.ccrama.redditslide.views.CatchStaggeredGridLayoutManager
 import me.ccrama.redditslide.views.CommentOverflow
 import me.ccrama.redditslide.views.PreCachingLayoutManager
@@ -183,6 +187,10 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
     lateinit var postRepository: PostRepository
     @Inject
     lateinit var commentRepository: CommentRepository
+    @Inject
+    lateinit var accountRepository: AccountRepository
+    @Inject
+    lateinit var instanceRepository: InstanceRepository
 
     val ANIMATE_DURATION: Long = 250 //duration of animations
     private val ANIMATE_DURATION_OFFSET: Long = 45 //offset for smoothing out the exit animations
@@ -810,7 +818,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             startActivity(i)
         } else {
             if (Authentication.didOnline
-                && me.ccrama.redditslide.util.NetworkUtil.isConnected(this@MainActivity)
+                && NetworkUtil.isConnected(this@MainActivity)
                 && !checkedPopups
             ) {
                 runAfterLoad = Runnable {
@@ -967,12 +975,12 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                 "Tutorial"
             )
         ) {
-            me.ccrama.redditslide.util.LogUtil.v("Starting main " + Authentication.name)
+            LogUtil.v("Starting main " + Authentication.name)
             Authentication.isLoggedIn = SettingValues.appRestart.getBoolean("loggedin", false)
             Authentication.name = SettingValues.appRestart.getString("name", "LOGGEDOUT")
             UserSubscriptions.doMainActivitySubs(this)
         } else if (!first) {
-            me.ccrama.redditslide.util.LogUtil.v("Starting main 2 " + Authentication.name)
+            LogUtil.v("Starting main 2 " + Authentication.name)
             Authentication.isLoggedIn = SettingValues.appRestart.getBoolean("loggedin", false)
             Authentication.name = SettingValues.appRestart.getString("name", "LOGGEDOUT")
             SettingValues.appRestart.edit().putBoolean("isRestarting", false).commit()
@@ -1019,6 +1027,21 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                     e.apply()
                 }
                 return@executeAsyncTask null
+            }, { _ ->
+                dismissProgressDialog()
+            })
+        }
+        if (Authentication.name!!.contains("@")) {
+            lifecycleScope.executeAsyncTask({
+                d = MaterialDialog.Builder(this@MainActivity)
+                    .title(R.string.misc_setting_up)
+                    .content(R.string.misc_setting_up_message)
+                    .progress(true, 100)
+                    .cancelable(false)
+                    .build()
+                    .also { it.show() }
+            }, {
+                instanceRepository.connect(Authentication.name!!)
             }, { _ ->
                 dismissProgressDialog()
             })
@@ -1116,7 +1139,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
     override fun onResume() {
         super.onResume()
         if (Authentication.isLoggedIn && Authentication.didOnline &&
-                me.ccrama.redditslide.util.NetworkUtil.isConnected(this@MainActivity) &&
+                NetworkUtil.isConnected(this@MainActivity) &&
                 headerMain != null && runAfterLoad == null) {
             AsyncNotificationBadge().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR)
         } else if (Authentication.isLoggedIn &&
@@ -1144,17 +1167,18 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             sideArrayAdapter!!.updateHistory(UserSubscriptions.history)
         }
 
-        /* remove   if (datasetChanged && UserSubscriptions.hasSubs() && !usedArray.isEmpty()) {
-            usedArray = new ArrayList<>(UserSubscriptions.getSubscriptions(this));
-            adapter.notifyDataSetChanged();
-            sideArrayAdapter.notifyDataSetChanged();
-            datasetChanged = false;
+        if (datasetChanged && UserSubscriptions.hasSubs() && !usedArray!!.isEmpty()) {
+            usedArray = UserSubscriptions.getSubscriptions(this)
+            adapter!!.notifyDataSetChanged()
+            sideArrayAdapter!!.notifyDataSetChanged()
+            datasetChanged = false
             if (mTabLayout != null) {
-                mTabLayout.setupWithViewPager(pager);
-                LayoutUtils.scrollToTabAfterLayout(mTabLayout, pager.getCurrentItem());
+                mTabLayout!!.setupWithViewPager(pager)
+                LayoutUtils.scrollToTabAfterLayout(mTabLayout, pager!!.getCurrentItem())
             }
-            setToolbarClick();
-        }*/
+            setToolbarClick()
+        }
+
         //Only refresh the view if a Setting was altered
         if (SettingsActivity.changed || SettingsThemeFragment.changed) {
             reloadSubs()

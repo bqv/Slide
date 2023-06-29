@@ -3,10 +3,12 @@ package ltd.ucode.lemmy.api
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
 import ltd.ucode.lemmy.api.request.Authenticated
+import ltd.ucode.lemmy.api.request.GetPostsRequest
 import ltd.ucode.lemmy.api.request.GetSiteRequest
 import ltd.ucode.lemmy.api.request.GetUnreadCountRequest
 import ltd.ucode.lemmy.api.request.LoginRequest
 import ltd.ucode.lemmy.api.request.UploadImageRequest
+import ltd.ucode.lemmy.api.response.GetPostsResponse
 import ltd.ucode.lemmy.api.response.GetSiteResponse
 import ltd.ucode.lemmy.api.response.GetUnreadCountResponse
 import ltd.ucode.lemmy.api.response.UploadImageResponse
@@ -23,6 +25,9 @@ class AccountDataSource (
     private val log: KLogger = KotlinLogging.logger {}
 
     private lateinit var jwt: Token
+
+    override suspend fun getPosts(request: GetPostsRequest): GetPostsResponse =
+        super.getPosts(authenticated(request))
 
     override suspend fun getSite(request: GetSiteRequest): GetSiteResponse =
         super.getSite(authenticated(request))

@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import ltd.ucode.slide.App.Companion.appContext
+import ltd.ucode.slide.Authentication
 import ltd.ucode.slide.table.Instance
 import javax.inject.Inject
 
@@ -25,14 +26,18 @@ class LoginViewModel @Inject constructor(
     fun updatePassword(text: String) { model.password = text }
     fun updateInstance(text: String) { model.instance = text }
 
-    fun doLogin() {
+    fun doLogin(onSuccess: () -> Unit, onFailure: () -> Unit) {
         viewModelScope.launch {
             try {
                 model.createAccount()
+                Authentication.isLoggedIn = true
+                Authentication.name = "${model.username}@${model.instance}"
+                onSuccess()
             } catch (e: Exception) {
                 android.widget.Toast.makeText(appContext,
                     "Login Failed: ${e.message}",
                     android.widget.Toast.LENGTH_LONG)
+                onFailure()
             }
         }
     }

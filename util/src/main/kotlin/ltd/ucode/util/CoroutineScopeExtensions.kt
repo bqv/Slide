@@ -8,7 +8,7 @@ import kotlinx.coroutines.withContext
 object CoroutineScopeExtensions {
     fun <R> CoroutineScope.executeAsyncTask(
         onPreExecute: () -> Unit,
-        doInBackground: () -> R,
+        doInBackground: suspend () -> R,
         onPostExecute: (R) -> Unit,
     ) = launch {
         onPreExecute()
