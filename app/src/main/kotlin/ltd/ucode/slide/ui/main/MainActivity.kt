@@ -843,8 +843,8 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                                     sort = PostSortType.New
                                 )
                                 val posts = runBlocking { pager.next() }
-                                    .map { LemmyPost(it.instanceName, it) }
-                                for (s in posts) {
+                                    .mapSuccess { data.map { LemmyPost(instance, it) } }
+                                for (s in posts.success) {
                                     var version = BuildConfig.VERSION_NAME
                                     if (version.length > 5 && version.contains(".")) {
                                         version = version.substring(0, version.lastIndexOf("."))

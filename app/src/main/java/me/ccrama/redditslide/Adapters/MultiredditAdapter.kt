@@ -1,12 +1,12 @@
 package me.ccrama.redditslide.Adapters
 
-import android.app.Activity
 import android.content.Intent
 import android.os.Handler
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
+import androidx.activity.ComponentActivity
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
@@ -25,7 +25,7 @@ import me.ccrama.redditslide.views.CreateCardView.colorCard
 import net.dean.jraw.models.Submission
 
 class MultiredditAdapter(
-    var context: Activity,
+    var context: ComponentActivity,
     var dataSet: MultiredditPosts,
     private val listView: RecyclerView,
     refreshLayout: SwipeRefreshLayout,

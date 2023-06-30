@@ -2,6 +2,7 @@ package ltd.ucode.slide.repository
 
 import android.content.Context
 import dagger.hilt.android.qualifiers.ApplicationContext
+import ltd.ucode.lemmy.api.ApiResult
 import ltd.ucode.lemmy.api.request.GetPersonDetailsRequest
 import ltd.ucode.lemmy.api.response.GetPersonDetailsResponse
 import ltd.ucode.lemmy.data.id.CommunityId
@@ -21,7 +22,7 @@ class UserRepository @Inject constructor(
                                  savedOnly: Boolean? = null,
                                  sort: PostSortType? = null,
                                  username: String? = null
-    ): GetPersonDetailsResponse {
+    ): ApiResult<GetPersonDetailsResponse> {
         return instanceRepository[instance].getPersonDetails(
             GetPersonDetailsRequest(
                 communityId = communityId,

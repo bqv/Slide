@@ -3,7 +3,6 @@ package me.ccrama.redditslide.Adapters
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.animation.ValueAnimator
-import android.app.Activity
 import android.content.Context
 import android.content.DialogInterface
 import android.content.res.Resources
@@ -30,15 +29,21 @@ import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentManager
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.devspark.robototextview.RobotoTypefaces
 import com.lusfold.androidkeyvaluestore.KVStore
 import com.mikepenz.itemanimators.AlphaInAnimator
 import com.mikepenz.itemanimators.SlideRightAlphaAnimator
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.datetime.UtcOffset
 import kotlinx.datetime.toInstant
 import ltd.ucode.lemmy.data.type.CommentView
+import ltd.ucode.lemmy.data.value.SingleVote
 import ltd.ucode.slide.App
 import ltd.ucode.slide.Authentication
 import ltd.ucode.slide.Authentication.Companion.doVerify
@@ -50,6 +55,7 @@ import ltd.ucode.slide.SettingValues.commentLastVisit
 import ltd.ucode.slide.data.IPost
 import ltd.ucode.slide.ui.BaseActivity
 import me.ccrama.redditslide.ActionStates.getVoteDirection
+import me.ccrama.redditslide.ActionStates.setVoteDirection
 import me.ccrama.redditslide.submission
 import me.ccrama.redditslide.Constants
 import me.ccrama.redditslide.Drafts
@@ -322,17 +328,17 @@ class CommentAdapter(
             }
             holder.firstTextView.setOnClickListener(object : OnSingleClickListener() {
                 override fun onSingleClick(v: View) {
-                    val SpoilerRobotoTextView = v as SpoilerRobotoTextView
+                    val spoilerRobotoTextView = v as SpoilerRobotoTextView
                     if (SettingValues.swap) {
-                        if (!SpoilerRobotoTextView.isSpoilerClicked) {
+                        if (!spoilerRobotoTextView.isSpoilerClicked) {
                             doLongClick(holder, comment, baseNode)
-                        } else if (SpoilerRobotoTextView.isSpoilerClicked) {
-                            SpoilerRobotoTextView.resetSpoilerClicked()
+                        } else if (spoilerRobotoTextView.isSpoilerClicked) {
+                            spoilerRobotoTextView.resetSpoilerClicked()
                         }
-                    } else if (!SpoilerRobotoTextView.isSpoilerClicked) {
+                    } else if (!spoilerRobotoTextView.isSpoilerClicked) {
                         doOnClick(holder, comment, baseNode)
-                    } else if (SpoilerRobotoTextView.isSpoilerClicked) {
-                        SpoilerRobotoTextView.resetSpoilerClicked()
+                    } else if (spoilerRobotoTextView.isSpoilerClicked) {
+                        spoilerRobotoTextView.resetSpoilerClicked()
                     }
                 }
             })
@@ -1357,20 +1363,20 @@ class CommentAdapter(
                 override fun onSingleClick(v: View) {
                     setCommentStateUnhighlighted(holder, comment, baseNode, true)
                     if (getVoteDirection(comment) == VoteDirection.UPVOTE) {
-                        /*
-                        Vote(v, mContext).execute(n)
-                        setVoteDirection(comment, VoteDirection.NO_VOTE)
-                        doScoreText(holder, n, this@CommentAdapter)
-                        upvote.clearColorFilter()
-                        */
+                        //Vote(v, mContext).execute(n)
+                        voteComment(mPage, comment, SingleVote.NOVOTE) {
+                            setVoteDirection(comment, VoteDirection.NO_VOTE)
+                            doScoreText(holder, n, this@CommentAdapter)
+                            upvote.clearColorFilter()
+                        }
                     } else {
-                        /*
-                        Vote(true, v, mContext).execute(n)
-                        setVoteDirection(comment, VoteDirection.UPVOTE)
-                        downvote.clearColorFilter() // reset colour
-                        doScoreText(holder, n, this@CommentAdapter)
-                        BlendModeUtil.tintImageViewAsModulate(upvote, holder.textColorUp)
-                        */
+                        //Vote(true, v, mContext).execute(n)
+                        voteComment(mPage, comment, SingleVote.UPVOTE) {
+                            setVoteDirection(comment, VoteDirection.UPVOTE)
+                            downvote.clearColorFilter() // reset colour
+                            doScoreText(holder, n, this@CommentAdapter)
+                            BlendModeUtil.tintImageViewAsModulate(upvote, holder.textColorUp)
+                        }
                     }
                 }
             })
@@ -1378,20 +1384,20 @@ class CommentAdapter(
                 override fun onSingleClick(v: View) {
                     setCommentStateUnhighlighted(holder, comment, baseNode, true)
                     if (getVoteDirection(comment) == VoteDirection.DOWNVOTE) {
-                        /*
-                        Vote(v, mContext).execute(n)
-                        setVoteDirection(comment, VoteDirection.NO_VOTE)
-                        doScoreText(holder, n, this@CommentAdapter)
-                        downvote.clearColorFilter()
-                        */
+                        //Vote(v, mContext).execute(n)
+                        voteComment(mPage, comment, SingleVote.NOVOTE) {
+                            setVoteDirection(comment, VoteDirection.NO_VOTE)
+                            doScoreText(holder, n, this@CommentAdapter)
+                            downvote.clearColorFilter()
+                        }
                     } else {
-                        /*
-                        Vote(false, v, mContext).execute(n)
-                        setVoteDirection(comment, VoteDirection.DOWNVOTE)
-                        upvote.clearColorFilter() // reset colour
-                        doScoreText(holder, n, this@CommentAdapter)
-                        BlendModeUtil.tintImageViewAsModulate(downvote, holder.textColorDown)
-                        */
+                        //Vote(false, v, mContext).execute(n)
+                        voteComment(mPage, comment, SingleVote.DOWNVOTE) {
+                            setVoteDirection(comment, VoteDirection.DOWNVOTE)
+                            upvote.clearColorFilter() // reset colour
+                            doScoreText(holder, n, this@CommentAdapter)
+                            BlendModeUtil.tintImageViewAsModulate(downvote, holder.textColorDown)
+                        }
                     }
                 }
             })
@@ -2268,6 +2274,21 @@ class CommentAdapter(
         }
         doVerify(token, null, true, mContext)
         return reddit
+    }
+
+    private fun voteComment(context: LifecycleOwner,
+                            comment: CommentView, direction: SingleVote,
+                            andThen: suspend () -> Unit = {}) {
+        context.lifecycleScope.launch {
+            withContext(Dispatchers.IO) {
+                commentRepository.likeComment(
+                    comment.instanceName,
+                    comment.comment.id,
+                    direction
+                )
+            }
+            andThen()
+        }
     }
 
     companion object {

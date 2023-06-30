@@ -3,14 +3,21 @@ package ltd.ucode.slide.repository
 import android.content.Context
 import dagger.hilt.android.qualifiers.ApplicationContext
 import info.`the-federation`.FediverseStats
+import io.github.oshai.kotlinlogging.KLogger
+import io.github.oshai.kotlinlogging.KotlinLogging
 import ltd.ucode.lemmy.api.AccountDataSource
-import ltd.ucode.lemmy.api.ApiException
+import ltd.ucode.lemmy.api.ApiResult
 import ltd.ucode.lemmy.api.InstanceDataSource
 import ltd.ucode.lemmy.data.type.NodeInfoResult
+import ltd.ucode.lemmy.data.value.Addressable
 import ltd.ucode.slide.table.Instance
 import okhttp3.OkHttpClient
+import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 import javax.inject.Named
+
+private typealias Domain = String
+private typealias Username = String
 
 class InstanceRepository @Inject constructor(
     @ApplicationContext val context: Context,
@@ -20,37 +27,87 @@ class InstanceRepository @Inject constructor(
 ) {
     var defaultInstance: String = "lemmy.ml"
 
+    private val logger: KLogger = KotlinLogging.logger {}
+
+    init {
+        logger.info { "Creating ${javaClass.simpleName}"}
+    }
+
     private val instances = InstanceMap()
 
-    inner class InstanceMap : HashMap<String, InstanceDataSource>() {
-        override fun get(key: String): InstanceDataSource? {
-            return super.get(key) ?: if (key.contains("@")) {
-                this@InstanceRepository.connect(key)
-            } else {
-                InstanceDataSource(key, okHttpClient)
-                    .also { value -> put(key, value) }
+    inner class InstanceMap {
+        private val store = ConcurrentHashMap<Domain, HashMap<Username?, InstanceDataSource>>()
+
+        val count get() = store.map { it.value.count() }.sum()
+
+        val keys get() = store.flatMap {
+            val domain = it.key
+            it.value.map {
+                when (val username = it.key) {
+                    null -> "$domain"
+                    else -> "$username@$domain"
+                }
+            }
+        }
+
+        fun get(instance: String): InstanceDataSource {
+            synchronized(store) {
+                if (instance.contains("@")) throw IllegalArgumentException("codepath error")
+                val instanceStore = store[instance]
+                    ?: HashMap<Username?, InstanceDataSource>()
+                        .also { store[instance] = it }
+                return instanceStore[null] ?: instanceStore.values.firstOrNull()
+                    ?: InstanceDataSource(instance, okHttpClient)
+                        .also { instanceStore[null] = it }
+            }
+        }
+
+        fun get(username: String, domain: String): AccountDataSource {
+            synchronized(store) {
+                val key = "$username@$domain"
+                val instanceStore = store[domain]
+                    ?: HashMap<Username?, InstanceDataSource>()
+                        .also { store[domain] = it }
+                return instanceStore[username] as AccountDataSource?
+                    ?: this@InstanceRepository.connect(key)
+                        .also { instanceStore[username] = it }
             }
         }
 
         fun login(username: String, password: String, instance: String): AccountDataSource {
-            val key = "$username@$instance"
-            return AccountDataSource(username, password, instance, okHttpClient)
-                .also { value -> put(key, value) }
+            synchronized(store) {
+                val instanceStore = store[instance]
+                    ?: HashMap<Username?, InstanceDataSource>()
+                        .also { store[instance] = it }
+                return AccountDataSource(username, password, instance, okHttpClient)
+                    .also { value -> instanceStore[username] = value }
+            }
         }
 
         fun remove(username: String, instance: String): InstanceDataSource? {
-            val key = "$username@$instance"
-            return remove(key)
+            synchronized(store) {
+                val key = "$username@$instance"
+                val instanceStore = store[instance]
+                    ?: HashMap<Username?, InstanceDataSource>()
+                        .also { store[instance] = it }
+                return instanceStore.remove(key)?.also {
+                    if (instanceStore.isEmpty()) store.remove(instance)
+                }
+            }
         }
     }
 
-    operator fun get(key: String?): InstanceDataSource {
-        if (key == null) return instances[defaultInstance]!!
-        return instances[key]!!
+    private fun get(key: Addressable): InstanceDataSource {
+        return if (key.hasUsername) instances.get(key.username!!, key.domain)!!
+        else instances.get(key.domain)!!
     }
 
-    private fun createLogin(username: String, password: String, instance: String): AccountDataSource {
-        return instances.login(username, password, instance)
+    operator fun get(key: String?): InstanceDataSource {
+        logger.trace { "Keys were ${
+            instances.keys
+                .map { "$it:${get(Addressable(it)).javaClass.simpleName}" }
+        } for $key" }
+        return get(Addressable(key ?: defaultInstance))
     }
 
     private fun deleteLogin(username: String, instance: String) {
@@ -74,45 +131,41 @@ class InstanceRepository @Inject constructor(
 
         val password = accountRepository.getPassword(username, instance)!!
 
-        return createLogin(username, password, instance)
+        return instances.login(username, password, instance)
     }
 
-    private suspend fun login(username: String, password: String, instance: String): AccountDataSource {
-        try {
-            val dataSource = createLogin(username, password, instance)
-            dataSource.getUnreadCount()
-            return dataSource
-        } catch (e: ApiException) {
-            deleteLogin(username, instance)
-            throw e
-        }
+    private suspend fun login(username: String, password: String, instance: String): ApiResult<AccountDataSource> {
+        val dataSource = instances.login(username, password, instance)
+        return dataSource.getUnreadCount()
+            .mapSuccess { dataSource }
+            .onFailure {
+                deleteLogin(username, instance)
+                exception.rethrow()
+            }
     }
 
     suspend fun create(username: String, password: String, instance: String) {
         accountRepository.setPassword(username, instance, password)
-        try {
-            login(username, password, instance)
-        } catch (e: ApiException) {
+        login(username, password, instance).onFailure {
             accountRepository.deletePassword(username, instance)
-            throw e
+            exception.rethrow()
         }
     }
 
-    //fun getPosts(): PostView
-    //fun getPost(): PostView
-
-    suspend fun getNodeInfo(instance: String): NodeInfoResult {
-        return with(instances[instance]!!) {
+    suspend fun getNodeInfo(instance: String): ApiResult<NodeInfoResult> {
+        return with(this[instance]) {
             getNodeInfo()
         }
     }
 
-    suspend fun getFederatedInstances(fromInstance: String = "lemmy.ml"): Set<String> {
-        return instances[fromInstance]!!.getFederatedInstances().federatedInstances?.run {
-            linked.toSortedSet().also {
-                it.addAll(allowed.orEmpty())
-                it.addAll(blocked.orEmpty())
-            }
-        }.orEmpty()
+    suspend fun getFederatedInstances(fromInstance: String = "lemmy.ml"): ApiResult<Set<String>> {
+        return this[fromInstance].getFederatedInstances().mapSuccess {
+            data.federatedInstances?.run {
+                linked.toSortedSet().also {
+                    it.addAll(allowed.orEmpty())
+                    it.addAll(blocked.orEmpty())
+                }
+            }.orEmpty()
+        }
     }
 }

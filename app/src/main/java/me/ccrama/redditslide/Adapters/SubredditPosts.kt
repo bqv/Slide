@@ -7,6 +7,7 @@ import android.widget.Toast
 import androidx.appcompat.app.ActionBar
 import kotlinx.coroutines.runBlocking
 import ltd.ucode.lemmy.api.ApiException
+import ltd.ucode.lemmy.api.PagedData
 import ltd.ucode.lemmy.data.LemmyPost
 import ltd.ucode.lemmy.data.type.PostListingType
 import ltd.ucode.lemmy.data.type.PostSortType
@@ -14,7 +15,6 @@ import ltd.ucode.lemmy.data.type.PostView
 import ltd.ucode.slide.App
 import ltd.ucode.slide.Authentication
 import ltd.ucode.slide.BuildConfig
-import ltd.ucode.slide.PagedData
 import ltd.ucode.slide.R
 import ltd.ucode.slide.SettingValues
 import ltd.ucode.slide.SettingValues.getSubmissionSort
@@ -303,7 +303,8 @@ class SubredditPosts @JvmOverloads constructor(
                         //    (paginator as SubredditPaginator).setObeyOver18(false)
                         //}
                         val page = runBlocking { paginator!!.next() }
-                        adding.addAll(page.map { LemmyPost(it.instanceName, it) })
+                            .mapSuccess { data.map { LemmyPost(instance, it) } }
+                        adding.addAll(page.success)
                     } else {
                         nomore = true
                     }

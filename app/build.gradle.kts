@@ -4,7 +4,7 @@ plugins {
     kotlin("kapt")
     kotlin("plugin.serialization")
     kotlin("plugin.parcelize")
-    id("com.gladed.androidgitversion") version "0.4.14"
+    alias(libs.plugins.androidgitversion)
     id("com.github.ben-manes.versions") version "0.42.0"
 }
 
@@ -68,15 +68,13 @@ android {
         quiet = true
         abortOnError = false
         ignoreWarnings = true
-    }
 
-    lintOptions {
         // Translations are crowd-sourced
-        disable("MissingTranslation")
-        disable("ExtraTranslation")
-        disable("StaticFieldLeak")
-        disable("ClickableViewAccessibility")
-        disable("NotSibling")
+        disable += "MissingTranslation"
+        disable += "ExtraTranslation"
+        disable += "StaticFieldLeak"
+        disable += "ClickableViewAccessibility"
+        disable += "NotSibling"
     }
 
     testOptions {
@@ -157,7 +155,7 @@ dependencies {
 
     /** Logging **/
     implementation("io.github.oshai:kotlin-logging-jvm:4.0.0")
-    implementation("org.slf4j:slf4j-android:1.7.32")
+    implementation(libs.bundles.slf4j)
 
     /**** Frontend (UI-related) ****/
     // Custom dialogs
@@ -173,7 +171,7 @@ dependencies {
 
     // Image loading, caching, and displaying
     //  NOTE: Replace with Glide/Picasso
-    implementation("com.nostra13.universalimageloader:universal-image-loader:1.9.5")
+    implementation("com.nostra13.universalimageloader:universal-image-loader:f6a9615868482672c3630cb7db6dcf43391e80de")
 
     // Custom image view for photo galleries and large images
     implementation("com.github.davemorrissey:subsampling-scale-image-view:173e421")
@@ -235,7 +233,8 @@ dependencies {
     implementation("com.github.suckgamony.RapidDecoder:library:7cdfca47fa")
 
     // HTTP client
-    implementation("com.squareup.okhttp3:okhttp:4.10.0")
+    val okhttpVersion: String by rootProject.extra
+    implementation("com.squareup.okhttp3:okhttp:$okhttpVersion")
 
     // Convert Java objects into JSON and back
     val retrofitVersion: String by rootProject.extra

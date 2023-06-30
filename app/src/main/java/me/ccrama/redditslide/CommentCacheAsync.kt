@@ -143,7 +143,8 @@ class CommentCacheAsync : AsyncTask<Any?, Any?, Any?> {
                     //p.setLimit(Constants.PAGINATOR_POST_LIMIT)
                     try {
                         val page = runBlocking { p.next() }
-                        submissions.addAll(page.map { LemmyPost(it.instanceName, it) })
+                            .mapSuccess { data.map { LemmyPost(instance, it) } }
+                        submissions.addAll(page.success)
                     } catch (e: Exception) {
                         e.printStackTrace()
                     }
@@ -225,7 +226,7 @@ class CommentCacheAsync : AsyncTask<Any?, Any?, Any?> {
         )
         val comments: MutableList<CommentView> = mutableListOf()
         while (paginator.hasNext) {
-            val page = runBlocking { paginator.next() }
+            val page = runBlocking { paginator.next() }.success
             comments.addAll(page)
         }
         return CommentStore(sort, comments)

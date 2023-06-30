@@ -7,22 +7,14 @@ import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 
-data class ApiException(val path: String,
-                        val statusCode: Int,
-                        @Transient val errorBody: String,
-                        val content: JsonElement? =
-                            if (statusCode >= 500) throw ServerException(path, statusCode)
-                            else readBody(errorBody)
-) : Exception(content?.let { readError(path, statusCode, it) } ?: errorBody) {
+data class ApiException(override val path: String,
+                        override val statusCode: Int,
+                        @Transient override val errorBody: String,
+                        val content: JsonElement? = readBody(errorBody)
+) : Exception(content?.let { readError(path, statusCode, it) } ?: errorBody), NetworkException {
     companion object {
         private fun readError(path: String, statusCode: Int, error: JsonElement): String? {
-            val errName = error.jsonObject["error"]?.jsonPrimitive?.contentOrNull
-
-            when (errName) {
-                "not_logged_in" -> throw AuthenticationException(path, statusCode)
-            }
-
-            return errName?.let {
+            return error.jsonObject["error"]?.jsonPrimitive?.contentOrNull?.let {
                 it.replace('_', ' ')
                     .replaceFirstChar(Char::titlecase)
             }
@@ -37,13 +29,26 @@ data class ApiException(val path: String,
         }
     }
 
-    data class AuthenticationException(val path: String,
-                                       val statusCode: Int
-    ) : Exception("HTTP $statusCode") {
+    sealed interface Reason {
+        object Unauthenticated : Reason {}
+        object Null : Reason {}
+        class Other(val s: String) : Reason {}
     }
 
-    data class ServerException(val path: String,
-                               val statusCode: Int
-    ) : Exception("HTTP $statusCode") {
+    val reason: Reason get() =
+        when (val err = content?.jsonObject?.get("error")?.jsonPrimitive?.contentOrNull) {
+            "not_logged_in" -> Reason.Unauthenticated
+            null -> Reason.Null
+            else -> Reason.Other(
+                err.replace('_', ' ').replaceFirstChar(Char::titlecase)
+            )
+        }
+
+    override fun rethrow(): Nothing {
+        throw this
+    }
+
+    override fun upcast(): Exception {
+        return this
     }
 }

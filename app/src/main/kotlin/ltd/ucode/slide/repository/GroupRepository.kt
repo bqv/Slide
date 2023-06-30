@@ -2,6 +2,7 @@ package ltd.ucode.slide.repository
 
 import android.content.Context
 import dagger.hilt.android.qualifiers.ApplicationContext
+import ltd.ucode.lemmy.api.ApiResult
 import ltd.ucode.lemmy.api.request.ListCommunitiesRequest
 import ltd.ucode.lemmy.data.type.CommunityView
 import ltd.ucode.lemmy.data.type.PostListingType
@@ -17,16 +18,16 @@ class GroupRepository @Inject constructor(
                                 page: Int? = null,
                                 sort: PostSortType? = null,
                                 type: PostListingType? = null
-    ): List<CommunityView> {
-        val response = instanceRepository[instance].listCommunities(
+    ): ApiResult<List<CommunityView>> {
+        return instanceRepository[instance].listCommunities(
             ListCommunitiesRequest(
                 limit = limit,
                 page = page,
                 sort = sort,
                 type = type
             )
-        )
-
-        return response.communities
+        ).mapSuccess {
+            data.communities
+        }
     }
 }

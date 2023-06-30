@@ -32,6 +32,8 @@ import com.jakewharton.processphoenix.ProcessPhoenix
 import com.lusfold.androidkeyvaluestore.KVStore
 import com.nostra13.universalimageloader.core.ImageLoader
 import dagger.hilt.android.HiltAndroidApp
+import io.github.oshai.kotlinlogging.KLogger
+import io.github.oshai.kotlinlogging.KotlinLogging
 import ltd.ucode.slide.ui.main.MainActivity
 import me.ccrama.redditslide.Autocache.AutoCacheScheduler
 import me.ccrama.redditslide.ImageFlairs
@@ -54,6 +56,7 @@ import okhttp3.Dns
 import okhttp3.OkHttpClient
 import org.apache.commons.lang3.tuple.Triple
 import org.apache.commons.text.StringEscapeUtils
+import org.slf4j.impl.HandroidLoggerAdapter
 import java.io.File
 import java.net.Inet4Address
 import java.net.InetAddress
@@ -63,6 +66,21 @@ import java.util.Locale
 
 @HiltAndroidApp
 class App : Application(), ActivityLifecycleCallbacks {
+    private val logger: KLogger = KotlinLogging.logger {}
+
+    init {
+        if (BuildConfig.DEBUG) {
+            HandroidLoggerAdapter.DEBUG = BuildConfig.DEBUG
+            HandroidLoggerAdapter.ANDROID_API_LEVEL = Build.VERSION.SDK_INT
+            HandroidLoggerAdapter.APP_NAME = ""
+        }
+        logger.error { "Booting" }
+        logger.warn { "Booting" }
+        logger.info { "Booting" }
+        logger.debug { "Booting" }
+        logger.trace { "Booting" }
+    }
+
     var active = false
 
     @JvmField

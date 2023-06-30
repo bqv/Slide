@@ -27,15 +27,13 @@ android {
         quiet = true
         abortOnError = false
         ignoreWarnings = true
-    }
 
-    lintOptions {
         // Translations are crowd-sourced
-        disable("MissingTranslation")
-        disable("ExtraTranslation")
-        disable("StaticFieldLeak")
-        disable("ClickableViewAccessibility")
-        disable("NotSibling")
+        disable += "MissingTranslation"
+        disable += "ExtraTranslation"
+        disable += "StaticFieldLeak"
+        disable += "ClickableViewAccessibility"
+        disable += "NotSibling"
     }
 
     testOptions {
@@ -181,8 +179,9 @@ dependencies {
     // Simplified bitmap decoding and scaling
     //implementation("com.github.suckgamony.RapidDecoder:library:7cdfca47fa")
 
-    // HTTP client
-    //implementation("com.squareup.okhttp3:okhttp:4.10.0")
+    // HTTP
+    //val okhttpVersion: String by rootProject.extra
+    //implementation("com.squareup.okhttp3:okhttp:$okhttpVersion")
 
     // Convert Java objects into JSON and back
     //val retrofitVersion: String by rootProject.extra

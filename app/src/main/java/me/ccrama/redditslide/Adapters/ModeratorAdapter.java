@@ -27,6 +27,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import androidx.activity.ComponentActivity;
 import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
@@ -87,11 +88,11 @@ public class ModeratorAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
     private final int SPACER = 6;
     public static final int MESSAGE = 2;
     public static final int POST = 3;
-    public final Activity mContext;
+    public final ComponentActivity mContext;
     private final RecyclerView listView;
     public ModeratorPosts dataSet;
 
-    public ModeratorAdapter(Activity mContext, ModeratorPosts dataSet, RecyclerView listView) {
+    public ModeratorAdapter(ComponentActivity mContext, ModeratorPosts dataSet, RecyclerView listView) {
         this.mContext = mContext;
         this.listView = listView;
         this.dataSet = dataSet;

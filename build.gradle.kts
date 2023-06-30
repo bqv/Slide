@@ -9,6 +9,7 @@ buildscript {
         set("graphqlVersion", "6.5.3")
         set("ktorVersion", "2.3.1")
         set("hiltVersion", "2.46.1")
+        set("okhttpVersion", "4.11.0")
     }
 
     repositories {

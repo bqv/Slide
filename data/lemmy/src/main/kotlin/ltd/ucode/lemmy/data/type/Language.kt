@@ -1,7 +1,7 @@
 package ltd.ucode.lemmy.data.type
 
 import kotlinx.serialization.Serializable
-import ltd.ucode.lemmy.data.id.LanguageCode
+import ltd.ucode.lemmy.data.value.LanguageCode
 import ltd.ucode.lemmy.data.id.LanguageId
 
 @Serializable

@@ -2,16 +2,20 @@ package ltd.ucode.slide.repository
 
 import android.content.Context
 import dagger.hilt.android.qualifiers.ApplicationContext
+import ltd.ucode.lemmy.api.ApiResult
+import ltd.ucode.lemmy.api.PagedData
+import ltd.ucode.lemmy.api.request.CreatePostLikeRequest
 import ltd.ucode.lemmy.api.request.GetPostRequest
 import ltd.ucode.lemmy.api.request.GetPostsRequest
 import ltd.ucode.lemmy.api.response.GetPostResponse
+import ltd.ucode.lemmy.api.response.PostResponse
 import ltd.ucode.lemmy.data.id.CommentId
 import ltd.ucode.lemmy.data.id.CommunityId
 import ltd.ucode.lemmy.data.id.PostId
 import ltd.ucode.lemmy.data.type.PostListingType
 import ltd.ucode.lemmy.data.type.PostSortType
 import ltd.ucode.lemmy.data.type.PostView
-import ltd.ucode.slide.PagedData
+import ltd.ucode.lemmy.data.value.SingleVote
 import javax.inject.Inject
 
 class PostRepository @Inject constructor(
@@ -28,7 +32,7 @@ class PostRepository @Inject constructor(
                  type: PostListingType? = null
     ): PagedData<PostView> {
         return PagedData(fromPage ?: 1) { page: Int -> {
-            val response = instanceRepository[instance].getPosts(
+            instanceRepository[instance].getPosts(
                 GetPostsRequest(
                     communityId = communityId,
                     communityName = communityName,
@@ -38,20 +42,32 @@ class PostRepository @Inject constructor(
                     sort = sort,
                     type = type
                 )
-            )
-
-            response.posts
+            ).mapSuccess {
+                data.posts
+            }
         } }
     }
 
     suspend fun getPost(instance: String?,
                         id: PostId? = null,
                         commentId: CommentId? = null
-    ): GetPostResponse {
+    ): ApiResult<GetPostResponse> {
         return instanceRepository[instance].getPost(
             GetPostRequest(
                 id = id,
                 commentId = commentId
+            )
+        )
+    }
+
+    suspend fun likePost(instance: String?,
+                         id: PostId,
+                         score: SingleVote,
+    ): ApiResult<PostResponse> {
+        return instanceRepository[instance].likePost(
+            CreatePostLikeRequest(
+                postId = id,
+                score = score
             )
         )
     }

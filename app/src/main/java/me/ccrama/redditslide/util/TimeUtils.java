@@ -31,7 +31,8 @@ public class TimeUtils {
 
         long now = System.currentTimeMillis();
         if (time > now || time <= 0) {
-            return null;
+            LogUtil.d("Time is in the future");
+            return "Soon";
         }
 
         final long diff = now - time;

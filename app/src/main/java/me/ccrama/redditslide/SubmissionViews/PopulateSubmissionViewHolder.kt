@@ -21,10 +21,14 @@ import android.widget.RadioButton
 import android.widget.RadioGroup
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.ComponentActivity
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.coroutineScope
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.RecyclerView
 import com.afollestad.materialdialogs.DialogAction
 import com.afollestad.materialdialogs.MaterialDialog
@@ -33,6 +37,12 @@ import com.afollestad.materialdialogs.MaterialDialog.SingleButtonCallback
 import com.cocosw.bottomsheet.BottomSheet
 import com.devspark.robototextview.RobotoTypefaces
 import com.google.android.material.snackbar.Snackbar
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import ltd.ucode.lemmy.data.LemmyPost
+import ltd.ucode.lemmy.data.id.PostId
+import ltd.ucode.lemmy.data.value.SingleVote
 import ltd.ucode.slide.App.Companion.defaultShareText
 import ltd.ucode.slide.Authentication
 import ltd.ucode.slide.R
@@ -80,6 +90,7 @@ import me.ccrama.redditslide.views.CreateCardView
 import me.ccrama.redditslide.views.DoEditorActions
 import me.ccrama.redditslide.Visuals.FontPreferences
 import me.ccrama.redditslide.Visuals.Palette
+import me.ccrama.redditslide.Vote
 import me.ccrama.redditslide.util.AnimatorUtil
 import me.ccrama.redditslide.util.BlendModeUtil
 import me.ccrama.redditslide.util.ClipboardUtil
@@ -1926,7 +1937,7 @@ class PopulateSubmissionViewHolder(private val postRepository: PostRepository,
     }
 
     fun populateSubmissionViewHolder(
-        holder: SubmissionViewHolder, submission: IPost, mContext: Activity,
+        holder: SubmissionViewHolder, submission: IPost, mContext: ComponentActivity,
         fullscreen: Boolean, full: Boolean, posts: MutableList<IPost>,
         recyclerview: RecyclerView, same: Boolean, offline: Boolean,
         baseSub: String?, adapter: CommentAdapter?
@@ -2270,10 +2281,14 @@ class PopulateSubmissionViewHolder(private val postRepository: PostRepository,
                                 if ((SUBMISSION_SCORE == 0)) 0 else (SUBMISSION_SCORE
                                         - 1) //if a post is at 0 votes, keep it at 0 when downvoting
                             //Vote(false, points, mContext).execute(submission)
-                            ActionStates.setVoteDirection(submission, VoteDirection.DOWNVOTE)
+                            votePost(mContext, submission, SingleVote.DOWNVOTE) {
+                                ActionStates.setVoteDirection(submission, VoteDirection.DOWNVOTE)
+                            }
                         } else { //un-downvoted a post
                             points.setTextColor(comments.getCurrentTextColor())
                             //Vote(points, mContext).execute(submission)
+                            votePost(mContext, submission, SingleVote.NOVOTE) {
+                            }
                             holder.score.setTypeface(null, Typeface.NORMAL)
                             ActionStates.setVoteDirection(submission, VoteDirection.NO_VOTE)
                             BlendModeUtil.tintImageViewAsSrcAtop(downvotebutton, getTintColor)
@@ -2323,10 +2338,14 @@ class PopulateSubmissionViewHolder(private val postRepository: PostRepository,
                             )
                             holder.score.setTypeface(null, Typeface.BOLD)
                             //Vote(true, points, mContext).execute(submission)
-                            ActionStates.setVoteDirection(submission, VoteDirection.UPVOTE)
+                            votePost(mContext, submission, SingleVote.UPVOTE) {
+                                ActionStates.setVoteDirection(submission, VoteDirection.UPVOTE)
+                            }
                         } else { //un-upvoted a post
                             points.setTextColor(comments.getCurrentTextColor())
                             //Vote(points, mContext).execute(submission)
+                            votePost(mContext, submission, SingleVote.NOVOTE) {
+                            }
                             holder.score.setTypeface(null, Typeface.NORMAL)
                             ActionStates.setVoteDirection(submission, VoteDirection.NO_VOTE)
                             BlendModeUtil.tintImageViewAsSrcAtop(upvotebutton, getTintColor)
@@ -3234,6 +3253,21 @@ class PopulateSubmissionViewHolder(private val postRepository: PostRepository,
             } else {
                 LinkUtil.openExternally(submission.url!!)
             }
+        }
+    }
+
+    private fun votePost(context: LifecycleOwner,
+                         submission: IPost, direction: SingleVote,
+                         andThen: suspend () -> Unit = {}) {
+        context.lifecycleScope.launch {
+            withContext(Dispatchers.IO) {
+                postRepository.likePost(
+                    (submission as LemmyPost).instance,
+                    PostId(submission.postId.id),
+                    direction
+                )
+            }
+            andThen()
         }
     }
 }

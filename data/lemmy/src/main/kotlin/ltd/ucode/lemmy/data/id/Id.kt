@@ -39,5 +39,3 @@ import ltd.ucode.slide.data.IPost
 @Serializable
 @JvmInline value class LanguageId(override val id: Int) : IIdentifier<Language>
 
-@Serializable
-@JvmInline value class LanguageCode(val code: String)

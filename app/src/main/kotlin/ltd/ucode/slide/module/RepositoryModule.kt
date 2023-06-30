@@ -7,24 +7,15 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.components.ViewModelComponent
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.android.scopes.ViewModelScoped
-import ltd.ucode.slide.repository.AccountRepository
 import ltd.ucode.slide.repository.CommentRepository
 import ltd.ucode.slide.repository.GroupRepository
 import ltd.ucode.slide.repository.InstanceRepository
 import ltd.ucode.slide.repository.PostRepository
-import ltd.ucode.slide.repository.SettingsRepository
 import ltd.ucode.slide.repository.UserRepository
-import okhttp3.OkHttpClient
-import javax.inject.Named
 
 @Module
 @InstallIn(ViewModelComponent::class)
 object RepositoryModule {
-    @Provides
-    @ViewModelScoped
-    fun providesAccountRepository(@ApplicationContext context: Context): AccountRepository =
-        AccountRepository(context = context)
-
     @Provides
     @ViewModelScoped
     fun providesCommentRepository(@ApplicationContext context: Context, instanceRepository: InstanceRepository): CommentRepository =
@@ -37,18 +28,8 @@ object RepositoryModule {
 
     @Provides
     @ViewModelScoped
-    fun providesInstanceRepository(@ApplicationContext context: Context, okHttpClient: OkHttpClient, @Named("userAgent") userAgent: String, accountRepository: AccountRepository): InstanceRepository =
-        InstanceRepository(context = context, okHttpClient = okHttpClient, userAgent = userAgent, accountRepository = accountRepository)
-
-    @Provides
-    @ViewModelScoped
     fun providesPostRepository(@ApplicationContext context: Context, instanceRepository: InstanceRepository): PostRepository =
         PostRepository(context = context, instanceRepository = instanceRepository)
-
-    @Provides
-    @ViewModelScoped
-    fun providesSettingsRepository(@ApplicationContext context: Context): SettingsRepository =
-        SettingsRepository(context = context)
 
     @Provides
     @ViewModelScoped

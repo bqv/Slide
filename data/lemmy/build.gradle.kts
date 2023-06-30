@@ -16,7 +16,8 @@ dependencies {
     implementation("io.github.oshai:kotlin-logging-jvm:4.0.0")
     implementation("com.github.Haptic-Apps:JRAW:9c8a410a06")
 
-    implementation("com.squareup.okhttp3:okhttp:4.10.0")
+    val okhttpVersion: String by rootProject.extra
+    implementation("com.squareup.okhttp3:okhttp:$okhttpVersion")
 
     val retrofitVersion: String by rootProject.extra
     implementation("com.squareup.retrofit2:retrofit:${retrofitVersion}")

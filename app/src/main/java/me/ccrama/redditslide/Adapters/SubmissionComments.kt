@@ -141,7 +141,7 @@ class SubmissionComments {
     fun reloadSubmission(commentAdapter: CommentAdapter) {
         val post = runBlocking {
             postRepository.getPost(AccountRepository.currentAccount(), id = PostId(fullName.toInt()))
-        }
+        }.success
         commentAdapter.submission = LemmyPost(post.postView.instanceName, post.postView)
     }
 
@@ -178,7 +178,7 @@ class SubmissionComments {
 
             val commentViews: MutableList<CommentView> = mutableListOf<CommentView>().also {
                 while (paginator.hasNext) {
-                    val page = runBlocking { paginator.next() }
+                    val page = runBlocking { paginator.next() }.success
                     it.addAll(page)
                 } // assume closed set
             }

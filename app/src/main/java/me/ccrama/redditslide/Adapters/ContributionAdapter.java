@@ -4,9 +4,7 @@ package me.ccrama.redditslide.Adapters;
  * Created by ccrama on 3/22/2015.
  */
 
-import android.app.Activity;
 import android.app.Dialog;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.TypedArray;
 import android.graphics.Typeface;
@@ -21,6 +19,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import androidx.activity.ComponentActivity;
 import androidx.appcompat.app.AlertDialog;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -66,12 +65,12 @@ public class ContributionAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
 
     private final int SPACER = 6;
     private static final int COMMENT = 1;
-    public final Activity mContext;
+    public final ComponentActivity mContext;
     private final RecyclerView listView;
     private final Boolean isHiddenPost;
     public GeneralPosts dataSet;
 
-    public ContributionAdapter(Activity mContext, GeneralPosts dataSet, RecyclerView listView) {
+    public ContributionAdapter(ComponentActivity mContext, GeneralPosts dataSet, RecyclerView listView) {
         this.mContext = mContext;
         this.listView = listView;
         this.dataSet = dataSet;
@@ -79,7 +78,7 @@ public class ContributionAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         this.isHiddenPost = false;
     }
 
-    public ContributionAdapter(Activity mContext, GeneralPosts dataSet, RecyclerView listView, Boolean isHiddenPost) {
+    public ContributionAdapter(ComponentActivity mContext, GeneralPosts dataSet, RecyclerView listView, Boolean isHiddenPost) {
         this.mContext = mContext;
         this.listView = listView;
         this.dataSet = dataSet;

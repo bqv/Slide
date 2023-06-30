@@ -84,6 +84,19 @@ object ActionStates {
     }
 
     @JvmStatic
+    fun setVoteDirection(s: CommentView, direction: VoteDirection) {
+        val fullname = s.permalink
+        upVotedFullnames.remove(fullname)
+        downVotedFullnames.remove(fullname)
+        unvotedFullnames.remove(fullname)
+        when (direction) {
+            VoteDirection.UPVOTE -> upVotedFullnames.add(fullname)
+            VoteDirection.DOWNVOTE -> downVotedFullnames.add(fullname)
+            VoteDirection.NO_VOTE -> unvotedFullnames.add(fullname)
+        }
+    }
+
+    @JvmStatic
     fun isSaved(s: IItem): Boolean {
         return if (savedFullnames.contains(s.permalink)) {
             true

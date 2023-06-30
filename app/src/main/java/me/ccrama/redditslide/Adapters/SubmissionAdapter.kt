@@ -1,6 +1,5 @@
 package me.ccrama.redditslide.Adapters
 
-import android.app.Activity
 import android.content.DialogInterface
 import android.content.Intent
 import android.os.Handler
@@ -9,6 +8,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
+import androidx.activity.ComponentActivity
 import androidx.appcompat.app.AlertDialog
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
@@ -36,7 +36,7 @@ import me.ccrama.redditslide.views.CreateCardView.CreateView
 import me.ccrama.redditslide.views.CreateCardView.colorCard
 
 class SubmissionAdapter(
-    context: Activity, dataSet: SubredditPosts, listView: RecyclerView?,
+    var context: ComponentActivity, dataSet: SubredditPosts, listView: RecyclerView?,
     subreddit: String, displayer: SubmissionDisplay
 ) : RecyclerView.Adapter<RecyclerView.ViewHolder>(), BaseAdapter {
     val postRepository: PostRepository get() = when {
@@ -53,7 +53,6 @@ class SubmissionAdapter(
 
     private val listView: RecyclerView?
     val subreddit: String
-    var context: Activity
     private val custom: Boolean
     var dataSet: SubredditPosts
     var seen: List<IPost>
@@ -157,7 +156,6 @@ class SubmissionAdapter(
         this.subreddit = subreddit.lowercase()
         this.listView = listView
         this.dataSet = dataSet
-        this.context = context
         seen = ArrayList()
         custom = getLayoutSettings(subreddit)!!
         this.displayer = displayer

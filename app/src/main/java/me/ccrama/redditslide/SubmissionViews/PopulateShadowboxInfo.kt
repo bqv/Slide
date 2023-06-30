@@ -19,16 +19,28 @@ import android.widget.RadioButton
 import android.widget.RadioGroup
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.ComponentActivity
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.lifecycleScope
 import com.afollestad.materialdialogs.MaterialDialog
 import com.cocosw.bottomsheet.BottomSheet
 import com.sothree.slidinguppanel.SlidingUpPanelLayout
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import ltd.ucode.lemmy.data.id.CommentId
+import ltd.ucode.lemmy.data.id.PostId
+import ltd.ucode.lemmy.data.value.SingleVote
 import ltd.ucode.slide.App.Companion.defaultShareText
 import ltd.ucode.slide.Authentication
 import ltd.ucode.slide.R
 import ltd.ucode.slide.SettingValues
 import ltd.ucode.slide.SettingValues.actionbarVisible
 import ltd.ucode.slide.data.IPost
+import ltd.ucode.slide.repository.CommentRepository
+import ltd.ucode.slide.repository.PostRepository
+import ltd.ucode.slide.ui.main.MainActivity
 import me.ccrama.redditslide.ActionStates.getVoteDirection
 import me.ccrama.redditslide.ActionStates.isSaved
 import me.ccrama.redditslide.ActionStates.setSaved
@@ -36,18 +48,18 @@ import me.ccrama.redditslide.ActionStates.setVoteDirection
 import me.ccrama.redditslide.Activities.Profile
 import me.ccrama.redditslide.Activities.SubredditView
 import me.ccrama.redditslide.HasSeen
-import me.ccrama.redditslide.views.RoundedBackgroundSpan
-import me.ccrama.redditslide.views.TitleTextView
 import me.ccrama.redditslide.Visuals.Palette
-import me.ccrama.redditslide.Vote
 import me.ccrama.redditslide.util.AnimatorUtil
 import me.ccrama.redditslide.util.BlendModeUtil
 import me.ccrama.redditslide.util.ClipboardUtil
 import me.ccrama.redditslide.util.CompatUtil
 import me.ccrama.redditslide.util.LinkUtil.openExternally
 import me.ccrama.redditslide.util.TimeUtils
+import me.ccrama.redditslide.views.RoundedBackgroundSpan
+import me.ccrama.redditslide.views.TitleTextView
 import net.dean.jraw.ApiException
 import net.dean.jraw.managers.AccountManager
+import net.dean.jraw.models.Comment
 import net.dean.jraw.models.CommentNode
 import net.dean.jraw.models.DistinguishedStatus
 import net.dean.jraw.models.Ruleset
@@ -57,8 +69,20 @@ import java.util.Arrays
 import java.util.Locale
 
 object PopulateShadowboxInfo {
+    private val ComponentActivity.postRepository: PostRepository
+        get() = when (this) {
+            is MainActivity -> this.postRepository
+            else -> throw IllegalArgumentException(this::class.simpleName)
+        }
+
+    private val ComponentActivity.commentRepository: CommentRepository
+        get() = when (this) {
+            is MainActivity -> this.commentRepository
+            else -> throw IllegalArgumentException(this::class.simpleName)
+        }
+
     @JvmStatic
-    fun doActionbar(s: IPost?, rootView: View, c: Activity, extras: Boolean) {
+    fun doActionbar(s: IPost?, rootView: View, c: ComponentActivity, extras: Boolean) {
         val title = rootView.findViewById<TextView>(R.id.title)
         val desc = rootView.findViewById<TextView>(R.id.desc)
         var distingush: String = ""
@@ -177,7 +201,7 @@ object PopulateShadowboxInfo {
                     } else {
                         BlendModeUtil.tintImageViewAsSrcAtop(save, Color.WHITE)
                     }
-                    save.setOnClickListener(View.OnClickListener {
+                    save.setOnClickListener {
                         object : AsyncTask<Void?, Void?, Void?>() {
                             override fun doInBackground(vararg params: Void?): Void? {
                                 try {
@@ -212,7 +236,7 @@ object PopulateShadowboxInfo {
                                 }
                             }
                         }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR)
-                    })
+                    }
                 }
                 if (!Authentication.isLoggedIn || !Authentication.didOnline) {
                     save.visibility = View.GONE
@@ -222,50 +246,52 @@ object PopulateShadowboxInfo {
                     val comments = rootView.findViewById<TextView>(R.id.comments)
                     if (Authentication.isLoggedIn && Authentication.didOnline) {
                         run {
-                            downvotebutton.setOnClickListener(object : View.OnClickListener {
-                                override fun onClick(view: View) {
-                                    (rootView.findViewById<View>(R.id.sliding_layout) as SlidingUpPanelLayout).setPanelState(
-                                        SlidingUpPanelLayout.PanelState.COLLAPSED
-                                    )
-                                    if (SettingValues.storeHistory) {
-                                        if (!s.isNsfw || SettingValues.storeNSFWHistory) {
-                                            HasSeen.addSeen(s.permalink)
-                                        }
+                            downvotebutton.setOnClickListener {
+                                (rootView.findViewById<View>(R.id.sliding_layout) as SlidingUpPanelLayout).setPanelState(
+                                    SlidingUpPanelLayout.PanelState.COLLAPSED
+                                )
+                                if (SettingValues.storeHistory) {
+                                    if (!s.isNsfw || SettingValues.storeNSFWHistory) {
+                                        HasSeen.addSeen(s.permalink)
                                     }
-                                    if (getVoteDirection(s) != VoteDirection.DOWNVOTE) { //has not been downvoted
-                                        points.setTextColor(
-                                            ContextCompat.getColor(
-                                                c,
-                                                R.color.md_blue_500
-                                            )
+                                }
+                                if (getVoteDirection(s) != VoteDirection.DOWNVOTE) { //has not been downvoted
+                                    points.setTextColor(
+                                        ContextCompat.getColor(
+                                            c,
+                                            R.color.md_blue_500
                                         )
-                                        BlendModeUtil.tintImageViewAsSrcAtop(
-                                            downvotebutton,
-                                            ContextCompat.getColor(c, R.color.md_blue_500)
-                                        )
-                                        BlendModeUtil.tintImageViewAsSrcAtop(
-                                            upvotebutton,
-                                            Color.WHITE
-                                        )
-                                        AnimatorUtil.setFlashAnimation(
-                                            rootView,
-                                            downvotebutton,
-                                            ContextCompat.getColor(c, R.color.md_blue_500)
-                                        )
-                                        (rootView.findViewById<View>(R.id.score) as TextView).setTypeface(
-                                            null,
-                                            Typeface.BOLD
-                                        )
-                                        val downvoteScore: Int =
-                                            if ((s.score == 0)) 0 else s.score - 1 //if a post is at 0 votes, keep it at 0 when downvoting
-                                        (rootView.findViewById<View>(R.id.score) as TextView).setText(
-                                            String.format(Locale.getDefault(), "%d", downvoteScore)
-                                        )
-                                        //Vote(false, points, c).execute(s)
+                                    )
+                                    BlendModeUtil.tintImageViewAsSrcAtop(
+                                        downvotebutton,
+                                        ContextCompat.getColor(c, R.color.md_blue_500)
+                                    )
+                                    BlendModeUtil.tintImageViewAsSrcAtop(
+                                        upvotebutton,
+                                        Color.WHITE
+                                    )
+                                    AnimatorUtil.setFlashAnimation(
+                                        rootView,
+                                        downvotebutton,
+                                        ContextCompat.getColor(c, R.color.md_blue_500)
+                                    )
+                                    (rootView.findViewById<View>(R.id.score) as TextView).setTypeface(
+                                        null,
+                                        Typeface.BOLD
+                                    )
+                                    val downvoteScore: Int =
+                                        if ((s.score == 0)) 0 else s.score - 1 //if a post is at 0 votes, keep it at 0 when downvoting
+                                    (rootView.findViewById<View>(R.id.score) as TextView).setText(
+                                        String.format(Locale.getDefault(), "%d", downvoteScore)
+                                    )
+                                    //Vote(false, points, c).execute(s)
+                                    votePost(c, c.postRepository, s, SingleVote.DOWNVOTE) {
                                         setVoteDirection(s, VoteDirection.DOWNVOTE)
-                                    } else {
-                                        points.setTextColor(comments.getCurrentTextColor())
-                                        //Vote(points, c).execute(s)
+                                    }
+                                } else {
+                                    points.setTextColor(comments.getCurrentTextColor())
+                                    //Vote(points, c).execute(s)
+                                    votePost(c, c.postRepository, s, SingleVote.NOVOTE) {
                                         (rootView.findViewById<View>(R.id.score) as TextView).setTypeface(
                                             null,
                                             Typeface.NORMAL
@@ -280,55 +306,57 @@ object PopulateShadowboxInfo {
                                         )
                                     }
                                 }
-                            })
+                            }
                         }
                         run {
-                            upvotebutton.setOnClickListener(object : View.OnClickListener {
-                                override fun onClick(view: View) {
-                                    (rootView.findViewById<View>(R.id.sliding_layout) as SlidingUpPanelLayout).setPanelState(
-                                        SlidingUpPanelLayout.PanelState.COLLAPSED
-                                    )
-                                    if (SettingValues.storeHistory) {
-                                        if (!s.isNsfw || SettingValues.storeNSFWHistory) {
-                                            HasSeen.addSeen(s.permalink)
-                                        }
+                            upvotebutton.setOnClickListener {
+                                (rootView.findViewById<View>(R.id.sliding_layout) as SlidingUpPanelLayout).setPanelState(
+                                    SlidingUpPanelLayout.PanelState.COLLAPSED
+                                )
+                                if (SettingValues.storeHistory) {
+                                    if (!s.isNsfw || SettingValues.storeNSFWHistory) {
+                                        HasSeen.addSeen(s.permalink)
                                     }
-                                    if (getVoteDirection(s) != VoteDirection.UPVOTE) { //has not been upvoted
-                                        points.setTextColor(
-                                            ContextCompat.getColor(
-                                                c,
-                                                R.color.md_orange_500
-                                            )
+                                }
+                                if (getVoteDirection(s) != VoteDirection.UPVOTE) { //has not been upvoted
+                                    points.setTextColor(
+                                        ContextCompat.getColor(
+                                            c,
+                                            R.color.md_orange_500
                                         )
-                                        BlendModeUtil.tintImageViewAsSrcAtop(
-                                            upvotebutton,
-                                            ContextCompat.getColor(c, R.color.md_orange_500)
+                                    )
+                                    BlendModeUtil.tintImageViewAsSrcAtop(
+                                        upvotebutton,
+                                        ContextCompat.getColor(c, R.color.md_orange_500)
+                                    )
+                                    BlendModeUtil.tintImageViewAsSrcAtop(
+                                        downvotebutton,
+                                        Color.WHITE
+                                    )
+                                    AnimatorUtil.setFlashAnimation(
+                                        rootView,
+                                        upvotebutton,
+                                        ContextCompat.getColor(c, R.color.md_orange_500)
+                                    )
+                                    (rootView.findViewById<View>(R.id.score) as TextView).setTypeface(
+                                        null,
+                                        Typeface.BOLD
+                                    )
+                                    (rootView.findViewById<View>(R.id.score) as TextView).setText(
+                                        String.format(
+                                            Locale.getDefault(),
+                                            "%d",
+                                            s.score + 1
                                         )
-                                        BlendModeUtil.tintImageViewAsSrcAtop(
-                                            downvotebutton,
-                                            Color.WHITE
-                                        )
-                                        AnimatorUtil.setFlashAnimation(
-                                            rootView,
-                                            upvotebutton,
-                                            ContextCompat.getColor(c, R.color.md_orange_500)
-                                        )
-                                        (rootView.findViewById<View>(R.id.score) as TextView).setTypeface(
-                                            null,
-                                            Typeface.BOLD
-                                        )
-                                        (rootView.findViewById<View>(R.id.score) as TextView).setText(
-                                            String.format(
-                                                Locale.getDefault(),
-                                                "%d",
-                                                s.score + 1
-                                            )
-                                        )
-                                        //Vote(true, points, c).execute(s)
+                                    )
+                                    //Vote(true, points, c).execute(s)
+                                    votePost(c, c.postRepository, s, SingleVote.UPVOTE) {
                                         setVoteDirection(s, VoteDirection.UPVOTE)
-                                    } else {
-                                        points.setTextColor(comments.getCurrentTextColor())
-                                        //Vote(points, c).execute(s)
+                                    }
+                                } else {
+                                    points.setTextColor(comments.getCurrentTextColor())
+                                    //Vote(points, c).execute(s)
+                                    votePost(c, c.postRepository, s, SingleVote.NOVOTE) {
                                         (rootView.findViewById<View>(R.id.score) as TextView).setTypeface(
                                             null,
                                             Typeface.NORMAL
@@ -343,7 +371,7 @@ object PopulateShadowboxInfo {
                                         )
                                     }
                                 }
-                            })
+                            }
                         }
                     } else {
                         upvotebutton.visibility = View.GONE
@@ -353,17 +381,13 @@ object PopulateShadowboxInfo {
                     ignored.printStackTrace()
                 }
                 rootView.findViewById<View>(R.id.menu)
-                    .setOnClickListener(object : View.OnClickListener {
-                        override fun onClick(v: View) {
-                            showBottomSheet(c, s, rootView)
-                        }
-                    })
+                    .setOnClickListener { showBottomSheet(c, s, rootView) }
             }
         }
     }
 
     @JvmStatic
-    fun doActionbar(node: CommentNode, rootView: View, c: Activity, extras: Boolean) {
+    fun doActionbar(node: CommentNode, rootView: View, c: ComponentActivity, extras: Boolean) {
         val s = node.comment
         val title = rootView.findViewById<TitleTextView>(R.id.title)
         val desc = rootView.findViewById<TextView>(R.id.desc)
@@ -555,109 +579,121 @@ object PopulateShadowboxInfo {
                     val comments = rootView.findViewById<TextView>(R.id.comments)
                     if (Authentication.isLoggedIn && Authentication.didOnline) {
                         run {
-                            downvotebutton.setOnClickListener(object : View.OnClickListener {
-                                override fun onClick(view: View) {
-                                    (rootView.findViewById<View>(R.id.sliding_layout) as SlidingUpPanelLayout).setPanelState(
-                                        SlidingUpPanelLayout.PanelState.COLLAPSED
+                            downvotebutton.setOnClickListener {
+                                (rootView.findViewById<View>(R.id.sliding_layout) as SlidingUpPanelLayout).setPanelState(
+                                    SlidingUpPanelLayout.PanelState.COLLAPSED
+                                )
+                                if (getVoteDirection(s) != VoteDirection.DOWNVOTE) { //has not been downvoted
+                                    points.setTextColor(
+                                        ContextCompat.getColor(
+                                            c,
+                                            R.color.md_blue_500
+                                        )
                                     )
-                                    if (getVoteDirection(s) != VoteDirection.DOWNVOTE) { //has not been downvoted
-                                        points.setTextColor(
-                                            ContextCompat.getColor(
-                                                c,
-                                                R.color.md_blue_500
-                                            )
-                                        )
-                                        BlendModeUtil.tintImageViewAsSrcAtop(
-                                            downvotebutton,
-                                            ContextCompat.getColor(c, R.color.md_blue_500)
-                                        )
-                                        BlendModeUtil.tintImageViewAsSrcAtop(
-                                            upvotebutton,
-                                            Color.WHITE
-                                        )
-                                        AnimatorUtil.setFlashAnimation(
-                                            rootView,
-                                            downvotebutton,
-                                            ContextCompat.getColor(c, R.color.md_blue_500)
-                                        )
-                                        (rootView.findViewById<View>(R.id.score) as TextView).setTypeface(
-                                            null,
-                                            Typeface.BOLD
-                                        )
-                                        val downvoteScore: Int =
-                                            if ((s.getScore() == 0)) 0 else s.getScore() - 1 //if a post is at 0 votes, keep it at 0 when downvoting
-                                        (rootView.findViewById<View>(R.id.score) as TextView).setText(
-                                            String.format(Locale.getDefault(), "%d", downvoteScore)
-                                        )
-                                        Vote(false, points, c).execute(s)
+                                    BlendModeUtil.tintImageViewAsSrcAtop(
+                                        downvotebutton,
+                                        ContextCompat.getColor(c, R.color.md_blue_500)
+                                    )
+                                    BlendModeUtil.tintImageViewAsSrcAtop(
+                                        upvotebutton,
+                                        Color.WHITE
+                                    )
+                                    AnimatorUtil.setFlashAnimation(
+                                        rootView,
+                                        downvotebutton,
+                                        ContextCompat.getColor(c, R.color.md_blue_500)
+                                    )
+                                    (rootView.findViewById<View>(R.id.score) as TextView).setTypeface(
+                                        null,
+                                        Typeface.BOLD
+                                    )
+                                    val downvoteScore: Int =
+                                        if ((s.getScore() == 0)) 0 else s.getScore() - 1 //if a post is at 0 votes, keep it at 0 when downvoting
+                                    (rootView.findViewById<View>(R.id.score) as TextView).setText(
+                                        String.format(Locale.getDefault(), "%d", downvoteScore)
+                                    )
+                                    //Vote(false, points, c).execute(s)
+                                    voteComment(c, c.commentRepository, s, SingleVote.DOWNVOTE) {
                                         setVoteDirection(s, VoteDirection.DOWNVOTE)
-                                    } else {
-                                        points.setTextColor(comments.getCurrentTextColor())
-                                        Vote(points, c).execute(s)
+                                    }
+                                } else {
+                                    points.setTextColor(comments.getCurrentTextColor())
+                                    //Vote(points, c).execute(s)
+                                    voteComment(c, c.commentRepository, s, SingleVote.NOVOTE) {
                                         (rootView.findViewById<View>(R.id.score) as TextView).setTypeface(
                                             null,
                                             Typeface.NORMAL
-                                        )
-                                        (rootView.findViewById<View>(R.id.score) as TextView).setText(
-                                            String.format(Locale.getDefault(), "%d", s.getScore())
-                                        )
-                                        setVoteDirection(s, VoteDirection.NO_VOTE)
-                                        BlendModeUtil.tintImageViewAsSrcAtop(
-                                            downvotebutton,
-                                            Color.WHITE
-                                        )
-                                    }
-                                }
-                            })
-                        }
-                        run {
-                            upvotebutton.setOnClickListener(object : View.OnClickListener {
-                                override fun onClick(view: View) {
-                                    (rootView.findViewById<View>(R.id.sliding_layout) as SlidingUpPanelLayout).setPanelState(
-                                        SlidingUpPanelLayout.PanelState.COLLAPSED
-                                    )
-                                    if (getVoteDirection(s) != VoteDirection.UPVOTE) { //has not been upvoted
-                                        points.setTextColor(
-                                            ContextCompat.getColor(
-                                                c,
-                                                R.color.md_orange_500
-                                            )
-                                        )
-                                        BlendModeUtil.tintImageViewAsSrcAtop(
-                                            upvotebutton,
-                                            ContextCompat.getColor(c, R.color.md_orange_500)
-                                        )
-                                        BlendModeUtil.tintImageViewAsSrcAtop(
-                                            downvotebutton,
-                                            Color.WHITE
-                                        )
-                                        AnimatorUtil.setFlashAnimation(
-                                            rootView,
-                                            upvotebutton,
-                                            ContextCompat.getColor(c, R.color.md_orange_500)
-                                        )
-                                        (rootView.findViewById<View>(R.id.score) as TextView).setTypeface(
-                                            null,
-                                            Typeface.BOLD
                                         )
                                         (rootView.findViewById<View>(R.id.score) as TextView).setText(
                                             String.format(
                                                 Locale.getDefault(),
                                                 "%d",
-                                                s.getScore() + 1
+                                                s.getScore()
                                             )
                                         )
-                                        Vote(true, points, c).execute(s)
+                                        setVoteDirection(s, VoteDirection.NO_VOTE)
+                                        BlendModeUtil.tintImageViewAsSrcAtop(
+                                            downvotebutton,
+                                            Color.WHITE
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                        run {
+                            upvotebutton.setOnClickListener {
+                                (rootView.findViewById<View>(R.id.sliding_layout) as SlidingUpPanelLayout).setPanelState(
+                                    SlidingUpPanelLayout.PanelState.COLLAPSED
+                                )
+                                if (getVoteDirection(s) != VoteDirection.UPVOTE) { //has not been upvoted
+                                    points.setTextColor(
+                                        ContextCompat.getColor(
+                                            c,
+                                            R.color.md_orange_500
+                                        )
+                                    )
+                                    BlendModeUtil.tintImageViewAsSrcAtop(
+                                        upvotebutton,
+                                        ContextCompat.getColor(c, R.color.md_orange_500)
+                                    )
+                                    BlendModeUtil.tintImageViewAsSrcAtop(
+                                        downvotebutton,
+                                        Color.WHITE
+                                    )
+                                    AnimatorUtil.setFlashAnimation(
+                                        rootView,
+                                        upvotebutton,
+                                        ContextCompat.getColor(c, R.color.md_orange_500)
+                                    )
+                                    (rootView.findViewById<View>(R.id.score) as TextView).setTypeface(
+                                        null,
+                                        Typeface.BOLD
+                                    )
+                                    (rootView.findViewById<View>(R.id.score) as TextView).setText(
+                                        String.format(
+                                            Locale.getDefault(),
+                                            "%d",
+                                            s.getScore() + 1
+                                        )
+                                    )
+                                    //Vote(true, points, c).execute(s)
+                                    voteComment(c, c.commentRepository, s, SingleVote.UPVOTE) {
                                         setVoteDirection(s, VoteDirection.UPVOTE)
-                                    } else {
-                                        points.setTextColor(comments.getCurrentTextColor())
-                                        Vote(points, c).execute(s)
+                                    }
+                                } else {
+                                    points.setTextColor(comments.getCurrentTextColor())
+                                    //Vote(points, c).execute(s)
+                                    voteComment(c, c.commentRepository, s, SingleVote.NOVOTE) {
                                         (rootView.findViewById<View>(R.id.score) as TextView).setTypeface(
                                             null,
                                             Typeface.NORMAL
                                         )
                                         (rootView.findViewById<View>(R.id.score) as TextView).setText(
-                                            String.format(Locale.getDefault(), "%d", s.getScore())
+                                            String.format(
+                                                Locale.getDefault(),
+                                                "%d",
+                                                s.getScore()
+                                            )
                                         )
                                         setVoteDirection(s, VoteDirection.NO_VOTE)
                                         BlendModeUtil.tintImageViewAsSrcAtop(
@@ -666,7 +702,7 @@ object PopulateShadowboxInfo {
                                         )
                                     }
                                 }
-                            })
+                            }
                         }
                     } else {
                         upvotebutton.visibility = View.GONE
@@ -830,5 +866,35 @@ object PopulateShadowboxInfo {
                 }
             })
         b.show()
+    }
+
+    private fun votePost(context: LifecycleOwner, postRepository: PostRepository,
+                         submission: IPost, direction: SingleVote,
+                         andThen: suspend () -> Unit = {}) {
+        context.lifecycleScope.launch {
+            withContext(Dispatchers.IO) {
+                postRepository.likePost(
+                    submission.domain,
+                    PostId(submission.postId.id),
+                    direction
+                )
+            }
+            andThen()
+        }
+    }
+
+    private fun voteComment(context: LifecycleOwner, commentRepository: CommentRepository,
+                            comment: Comment, direction: SingleVote,
+                            andThen: suspend () -> Unit = {}) {
+        context.lifecycleScope.launch {
+            withContext(Dispatchers.IO) {
+                commentRepository.likeComment(
+                    comment.subredditName,
+                    CommentId(comment.id.toInt()),
+                    direction
+                )
+            }
+            andThen()
+        }
     }
 }

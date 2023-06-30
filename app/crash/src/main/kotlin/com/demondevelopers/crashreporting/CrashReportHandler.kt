@@ -31,7 +31,7 @@ object CrashReportHandler {
         get() = Debug.waitingForDebugger() || Debug.isDebuggerConnected()
 
     fun install(context: Context, emailAddress: String?) {
-        if (isDebug) {
+        if (isDebug || true) {
             // NOTE: It does not generate crash reports when you are debugging your app.
             return
         }

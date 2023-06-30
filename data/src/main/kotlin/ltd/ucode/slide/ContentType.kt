@@ -124,7 +124,7 @@ open class ContentType {
          */
         @JvmStatic
         fun getContentType(url: String): Type {
-            var url = url
+            @Suppress("NAME_SHADOWING") var url = url
             if (!url.startsWith("//") && (url.startsWith("/") && url.length < 4
                         || url.startsWith("#spoiler") || url.startsWith("/spoiler")
                         || url.startsWith("#s-")

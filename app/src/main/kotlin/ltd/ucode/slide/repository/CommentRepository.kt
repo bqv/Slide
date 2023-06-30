@@ -2,14 +2,18 @@ package ltd.ucode.slide.repository
 
 import android.content.Context
 import dagger.hilt.android.qualifiers.ApplicationContext
+import ltd.ucode.lemmy.api.ApiResult
+import ltd.ucode.lemmy.api.PagedData
+import ltd.ucode.lemmy.api.request.CreateCommentLikeRequest
 import ltd.ucode.lemmy.api.request.GetCommentsRequest
+import ltd.ucode.lemmy.api.response.CommentResponse
 import ltd.ucode.lemmy.data.id.CommentId
 import ltd.ucode.lemmy.data.id.CommunityId
 import ltd.ucode.lemmy.data.id.PostId
 import ltd.ucode.lemmy.data.type.CommentListingType
 import ltd.ucode.lemmy.data.type.CommentSortType
 import ltd.ucode.lemmy.data.type.CommentView
-import ltd.ucode.slide.PagedData
+import ltd.ucode.lemmy.data.value.SingleVote
 import javax.inject.Inject
 
 class CommentRepository @Inject constructor(
@@ -29,7 +33,7 @@ class CommentRepository @Inject constructor(
                     type: CommentListingType? = null
     ): PagedData<CommentView> {
         return PagedData(fromPage ?: 1) { page: Int -> {
-            val response = instanceRepository[instance].getComments(
+            instanceRepository[instance].getComments(
                 GetCommentsRequest(
                     communityId = communityId,
                     communityName = communityName,
@@ -42,9 +46,21 @@ class CommentRepository @Inject constructor(
                     sort = sort,
                     type = type
                 )
-            )
-
-            response.comments
+            ).mapSuccess {
+                data.comments
+            }
         } }
+    }
+
+    suspend fun likeComment(instance: String?,
+                            id: CommentId,
+                            score: SingleVote,
+    ): ApiResult<CommentResponse> {
+        return instanceRepository[instance].likeComment(
+            CreateCommentLikeRequest(
+                commentId = id,
+                score = score
+            )
+        )
     }
 }
