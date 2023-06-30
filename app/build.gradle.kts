@@ -8,6 +8,14 @@ plugins {
     id("com.github.ben-manes.versions") version "0.42.0"
 }
 
+androidGitVersion {
+    codeFormat = "MMMNNNPPP"
+    commitHashLength = 8
+    format = "%tag%%-count%%-commit%%-branch%%-dirty%"
+    hideBranches = listOf("master", "lemmy")
+    untrackedIsDirty = false
+}
+
 android {
     compileSdk = 34
     buildToolsVersion = "30.0.3"
