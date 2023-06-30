@@ -1,5 +1,5 @@
 # Built application files
-build/
+dist/
 *.apk
 
 # Local configuration file (sdk path, etc)

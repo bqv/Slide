@@ -40,30 +40,28 @@ public class SettingsViewType extends BaseActivityAnim {
                 PopupMenu popup = new PopupMenu(SettingsViewType.this, v);
                 popup.getMenuInflater().inflate(R.menu.view_type_settings, popup.getMenu());
 
-                popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
-                    public boolean onMenuItemClick(MenuItem item) {
-                        switch (item.getItemId()) {
-                            case R.id.tabs:
-                                SettingValues.INSTANCE.setSingle(false);
-                                break;
-                            case R.id.notabs:
-                                SettingValues.INSTANCE.setSingle(true);
-                                SettingValues.INSTANCE.setCommentPager(false);
-                                break;
-                            case R.id.comments:
-                                SettingValues.INSTANCE.setSingle(true);
-                                SettingValues.INSTANCE.setCommentPager(true);
-                                break;
-                        }
-                        ((TextView) findViewById(R.id.currentViewType)).setText(
-                                SettingValues.INSTANCE.getSingle()
-                                        ? (SettingValues.INSTANCE.getCommentPager()
-                                                ? getString(R.string.view_type_comments)
-                                                : getString(R.string.view_type_none))
-                                        : getString(R.string.view_type_tabs));
-                        SettingsThemeFragment.changed = true;
-                        return true;
+                popup.setOnMenuItemClickListener(item -> {
+                    switch (item.getItemId()) {
+                        case R.id.tabs:
+                            SettingValues.INSTANCE.setSingle(false);
+                            break;
+                        case R.id.notabs:
+                            SettingValues.INSTANCE.setSingle(true);
+                            SettingValues.INSTANCE.setCommentPager(false);
+                            break;
+                        case R.id.comments:
+                            SettingValues.INSTANCE.setSingle(true);
+                            SettingValues.INSTANCE.setCommentPager(true);
+                            break;
                     }
+                    ((TextView) findViewById(R.id.currentViewType)).setText(
+                            SettingValues.INSTANCE.getSingle()
+                                    ? (SettingValues.INSTANCE.getCommentPager()
+                                            ? getString(R.string.view_type_comments)
+                                            : getString(R.string.view_type_none))
+                                    : getString(R.string.view_type_tabs));
+                    SettingsThemeFragment.changed = true;
+                    return true;
                 });
 
                 popup.show();
