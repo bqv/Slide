@@ -1,4 +1,5 @@
 # Built application files
+build/
 dist/
 *.apk
 
