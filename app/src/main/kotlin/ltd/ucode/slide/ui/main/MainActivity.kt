@@ -399,18 +399,18 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
         }
     }
 
-    private fun requestPermission() {
-        requestPermissionLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+    private fun requestPermission(permission: String) {
+        requestPermissionLauncher(permission).launch(permission)
     }
 
-    private val requestPermissionLauncher =
+    private fun requestPermissionLauncher(permission: String) =
         registerForActivityResult(RequestPermission()) { isGranted: Boolean? ->
             if (!isGranted!!) {
                 runOnUiThread {
                     AlertDialog.Builder(this@MainActivity)
                         .setTitle(R.string.err_permission)
                         .setMessage(R.string.err_permission_msg)
-                        .setPositiveButton(R.string.btn_yes) { dialog: DialogInterface?, which: Int -> requestPermission() }
+                        .setPositiveButton(R.string.btn_yes) { dialog: DialogInterface?, which: Int -> requestPermission(permission) }
                         .setNegativeButton(R.string.btn_no) { dialog: DialogInterface, which: Int -> dialog.dismiss() }
                         .show()
                 }
@@ -805,10 +805,15 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
         if (!Slide.hasStarted) {
             Slide.hasStarted = true
         }
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
-            != PackageManager.PERMISSION_GRANTED
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q
+            && ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED
         ) {
-            requestPermission()
+            requestPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
+            && ContextCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_IMAGES) != PackageManager.PERMISSION_GRANTED
+        ) {
+            requestPermission(Manifest.permission.READ_MEDIA_IMAGES)
         }
         var first = false
         if (!SettingValues.colours.contains("Tutorial")) {

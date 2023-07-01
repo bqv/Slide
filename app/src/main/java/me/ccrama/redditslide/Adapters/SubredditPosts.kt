@@ -221,7 +221,7 @@ class SubredditPosts @JvmOverloads constructor(
                 paginator = if (sub == "subscribed") {
                     //SubredditPaginator(Authentication.reddit)
                     postRepository.getPosts(
-                        AccountRepository.currentAccount(),
+                        AccountRepository.currentAccount,
                         type = PostListingType.Subscribed,
                         sort = PostSortType.from(getSubmissionSort(subreddit), getSubmissionTimePeriod(subreddit)),
                         limit = Constants.PAGINATOR_POST_LIMIT
@@ -229,7 +229,7 @@ class SubredditPosts @JvmOverloads constructor(
                 } else if (sub == "local") {
                     //SubredditPaginator(Authentication.reddit)
                     postRepository.getPosts(
-                        AccountRepository.currentAccount(),
+                        AccountRepository.currentAccount,
                         type = PostListingType.Local,
                         sort = PostSortType.from(getSubmissionSort(subreddit), getSubmissionTimePeriod(subreddit)),
                         limit = Constants.PAGINATOR_POST_LIMIT
@@ -237,7 +237,7 @@ class SubredditPosts @JvmOverloads constructor(
                 } else if (sub == "all") {
                     //SubredditPaginator(Authentication.reddit)
                     postRepository.getPosts(
-                        AccountRepository.currentAccount(),
+                        AccountRepository.currentAccount,
                         type = PostListingType.All,
                         sort = PostSortType.from(getSubmissionSort(subreddit), getSubmissionTimePeriod(subreddit)),
                         limit = Constants.PAGINATOR_POST_LIMIT
@@ -245,7 +245,7 @@ class SubredditPosts @JvmOverloads constructor(
                 } else if (!sub.contains(".")) {
                     //SubredditPaginator(Authentication.reddit, sub)
                     postRepository.getPosts(
-                        AccountRepository.currentAccount(),
+                        AccountRepository.currentAccount,
                         communityName = sub,
                         sort = PostSortType.from(getSubmissionSort(subreddit), getSubmissionTimePeriod(subreddit)),
                         limit = Constants.PAGINATOR_POST_LIMIT
@@ -253,7 +253,7 @@ class SubredditPosts @JvmOverloads constructor(
                 } else {
                     //DomainPaginator(Authentication.reddit, sub)
                     postRepository.getPosts(
-                        AccountRepository.currentAccount(),
+                        AccountRepository.currentAccount,
                         communityName = sub,
                         sort = PostSortType.from(getSubmissionSort(subreddit), getSubmissionTimePeriod(subreddit)),
                         limit = Constants.PAGINATOR_POST_LIMIT

@@ -53,6 +53,7 @@ import ltd.ucode.slide.SettingValues
 import ltd.ucode.slide.SettingValues.authentication
 import ltd.ucode.slide.SettingValues.commentLastVisit
 import ltd.ucode.slide.data.IPost
+import ltd.ucode.slide.repository.AccountRepository
 import ltd.ucode.slide.ui.BaseActivity
 import me.ccrama.redditslide.ActionStates.getVoteDirection
 import me.ccrama.redditslide.ActionStates.setVoteDirection
@@ -2282,7 +2283,7 @@ class CommentAdapter(
         context.lifecycleScope.launch {
             withContext(Dispatchers.IO) {
                 commentRepository.likeComment(
-                    comment.instanceName,
+                    AccountRepository.currentAccount,
                     comment.comment.id,
                     direction
                 )

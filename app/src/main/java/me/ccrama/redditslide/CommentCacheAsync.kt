@@ -135,10 +135,10 @@ class CommentCacheAsync : AsyncTask<Any?, Any?, Any?> {
                 } else {
                     var p = if (fSub.equals("frontpage", ignoreCase = true)) {
                         //SubredditPaginator(Authentication.reddit)
-                        postRepository.getPosts(AccountRepository.currentAccount())
+                        postRepository.getPosts(AccountRepository.currentAccount)
                     } else {
                         //SubredditPaginator(Authentication.reddit, sub)
-                        postRepository.getPosts(AccountRepository.currentAccount(), communityName = sub)
+                        postRepository.getPosts(AccountRepository.currentAccount, communityName = sub)
                     }
                     //p.setLimit(Constants.PAGINATOR_POST_LIMIT)
                     try {
@@ -218,7 +218,7 @@ class CommentCacheAsync : AsyncTask<Any?, Any?, Any?> {
                       limit: Int? = null,
                       sort: CommentSortType? = null): CommentStore {
         val paginator = commentRepository.getComments(
-            AccountRepository.currentAccount(),
+            AccountRepository.currentAccount,
             postId = id,
             maxDepth = depth,
             limit = limit,

@@ -25,11 +25,12 @@ class AccountRepository @Inject constructor(
 
     companion object {
         @JvmStatic
-        fun currentAccount(): String? {
-            return Authentication.name?.let {
-                if (it.lowercase() == "loggedout") null else it
+        val currentAccount: String?
+            get() {
+                return Authentication.name?.let {
+                    if (it.lowercase() == "loggedout") null else it
+                }
             }
-        }
     }
 
     val accounts: Set<String>

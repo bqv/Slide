@@ -121,6 +121,7 @@ android {
 }
 
 dependencies {
+    implementation(project(mapOf("path" to ":app:util")))
     implementation(project(mapOf("path" to ":data")))
     implementation(project(mapOf("path" to ":data:lemmy")))
     implementation(project(mapOf("path" to ":data:reddit")))

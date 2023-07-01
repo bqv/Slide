@@ -29,6 +29,7 @@ import com.sothree.slidinguppanel.SlidingUpPanelLayout
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import ltd.ucode.lemmy.data.LemmyPost
 import ltd.ucode.lemmy.data.id.CommentId
 import ltd.ucode.lemmy.data.id.PostId
 import ltd.ucode.lemmy.data.value.SingleVote
@@ -38,6 +39,7 @@ import ltd.ucode.slide.R
 import ltd.ucode.slide.SettingValues
 import ltd.ucode.slide.SettingValues.actionbarVisible
 import ltd.ucode.slide.data.IPost
+import ltd.ucode.slide.repository.AccountRepository
 import ltd.ucode.slide.repository.CommentRepository
 import ltd.ucode.slide.repository.PostRepository
 import ltd.ucode.slide.ui.main.MainActivity
@@ -874,7 +876,7 @@ object PopulateShadowboxInfo {
         context.lifecycleScope.launch {
             withContext(Dispatchers.IO) {
                 postRepository.likePost(
-                    submission.domain,
+                    (submission as LemmyPost).instance,
                     PostId(submission.postId.id),
                     direction
                 )
@@ -889,7 +891,7 @@ object PopulateShadowboxInfo {
         context.lifecycleScope.launch {
             withContext(Dispatchers.IO) {
                 commentRepository.likeComment(
-                    comment.subredditName,
+                    AccountRepository.currentAccount,
                     CommentId(comment.id.toInt()),
                     direction
                 )

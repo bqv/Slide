@@ -38,3 +38,4 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "slide"
+include(":app:util")

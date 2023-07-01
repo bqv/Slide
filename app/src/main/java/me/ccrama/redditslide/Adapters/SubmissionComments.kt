@@ -140,7 +140,7 @@ class SubmissionComments {
 
     fun reloadSubmission(commentAdapter: CommentAdapter) {
         val post = runBlocking {
-            postRepository.getPost(AccountRepository.currentAccount(), id = PostId(fullName.toInt()))
+            postRepository.getPost(AccountRepository.currentAccount, id = PostId(fullName.toInt()))
         }.success
         commentAdapter.submission = LemmyPost(post.postView.instanceName, post.postView)
     }
@@ -165,7 +165,7 @@ class SubmissionComments {
             single = context != null
 
             val paginator = commentRepository.getComments(
-                AccountRepository.currentAccount(),
+                AccountRepository.currentAccount,
                 communityId = submission?.groupId as CommunityId?,
                 communityName = null,
                 parentId = context?.toInt()?.let(::CommentId),
