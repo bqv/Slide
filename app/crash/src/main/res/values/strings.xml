@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-	
-	<string name="app_name">Crash Reporting</string>
-	<string name="report_activity">Report Activity</string>
-	<string name="crash_app">Force Crash App</string>
-	
-</resources>

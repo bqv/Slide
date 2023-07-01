@@ -21,8 +21,6 @@ import androidx.core.app.NotificationChannelCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
-import com.demondevelopers.crashreporting.CrashReportHandler
-import com.demondevelopers.crashreporting.ReportingActivityLifecycleCallbacks
 import com.google.android.exoplayer2.database.DatabaseProvider
 import com.google.android.exoplayer2.database.ExoDatabaseProvider
 import com.google.android.exoplayer2.upstream.cache.Cache
@@ -54,6 +52,11 @@ import me.ccrama.redditslide.util.SortingUtil
 import me.ccrama.redditslide.util.UpgradeUtil
 import okhttp3.Dns
 import okhttp3.OkHttpClient
+import org.acra.config.limiter
+import org.acra.config.mailSender
+import org.acra.config.notification
+import org.acra.data.StringFormat
+import org.acra.ktx.initAcra
 import org.apache.commons.lang3.tuple.Triple
 import org.apache.commons.text.StringEscapeUtils
 import org.slf4j.impl.HandroidLoggerAdapter
@@ -79,6 +82,33 @@ class App : Application(), ActivityLifecycleCallbacks {
         logger.info { "Booting" }
         logger.debug { "Booting" }
         logger.trace { "Booting" }
+    }
+
+    override fun attachBaseContext(base: Context?) {
+        super.attachBaseContext(base)
+
+        initAcra {
+            buildConfigClass = BuildConfig::class.java
+            reportFormat = StringFormat.JSON
+            sendReportsInDevMode = true
+
+            val logcatLines = 500
+            logcatArguments = listOf("-t", logcatLines.toString(), "-v", "time")
+
+            mailSender {
+                mailTo = "slide@fire.fundersclub.com"
+            }
+
+            notification {
+                title = "Slide has had an error!"
+                text = "Please report the log attached"
+                commentPrompt = "What led to this situation?"
+            }
+
+            limiter {
+                resetLimitsOnAppUpdate = true
+            }
+        }
     }
 
     var active = false
@@ -131,7 +161,6 @@ class App : Application(), ActivityLifecycleCallbacks {
     override fun onCreate() {
         super.onCreate()
         mApplication = this
-        CrashReportHandler.install(this, "slide@ucode.ltd");
         //  LeakCanary.install(this);
         if (ProcessPhoenix.isPhoenixProcess(this)) {
             return
@@ -169,7 +198,6 @@ class App : Application(), ActivityLifecycleCallbacks {
             cachedData!!.edit().clear().putBoolean("hasReset", true).apply()
         }
         registerActivityLifecycleCallbacks(this)
-        registerActivityLifecycleCallbacks(ReportingActivityLifecycleCallbacks.instance)
         UserSubscriptions.subscriptions = SettingValues.subscriptions
         UserSubscriptions.multiNameToSubs = getSharedPreferences("MULTITONAME", 0)
         UserSubscriptions.newsNameToSubs = getSharedPreferences("NEWSMULTITONAME", 0)
