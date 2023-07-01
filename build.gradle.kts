@@ -29,6 +29,7 @@ buildscript {
         classpath("org.jetbrains.kotlin:kotlin-serialization:$kotlinVersion")
         classpath("com.google.dagger:hilt-android-gradle-plugin:$hiltVersion")
         classpath("com.expediagroup:graphql-kotlin-gradle-plugin:$graphqlVersion")
+        classpath("com.bugsnag:bugsnag-android-gradle-plugin:8.+")
 
 
         // NOTE: Do not place your application dependencies here; they belong

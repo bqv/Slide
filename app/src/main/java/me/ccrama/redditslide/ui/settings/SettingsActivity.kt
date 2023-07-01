@@ -345,12 +345,16 @@ class SettingsActivity : BaseActivity(), FolderChooserDialogCreate.FolderCallbac
                 startActivity(i)
             }
         })
-        findViewById<View>(R.id.settings_child_synccit).setOnClickListener(object :
-            OnSingleClickListener() {
-            override fun onSingleClick(v: View) {
-                throw IllegalStateException("test")
-            }
-        })
+        if (BuildConfig.DEBUG) {
+            findViewById<View>(R.id.settings_child_synccit).setOnClickListener(object :
+                OnSingleClickListener() {
+                override fun onSingleClick(v: View) {
+                    throw RuntimeException("Test error")
+                }
+            })
+        } else {
+            findViewById<View>(R.id.settings_child_synccit).visibility = View.GONE
+        }
         findViewById<View>(R.id.settings_child_reorder).setOnClickListener(object :
             OnSingleClickListener() {
             override fun onSingleClick(view: View) {

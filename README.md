@@ -65,3 +65,11 @@ release; for a more detailed look at changes to the app, [view individual commit
 ## Licensing
 
 Slide is Free Open Source Software licensed under the [GNU v3 Public License](LICENSE.txt).
+
+## Error Monitoring
+
+Error monitoring provided by Bugsnag.
+
+<a href="http://www.bugsnag.com">
+  <img src="https://images.typeform.com/images/QKuaAssrFCq7/image/default" width="160" />
+</a>

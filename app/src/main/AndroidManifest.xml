@@ -751,6 +751,10 @@
                 android:name="com.lge.support.SPLIT_WINDOW"
                 android:value="true"/>
 
+        <meta-data
+            android:name="com.bugsnag.android.API_KEY"
+            android:value="30257f63ee172e7083e9e980c3af631c"/>
+
     </application>
 
 </manifest>

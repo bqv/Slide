@@ -4,6 +4,8 @@ plugins {
     kotlin("kapt")
     kotlin("plugin.serialization")
     kotlin("plugin.parcelize")
+    id("dagger.hilt.android.plugin")
+    id("com.bugsnag.android.gradle")
     alias(libs.plugins.androidgitversion)
     id("com.github.ben-manes.versions") version "0.42.0"
 }
@@ -14,6 +16,10 @@ androidGitVersion {
     format = "%tag%%-count%%-commit%%-branch%%-dirty%"
     hideBranches = listOf("master", "lemmy")
     untrackedIsDirty = false
+}
+
+bugsnag {
+    retryCount.set(5)
 }
 
 android {
@@ -113,8 +119,6 @@ android {
 
     namespace = "ltd.ucode.slide"
 }
-
-apply(plugin = "dagger.hilt.android.plugin")
 
 dependencies {
     implementation(project(mapOf("path" to ":data")))
@@ -283,13 +287,14 @@ dependencies {
     kapt("androidx.hilt:hilt-compiler:1.0.0-alpha03")
 
     // Databinding
-    kapt("com.android.databinding:compiler:2.3.0")
+    kapt("com.android.databinding:compiler:3.1.4")
 
     // Markdown
     implementation("org.jetbrains:markdown:0.2.2")
 
     // Crash Reporting
     implementation(libs.bundles.acra)
+    implementation("com.bugsnag:bugsnag-android:5.+")
 
 
     /** Testing **/
