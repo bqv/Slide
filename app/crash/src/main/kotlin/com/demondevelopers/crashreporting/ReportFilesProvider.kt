@@ -94,7 +94,7 @@ class ReportFilesProvider : ContentProvider() {
 
     companion object {
         // Authority must match AndroidManifest!
-        private const val AUTHORITY = "com.demondevelopers.example.crashreporting.filesprovider"
+        private const val AUTHORITY = "com.demondevelopers.crashreporting.filesprovider"
         private val sUriMatcher = UriMatcher(UriMatcher.NO_MATCH)
         const val FILE_INDEX_SCREENSHOT = 0
         const val FILE_INDEX_EVENTLOG = 1

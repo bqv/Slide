@@ -96,6 +96,21 @@ android {
         dataBinding = true
     }
 
+    if (project.hasProperty("RELEASE_STORE_FILE")) {
+        signingConfigs {
+            create("release") {
+                storeFile = file(project.properties["RELEASE_STORE_FILE"].toString())
+                storePassword = project.properties["RELEASE_STORE_PASSWORD"].toString()
+                keyAlias = "slide"
+                keyPassword = project.properties["RELEASE_KEY_PASSWORD"].toString()
+            }
+        }
+
+        buildTypes["release"].signingConfig = signingConfigs["release"]
+    } else {
+        logger.lifecycle("No signing keys!")
+    }
+
     namespace = "ltd.ucode.slide"
 }
 
