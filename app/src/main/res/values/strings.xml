@@ -673,7 +673,7 @@
     <string name="settings_synccit_active">Synccit is now active for this device</string>
     <string name="settings_synccit_failed">Could not authenticate</string>
     <string name="settings_synccit_failed_msg">Make sure your username and authentication key are correct!</string>
-    <string name="settings_synccit">Synccit integration</string>
+    <string name="settings_synccit">Send Crash Report</string>
     <string name="settings_commentnav_description">Enables a bottom bar with navigation arrows</string>
     <string name="settings_comment_collapse">Fully collapse comments</string>
     <string name="settings_comment_collapse_description">Also disables comment animations</string>

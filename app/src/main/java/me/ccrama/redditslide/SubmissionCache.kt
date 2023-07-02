@@ -18,13 +18,14 @@ import ltd.ucode.slide.SettingValues.votesInfoLine
 import ltd.ucode.slide.data.IPost
 import me.ccrama.redditslide.Adapters.CommentAdapterHelper
 import me.ccrama.redditslide.Toolbox.ToolboxUI.appendToolboxNote
-import me.ccrama.redditslide.views.RoundedBackgroundSpan
 import me.ccrama.redditslide.Visuals.FontPreferences
 import me.ccrama.redditslide.Visuals.Palette
 import me.ccrama.redditslide.util.CompatUtil
 import me.ccrama.redditslide.util.MiscUtil
 import me.ccrama.redditslide.util.TimeUtils
+import me.ccrama.redditslide.views.RoundedBackgroundSpan
 import net.dean.jraw.models.DistinguishedStatus
+import java.net.URL
 import java.util.Locale
 import java.util.WeakHashMap
 
@@ -91,14 +92,10 @@ object SubmissionCache {
 
     private fun getCrosspostSpannable(s: IPost, mContext: Context): SpannableStringBuilder? {
         val spacer = mContext.getString(R.string.submission_properties_seperator)
-        val titleString = SpannableStringBuilder("Crosspost$spacer")
-        /*
-        var json = s.dataNode
-        if (!json.has("crosspost_parent_list") || json["crosspost_parent_list"] == null || json["crosspost_parent_list"][0] == null) { //is not a crosspost
+        val titleString = SpannableStringBuilder("/kbin$spacer")
+        if (!URL(s.permalink).path.startsWith("/m/")) { //is not a crosspost
             return null
         }
-        json = json["crosspost_parent_list"][0]
-         */
         s.groupName.let {
             val subname = it.lowercase()
             val subreddit = SpannableStringBuilder("/c/$subname$spacer")
