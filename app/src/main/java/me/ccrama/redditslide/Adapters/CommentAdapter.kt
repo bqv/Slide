@@ -57,7 +57,6 @@ import ltd.ucode.slide.repository.AccountRepository
 import ltd.ucode.slide.ui.BaseActivity
 import me.ccrama.redditslide.ActionStates.getVoteDirection
 import me.ccrama.redditslide.ActionStates.setVoteDirection
-import me.ccrama.redditslide.submission
 import me.ccrama.redditslide.Constants
 import me.ccrama.redditslide.Drafts
 import me.ccrama.redditslide.Fragments.CommentPage
@@ -67,11 +66,9 @@ import me.ccrama.redditslide.OpenRedditLink
 import me.ccrama.redditslide.SpoilerRobotoTextView
 import me.ccrama.redditslide.SubmissionViews.PopulateSubmissionViewHolder
 import me.ccrama.redditslide.UserSubscriptions
-import me.ccrama.redditslide.views.CommentOverflow
-import me.ccrama.redditslide.views.DoEditorActions
-import me.ccrama.redditslide.views.PreCachingLayoutManagerComments
 import me.ccrama.redditslide.Visuals.FontPreferences
 import me.ccrama.redditslide.Visuals.Palette
+import me.ccrama.redditslide.submission
 import me.ccrama.redditslide.util.AnimatorUtil
 import me.ccrama.redditslide.util.BlendModeUtil
 import me.ccrama.redditslide.util.DisplayUtil
@@ -80,6 +77,9 @@ import me.ccrama.redditslide.util.LogUtil
 import me.ccrama.redditslide.util.OnSingleClickListener
 import me.ccrama.redditslide.util.SubmissionParser
 import me.ccrama.redditslide.util.stubs.SimpleTextWatcher
+import me.ccrama.redditslide.views.CommentOverflow
+import me.ccrama.redditslide.views.DoEditorActions
+import me.ccrama.redditslide.views.PreCachingLayoutManagerComments
 import net.dean.jraw.ApiException
 import net.dean.jraw.RedditClient
 import net.dean.jraw.http.UserAgent
@@ -1614,7 +1614,7 @@ class CommentAdapter(
             if (SettingValues.swap) {
                 //If the comment is highlighted and the user is long pressing the comment,
                 //hide the comment.
-                doOnClick(holder, baseNode, comment)
+                doOnClick(holder, baseNode, comment, null)
             }
             setCommentStateUnhighlighted(holder, comment, baseNode, true)
         } else {

@@ -42,6 +42,7 @@ import com.afollestad.materialdialogs.MaterialDialog.ListCallback
 import com.afollestad.materialdialogs.MaterialDialog.ListCallbackSingleChoice
 import com.afollestad.materialdialogs.MaterialDialog.SingleButtonCallback
 import com.google.android.material.snackbar.Snackbar
+import dagger.hilt.android.AndroidEntryPoint
 import ltd.ucode.slide.App
 import ltd.ucode.slide.Authentication
 import ltd.ucode.slide.R
@@ -68,11 +69,6 @@ import me.ccrama.redditslide.OfflineSubreddit
 import me.ccrama.redditslide.PostMatch
 import me.ccrama.redditslide.SpoilerRobotoTextView
 import me.ccrama.redditslide.UserSubscriptions
-import me.ccrama.redditslide.views.CatchStaggeredGridLayoutManager
-import me.ccrama.redditslide.views.CommentOverflow
-import me.ccrama.redditslide.views.PreCachingLayoutManager
-import me.ccrama.redditslide.views.SidebarLayout
-import me.ccrama.redditslide.views.ToggleSwipeViewPager
 import me.ccrama.redditslide.Visuals.ColorPreferences
 import me.ccrama.redditslide.Visuals.Palette
 import me.ccrama.redditslide.ui.settings.SettingsSubAdapter
@@ -84,6 +80,11 @@ import me.ccrama.redditslide.util.ProUtil
 import me.ccrama.redditslide.util.SortingUtil
 import me.ccrama.redditslide.util.StringUtil
 import me.ccrama.redditslide.util.SubmissionParser
+import me.ccrama.redditslide.views.CatchStaggeredGridLayoutManager
+import me.ccrama.redditslide.views.CommentOverflow
+import me.ccrama.redditslide.views.PreCachingLayoutManager
+import me.ccrama.redditslide.views.SidebarLayout
+import me.ccrama.redditslide.views.ToggleSwipeViewPager
 import net.dean.jraw.ApiException
 import net.dean.jraw.http.MultiRedditUpdateRequest
 import net.dean.jraw.http.NetworkException
@@ -100,6 +101,7 @@ import net.dean.jraw.paginators.Sorting
 import net.dean.jraw.paginators.TimePeriod
 import net.dean.jraw.paginators.UserRecordPaginator
 
+@AndroidEntryPoint
 class SubredditView : BaseActivity() {
     var canSubmit = true
     @JvmField
@@ -1347,19 +1349,19 @@ class SubredditView : BaseActivity() {
                                                     .setTitle(R.string.force_change_subscription)
                                                     .setMessage(R.string.force_change_subscription_desc)
                                                     .setPositiveButton(
-                                                        R.string.btn_yes,
-                                                        { dialog1: DialogInterface?, which1: Int ->
-                                                            changeSubscription(
-                                                                subreddit,
-                                                                true
-                                                            ) // Force add the subscription
-                                                            val s: Snackbar = Snackbar.make(
-                                                                (mToolbar)!!,
-                                                                getString(R.string.misc_subscribed),
-                                                                Snackbar.LENGTH_SHORT
-                                                            )
-                                                            LayoutUtils.showSnackbar(s)
-                                                        })
+                                                        R.string.btn_yes
+                                                    ) { dialog1: DialogInterface?, which1: Int ->
+                                                        changeSubscription(
+                                                            subreddit,
+                                                            true
+                                                        ) // Force add the subscription
+                                                        val s: Snackbar = Snackbar.make(
+                                                            (mToolbar)!!,
+                                                            getString(R.string.misc_subscribed),
+                                                            Snackbar.LENGTH_SHORT
+                                                        )
+                                                        LayoutUtils.showSnackbar(s)
+                                                    }
                                                     .setNegativeButton(R.string.btn_no, null)
                                                     .setCancelable(false)
                                                     .show()
@@ -1435,19 +1437,19 @@ class SubredditView : BaseActivity() {
                                                     .setTitle(R.string.force_change_subscription)
                                                     .setMessage(R.string.force_change_subscription_desc)
                                                     .setPositiveButton(
-                                                        R.string.btn_yes,
-                                                        { dialog12: DialogInterface?, which12: Int ->
-                                                            changeSubscription(
-                                                                subreddit,
-                                                                false
-                                                            ) // Force add the subscription
-                                                            val s: Snackbar = Snackbar.make(
-                                                                (mToolbar)!!,
-                                                                getString(R.string.misc_unsubscribed),
-                                                                Snackbar.LENGTH_SHORT
-                                                            )
-                                                            LayoutUtils.showSnackbar(s)
-                                                        })
+                                                        R.string.btn_yes
+                                                    ) { dialog12: DialogInterface?, which12: Int ->
+                                                        changeSubscription(
+                                                            subreddit,
+                                                            false
+                                                        ) // Force add the subscription
+                                                        val s: Snackbar = Snackbar.make(
+                                                            (mToolbar)!!,
+                                                            getString(R.string.misc_unsubscribed),
+                                                            Snackbar.LENGTH_SHORT
+                                                        )
+                                                        LayoutUtils.showSnackbar(s)
+                                                    }
                                                     .setNegativeButton(R.string.btn_no, null)
                                                     .setCancelable(false)
                                                     .show()
