@@ -845,7 +845,7 @@ object PopulateShadowboxInfo {
                         8 -> if (SettingValues.shareLongLink) {
                             defaultShareText(
                                 submission.title,
-                                "https://reddit.com" + submission.permalink,
+                                submission.permalink,
                                 mContext
                             )
                         } else {

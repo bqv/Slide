@@ -1,6 +1,7 @@
 package ltd.ucode.crash
 
 import android.content.Context
+import android.util.Log
 import org.acra.ReportField
 import org.acra.data.CrashReportData
 import org.acra.ktx.sendSilentlyWithAcra
@@ -28,7 +29,10 @@ class GithubSender(context: Context) : ReportSender {
                 val issue =
                     issues[errorContent.getString(ReportField.STACK_TRACE_HASH)!!]
 
-                if (!issue.isNew) return@thread
+                if (!issue.isNew) {
+                    Log.d(BuildConfig.LIBRARY_PACKAGE_NAME, "Dropping")
+                    return@thread
+                }
 
                 messages.forEach {
                     issue.post(title, it)

@@ -505,7 +505,7 @@ class PopulateNewsViewHolder(private val postRepository: PostRepository,
 
                     8 -> defaultShareText(
                         CompatUtil.fromHtml(submission.title).toString(),
-                        "https://reddit.com" + submission.permalink, mContext
+                        submission.permalink, mContext
                     )
 
                     6 -> {

@@ -52,6 +52,9 @@ class GithubIssueTracker(context: Context? = null) {
 
         return issues.firstNotNullOfOrNull {
             if (it.key == canary(key)) it.value
+                .also {
+                    Log.d(BuildConfig.LIBRARY_PACKAGE_NAME, "Found preexisting")
+                }
             else null
         }.let(::Issue)
     }
