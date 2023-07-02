@@ -5,7 +5,6 @@ plugins {
     kotlin("plugin.serialization")
     kotlin("plugin.parcelize")
     id("dagger.hilt.android.plugin")
-    id("com.bugsnag.android.gradle")
     alias(libs.plugins.androidgitversion)
     id("com.github.ben-manes.versions") version "0.42.0"
 }
@@ -16,10 +15,6 @@ androidGitVersion {
     format = "%tag%%-count%%-commit%%-branch%%-dirty%"
     hideBranches = listOf("master", "lemmy")
     untrackedIsDirty = false
-}
-
-bugsnag {
-    retryCount.set(5)
 }
 
 android {
@@ -121,6 +116,7 @@ android {
 }
 
 dependencies {
+    implementation(project(mapOf("path" to ":app:crash")))
     implementation(project(mapOf("path" to ":app:util")))
     implementation(project(mapOf("path" to ":data")))
     implementation(project(mapOf("path" to ":data:lemmy")))
@@ -295,7 +291,6 @@ dependencies {
 
     // Crash Reporting
     implementation(libs.bundles.acra)
-    implementation("com.bugsnag:bugsnag-android:5.+")
 
 
     /** Testing **/

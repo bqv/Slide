@@ -21,7 +21,6 @@ import androidx.core.app.NotificationChannelCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
-import com.bugsnag.android.Bugsnag
 import com.google.android.exoplayer2.database.DatabaseProvider
 import com.google.android.exoplayer2.database.ExoDatabaseProvider
 import com.google.android.exoplayer2.upstream.cache.Cache
@@ -53,6 +52,13 @@ import me.ccrama.redditslide.util.SortingUtil
 import me.ccrama.redditslide.util.UpgradeUtil
 import okhttp3.Dns
 import okhttp3.OkHttpClient
+import org.acra.ACRAConstants
+import org.acra.ReportField
+import org.acra.config.limiter
+import org.acra.config.mailSender
+import org.acra.config.notification
+import org.acra.data.StringFormat
+import org.acra.ktx.initAcra
 import org.apache.commons.lang3.tuple.Triple
 import org.apache.commons.text.StringEscapeUtils
 import org.slf4j.impl.HandroidLoggerAdapter
@@ -78,6 +84,39 @@ class App : Application(), ActivityLifecycleCallbacks {
         logger.info { "Booting" }
         logger.debug { "Booting" }
         logger.trace { "Booting" }
+    }
+
+    override fun attachBaseContext(base: Context?) {
+        super.attachBaseContext(base)
+
+        initAcra {
+            buildConfigClass = BuildConfig::class.java
+            reportFormat = StringFormat.JSON
+            sendReportsInDevMode = true
+
+            val logcatLines = 500
+            logcatArguments = listOf("-t", logcatLines.toString(), "-v", "time")
+            reportContent = ACRAConstants.DEFAULT_REPORT_FIELDS
+                .plus(ReportField.STACK_TRACE_HASH)
+                .plus(ReportField.THREAD_DETAILS)
+                .plus(ReportField.EVENTSLOG)
+
+            mailSender {
+                enabled = false
+                mailTo = "slide@fire.fundersclub.com"
+            }
+
+            notification {
+                title = "Slide has had an error!"
+                text = "Report the exception and log?"
+                commentPrompt = "What led to this situation?"
+                channelName = NotificationChannelCompat.DEFAULT_CHANNEL_ID
+            }
+
+            limiter {
+                resetLimitsOnAppUpdate = true
+            }
+        }
     }
 
     var active = false
@@ -129,7 +168,6 @@ class App : Application(), ActivityLifecycleCallbacks {
     override fun onActivityDestroyed(activity: Activity) {}
     override fun onCreate() {
         super.onCreate()
-        Bugsnag.start(this)
         mApplication = this
         //  LeakCanary.install(this);
         if (ProcessPhoenix.isPhoenixProcess(this)) {

@@ -4,13 +4,13 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.bugsnag.android.Bugsnag
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import ltd.ucode.slide.App.Companion.appContext
 import ltd.ucode.slide.Authentication
 import ltd.ucode.slide.table.Instance
 import ltd.ucode.util.ExceptionExtensions.toast
+import org.acra.ktx.sendSilentlyWithAcra
 import javax.inject.Inject
 
 @HiltViewModel
@@ -36,7 +36,7 @@ class LoginViewModel @Inject constructor(
                 Authentication.name = "${model.username}@${model.instance}"
                 onSuccess()
             } catch (e: Exception) {
-                Bugsnag.notify(e)
+                e.sendSilentlyWithAcra()
                 e.toast(appContext)
                 onFailure()
             }

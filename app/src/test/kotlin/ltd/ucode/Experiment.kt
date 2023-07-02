@@ -17,6 +17,9 @@ import ltd.ucode.lemmy.data.type.jwt.Token
 import ltd.ucode.slide.data.repository.AccountRepository
 import ltd.ucode.slide.data.repository.InstanceRepository
 import okhttp3.OkHttpClient
+import org.acra.config.MailSenderConfiguration
+import org.acra.sender.EmailIntentSender
+import org.acra.sender.HttpSender
 import org.junit.Before
 import org.junit.runner.RunWith
 import org.mockito.Mockito
@@ -93,5 +96,10 @@ class Experiment {
 
         runBlocking { instanceRepository.getInstanceList() }
             .also { println("${it.size}") }
+    }
+
+    @Test
+    fun testCrash() {
+        val sender = EmailIntentSender()
     }
 }
