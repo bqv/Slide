@@ -1,0 +1,18 @@
+buildscript {
+    apply from: 'dependencies.gradle'
+
+    repositories {
+        google()
+        mavenCentral()
+    }
+    dependencies {
+        classpath gradlePlugins.android
+    }
+}
+
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
