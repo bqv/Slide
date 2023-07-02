@@ -12,6 +12,7 @@ import ltd.ucode.slide.BuildConfig
 import ltd.ucode.slide.repository.AccountRepository
 import ltd.ucode.slide.repository.InstanceRepository
 import ltd.ucode.slide.repository.SettingsRepository
+import okhttp3.HttpUrl
 import okhttp3.OkHttpClient
 import okio.Buffer
 import javax.inject.Named
@@ -34,20 +35,26 @@ object ApplicationModule {
     @Singleton
     fun providesOkHttpClient(@Named("userAgent") userAgent: String): OkHttpClient = OkHttpClient.Builder()
         .addInterceptor { chain ->
+            fun HttpUrl.safe(): HttpUrl {
+                return this.newBuilder().removeAllQueryParameters("auth").build()
+            }
+
             val request = chain.request()
             if (BuildConfig.DEBUG) {
-                logger.debug("OkHttp: ${request.method} ${request.url}")
+                logger.debug("OkHttp: ${request.method} ${request.url.safe()}")
                 val body = request.body?.let { Buffer().also(it::writeTo).readUtf8() }
                 if (request.body != null) logger.trace { "  Body: $body" }
             }
+
             val response = chain.proceed(request.newBuilder()
                 .header("User-Agent", userAgent)
                 .build())
             if (BuildConfig.DEBUG) {
-                logger.debug("OkHttp: ${request.method} ${request.url} returned ${response.code}")
+                logger.debug("OkHttp: ${request.method} ${request.url.safe()} returned ${response.code}")
                 val body = response.peekBody(Long.MAX_VALUE).string()
                 logger.trace { "  Body: $body" }
             }
+
             response
         }
         .build()

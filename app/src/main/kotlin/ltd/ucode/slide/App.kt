@@ -95,7 +95,10 @@ class App : Application(), ActivityLifecycleCallbacks {
             sendReportsInDevMode = true
 
             val logcatLines = 500
-            logcatArguments = listOf("-t", logcatLines.toString(), "-v", "time")
+            logcatArguments = listOf(
+                "-t", logcatLines.toString(), // limit to N most recent lines
+                "-v", "time", // use "time" format (`logcat -h`)
+                "*:D") // no verbose
             reportContent = ACRAConstants.DEFAULT_REPORT_FIELDS
                 .plus(ReportField.STACK_TRACE_HASH)
                 .plus(ReportField.THREAD_DETAILS)
