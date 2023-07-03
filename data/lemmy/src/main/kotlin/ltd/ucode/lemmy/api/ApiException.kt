@@ -6,12 +6,21 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
+import ltd.ucode.util.StringExtensions.isHTML
+import org.jsoup.Jsoup
+import org.jsoup.nodes.Document
+import org.jsoup.select.Selector.SelectorParseException
 
 data class ApiException(override val path: String,
                         override val statusCode: Int,
                         @Transient override val errorBody: String,
-                        val content: JsonElement? = readBody(errorBody)
-) : Exception(content?.let { readError(path, statusCode, it) } ?: errorBody), NetworkException {
+                        val jsonContent: JsonElement? = readBody(errorBody),
+                        val htmlContent: Document? = readPage(errorBody, path)
+) : Exception(
+    jsonContent?.let { readError(path, statusCode, it) }
+        ?: htmlContent?.let { readError(path, statusCode, it) }
+        ?: errorBody
+), NetworkException {
     companion object {
         private fun readError(path: String, statusCode: Int, error: JsonElement): String? {
             return error.jsonObject["error"]?.jsonPrimitive?.contentOrNull?.let {
@@ -20,10 +29,29 @@ data class ApiException(override val path: String,
             }
         }
 
+        private fun readError(path: String, statusCode: Int, error: Document): String {
+            return error.wholeText()
+                .trim()
+                .replace(Regex(" +"), " ")
+                .let { "[$statusCode] $it" }
+        }
+
         private fun readBody(body: String): JsonElement? {
             return try {
                 Json.parseToJsonElement(body)
             } catch (e: SerializationException) {
+                null
+            }
+        }
+
+        private fun readPage(body: String, url: String): Document? {
+            return try {
+                if (body.isHTML) {
+                    Jsoup.parse(body, url)
+                } else {
+                    null
+                }
+            } catch (e: SelectorParseException) {
                 null
             }
         }
@@ -36,7 +64,7 @@ data class ApiException(override val path: String,
     }
 
     val reason: Reason get() =
-        when (val err = content?.jsonObject?.get("error")?.jsonPrimitive?.contentOrNull) {
+        when (val err = jsonContent?.jsonObject?.get("error")?.jsonPrimitive?.contentOrNull) {
             "not_logged_in" -> Reason.Unauthenticated
             null -> Reason.Null
             else -> Reason.Other(

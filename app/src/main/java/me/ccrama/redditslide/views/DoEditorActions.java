@@ -43,6 +43,7 @@ import java.util.Collections;
 import java.util.List;
 
 import gun0912.tedbottompicker.TedBottomPicker;
+import gun0912.tedbottompicker.TedBottomSheetDialogFragment;
 import me.ccrama.redditslide.Activities.Draw;
 import me.ccrama.redditslide.Drafts;
 import me.ccrama.redditslide.ImgurAlbum.UploadImgur;
@@ -219,50 +220,39 @@ public class DoEditorActions {
                 }
             }
         });
-        baseView.findViewById(R.id.imagerep).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                e = editText.getText();
+        baseView.findViewById(R.id.imagerep).setOnClickListener(v -> {
+            e = editText.getText();
 
-                sStart = editText.getSelectionStart();
-                sEnd = editText.getSelectionEnd();
+            sStart = editText.getSelectionStart();
+            sEnd = editText.getSelectionEnd();
 
-                TedBottomPicker tedBottomPicker = new TedBottomPicker.Builder(editText.getContext())
-                        .setOnImageSelectedListener(new TedBottomPicker.OnImageSelectedListener() {
-                            @Override
-                            public void onImageSelected(List<Uri> uri) {
-                                handleImageIntent(uri, editText, a);
-                            }
-                        })
-                        .setLayoutResource(R.layout.image_sheet_dialog)
-                        .setTitle("Choose a photo")
-                        .create();
+            TedBottomSheetDialogFragment tedBottomPicker = TedBottomPicker.with(fm.getPrimaryNavigationFragment().getActivity())
+                    .setOnMultiImageSelectedListener(uri -> handleImageIntent(uri, editText, a))
+                    //.setLayoutResource(R.layout.image_sheet_dialog)
+                    .setTitle("Choose a photo")
+                    .create();
 
-                tedBottomPicker.show(fm);
-                KeyboardUtil.hideKeyboard(editText.getContext(), editText.getWindowToken(), 0);
-            }
+            tedBottomPicker.show(fm);
+            KeyboardUtil.hideKeyboard(editText.getContext(), editText.getWindowToken(), 0);
         });
 
-        baseView.findViewById(R.id.draw).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (SettingValues.isPro) {
-                    doDraw(a, editText, fm);
-                } else {
-                    final AlertDialog.Builder b =
-                            ProUtil.proUpgradeMsg(a, R.string.general_cropdraw_ispro)
-                                    .setNegativeButton(R.string.btn_no_thanks, (dialog, whichButton) ->
-                                            dialog.dismiss());
-                    if (SettingValues.previews > 0) {
-                        b.setNeutralButton(
-                                a.getString(R.string.pro_previews, SettingValues.previews),
-                                (dialog, which) -> {
-                                    SettingValues.decreasePreviewsLeft();
-                                    doDraw(a, editText, fm);
-                                });
-                    }
-                    b.show();
+        baseView.findViewById(R.id.draw).setOnClickListener(v -> {
+            if (SettingValues.isPro) {
+                doDraw(a, editText, fm);
+            } else {
+                final AlertDialog.Builder b =
+                        ProUtil.proUpgradeMsg(a, R.string.general_cropdraw_ispro)
+                                .setNegativeButton(R.string.btn_no_thanks, (dialog, whichButton) ->
+                                        dialog.dismiss());
+                if (SettingValues.previews > 0) {
+                    b.setNeutralButton(
+                            a.getString(R.string.pro_previews, SettingValues.previews),
+                            (dialog, which) -> {
+                                SettingValues.decreasePreviewsLeft();
+                                doDraw(a, editText, fm);
+                            });
                 }
+                b.show();
             }
         });
        /*todo baseView.findViewById(R.id.superscript).setOnClickListener(new View.OnClickListener() {
@@ -469,24 +459,21 @@ public class DoEditorActions {
         final Intent intent = new Intent(a, Draw.class);
         KeyboardUtil.hideKeyboard(editText.getContext(), editText.getWindowToken(), 0);
         e = editText.getText();
-        TedBottomPicker tedBottomPicker =
-                new TedBottomPicker.Builder(editText.getContext()).setOnImageSelectedListener(
-                        new TedBottomPicker.OnImageSelectedListener() {
-                            @Override
-                            public void onImageSelected(List<Uri> uri) {
-                                Draw.uri = uri.get(0);
-                                Fragment auxiliary = new AuxiliaryFragment();
+        TedBottomSheetDialogFragment tedBottomPicker =
+                TedBottomPicker.with(fm.getPrimaryNavigationFragment().getActivity())
+                        .setOnMultiImageSelectedListener(uri -> {
+                            Draw.uri = uri.get(0);
+                            Fragment auxiliary = new AuxiliaryFragment();
 
-                                sStart = editText.getSelectionStart();
-                                sEnd = editText.getSelectionEnd();
+                            sStart = editText.getSelectionStart();
+                            sEnd = editText.getSelectionEnd();
 
-                                fm.beginTransaction().add(auxiliary, "IMAGE_UPLOAD").commit();
-                                fm.executePendingTransactions();
+                            fm.beginTransaction().add(auxiliary, "IMAGE_UPLOAD").commit();
+                            fm.executePendingTransactions();
 
-                                auxiliary.startActivityForResult(intent, 3333);
-                            }
+                            auxiliary.startActivityForResult(intent, 3333);
                         })
-                        .setLayoutResource(R.layout.image_sheet_dialog)
+                        //.setLayoutResource(R.layout.image_sheet_dialog)
                         .setTitle("Choose a photo")
                         .create();
 

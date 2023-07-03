@@ -45,6 +45,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import gun0912.tedbottompicker.TedBottomPicker;
+import gun0912.tedbottompicker.TedBottomSheetDialogFragment;
 import ltd.ucode.slide.Authentication;
 import ltd.ucode.slide.ui.BaseActivity;
 import me.ccrama.redditslide.Drafts;
@@ -278,19 +279,16 @@ public class Submit extends BaseActivity {
                 }.execute(((EditText) findViewById(R.id.urltext)).getText().toString());
             }
         });
-        findViewById(R.id.selImage).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                TedBottomPicker tedBottomPicker =
-                        new TedBottomPicker.Builder(Submit.this).setOnImageSelectedListener(
-                                Submit.this::handleImageIntent)
-                                .setLayoutResource(R.layout.image_sheet_dialog)
-                                .setTitle("Choose a photo")
-                                .create();
+        findViewById(R.id.selImage).setOnClickListener(view -> {
+            TedBottomSheetDialogFragment tedBottomPicker =
+                    TedBottomPicker.with(Submit.this)
+                            .setOnMultiImageSelectedListener(Submit.this::handleImageIntent)
+                            //.setLayoutResource(R.layout.image_sheet_dialog)
+                            .setTitle("Choose a photo")
+                            .create();
 
-                tedBottomPicker.show(getSupportFragmentManager());
-                KeyboardUtil.hideKeyboard(Submit.this, findViewById(R.id.bodytext).getWindowToken(), 0);
-            }
+            tedBottomPicker.show(getSupportFragmentManager());
+            KeyboardUtil.hideKeyboard(Submit.this, findViewById(R.id.bodytext).getWindowToken(), 0);
         });
 
         DoEditorActions.doActions(((EditText) findViewById(R.id.bodytext)),

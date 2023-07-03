@@ -34,6 +34,18 @@ dependencyResolutionManagement {
 
             library("github", "org.kohsuke:github-api:1.315")
 
+            library("jsoup", "org.jsoup:jsoup:1.16.1")
+
+            version("commonmark", "commonmark-parent-0.5.1") // TODO: update
+            library("commonmark-annotations", "com.github.commonmark.commonmark-java", "commonmark").versionRef("commonmark")
+            library("commonmark-extension-strikethrough", "com.github.commonmark.commonmark-java", "commonmark-ext-gfm-strikethrough").versionRef("commonmark")
+            library("commonmark-extension-tables", "com.github.commonmark.commonmark-java", "commonmark-ext-gfm-tables").versionRef("commonmark")
+            bundle("commonmark", listOf("commonmark-annotations", "commonmark-extension-strikethrough", "commonmark-extension-tables"))
+
+            library("jraw", "com.github.Haptic-Apps:JRAW:9c8a410a06") // TODO: drop
+
+            library("markdown", "org.jetbrains:markdown:0.2.2")
+
             plugin("androidgitversion", "com.gladed.androidgitversion").version("0.4.14")
         }
     }
@@ -42,10 +54,14 @@ dependencyResolutionManagement {
 rootProject.name = "slide"
 
 include(":app")
+//include(":app:bottompicker")
+include(":app:bottompickerv2")
 include(":app:crash")
+include(":app:roboto")
 include(":app:util")
 include(":data")
 include(":data:lemmy")
 include(":data:reddit")
+include(":readability")
 include(":stats")
 include(":util")

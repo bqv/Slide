@@ -11,6 +11,7 @@ java {
 
 dependencies {
     implementation(project(mapOf("path" to ":data")))
+    implementation(project(mapOf("path" to ":util")))
 
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.1")
     implementation("io.github.oshai:kotlin-logging-jvm:4.0.0")
@@ -28,5 +29,9 @@ dependencies {
     implementation("com.jakewharton.retrofit:retrofit2-kotlinx-serialization-converter:1.0.0")
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.3.2")
 
-    implementation("org.jetbrains:markdown:0.2.2")
+    implementation(libs.markdown)
+    implementation(libs.jsoup)
+
+    testImplementation("org.testng:testng:6.9.6")
+    testImplementation("com.google.code.gson:gson:2.8.9")
 }

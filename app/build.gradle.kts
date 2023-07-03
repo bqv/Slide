@@ -145,14 +145,13 @@ dependencies {
     /** Flavors **/
 
     /** Custom **/
-    implementation("com.github.Haptic-Apps:JRAW:9c8a410a06")
-    implementation("com.github.Haptic-Apps:TedBottomPicker:496623c9b6")
-    val commonmarkVersion: String by rootProject.extra
-    implementation("com.github.Haptic-Apps.commonmark-java:commonmark:$commonmarkVersion")
-    implementation("com.github.Haptic-Apps.commonmark-java:commonmark-ext-gfm-strikethrough:$commonmarkVersion")
-    implementation("com.github.Haptic-Apps.commonmark-java:commonmark-ext-gfm-tables:$commonmarkVersion")
-    implementation("com.github.Haptic-Apps:JReadability:bb291880a5")
-    implementation("com.github.Haptic-Apps.Android-RobotoTextView:robototextview:f6d0eb5ac7")
+    implementation(libs.jraw)
+    implementation(project(mapOf("path" to ":app:bottompickerv2")))
+    implementation(project(mapOf("path" to ":readability")))
+    implementation(libs.bundles.commonmark)
+    implementation(project(mapOf("path" to ":readability")))
+    implementation(libs.jsoup)
+    implementation(project(mapOf("path" to ":app:roboto")))
 
     /** AndroidX **/
     implementation("androidx.appcompat:appcompat:1.3.1")
@@ -287,7 +286,7 @@ dependencies {
     kapt("com.android.databinding:compiler:3.1.4")
 
     // Markdown
-    implementation("org.jetbrains:markdown:0.2.2")
+    implementation(libs.markdown)
 
     // Crash Reporting
     implementation(libs.bundles.acra)

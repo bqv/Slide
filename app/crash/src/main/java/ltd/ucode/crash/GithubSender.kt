@@ -22,16 +22,18 @@ class GithubSender(context: Context) : ReportSender {
         var metaException: Exception? = null
 
         try {
-            val title: String = errorContent.getTitle()
-            val messages = errorContent.toMessages()
-
             thread(name = javaClass.simpleName) {
+                val title: String = errorContent.getTitle()
+
                 val issue =
                     issues[errorContent.getString(ReportField.STACK_TRACE_HASH)!!]
 
-                if (!issue.isNew) {
-                    Log.d(BuildConfig.LIBRARY_PACKAGE_NAME, "Dropping")
-                    return@thread
+                val messages = if (!issue.isNew) {
+                    Log.d(BuildConfig.LIBRARY_PACKAGE_NAME, "Corroborating")
+
+                    errorContent.toUpvote()
+                } else {
+                    errorContent.toMessages()
                 }
 
                 messages.forEach {
@@ -102,10 +104,24 @@ class GithubSender(context: Context) : ReportSender {
     }
 
     @Throws(UnsupportedEncodingException::class)
+    fun CrashReportData.toUpvote(): List<String> {
+        val fieldMap = this.toMap().byReportField()
+
+        val message =
+            fieldMap.filterKeys(shortReportFields::contains)
+                .toSortedMap(compareBy(shortReportFields::indexOf))
+                .map { "**${it.key.text}**: ${it.value}" }
+                .let(listOf(
+                    "# New Report\n",
+                )::plus)
+                .joinToString("\n") // really shouldn't be > SIZE_LIMIT
+
+        return listOf(message)
+    }
+
+    @Throws(UnsupportedEncodingException::class)
     fun CrashReportData.toMessages(): List<String> {
-        val keyMap: Map<String, ReportField> = ReportField.values().associateBy { it.toString() }
-        val fieldMap = this.toMap().toStringMap()
-            .mapKeys { keyMap[it.key]!! }
+        val fieldMap = this.toMap().byReportField()
 
         val messages = mutableListOf<String>()
 
@@ -156,14 +172,15 @@ class GithubSender(context: Context) : ReportSender {
         return messages
     }
 
-    private fun Map<String, Any?>.toStringMap(joiner: String = "\n  "): Map<String, String> {
+    private fun Map<String, Any?>.byReportField(joiner: String = "\n  "): Map<ReportField, String> {
+        val keyMap: Map<String, ReportField> = ReportField.values().associateBy { it.toString() }
         return mapValues {
             if (it.value is JSONObject) {
                 flatten(it.value as JSONObject).joinToString(joiner)
             } else {
                 it.value.toString()
             }
-        }.toMap()
+        }.mapKeys { keyMap[it.key]!! }
     }
 
     private fun flatten(json: JSONObject): List<String> {
