@@ -1,16 +1,15 @@
 package ltd.ucode.slide.ui.login
 
-import ltd.ucode.slide.repository.AccountRepository
 import ltd.ucode.slide.repository.InstanceRepository
 import ltd.ucode.slide.table.Instance
 import javax.inject.Inject
 
 class LoginModel @Inject constructor(
-    private val accountRepository: AccountRepository,
     private val instanceRepository: InstanceRepository,
 ) {
     var username: String = ""
     var password: String = ""
+    var totp: String? = null
     var instance: String = ""
 
     suspend fun getInstanceList(): List<Instance> {
@@ -18,6 +17,6 @@ class LoginModel @Inject constructor(
     }
 
     suspend fun createAccount() {
-        return instanceRepository.create(username, password, instance)
+        return instanceRepository.create(username, password, totp, instance)
     }
 }

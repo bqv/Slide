@@ -20,20 +20,39 @@ import ltd.ucode.lemmy.data.type.jwt.Token
 import okhttp3.OkHttpClient
 import retrofit2.Response
 
-class AccountDataSource (
-    val username: String,
-    private val password: String,
-    instance: String,
-    okHttpClient: OkHttpClient,
-) : InstanceDataSource(instance, okHttpClient) {
+class AccountDataSource : InstanceDataSource {
     private val logger: KLogger = KotlinLogging.logger("ADS:${
         instance
             .split(".")
             .joinToString("") { it.replaceFirstChar(Char::titlecase) }
     }")
 
+    val username: String
+    private var password: String? = null
+    private var totp: String? = null
+
+    constructor(username: String,
+                password: String,
+                totp: String?,
+                instance: String,
+                okHttpClient: OkHttpClient
+    ) : super(instance, okHttpClient) {
+        this.username = username
+        this.password = password
+        this.totp = totp
+    }
+
+    constructor(username: String,
+                jwt: String,
+                instance: String,
+                okHttpClient: OkHttpClient
+    ) : super(instance, okHttpClient) {
+        this.username = username
+        this.jwt = Token(jwt)
+    }
+
     init {
-        logger.info { "Creating ${AccountDataSource::class.simpleName}: $instance"}
+        logger.info { "Creating ${AccountDataSource::class.simpleName}: $instance" }
     }
 
     private lateinit var jwt: Token
@@ -58,7 +77,7 @@ class AccountDataSource (
 
     private suspend fun refresh() {
         logger.debug { "Refreshing Token" }
-        jwt = login(LoginRequest(username, password))
+        jwt = login(LoginRequest(username, password!!, totp))
             .mapSuccess { data.success.jwt }
             .success
     }
@@ -82,5 +101,9 @@ class AccountDataSource (
             .also {
                 logger.debug { "Authenticated Request: ${request.auth}" }
             }
+    }
+
+    fun token(): Token {
+        return jwt
     }
 }

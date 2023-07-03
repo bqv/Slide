@@ -24,6 +24,14 @@ sealed interface ApiResult<T> {
             }
         }
 
+    suspend fun onSuccess(block: suspend (T) -> Unit): ApiResult<T> {
+        when (this) {
+            is Failed -> { }
+            is Success -> { block(this.data) }
+        }
+        return this
+    }
+
     fun <R> mapSuccess(block: Success<T>.() -> R): ApiResult<R> {
         return when (this) {
             is Failed -> { this.cast() }

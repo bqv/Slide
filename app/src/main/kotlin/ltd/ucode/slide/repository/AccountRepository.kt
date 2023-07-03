@@ -5,13 +5,14 @@ import android.content.SharedPreferences
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import dagger.hilt.android.qualifiers.ApplicationContext
+import ltd.ucode.lemmy.data.type.jwt.Token
 import ltd.ucode.slide.Authentication
 import javax.inject.Inject
 
 class AccountRepository @Inject constructor(
     @ApplicationContext val context: Context,
 ) {
-    private val passwordStore: SharedPreferences by lazy {
+    private val tokenStore: SharedPreferences by lazy {
         val mainKey = MasterKey.Builder(context)
             .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
             .build()
@@ -34,14 +35,14 @@ class AccountRepository @Inject constructor(
     }
 
     val accounts: Set<String>
-        get() = passwordStore.all.keys
+        get() = tokenStore.all.keys
 
-    fun getPassword(username: String, instance: String): String?
-            = passwordStore.getString("${username}@${instance}", null)
+    fun getToken(username: String, instance: String): String?
+            = tokenStore.getString("${username}@${instance}", null)
 
-    fun setPassword(username: String, instance: String, password: String)
-            = passwordStore.edit().putString("${username}@${instance}", password).apply()
+    fun setToken(username: String, instance: String, token: Token)
+            = tokenStore.edit().putString("${username}@${instance}", token.token).apply()
 
-    fun deletePassword(username: String, instance: String)
-            = passwordStore.edit().remove("${username}@${instance}").apply()
+    fun deleteToken(username: String, instance: String)
+            = tokenStore.edit().remove("${username}@${instance}").apply()
 }

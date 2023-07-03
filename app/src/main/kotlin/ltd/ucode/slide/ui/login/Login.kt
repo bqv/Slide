@@ -85,18 +85,15 @@ class Login : BaseActivityAnim() {
             viewModel.updatePassword(it.toString())
         }
 
+        binding.loginTotp.addTextChangedListener {
+            viewModel.updateToken(it.toString())
+        }
+
         binding.loginInstance.addTextChangedListener {
             viewModel.updateInstance(it.toString())
         }
 
         binding.loginButton.setOnClickListener {
-            val username = binding.loginUsername.text?.toString()
-            val password = binding.loginPassword.text?.toString()
-
-            android.widget.Toast.makeText(this,
-                "Would login as $username:$password",
-                android.widget.Toast.LENGTH_LONG)
-
             binding.progress.visibility = View.VISIBLE
             viewModel.doLogin(onSuccess = {
                 UserSubscriptions.switchAccounts()

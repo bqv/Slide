@@ -24,9 +24,19 @@ class LoginViewModel @Inject constructor(
         fetchInstanceList()
     }
 
-    fun updateUsername(text: String) { model.username = text }
-    fun updatePassword(text: String) { model.password = text }
-    fun updateInstance(text: String) { model.instance = text }
+    fun updateUsername(text: String) { model.username = text.trim() }
+    fun updatePassword(text: String) {
+        model.password = text.run {
+            // https://github.com/LemmyNet/lemmy-ui/issues/1120
+            substring(0, Integer.min(length, 60))
+        }
+    }
+    fun updateToken(text: String) {
+        model.totp = text.run {
+            substring(0, Integer.min(length, 6))
+        }.ifBlank { null }
+    }
+    fun updateInstance(text: String) { model.instance = text.trim() }
 
     fun doLogin(onSuccess: () -> Unit, onFailure: () -> Unit) {
         viewModelScope.launch {
