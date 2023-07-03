@@ -36,7 +36,7 @@ dependencyResolutionManagement {
 
             library("jsoup", "org.jsoup:jsoup:1.16.1")
 
-            version("commonmark", "commonmark-parent-0.5.1") // TODO: update
+            version("commonmark", "commonmark-parent-0.8.0") // TODO: update
             library("commonmark-annotations", "com.github.commonmark.commonmark-java", "commonmark").versionRef("commonmark")
             library("commonmark-extension-strikethrough", "com.github.commonmark.commonmark-java", "commonmark-ext-gfm-strikethrough").versionRef("commonmark")
             library("commonmark-extension-tables", "com.github.commonmark.commonmark-java", "commonmark-ext-gfm-tables").versionRef("commonmark")
