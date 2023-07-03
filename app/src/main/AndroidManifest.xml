@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.NFC"/>
@@ -31,7 +32,8 @@
                 android:grantUriPermissions="true">
             <meta-data
                     android:name="android.support.FILE_PROVIDER_PATHS"
-                    android:resource="@xml/filepaths"/>
+                    android:resource="@xml/filepaths"
+                    tools:replace="android:resource"/>
         </provider>
 
         <activity
@@ -481,7 +483,7 @@
                 android:exported="true"
                 android:theme="@style/Theme.Transparent"
                 android:label="View content">
-            <intent-filter android:label="@string/app_name">
+            <!--intent-filter android:label="@string/app_name">
                 <action android:name="android.intent.action.VIEW"/>
                 <action android:name="android.nfc.action.NDEF_DISCOVERED"/>
 
@@ -509,7 +511,7 @@
                         android:pathPrefix="/amp/s/amp.reddit.com"
                         android:scheme="https"/>
 
-            </intent-filter>
+            </intent-filter-->
         </activity>
         <activity
                 android:name="me.ccrama.redditslide.ui.settings.SettingsGeneral"
