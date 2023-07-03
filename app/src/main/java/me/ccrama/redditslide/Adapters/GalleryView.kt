@@ -1,359 +1,340 @@
-package me.ccrama.redditslide.Adapters;
+package me.ccrama.redditslide.Adapters
 
-import android.content.DialogInterface;
-import android.content.Intent;
-import android.content.res.TypedArray;
-import android.graphics.Color;
-import android.graphics.drawable.Drawable;
-import android.os.Bundle;
-import android.view.HapticFeedbackConstants;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ImageView;
-import android.widget.RelativeLayout;
+import android.content.Intent
+import android.graphics.Color
+import android.os.Bundle
+import android.view.HapticFeedbackConstants
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.widget.ImageView
+import android.widget.RelativeLayout
+import androidx.recyclerview.widget.RecyclerView
+import com.cocosw.bottomsheet.BottomSheet
+import ltd.ucode.reddit.data.RedditSubmission
+import ltd.ucode.slide.App
+import ltd.ucode.slide.App.Companion.defaultShareText
+import ltd.ucode.slide.ContentType
+import ltd.ucode.slide.ContentType.Companion.getContentType
+import ltd.ucode.slide.R
+import ltd.ucode.slide.SettingValues
+import ltd.ucode.slide.SettingValues.albumSwipe
+import ltd.ucode.slide.ui.commentsScreen.CommentsScreen
+import me.ccrama.redditslide.Activities.Album
+import me.ccrama.redditslide.Activities.AlbumPager
+import me.ccrama.redditslide.Activities.FullscreenVideo
+import me.ccrama.redditslide.Activities.Gallery
+import me.ccrama.redditslide.Activities.GalleryImage
+import me.ccrama.redditslide.Activities.MediaView
+import me.ccrama.redditslide.Activities.RedditGallery
+import me.ccrama.redditslide.Activities.RedditGalleryPager
+import me.ccrama.redditslide.Activities.Tumblr
+import me.ccrama.redditslide.Activities.TumblrPager
+import me.ccrama.redditslide.Notifications.ImageDownloadNotificationService
+import me.ccrama.redditslide.PostMatch.openExternal
+import me.ccrama.redditslide.SubmissionViews.PopulateSubmissionViewHolder.Companion.openGif
+import me.ccrama.redditslide.SubmissionViews.PopulateSubmissionViewHolder.Companion.openImage
+import me.ccrama.redditslide.SubmissionViews.PopulateSubmissionViewHolder.Companion.openRedditContent
+import me.ccrama.redditslide.Visuals.Palette
+import me.ccrama.redditslide.util.BlendModeUtil
+import me.ccrama.redditslide.util.CompatUtil
+import me.ccrama.redditslide.util.JsonUtil
+import me.ccrama.redditslide.util.LinkUtil.copyUrl
+import me.ccrama.redditslide.util.LinkUtil.openExternally
+import me.ccrama.redditslide.util.LinkUtil.openUrl
+import me.ccrama.redditslide.util.LinkUtil.tryOpenWithVideoPlugin
+import net.dean.jraw.models.Submission
+import java.util.Arrays
 
-import androidx.recyclerview.widget.RecyclerView;
+class GalleryView(private val main: Gallery?, displayer: List<Submission>?, subreddit: String) :
+    RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+    var paddingBottom = false
+    var posts: ArrayList<Submission>?
+    var subreddit: String
 
-import com.cocosw.bottomsheet.BottomSheet;
-import com.fasterxml.jackson.databind.JsonNode;
-
-import net.dean.jraw.models.Submission;
-import net.dean.jraw.models.Thumbnails;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import ltd.ucode.reddit.data.RedditSubmission;
-import me.ccrama.redditslide.Activities.Album;
-import me.ccrama.redditslide.Activities.AlbumPager;
-import ltd.ucode.slide.ui.commentsScreen.CommentsScreen;
-import me.ccrama.redditslide.Activities.FullscreenVideo;
-import me.ccrama.redditslide.Activities.Gallery;
-import me.ccrama.redditslide.Activities.GalleryImage;
-import me.ccrama.redditslide.Activities.MediaView;
-import me.ccrama.redditslide.Activities.RedditGallery;
-import me.ccrama.redditslide.Activities.RedditGalleryPager;
-import me.ccrama.redditslide.Activities.Tumblr;
-import me.ccrama.redditslide.Activities.TumblrPager;
-import ltd.ucode.slide.ContentType;
-import me.ccrama.redditslide.PostMatch;
-import ltd.ucode.slide.R;
-import ltd.ucode.slide.App;
-import ltd.ucode.slide.SettingValues;
-import me.ccrama.redditslide.SubmissionViews.PopulateSubmissionViewHolder;
-import me.ccrama.redditslide.Visuals.Palette;
-import me.ccrama.redditslide.util.BlendModeUtil;
-import me.ccrama.redditslide.util.CompatUtil;
-import me.ccrama.redditslide.util.JsonUtil;
-import me.ccrama.redditslide.util.LinkUtil;
-
-import static me.ccrama.redditslide.Notifications.ImageDownloadNotificationService.EXTRA_SUBMISSION_TITLE;
-
-public class GalleryView extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
-    private final Gallery main;
-    public boolean paddingBottom;
-    public ArrayList<Submission> posts;
-    public String subreddit;
-
-    public GalleryView(final Gallery context, List<Submission> displayer, String subreddit) {
-        main = context;
-        this.posts = new ArrayList(displayer);
-        this.subreddit = subreddit;
+    init {
+        posts = ArrayList(displayer)
+        this.subreddit = subreddit
     }
 
-    @Override
-    public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.gallery_image, parent, false);
-        return new AlbumViewHolder(v);
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
+        val v = LayoutInflater.from(parent.context).inflate(R.layout.gallery_image, parent, false)
+        return AlbumViewHolder(v)
     }
 
-    public double getHeightFromAspectRatio(int imageHeight, int imageWidth, int viewWidth) {
-        double ratio = (double) imageHeight / (double) imageWidth;
-        return (viewWidth * ratio);
+    private fun getHeightFromAspectRatio(imageHeight: Int, imageWidth: Int, viewWidth: Int): Double {
+        val ratio = imageHeight.toDouble() / imageWidth.toDouble()
+        return viewWidth * ratio
     }
 
-    @Override
-    public void onBindViewHolder(RecyclerView.ViewHolder holder2, final int i) {
-        if (holder2 instanceof AlbumViewHolder) {
-
-            final AlbumViewHolder holder = (AlbumViewHolder) holder2;
-
-            final Submission submission = posts.get(i);
-
-            if (submission.getThumbnails() != null && submission.getThumbnails().getSource() != null) {
-                ((App) main.getApplicationContext()).getImageLoader().displayImage(submission.getThumbnails().getSource().getUrl(), holder.image, ImageGridAdapter.options);
+    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, i: Int) {
+        if (holder is AlbumViewHolder) {
+            val submission = posts!![i]
+            if (submission.thumbnails != null && submission.thumbnails.source != null) {
+                (main!!.applicationContext as App).imageLoader!!.displayImage(
+                    submission.thumbnails.source.url,
+                    holder.image,
+                    ImageGridAdapter.options
+                )
             } else {
-                ((App) main.getApplicationContext()).getImageLoader().displayImage(submission.getUrl(), holder.image, ImageGridAdapter.options);
-
+                (main!!.applicationContext as App).imageLoader!!.displayImage(
+                    submission.url,
+                    holder.image,
+                    ImageGridAdapter.options
+                )
             }
-            double h = 0;
-            int height = 0;
-            if (submission.getThumbnails() != null) {
-                Thumbnails.Image source = submission.getThumbnails().getSource();
+            var h = 0.0
+            var height = 0
+            if (submission.thumbnails != null) {
+                val source = submission.thumbnails.source
                 if (source != null) {
-                    h = getHeightFromAspectRatio(source.getHeight(), source.getWidth(), holder.image.getWidth());
-                    height = source.getHeight();
+                    h = getHeightFromAspectRatio(source.height, source.width, holder.image.width)
+                    height = source.height
                 }
             }
+            holder.type.visibility = View.VISIBLE
+            when (getContentType(submission)) {
+                ContentType.Type.REDDIT_GALLERY, ContentType.Type.ALBUM -> holder.type.setImageResource(
+                    R.drawable.ic_photo_library
+                )
 
-            holder.type.setVisibility(View.VISIBLE);
-            switch (ContentType.getContentType(submission)) {
-                case REDDIT_GALLERY:
-                case ALBUM:
-                    holder.type.setImageResource(R.drawable.ic_photo_library);
-                    break;
-                case EXTERNAL:
-                case LINK:
-                case REDDIT:
-                    holder.type.setImageResource(R.drawable.ic_public);
-                    break;
-                case SELF:
-                    holder.type.setImageResource(R.drawable.ic_text_fields);
-                    break;
-                case EMBEDDED:
-                case GIF:
-                case STREAMABLE:
-                case VIDEO:
-                    holder.type.setImageResource(R.drawable.ic_play_arrow);
-                    break;
-                default:
-                    holder.type.setVisibility(View.GONE);
-                    break;
+                ContentType.Type.EXTERNAL, ContentType.Type.LINK, ContentType.Type.REDDIT -> holder.type.setImageResource(
+                    R.drawable.ic_public
+                )
+
+                ContentType.Type.SELF -> holder.type.setImageResource(R.drawable.ic_text_fields)
+                ContentType.Type.EMBEDDED, ContentType.Type.GIF, ContentType.Type.STREAMABLE, ContentType.Type.VIDEO -> holder.type.setImageResource(
+                    R.drawable.ic_play_arrow
+                )
+
+                else -> holder.type.visibility = View.GONE
             }
-
-            if (h != 0) {
+            if (h != 0.0) {
                 if (h > 3200) {
-                    holder.image.setLayoutParams(new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, 3200));
+                    holder.image.layoutParams =
+                        RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, 3200)
                 } else {
-                    holder.image.setLayoutParams(new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, (int) h));
+                    holder.image.layoutParams = RelativeLayout.LayoutParams(
+                        RelativeLayout.LayoutParams.MATCH_PARENT,
+                        h.toInt()
+                    )
                 }
             } else {
                 if (height > 3200) {
-                    holder.image.setLayoutParams(new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, 3200));
+                    holder.image.layoutParams =
+                        RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, 3200)
                 } else {
-                    holder.image.setLayoutParams(new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT));
+                    holder.image.layoutParams = RelativeLayout.LayoutParams(
+                        RelativeLayout.LayoutParams.MATCH_PARENT,
+                        RelativeLayout.LayoutParams.WRAP_CONTENT
+                    )
                 }
             }
-
-            holder.comments.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    v.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
-                    Intent i2 = new Intent(main, CommentsScreen.class);
-                    i2.putExtra(CommentsScreen.EXTRA_PAGE, main.subredditPosts.getPosts().indexOf(submission));
-                    i2.putExtra(CommentsScreen.EXTRA_SUBREDDIT, subreddit);
-                    i2.putExtra("fullname", submission.getFullName());
-                    main.startActivity(i2);
-                }
-            });
-
-            holder.image.setOnLongClickListener(new View.OnLongClickListener() {
-                @Override
-                public boolean onLongClick(View v) {
-
-                    if (main != null) {
-                        BottomSheet.Builder b = new BottomSheet.Builder(main)
-                                .title(submission.getUrl())
-                                .grid();
-                        int[] attrs = new int[]{R.attr.tintColor};
-                        TypedArray ta = main.obtainStyledAttributes(attrs);
-
-                        int color = ta.getColor(0, Color.WHITE);
-                        Drawable open = main.getResources().getDrawable(R.drawable.ic_open_in_new);
-                        Drawable share = main.getResources().getDrawable(R.drawable.ic_share);
-                        Drawable copy = main.getResources().getDrawable(R.drawable.ic_content_copy);
-                        final List<Drawable> drawableSet = Arrays.asList(open, share, copy);
-                        BlendModeUtil.tintDrawablesAsSrcAtop(drawableSet, color);
-
-                        ta.recycle();
-
-                        b.sheet(R.id.open_link, open, main.getResources().getString(R.string.open_externally));
-                        b.sheet(R.id.share_link, share, main.getResources().getString(R.string.share_link));
-                        b.sheet(R.id.copy_link, copy, main.getResources().getString(R.string.submission_link_copy));
-
-                        b.listener(new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                switch (which) {
-                                    case R.id.open_link:
-                                        LinkUtil.openExternally(submission.getUrl());
-                                        break;
-                                    case R.id.share_link:
-                                        App.defaultShareText("", submission.getUrl(), main);
-                                        break;
-                                    case R.id.copy_link:
-                                        LinkUtil.copyUrl(submission.getUrl(), main);
-                                        break;
-                                }
-                            }
-                        }).show();
-                        return true;
+            holder.comments.setOnClickListener { v: View ->
+                v.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+                val i2 = Intent(main, CommentsScreen::class.java)
+                i2.putExtra(
+                    CommentsScreen.EXTRA_PAGE,
+                    main.subredditPosts!!.posts.indexOf(submission)
+                )
+                i2.putExtra(CommentsScreen.EXTRA_SUBREDDIT, subreddit)
+                i2.putExtra("fullname", submission.fullName)
+                main.startActivity(i2)
+            }
+            holder.image.setOnLongClickListener {
+                val b = BottomSheet.Builder(main)
+                    .title(submission.url)
+                    .grid()
+                val attrs = intArrayOf(R.attr.tintColor)
+                val ta = main.obtainStyledAttributes(attrs)
+                val color = ta.getColor(0, Color.WHITE)
+                val open = main.resources.getDrawable(R.drawable.ic_open_in_new)
+                val share = main.resources.getDrawable(R.drawable.ic_share)
+                val copy = main.resources.getDrawable(R.drawable.ic_content_copy)
+                val drawableSet = listOf(open, share, copy)
+                BlendModeUtil.tintDrawablesAsSrcAtop(drawableSet, color)
+                ta.recycle()
+                b.sheet(
+                    R.id.open_link,
+                    open,
+                    main.resources.getString(R.string.open_externally)
+                )
+                b.sheet(R.id.share_link, share, main.resources.getString(R.string.share_link))
+                b.sheet(
+                    R.id.copy_link,
+                    copy,
+                    main.resources.getString(R.string.submission_link_copy)
+                )
+                b.listener { _, which ->
+                    when (which) {
+                        R.id.open_link -> openExternally(submission.url)
+                        R.id.share_link -> defaultShareText("", submission.url, main)
+                        R.id.copy_link -> copyUrl(submission.url, main)
                     }
-                    return true;
-                }
-            });
+                }.show()
+                return@setOnLongClickListener true
+            }
+            holder.image.setOnClickListener(object : View.OnClickListener {
+                override fun onClick(v: View) {
+                    val type = getContentType(submission)
+                    if (!openExternal(submission.url) || type === ContentType.Type.VIDEO) {
+                        when (type) {
+                            ContentType.Type.STREAMABLE -> if (SettingValues.video) {
+                                val myIntent = Intent(main, MediaView::class.java)
+                                myIntent.putExtra(MediaView.SUBREDDIT, subreddit)
+                                myIntent.putExtra(MediaView.EXTRA_URL, submission.url)
+                                myIntent.putExtra(
+                                    ImageDownloadNotificationService.EXTRA_SUBMISSION_TITLE,
+                                    submission.title
+                                )
+                                main.startActivity(myIntent)
+                            } else {
+                                openExternally(submission.url)
+                            }
 
-            holder.image.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    ContentType.Type type = ContentType.getContentType(submission);
-                    if (!PostMatch.openExternal(submission.getUrl()) || type == ContentType.Type.VIDEO) {
-                        switch (type) {
-                            case STREAMABLE:
-                                if (SettingValues.video) {
-                                    Intent myIntent = new Intent(main, MediaView.class);
-                                    myIntent.putExtra(MediaView.SUBREDDIT, subreddit);
-                                    myIntent.putExtra(MediaView.EXTRA_URL, submission.getUrl());
-                                    myIntent.putExtra(EXTRA_SUBMISSION_TITLE, submission.getTitle());
-                                    main.startActivity(myIntent);
+                            ContentType.Type.IMGUR, ContentType.Type.DEVIANTART, ContentType.Type.XKCD, ContentType.Type.IMAGE -> openImage(
+                                type,
+                                main,
+                                RedditSubmission(submission),
+                                null,
+                                holder.bindingAdapterPosition
+                            )
+
+                            ContentType.Type.EMBEDDED -> if (SettingValues.video) {
+                                val data = CompatUtil.fromHtml(
+                                    submission.dataNode["media_embed"]["content"].asText()
+                                )
+                                    .toString()
+                                run {
+                                    val i = Intent(main, FullscreenVideo::class.java)
+                                    i.putExtra(FullscreenVideo.EXTRA_HTML, data)
+                                    main.startActivity(i)
+                                }
+                            } else {
+                                openExternally(submission.url)
+                            }
+
+                            ContentType.Type.REDDIT -> openRedditContent(submission.url, main)
+                            ContentType.Type.LINK -> openUrl(
+                                submission.url,
+                                Palette.getColor(submission.subredditName),
+                                main
+                            )
+
+                            ContentType.Type.ALBUM -> if (SettingValues.album) {
+                                val i: Intent
+                                if (albumSwipe) {
+                                    i = Intent(main, AlbumPager::class.java)
+                                    i.putExtra(AlbumPager.SUBREDDIT, subreddit)
+                                    i.putExtra(
+                                        ImageDownloadNotificationService.EXTRA_SUBMISSION_TITLE,
+                                        submission.title
+                                    )
+                                    i.putExtra(Album.EXTRA_URL, submission.url)
                                 } else {
-                                    LinkUtil.openExternally(submission.getUrl());
+                                    i = Intent(main, Album::class.java)
+                                    i.putExtra(Album.SUBREDDIT, subreddit)
+                                    i.putExtra(Album.EXTRA_URL, submission.url)
+                                    i.putExtra(
+                                        ImageDownloadNotificationService.EXTRA_SUBMISSION_TITLE,
+                                        submission.title
+                                    )
                                 }
-                                break;
-                            case IMGUR:
-                            case DEVIANTART:
-                            case XKCD:
-                            case IMAGE:
-                                PopulateSubmissionViewHolder.openImage(type, main, new RedditSubmission(submission), null, holder.getBindingAdapterPosition());
-                                break;
-                            case EMBEDDED:
-                                if (SettingValues.video) {
-                                    String data = CompatUtil.fromHtml(
-                                            submission.getDataNode().get("media_embed").get("content").asText())
-                                            .toString();
-                                    {
-                                        Intent i = new Intent(main, FullscreenVideo.class);
-                                        i.putExtra(FullscreenVideo.EXTRA_HTML, data);
-                                        main.startActivity(i);
-                                    }
+                                main.startActivity(i)
+                            } else {
+                                openExternally(submission.url)
+                            }
+
+                            ContentType.Type.REDDIT_GALLERY -> if (SettingValues.album) {
+                                val i: Intent
+                                if (albumSwipe) {
+                                    i = Intent(main, RedditGalleryPager::class.java)
+                                    i.putExtra(
+                                        AlbumPager.SUBREDDIT,
+                                        submission.subredditName
+                                    )
                                 } else {
-                                    LinkUtil.openExternally(submission.getUrl());
+                                    i = Intent(main, RedditGallery::class.java)
+                                    i.putExtra(
+                                        Album.SUBREDDIT,
+                                        submission.subredditName
+                                    )
                                 }
-                                break;
-                            case REDDIT:
-                                PopulateSubmissionViewHolder.openRedditContent(submission.getUrl(), main);
-                                break;
-                            case LINK:
-                                LinkUtil.openUrl(submission.getUrl(), Palette.getColor(submission.getSubredditName()), main);
-                                break;
-                            case ALBUM:
-                                if (SettingValues.album) {
-                                    Intent i;
-                                    if (SettingValues.INSTANCE.getAlbumSwipe()) {
-                                        i = new Intent(main, AlbumPager.class);
-                                        i.putExtra(AlbumPager.SUBREDDIT, subreddit);
-                                        i.putExtra(EXTRA_SUBMISSION_TITLE, submission.getTitle());
-                                        i.putExtra(Album.EXTRA_URL, submission.getUrl());
-                                    } else {
-                                        i = new Intent(main, Album.class);
-                                        i.putExtra(Album.SUBREDDIT, subreddit);
-                                        i.putExtra(Album.EXTRA_URL, submission.getUrl());
-                                        i.putExtra(EXTRA_SUBMISSION_TITLE, submission.getTitle());
-                                    }
-                                    main.startActivity(i);
+                                i.putExtra(
+                                    ImageDownloadNotificationService.EXTRA_SUBMISSION_TITLE,
+                                    submission.title
+                                )
+                                i.putExtra(
+                                    RedditGallery.SUBREDDIT,
+                                    submission.subredditName
+                                )
+                                val urls = ArrayList<GalleryImage>()
+                                val dataNode = submission.dataNode
+                                if (dataNode.has("gallery_data")) {
+                                    JsonUtil.getGalleryData(dataNode, urls)
+                                }
+                                val urlsBundle = Bundle()
+                                urlsBundle.putSerializable(RedditGallery.GALLERY_URLS, urls)
+                                i.putExtras(urlsBundle)
+                                main.startActivity(i)
+                            } else {
+                                openExternally(submission.url)
+                            }
+
+                            ContentType.Type.TUMBLR -> if (SettingValues.image) {
+                                val i: Intent
+                                if (albumSwipe) {
+                                    i = Intent(main, TumblrPager::class.java)
+                                    i.putExtra(TumblrPager.SUBREDDIT, subreddit)
                                 } else {
-                                    LinkUtil.openExternally(submission.getUrl());
-
+                                    i = Intent(main, Tumblr::class.java)
+                                    i.putExtra(Tumblr.SUBREDDIT, subreddit)
                                 }
-                                break;
-                            case REDDIT_GALLERY:
-                                if (SettingValues.album) {
-                                    Intent i;
-                                    if (SettingValues.INSTANCE.getAlbumSwipe()) {
-                                        i = new Intent(main, RedditGalleryPager.class);
-                                        i.putExtra(AlbumPager.SUBREDDIT,
-                                                submission.getSubredditName());
-                                    } else {
-                                        i = new Intent(main, RedditGallery.class);
-                                        i.putExtra(Album.SUBREDDIT,
-                                                submission.getSubredditName());
-                                    }
-                                    i.putExtra(EXTRA_SUBMISSION_TITLE, submission.getTitle());
+                                i.putExtra(Album.EXTRA_URL, submission.url)
+                                main.startActivity(i)
+                            } else {
+                                openExternally(submission.url)
+                            }
 
-                                    i.putExtra(RedditGallery.SUBREDDIT,
-                                            submission.getSubredditName());
+                            ContentType.Type.GIF -> openGif(
+                                main, RedditSubmission(submission), holder.bindingAdapterPosition
+                            )
 
-                                    ArrayList<GalleryImage> urls = new ArrayList<>();
+                            ContentType.Type.NONE, ContentType.Type.SELF -> holder.comments.callOnClick()
+                            ContentType.Type.VIDEO -> if (!tryOpenWithVideoPlugin(submission.url)) {
+                                openUrl(
+                                    submission.url,
+                                    Palette.getStatusBarColor(), main
+                                )
+                            }
 
-                                    JsonNode dataNode = submission.getDataNode();
-                                    if (dataNode.has("gallery_data")) {
-                                        JsonUtil.getGalleryData(dataNode, urls);
-                                    }
-
-                                    Bundle urlsBundle = new Bundle();
-                                    urlsBundle.putSerializable(RedditGallery.GALLERY_URLS, urls);
-                                    i.putExtras(urlsBundle);
-
-                                    main.startActivity(i);
-                                } else {
-                                    LinkUtil.openExternally(submission.getUrl());
-                                }
-                                break;
-
-                            case TUMBLR:
-                                if (SettingValues.image) {
-                                    Intent i;
-                                    if (SettingValues.INSTANCE.getAlbumSwipe()) {
-                                        i = new Intent(main, TumblrPager.class);
-                                        i.putExtra(TumblrPager.SUBREDDIT, subreddit);
-                                    } else {
-                                        i = new Intent(main, Tumblr.class);
-                                        i.putExtra(Tumblr.SUBREDDIT, subreddit);
-                                    }
-                                    i.putExtra(Album.EXTRA_URL, submission.getUrl());
-                                    main.startActivity(i);
-                                } else {
-                                    LinkUtil.openExternally(submission.getUrl());
-
-                                }
-                                break;
-                            case GIF:
-                                PopulateSubmissionViewHolder.openGif(main, new RedditSubmission(submission),  holder.getBindingAdapterPosition());
-                                break;
-                            case NONE:
-                            case SELF:
-                                holder.comments.callOnClick();
-                                break;
-                            case VIDEO:
-                                if (!LinkUtil.tryOpenWithVideoPlugin(submission.getUrl())) {
-                                    LinkUtil.openUrl(submission.getUrl(),
-                                            Palette.getStatusBarColor(), main);
-                                }
-                                break;
+                            else -> {}
                         }
                     } else {
-                        LinkUtil.openExternally(submission.getUrl());
+                        openExternally(submission.url)
                     }
                 }
-            });
-        }
-
-    }
-
-    @Override
-    public int getItemCount() {
-        return posts == null ? 0 : posts.size();
-    }
-
-    public static class SpacerViewHolder extends RecyclerView.ViewHolder {
-        public SpacerViewHolder(View itemView) {
-            super(itemView);
+            })
         }
     }
 
-    public static class AlbumViewHolder extends RecyclerView.ViewHolder {
-        final ImageView image;
-        final ImageView type;
-        final View comments;
-
-        public AlbumViewHolder(View itemView) {
-            super(itemView);
-            comments = itemView.findViewById(R.id.comments);
-            image = itemView.findViewById(R.id.image);
-            type = itemView.findViewById(R.id.type);
-        }
+    override fun getItemCount(): Int {
+        return if (posts == null) 0 else posts!!.size
     }
 
+    class SpacerViewHolder(itemView: View?) : RecyclerView.ViewHolder(
+        itemView!!
+    )
+
+    class AlbumViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        val image: ImageView
+        val type: ImageView
+        val comments: View
+
+        init {
+            comments = itemView.findViewById(R.id.comments)
+            image = itemView.findViewById(R.id.image)
+            type = itemView.findViewById(R.id.type)
+        }
+    }
 }
