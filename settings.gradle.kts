@@ -36,10 +36,10 @@ dependencyResolutionManagement {
 
             library("jsoup", "org.jsoup:jsoup:1.16.1")
 
-            version("commonmark", "commonmark-parent-0.15.2") // TODO: update
-            library("commonmark-annotations", "com.github.commonmark.commonmark-java", "commonmark").versionRef("commonmark")
-            library("commonmark-extension-strikethrough", "com.github.commonmark.commonmark-java", "commonmark-ext-gfm-strikethrough").versionRef("commonmark")
-            library("commonmark-extension-tables", "com.github.commonmark.commonmark-java", "commonmark-ext-gfm-tables").versionRef("commonmark")
+            version("commonmark", "0.21.0") // TODO: update
+            library("commonmark-annotations", "org.commonmark", "commonmark").versionRef("commonmark")
+            library("commonmark-extension-strikethrough", "org.commonmark", "commonmark-ext-gfm-strikethrough").versionRef("commonmark")
+            library("commonmark-extension-tables", "org.commonmark", "commonmark-ext-gfm-tables").versionRef("commonmark")
             bundle("commonmark", listOf("commonmark-annotations", "commonmark-extension-strikethrough", "commonmark-extension-tables"))
 
             library("jraw", "com.github.Haptic-Apps:JRAW:9c8a410a06") // TODO: drop
