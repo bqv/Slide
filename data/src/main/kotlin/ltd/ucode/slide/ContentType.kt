@@ -51,9 +51,15 @@ open class ContentType {
             return try {
                 val host = uri.host.lowercase()
                 val path = uri.path.lowercase()
-                host == "i.reddituploads.com" || path.endsWith(".png") || path.endsWith(
-                    ".jpg"
-                ) || path.endsWith(".jpeg")
+                host == "i.reddituploads.com"
+                        || path.endsWith(".jpg")
+                        || path.endsWith(".jpeg")
+                        || path.endsWith(".png")
+                        || path.endsWith(".bmp")
+                        || path.endsWith(".webp")
+                        || path.endsWith(".tiff")
+                        || path.endsWith(".tif")
+                        || path.endsWith(".svg") // unsure
             } catch (e: NullPointerException) {
                 false
             }
@@ -163,8 +169,8 @@ open class ContentType {
                     return Type.VIDEO
                 }
                 /*if (PostMatch.openExternal(url)) {
-                return Type.EXTERNAL
-            }*/// TODO: reimplement in a less layer-violation-y way
+                    return Type.EXTERNAL
+                }*/// TODO: reimplement in a less layer-violation-y way
                 if (isGif(uri)) {
                     return Type.GIF
                 }

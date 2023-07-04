@@ -1,0 +1,10 @@
+name: "Dependabot Update"
+on: [push]
+
+jobs:
+  submit:
+    name: "Submission"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Gradle Dependency Submission
+        uses: mikepenz/gradle-dependency-submission@v0.8.6
