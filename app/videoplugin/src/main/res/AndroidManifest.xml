@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" android:versionCode="8" android:versionName="2.5" package="ccrama.me.slideyoutubeplugin" platformBuildVersionCode="24" platformBuildVersionName="7">
+    <uses-sdk android:minSdkVersion="15" android:targetSdkVersion="25"/>
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <application android:theme="@style/AppTheme" android:label="Slide Video Plugin" android:icon="@mipmap/ic_launcher" android:excludeFromRecents="true" android:allowBackup="true" android:supportsRtl="true">
+        <activity android:name="ccrama.me.slideyoutubeplugin.YouTubeView" android:excludeFromRecents="true" android:launchMode="singleInstance" android:configChanges="keyboardHidden|orientation|screenSize" android:noHistory="true">
+            <intent-filter android:label="Slide Video Plugin">
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="http"/>
+                <data android:scheme="https"/>
+                <data android:host="*.youtube.com"/>
+                <data android:host="*.youtube.co"/>
+                <data android:host="*.youtu.be"/>
+                <data android:host="youtube.com"/>
+                <data android:host="youtube.co"/>
+                <data android:host="youtu.be"/>
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>
