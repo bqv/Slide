@@ -19,14 +19,12 @@ androidGitVersion {
 
 android {
     compileSdk = 34
-    buildToolsVersion = "30.0.3"
 
     defaultConfig {
         applicationId = "ltd.ucode.slide"
         minSdk = 23
         targetSdk = 33
         versionCode = 1
-        versionName = androidGitVersion.name()
 
         vectorDrawables.useSupportLibrary = true
     }
@@ -61,8 +59,6 @@ android {
 
     compileOptions {
         encoding = "UTF-8"
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
     }
 
     kotlin {
@@ -169,11 +165,10 @@ dependencies {
     /** ExoPlayer **/
     // Application level media player
     // Cannot update beyond this point: extension"s minimum SDK version is 21 in 2.15.0 and above
-    val exoPlayerVersion: String by rootProject.extra
-    implementation("com.google.android.exoplayer:exoplayer-core:$exoPlayerVersion")
-    implementation("com.google.android.exoplayer:exoplayer-dash:$exoPlayerVersion")
-    implementation("com.google.android.exoplayer:exoplayer-ui:$exoPlayerVersion")
-    implementation("com.google.android.exoplayer:extension-okhttp:$exoPlayerVersion")
+    implementation("com.google.android.exoplayer:exoplayer-core:${libs.versions.exoPlayer}")
+    implementation("com.google.android.exoplayer:exoplayer-dash:${libs.versions.exoPlayer}")
+    implementation("com.google.android.exoplayer:exoplayer-ui:${libs.versions.exoPlayer}")
+    implementation("com.google.android.exoplayer:extension-okhttp:${libs.versions.exoPlayer}")
 
 
     /** Logging **/
@@ -256,16 +251,13 @@ dependencies {
     implementation("com.github.suckgamony.RapidDecoder:library:7cdfca47fa")
 
     // HTTP client
-    val okhttpVersion: String by rootProject.extra
-    implementation("com.squareup.okhttp3:okhttp:$okhttpVersion")
+    implementation("com.squareup.okhttp3:okhttp:${libs.versions.okhttp}")
 
     // Convert Java objects into JSON and back
-    val retrofitVersion: String by rootProject.extra
-    val serializationVersion: String by rootProject.extra
     implementation("com.google.code.gson:gson:2.8.9")
-    implementation("com.squareup.retrofit2:retrofit:${retrofitVersion}")
+    implementation("com.squareup.retrofit2:retrofit:${libs.versions.retrofit}")
     implementation("com.nightlynexus.logging-retrofit:logging:0.12.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:${serializationVersion}")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:${libs.versions.serialization}")
     implementation("com.jakewharton.retrofit:retrofit2-kotlinx-serialization-converter:1.0.0")
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.3.2")
 
@@ -277,9 +269,8 @@ dependencies {
     implementation("org.mp4parser:muxer:1.9.41")
 
     // Dependency Injection
-    val hiltVersion: String by rootProject.extra
-    implementation("com.google.dagger:hilt-android:$hiltVersion")
-    kapt("com.google.dagger:hilt-android-compiler:$hiltVersion")
+    implementation("com.google.dagger:hilt-android:${libs.versions.hilt}")
+    kapt("com.google.dagger:hilt-android-compiler:${libs.versions.hilt}")
     implementation("androidx.hilt:hilt-common:1.0.0-alpha03")
     kapt("androidx.hilt:hilt-compiler:1.0.0-alpha03")
 

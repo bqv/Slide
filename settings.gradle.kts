@@ -1,11 +1,31 @@
 dependencyResolutionManagement {
     versionCatalogs {
         create("libs") {
-            library("okhttp3", "com.squareup.okhttp3:okhttp:4.10.0")
-            library("ktor", "ktor", "ktor").version {
-                strictly("[3.8, 4.0[")
-                prefer("3.9")
+            version("android", "8.0.2")
+            version("kotlin", "1.8.22")
+            version("serialization", "1.5.0")
+            version("retrofit", "2.9.0")
+            version("exoPlayer", "2.14.2")
+            version("commonmark", "0ebc0749c7")
+            version("graphql", "6.5.3")
+            version("ktor", "2.3.1")
+            version("hilt", "2.46.1")
+            version("okhttp", "4.11.0")
+
+            library("gradle-android", "com.android.tools.build", "gradle").versionRef("android")
+            library("gradle-kotlin-gradle", "org.jetbrains.kotlin", "kotlin-gradle-plugin").versionRef("kotlin")
+            library("gradle-kotlin-serialization", "org.jetbrains.kotlin", "kotlin-serialization").versionRef("kotlin")
+            library("gradle-hilt", "com.google.dagger", "hilt-android-gradle-plugin").versionRef("hilt")
+            library("gradle-graphql", "com.expediagroup", "graphql-kotlin-gradle-plugin").versionRef("graphql")
+
+            library("graphql-base", "graphql", "graphql").version {
+                strictly("[2.3.0, 2.3.2[")
+                prefer("2.3.1")
             }
+            library("graphql-ktor", "com.expediagroup", "graphql-kotlin-ktor-client").versionRef("graphql")
+            library("ktor-okhttp", "io.ktor", "ktor-client-okhttp").versionRef("ktor")
+            library("ktor-logging", "io.ktor", "ktor-client-logging").versionRef("ktor")
+            bundle("graphql", listOf("graphql-ktor", "ktor-okhttp", "ktor-logging"))
 
             version("acra", "5.10.1")
             library("acra-sender-http", "ch.acra", "acra-http").versionRef("acra")

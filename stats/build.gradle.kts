@@ -16,12 +16,7 @@ java {
 
 dependencies {
     // GraphQL
-    val graphqlVersion: String by rootProject.extra
-    implementation("com.expediagroup:graphql-kotlin-ktor-client:${graphqlVersion}")
-
-    val ktorVersion: String by rootProject.extra
-    implementation("io.ktor:ktor-client-okhttp:${ktorVersion}")
-    implementation("io.ktor:ktor-client-logging-jvm:${ktorVersion}")
+    implementation(libs.bundles.graphql)
 }
 
 val graphqlIntrospectSchema
