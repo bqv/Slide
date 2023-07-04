@@ -1,7 +1,7 @@
 plugins {
-    id("java-library")
-    kotlin("jvm")
-    kotlin("plugin.serialization")
+    id(libs.plugins.java.library.get().pluginId)
+    id(libs.plugins.kotlin.jvm.get().pluginId)
+    id(libs.plugins.kotlin.serialization.get().pluginId)
 }
 
 java {
@@ -12,15 +12,13 @@ java {
 dependencies {
     implementation(project(mapOf("path" to ":data")))
 
-    implementation("com.github.Haptic-Apps:JRAW:9c8a410a06")
+    implementation(libs.jraw)
 
-    implementation("com.squareup.okhttp3:okhttp:${libs.versions.okhttp}")
+    implementation(libs.okhttp)
 
-    implementation("com.squareup.retrofit2:retrofit:${libs.versions.retrofit}")
-    implementation("com.nightlynexus.logging-retrofit:logging:0.12.0")
+    implementation(libs.bundles.retrofit)
 
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:${libs.versions.serialization}")
-    implementation("com.jakewharton.retrofit:retrofit2-kotlinx-serialization-converter:1.0.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.3.2")
-    implementation("com.google.code.gson:gson:2.8.9")
+    implementation(libs.kotlinx.serialization)
+    implementation(libs.kotlinx.datetime)
+    implementation(libs.gson)
 }

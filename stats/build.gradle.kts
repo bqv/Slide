@@ -3,10 +3,10 @@ import com.expediagroup.graphql.plugin.gradle.tasks.GraphQLGenerateClientTask
 import com.expediagroup.graphql.plugin.gradle.tasks.GraphQLIntrospectSchemaTask
 
 plugins {
-    id("java-library")
-    id("org.jetbrains.kotlin.jvm")
-    id("com.expediagroup.graphql")
-    kotlin("plugin.serialization")
+    id(libs.plugins.java.library.get().pluginId)
+    id(libs.plugins.kotlin.jvm.get().pluginId)
+    id(libs.plugins.graphql.get().pluginId)
+    id(libs.plugins.kotlin.serialization.get().pluginId)
 }
 
 java {

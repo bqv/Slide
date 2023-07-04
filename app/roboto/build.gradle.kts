@@ -1,5 +1,5 @@
 plugins {
-    id("com.android.library")
+    id(libs.plugins.android.library.get().pluginId)
 }
 
 android {
@@ -20,5 +20,5 @@ android {
 }
 
 dependencies {
-    implementation("androidx.appcompat:appcompat:1.3.1")
+    implementation(libs.androidx.appcompat)
 }

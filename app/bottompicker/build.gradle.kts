@@ -1,5 +1,5 @@
 plugins {
-    id("com.android.library")
+    id(libs.plugins.android.library.get().pluginId)
 }
 
 android {
@@ -23,16 +23,14 @@ android {
 
 dependencies {
     // Android support
-    implementation("androidx.annotation:annotation:1.3.0")
-    implementation("androidx.appcompat:appcompat:1.3.1")
-    implementation("androidx.recyclerview:recyclerview:1.2.1")
-    implementation("com.google.android.material:material:1.4.0")
+    implementation(libs.androidx.annotation)
+    implementation(libs.androidx.appcompat)
+    implementation(libs.androidx.recyclerview)
+    implementation(libs.material)
 
     // Third-party
-    var glideVersion = "4.12.0"
-    var rxjavaVersion = "2.2.21"
-    implementation("com.github.bumptech.glide:glide:$glideVersion")
-    annotationProcessor("com.github.bumptech.glide:compiler:$glideVersion")
-    implementation("io.github.ParkSangGwon:tedonactivityresult:1.0.10")
-    implementation("io.reactivex.rxjava2:rxjava:$rxjavaVersion")
+    implementation(libs.glide)
+    annotationProcessor(libs.glide.compiler)
+    implementation(libs.tedonactivityresult)
+    implementation(libs.rxjava)
 }

@@ -1,6 +1,6 @@
 plugins {
-    id("java-library")
-    kotlin("jvm")
+    id(libs.plugins.java.library.get().pluginId)
+    id(libs.plugins.kotlin.jvm.get().pluginId)
 }
 
 java {
@@ -9,6 +9,6 @@ java {
 }
 
 dependencies {
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.1")
-    implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.3.2")
+    implementation(libs.kotlinx.coroutines)
+    implementation(libs.kotlinx.datetime)
 }

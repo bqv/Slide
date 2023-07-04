@@ -5,7 +5,7 @@ plugins {
     kotlin("plugin.serialization")
     kotlin("plugin.parcelize")
     id("dagger.hilt.android.plugin")
-    alias(libs.plugins.androidgitversion)
+    alias(libs.plugins.androidGitVersion)
     id("com.github.ben-manes.versions") version "0.42.0"
 }
 
@@ -113,16 +113,20 @@ android {
 }
 
 dependencies {
+    implementation(project(mapOf("path" to ":app:bottompicker")))
     implementation(project(mapOf("path" to ":app:crash")))
+    implementation(project(mapOf("path" to ":app:roboto")))
     implementation(project(mapOf("path" to ":app:util")))
     implementation(project(mapOf("path" to ":data")))
     implementation(project(mapOf("path" to ":data:lemmy")))
     implementation(project(mapOf("path" to ":data:reddit")))
+    implementation(project(mapOf("path" to ":readability")))
     implementation(project(mapOf("path" to ":stats")))
     implementation(project(mapOf("path" to ":util")))
 
-    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:1.1.1")
+    coreLibraryDesugaring(libs.android.desugar)
 
+    // AndroidX Kotlin
     implementation("androidx.collection:collection-ktx:1.2.0")
     implementation("androidx.fragment:fragment-ktx:1.6.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.1")
@@ -140,17 +144,12 @@ dependencies {
     implementation("androidx.security:security-crypto-ktx:1.1.0-alpha03")
     implementation("androidx.paging:paging-common-ktx:3.1.1")
 
-    /** Flavors **/
-
-    /** Custom **/
+    // Misc
     implementation(libs.jraw)
-    implementation(project(mapOf("path" to ":app:bottompicker")))
     implementation(libs.bundles.commonmark)
-    implementation(project(mapOf("path" to ":readability")))
     implementation(libs.jsoup)
-    implementation(project(mapOf("path" to ":app:roboto")))
 
-    /** AndroidX **/
+    // AndroidX
     implementation("androidx.appcompat:appcompat:1.3.1")
     implementation("androidx.browser:browser:1.3.0")
     implementation("androidx.cardview:cardview:1.0.0")
@@ -162,7 +161,7 @@ dependencies {
     implementation("com.google.android.material:material:1.4.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.1")
 
-    /** ExoPlayer **/
+    // ExoPlayer
     // Application level media player
     // Cannot update beyond this point: extension"s minimum SDK version is 21 in 2.15.0 and above
     implementation("com.google.android.exoplayer:exoplayer-core:${libs.versions.exoPlayer}")
@@ -171,11 +170,10 @@ dependencies {
     implementation("com.google.android.exoplayer:extension-okhttp:${libs.versions.exoPlayer}")
 
 
-    /** Logging **/
-    implementation("io.github.oshai:kotlin-logging-jvm:4.0.0")
+    // Logging
+    implementation(libs.kotlin.logging)
     implementation(libs.bundles.slf4j)
 
-    /**** Frontend (UI-related) ****/
     // Custom dialogs
     implementation("com.afollestad.material-dialogs:commons:0.9.6.0")
 
@@ -251,15 +249,13 @@ dependencies {
     implementation("com.github.suckgamony.RapidDecoder:library:7cdfca47fa")
 
     // HTTP client
-    implementation("com.squareup.okhttp3:okhttp:${libs.versions.okhttp}")
+    implementation(libs.okhttp)
 
     // Convert Java objects into JSON and back
-    implementation("com.google.code.gson:gson:2.8.9")
-    implementation("com.squareup.retrofit2:retrofit:${libs.versions.retrofit}")
-    implementation("com.nightlynexus.logging-retrofit:logging:0.12.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:${libs.versions.serialization}")
-    implementation("com.jakewharton.retrofit:retrofit2-kotlinx-serialization-converter:1.0.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.3.2")
+    implementation(libs.gson)
+    implementation(libs.bundles.retrofit)
+    implementation(libs.kotlinx.serialization)
+    implementation(libs.kotlinx.datetime)
 
     // WebSocket client
     implementation("com.neovisionaries:nv-websocket-client:2.14")
@@ -286,8 +282,8 @@ dependencies {
     // YouTube
     implementation(libs.newpipe.extractor)
 
-
     /** Testing **/
+
     testImplementation(kotlin("test"))
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.hamcrest:hamcrest:2.2")

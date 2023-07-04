@@ -1,6 +1,6 @@
 plugins {
-    id("java-library")
-    kotlin("jvm")
+    id(libs.plugins.java.library.get().pluginId)
+    id(libs.plugins.kotlin.jvm.get().pluginId)
 }
 
 java {
@@ -9,6 +9,6 @@ java {
 }
 
 dependencies {
-    implementation("com.github.Haptic-Apps:JRAW:9c8a410a06")
-    implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.3.2")
+    implementation(libs.jraw)
+    implementation(libs.kotlinx.datetime)
 }

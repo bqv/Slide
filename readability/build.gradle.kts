@@ -1,5 +1,5 @@
 plugins {
-    `java-library`
+    id(libs.plugins.java.library.get().pluginId)
 }
 
 repositories {
@@ -15,7 +15,8 @@ repositories {
 
 dependencies {
     api(libs.jsoup)
-    testImplementation("junit:junit:4.10")
+
+    testImplementation(libs.junit)
 }
 
 group = "com.wu-man"
