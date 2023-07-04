@@ -25,12 +25,12 @@ public class TedSquareFrameLayout extends FrameLayout {
 
         TypedArray a = context.getTheme().obtainStyledAttributes(
                 attrs,
-                R.styleable.TedSquareView,
+                R.styleable.TedBottomPickerSquareView,
                 0, 0);
 
         try {
-            mMatchHeightToWidth = a.getBoolean(R.styleable.TedSquareView_matchHeightToWidth, false);
-            mMatchWidthToHeight = a.getBoolean(R.styleable.TedSquareView_matchWidthToHeight, false);
+            mMatchHeightToWidth = a.getBoolean(R.styleable.TedBottomPickerSquareView_matchHeightToWidth, false);
+            mMatchWidthToHeight = a.getBoolean(R.styleable.TedBottomPickerSquareView_matchWidthToHeight, false);
         } finally {
             a.recycle();
         }
@@ -42,7 +42,6 @@ public class TedSquareFrameLayout extends FrameLayout {
     @Override
     protected void onMeasure(final int widthMeasureSpec, final int heightMeasureSpec){
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-      //  Dlog.w("start: "+widthMeasureSpec+"x"+heightMeasureSpec);
         if(mMatchHeightToWidth){
             setMeasuredDimension(widthMeasureSpec, widthMeasureSpec);
         } else if(mMatchWidthToHeight){

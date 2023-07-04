@@ -36,6 +36,8 @@ dependencyResolutionManagement {
 
             library("jsoup", "org.jsoup:jsoup:1.16.1")
 
+            library("newpipe-extractor", "com.github.TeamNewPipe:NewPipeExtractor:v0.22.1") // TODO: migrate :videoplugin
+
             version("commonmark", "0.21.0") // TODO: update
             library("commonmark-annotations", "org.commonmark", "commonmark").versionRef("commonmark")
             library("commonmark-extension-strikethrough", "org.commonmark", "commonmark-ext-gfm-strikethrough").versionRef("commonmark")
@@ -54,14 +56,15 @@ dependencyResolutionManagement {
 rootProject.name = "slide"
 
 include(":app")
-//include(":app:bottompicker")
-include(":app:bottompickerv2")
+include(":app:bottompicker")
 include(":app:crash")
 include(":app:roboto")
 include(":app:util")
+include(":app:videoplugin")
 include(":data")
 include(":data:lemmy")
 include(":data:reddit")
+include(":data:ycombinator")
 include(":readability")
 include(":stats")
 include(":util")

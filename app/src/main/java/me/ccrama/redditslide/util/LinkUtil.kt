@@ -20,6 +20,7 @@ import androidx.browser.customtabs.CustomTabsSession
 import androidx.core.content.ContextCompat
 import ltd.ucode.slide.App
 import ltd.ucode.slide.App.Companion.appContext
+import ltd.ucode.slide.Constants
 import ltd.ucode.slide.R
 import ltd.ucode.slide.SettingValues
 import ltd.ucode.slide.SettingValues.isNight
@@ -239,7 +240,7 @@ object LinkUtil {
         mContext.startActivity(Intent(mContext, Crosspost::class.java))
     }
 
-    fun overridePackage(intent: Intent) {
+    private fun overridePackage(intent: Intent) {
         val packageName = appContext
             .packageManager
             .resolveActivity(intent, 0)!!.activityInfo.packageName
@@ -248,16 +249,14 @@ object LinkUtil {
         val browserPackageName = appContext
             .packageManager
             .resolveActivity(
-                Intent(Intent.ACTION_VIEW, Uri.parse("http://ccrama.me/")),
+                Intent(Intent.ACTION_VIEW, Uri.parse(Constants.TEST_URL)),
                 0
             )!!.activityInfo.packageName
         var packageToSet = packageName
         if (packageName == appContext.packageName) {
             packageToSet = browserPackageName
         }
-        if (packageToSet == browserPackageName && (selectedBrowser != null
-                    && !selectedBrowser.isEmpty())
-        ) {
+        if (packageToSet == browserPackageName && selectedBrowser.isNotEmpty()) {
             try {
                 appContext
                     .packageManager

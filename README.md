@@ -11,7 +11,10 @@ Slide is an open-source, ad-free link aggregator client for Android.
 
 It is based on the [Slide for Reddit](https://github.com/ccrama/slide) app.
 
-Slide is not yet available on the Google Play Store or F-Droid.
+Slide is not yet available on the Google Play Store or F-Droid. Instead:
+
+[<img src="./.github/obtainium.jpg" alt="Get it on Obtaininum"
+height="80">](https://github.com/ImranR98/Obtainium)
 
 There is a [community for Slide](https://feddit.uk/c/slide), which anybody is
 welcome to join.

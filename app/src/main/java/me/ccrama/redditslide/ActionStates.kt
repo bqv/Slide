@@ -1,7 +1,7 @@
 package me.ccrama.redditslide
 
 import ltd.ucode.lemmy.data.type.CommentView
-import ltd.ucode.slide.data.IItem
+import ltd.ucode.slide.trait.IVotable
 import ltd.ucode.slide.data.IPost
 import net.dean.jraw.models.Comment
 import net.dean.jraw.models.PublicContribution
@@ -28,7 +28,7 @@ object ActionStates {
     }
 
     @JvmStatic
-    fun getVoteDirection(s: IItem): VoteDirection {
+    fun getVoteDirection(s: IVotable): VoteDirection {
         return if (upVotedFullnames.contains(s.permalink)) {
             VoteDirection.UPVOTE
         } else if (downVotedFullnames.contains(s.permalink)) {
@@ -71,7 +71,7 @@ object ActionStates {
     }
 
     @JvmStatic
-    fun setVoteDirection(s: IItem, direction: VoteDirection) {
+    fun setVoteDirection(s: IVotable, direction: VoteDirection) {
         val fullname = s.permalink
         upVotedFullnames.remove(fullname)
         downVotedFullnames.remove(fullname)
@@ -97,7 +97,7 @@ object ActionStates {
     }
 
     @JvmStatic
-    fun isSaved(s: IItem): Boolean {
+    fun isSaved(s: IVotable): Boolean {
         return if (savedFullnames.contains(s.permalink)) {
             true
         } else if (unSavedFullnames.contains(s.permalink)) {

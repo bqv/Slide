@@ -1,15 +1,16 @@
 package gun0912.tedbottompicker;
 
 import android.graphics.Rect;
-import android.support.v7.widget.RecyclerView;
 import android.view.View;
+
+import androidx.recyclerview.widget.RecyclerView;
 
 /**
  * Created by TedPark on 2016. 8. 30..
  */
 
 /**
- *https://gist.github.com/liangzhitao/e57df3c3232ee446d464
+ * https://gist.github.com/liangzhitao/e57df3c3232ee446d464
  */
 public class GridSpacingItemDecoration extends RecyclerView.ItemDecoration {
 
@@ -27,7 +28,7 @@ public class GridSpacingItemDecoration extends RecyclerView.ItemDecoration {
 
     @Override
     public void getItemOffsets(Rect outRect, View view, RecyclerView parent, RecyclerView.State state) {
-        int position = parent.getChildAdapterPosition(view) ; // item position
+        int position = parent.getChildAdapterPosition(view); // item position
 
         if (position >= 0) {
             int column = position % spanCount; // item column

@@ -1,6 +1,7 @@
 package ltd.ucode.slide.module
 
 import android.content.Context
+import androidx.room.Room
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -9,9 +10,7 @@ import dagger.hilt.components.SingletonComponent
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
 import ltd.ucode.slide.BuildConfig
-import ltd.ucode.slide.repository.AccountRepository
-import ltd.ucode.slide.repository.InstanceRepository
-import ltd.ucode.slide.repository.SettingsRepository
+import ltd.ucode.slide.data.ContentDatabase
 import okhttp3.HttpUrl
 import okhttp3.OkHttpClient
 import okio.Buffer
@@ -26,6 +25,14 @@ object ApplicationModule {
     @Provides
     @Named("buildFlavor")
     fun provideFlavor(): String = BuildConfig.FLAVOR
+
+    @Provides
+    @Singleton
+    fun providesContentDatabase(@ApplicationContext context: Context): ContentDatabase =
+        Room.databaseBuilder(context,
+            ContentDatabase::class.java, ContentDatabase.filename)
+            .fallbackToDestructiveMigration()
+            .build()
 
     @Provides
     @Named("userAgent")
@@ -58,19 +65,4 @@ object ApplicationModule {
             response
         }
         .build()
-
-    @Provides
-    @Singleton
-    fun providesAccountRepository(@ApplicationContext context: Context): AccountRepository =
-        AccountRepository(context = context)
-
-    @Provides
-    @Singleton
-    fun providesInstanceRepository(@ApplicationContext context: Context, okHttpClient: OkHttpClient, @Named("userAgent") userAgent: String, accountRepository: AccountRepository): InstanceRepository =
-        InstanceRepository(context = context, okHttpClient = okHttpClient, userAgent = userAgent, accountRepository = accountRepository)
-
-    @Provides
-    @Singleton
-    fun providesSettingsRepository(@ApplicationContext context: Context): SettingsRepository =
-        SettingsRepository(context = context)
 }

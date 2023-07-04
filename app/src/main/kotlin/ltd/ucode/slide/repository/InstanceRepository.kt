@@ -2,7 +2,7 @@ package ltd.ucode.slide.repository
 
 import android.content.Context
 import dagger.hilt.android.qualifiers.ApplicationContext
-import info.`the-federation`.FediverseStats
+import info.the_federation.FediverseStats
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
 import ltd.ucode.lemmy.api.AccountDataSource
@@ -11,7 +11,8 @@ import ltd.ucode.lemmy.api.InstanceDataSource
 import ltd.ucode.lemmy.data.type.NodeInfoResult
 import ltd.ucode.lemmy.data.type.jwt.Token
 import ltd.ucode.lemmy.data.value.Addressable
-import ltd.ucode.slide.table.Instance
+import ltd.ucode.slide.data.ContentDatabase
+import ltd.ucode.slide.data.entity.Instance
 import okhttp3.OkHttpClient
 import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
@@ -24,11 +25,13 @@ class InstanceRepository @Inject constructor(
     @ApplicationContext val context: Context,
     val okHttpClient: OkHttpClient,
     @Named("userAgent") val userAgent: String,
-    val accountRepository: AccountRepository,
 ) {
     var defaultInstance: String = "lemmy.ml"
 
     private val logger: KLogger = KotlinLogging.logger {}
+
+    @Inject lateinit var contentDatabase: ContentDatabase
+    @Inject lateinit var accountRepository: AccountRepository
 
     init {
         logger.info { "Creating ${javaClass.simpleName}"}
@@ -129,11 +132,7 @@ class InstanceRepository @Inject constructor(
         val nodeList = FediverseStats.getLemmyServers(userAgent, limit)
             ?.thefederation_node.orEmpty()
 
-        return nodeList.map {
-            val stat = it.thefederation_stats.firstOrNull()
-            Instance(it.name, it.version, it.country, stat?.local_posts, stat?.local_comments,
-                stat?.users_total, stat?.users_half_year, stat?.users_monthly, stat?.users_weekly)
-        }
+        return nodeList.map(Instance::from)
     }
 
     fun connect(account: String): AccountDataSource {

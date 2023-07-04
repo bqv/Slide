@@ -1,7 +1,7 @@
 package ltd.ucode.slide.ui.login
 
 import ltd.ucode.slide.repository.InstanceRepository
-import ltd.ucode.slide.table.Instance
+import ltd.ucode.slide.data.entity.Instance
 import javax.inject.Inject
 
 class LoginModel @Inject constructor(

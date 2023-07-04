@@ -8,14 +8,14 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import ltd.ucode.slide.App.Companion.appContext
 import ltd.ucode.slide.Authentication
-import ltd.ucode.slide.table.Instance
+import ltd.ucode.slide.data.entity.Instance
 import ltd.ucode.util.ExceptionExtensions.toast
 import org.acra.ktx.sendSilentlyWithAcra
 import javax.inject.Inject
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    private val model: LoginModel
+    private val model: LoginModel,
 ): ViewModel() {
     private val _instanceList = MutableLiveData<Map<String, Instance>>()
     val instanceList: LiveData<Map<String, Instance>> get() = _instanceList

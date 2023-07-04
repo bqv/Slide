@@ -1,4 +1,6 @@
 package ltd.ucode.slide.data
 
-interface IComment : IItem {
+import ltd.ucode.slide.trait.IVotable
+
+interface IComment : IVotable {
 }

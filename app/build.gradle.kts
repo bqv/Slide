@@ -93,6 +93,7 @@ android {
     }
 
     buildFeatures {
+        buildConfig = true
         viewBinding = true
         dataBinding = true
     }
@@ -141,13 +142,13 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.1")
     implementation("androidx.work:work-runtime-ktx:2.8.1")
     implementation("androidx.security:security-crypto-ktx:1.1.0-alpha03")
+    implementation("androidx.paging:paging-common-ktx:3.1.1")
 
     /** Flavors **/
 
     /** Custom **/
     implementation(libs.jraw)
-    implementation(project(mapOf("path" to ":app:bottompickerv2")))
-    implementation(project(mapOf("path" to ":readability")))
+    implementation(project(mapOf("path" to ":app:bottompicker")))
     implementation(libs.bundles.commonmark)
     implementation(project(mapOf("path" to ":readability")))
     implementation(libs.jsoup)
@@ -290,6 +291,9 @@ dependencies {
 
     // Crash Reporting
     implementation(libs.bundles.acra)
+
+    // YouTube
+    implementation(libs.newpipe.extractor)
 
 
     /** Testing **/

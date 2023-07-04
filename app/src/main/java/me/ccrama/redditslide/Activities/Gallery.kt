@@ -68,22 +68,22 @@ class Gallery : FullScreenActivity(), SubmissionDisplay {
             subredditPosts!!.posts.add(s)
         }
         rv = findViewById<View>(R.id.content_view) as RecyclerView
-        recyclerAdapter = GalleryView(this, baseSubs!!.map { it.submission }, subreddit)
+        recyclerAdapter = GalleryView(this, baseSubs!!.map { it.submission!! }, subreddit!!)
         val layoutManager: RecyclerView.LayoutManager = createLayoutManager(
             LayoutUtils.getNumColumns(
                 resources.configuration.orientation, this@Gallery
             )
         )
-        rv!!.setLayoutManager(layoutManager)
-        rv!!.setAdapter(recyclerAdapter)
+        rv!!.layoutManager = layoutManager
+        rv!!.adapter = recyclerAdapter
         rv!!.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
                 val firstVisibleItems: IntArray =
-                    (rv!!.getLayoutManager() as CatchStaggeredGridLayoutManager).findFirstVisibleItemPositions(
+                    (rv!!.layoutManager as CatchStaggeredGridLayoutManager).findFirstVisibleItemPositions(
                         null
                     )
-                if (firstVisibleItems != null && firstVisibleItems.size > 0) {
+                if (firstVisibleItems.isNotEmpty()) {
                     for (firstVisibleItem in firstVisibleItems) {
                         pastVisiblesItems = firstVisibleItem
                     }

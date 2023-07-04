@@ -88,6 +88,7 @@ import ltd.ucode.lemmy.data.type.PostSortType
 import ltd.ucode.slide.App
 import ltd.ucode.slide.Authentication
 import ltd.ucode.slide.BuildConfig
+import ltd.ucode.slide.Constants
 import ltd.ucode.slide.R
 import ltd.ucode.slide.SettingValues
 import ltd.ucode.slide.data.IPost
@@ -1093,7 +1094,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
         me.ccrama.redditslide.util.LogUtil.v("Installed browsers")
         val intent = Intent()
         intent.action = Intent.ACTION_VIEW
-        intent.data = Uri.parse("http://ccrama.me/")
+        intent.data = Uri.parse(Constants.TEST_URL)
         val allApps = packageManager.queryIntentActivities(
             intent,
             PackageManager.GET_DISABLED_COMPONENTS

@@ -44,7 +44,6 @@ import me.ccrama.redditslide.util.LinkUtil.openExternally
 import me.ccrama.redditslide.util.LinkUtil.openUrl
 import me.ccrama.redditslide.util.LinkUtil.tryOpenWithVideoPlugin
 import net.dean.jraw.models.Submission
-import java.util.Arrays
 
 class GalleryView(private val main: Gallery?, displayer: List<Submission>?, subreddit: String) :
     RecyclerView.Adapter<RecyclerView.ViewHolder>() {
@@ -135,7 +134,7 @@ class GalleryView(private val main: Gallery?, displayer: List<Submission>?, subr
                 val i2 = Intent(main, CommentsScreen::class.java)
                 i2.putExtra(
                     CommentsScreen.EXTRA_PAGE,
-                    main.subredditPosts!!.posts.indexOf(submission)
+                    main.subredditPosts!!.posts.indexOf<Any>(submission)
                 )
                 i2.putExtra(CommentsScreen.EXTRA_SUBREDDIT, subreddit)
                 i2.putExtra("fullname", submission.fullName)

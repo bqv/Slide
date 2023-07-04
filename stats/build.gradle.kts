@@ -31,7 +31,7 @@ val graphqlIntrospectSchema
 
 val graphqlGenerateClient
         by tasks.getting(GraphQLGenerateClientTask::class) {
-            packageName.set("info.the-federation.graphql.generated")
+            packageName.set("info.the_federation.graphql.generated")
             schemaFile.set(graphqlIntrospectSchema.outputFile)
             serializer.set(GraphQLSerializer.KOTLINX)
 

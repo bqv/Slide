@@ -2,6 +2,7 @@ package ltd.ucode.slide.data
 
 import kotlinx.datetime.Instant
 import ltd.ucode.slide.ContentType
+import ltd.ucode.slide.trait.IVotable
 import net.dean.jraw.models.CommentNode
 import net.dean.jraw.models.DistinguishedStatus
 import net.dean.jraw.models.Flair
@@ -12,7 +13,7 @@ import java.net.URL
 import kotlin.io.path.Path
 import kotlin.io.path.extension
 
-abstract class IPost : IItem {
+abstract class IPost : IVotable {
     abstract val id: String
     abstract val title: String
     abstract val url: String?

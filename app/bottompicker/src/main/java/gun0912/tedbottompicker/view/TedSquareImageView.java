@@ -5,7 +5,8 @@ import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
-import android.widget.ImageView;
+
+import androidx.appcompat.widget.AppCompatImageView;
 
 import gun0912.tedbottompicker.R;
 
@@ -13,7 +14,7 @@ import gun0912.tedbottompicker.R;
 /**
  * Created by Gil on 09/06/2014.
  */
-public class TedSquareImageView extends ImageView {
+public class TedSquareImageView extends AppCompatImageView {
 
     String fit_mode;
     private Drawable foreground;
@@ -27,17 +28,17 @@ public class TedSquareImageView extends ImageView {
 
         TypedArray a = context.getTheme().obtainStyledAttributes(
                 attrs,
-                R.styleable.TedImageView,
+                R.styleable.TedBottomPickerImageView,
                 0, 0);
 
-        Drawable foreground = a.getDrawable(R.styleable.TedImageView_foreground);
+        Drawable foreground = a.getDrawable(R.styleable.TedBottomPickerImageView_foreground);
         if (foreground != null) {
             setForeground(foreground);
         }
 
 
         try {
-            fit_mode = a.getString(R.styleable.TedImageView_fit_mode);
+            fit_mode = a.getString(R.styleable.TedBottomPickerImageView_fit_mode);
 
         } finally {
             a.recycle();

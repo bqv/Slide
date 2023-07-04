@@ -462,7 +462,7 @@ class App : Application(), ActivityLifecycleCallbacks {
                 val browserMap = HashMap<String, String>()
                 val resolveInfoList = appContext.packageManager
                     .queryIntentActivities(
-                        Intent(Intent.ACTION_VIEW, Uri.parse("http://ccrama.me")),
+                        Intent(Intent.ACTION_VIEW, Uri.parse(Constants.TEST_URL)),
                         packageMatcher
                     )
                 for (resolveInfo in resolveInfoList) {
