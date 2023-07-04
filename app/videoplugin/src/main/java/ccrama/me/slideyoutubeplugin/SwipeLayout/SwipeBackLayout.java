@@ -14,7 +14,7 @@ import android.widget.FrameLayout;
 
 import androidx.core.view.ViewCompat;
 
-import ccrama.me.slideyoutubeplugin.R_;
+import ccrama.me.slidevideoplugin.R;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -77,7 +77,7 @@ public class SwipeBackLayout extends FrameLayout {
     }
 
     public SwipeBackLayout(Context context, AttributeSet attrs) {
-        this(context, attrs, R_.attr.SwipeBackLayoutStyle);
+        this(context, attrs, R.attr.SwipeBackLayoutStyle);
     }
 
     public SwipeBackLayout(Context context, AttributeSet attrs, int defStyle) {
@@ -87,15 +87,15 @@ public class SwipeBackLayout extends FrameLayout {
         this.mScrimColor = DEFAULT_SCRIM_COLOR;
         this.mTmpRect = new Rect();
         this.mDragHelper = ViewDragHelper.create(this, new ViewDragCallback());
-        TypedArray a = context.obtainStyledAttributes(attrs, R_.styleable.SwipeBackLayout, defStyle, R_.style.SwipeBackLayout);
+        TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.SwipeBackLayout, defStyle, R.style.SwipeBackLayout);
         int edgeSize = a.getDimensionPixelSize(0, -1);
         if (edgeSize > 0) {
             setEdgeSize(edgeSize);
         }
         setEdgeTrackingEnabled(EDGE_FLAGS[a.getInt(1, 0)]);
-        int shadowLeft = a.getResourceId(2, R_.drawable.shadow_left);
-        int shadowRight = a.getResourceId(3, R_.drawable.shadow_right);
-        int shadowBottom = a.getResourceId(4, R_.drawable.shadow_bottom);
+        int shadowLeft = a.getResourceId(2, R.drawable.shadow_left);
+        int shadowRight = a.getResourceId(3, R.drawable.shadow_right);
+        int shadowBottom = a.getResourceId(4, R.drawable.shadow_bottom);
         setShadow(shadowLeft, 1);
         setShadow(shadowRight, 2);
         setShadow(shadowBottom, 8);

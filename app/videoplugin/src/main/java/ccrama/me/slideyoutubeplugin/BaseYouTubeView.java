@@ -11,6 +11,8 @@ import ccrama.me.slideyoutubeplugin.SwipeLayout.SwipeBackLayout;
 import ccrama.me.slideyoutubeplugin.SwipeLayout.Utils;
 import ccrama.me.slideyoutubeplugin.SwipeLayout.app.SwipeBackActivityBase;
 import ccrama.me.slideyoutubeplugin.SwipeLayout.app.SwipeBackActivityHelper;
+import ccrama.me.slidevideoplugin.R;
+
 import com.google.android.youtube.player.YouTubeBaseActivity;
 
 public class BaseYouTubeView extends YouTubeBaseActivity implements SwipeBackActivityBase {
@@ -29,13 +31,13 @@ public class BaseYouTubeView extends YouTubeBaseActivity implements SwipeBackAct
 
     public void finish() {
         super.finish();
-        overridePendingTransition(0, R_.anim.fade_out);
+        overridePendingTransition(0, R.anim.fade_out);
     }
 
     /* access modifiers changed from: protected */
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        overridePendingTransition(R_.anim.slideright, 0);
+        overridePendingTransition(R.anim.slideright, 0);
         if (this.enableSwipeBackLayout) {
             this.mHelper = new SwipeBackActivityHelper(this);
             this.mHelper.onActivityCreate();

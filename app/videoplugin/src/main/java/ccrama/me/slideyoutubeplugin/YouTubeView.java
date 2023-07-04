@@ -13,6 +13,9 @@ import com.google.android.youtube.player.YouTubeInitializationResult;
 import com.google.android.youtube.player.YouTubePlayer;
 import com.google.android.youtube.player.YouTubePlayerView;
 
+import ccrama.me.slidevideoplugin.R;
+
+
 public class YouTubeView extends BaseYouTubeView implements YouTubePlayer.OnInitializedListener {
     public static final String EXTRA_URL = "url";
     private static final int RECOVERY_DIALOG_REQUEST = 1;
@@ -27,7 +30,7 @@ public class YouTubeView extends BaseYouTubeView implements YouTubePlayer.OnInit
         int length;
         overrideSwipeFromAnywhere();
         super.onCreate(savedInstanceState);
-        setContentView(R_.layout.activity_youtube);
+        setContentView(R.layout.activity_youtube);
         Uri data = getIntent().getData();
         if (data == null) {
             url = getIntent().getExtras().getString(EXTRA_URL, "");
@@ -85,7 +88,7 @@ public class YouTubeView extends BaseYouTubeView implements YouTubePlayer.OnInit
                 }
             }).show();
         }
-        this.youTubeView = (YouTubePlayerView) findViewById(R_.id.youtube_view);
+        this.youTubeView = (YouTubePlayerView) findViewById(R.id.youtube_view);
         this.youTubeView.initialize("193292713714-hbhe9ndnvk82uemdnvgmcgo6curhm6r2.apps.googleusercontent.com", this);
     }
 
@@ -142,6 +145,6 @@ public class YouTubeView extends BaseYouTubeView implements YouTubePlayer.OnInit
     }
 
     private YouTubePlayer.Provider getYouTubePlayerProvider() {
-        return (YouTubePlayerView) findViewById(R_.id.youtube_view);
+        return (YouTubePlayerView) findViewById(R.id.youtube_view);
     }
 }

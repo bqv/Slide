@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-    namespace = "me.ccrama.slidevideoplugin"
+    namespace = "ccrama.me.slidevideoplugin"
     compileSdk = 33
 
     defaultConfig {

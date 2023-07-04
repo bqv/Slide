@@ -6,9 +6,9 @@ import android.graphics.drawable.Drawable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import ccrama.me.slideyoutubeplugin.R_;
 import ccrama.me.slideyoutubeplugin.SwipeLayout.SwipeBackLayout;
 import ccrama.me.slideyoutubeplugin.SwipeLayout.Utils;
+import ccrama.me.slidevideoplugin.R;
 
 public class SwipeBackActivityHelper {
     /* access modifiers changed from: private */
@@ -22,7 +22,7 @@ public class SwipeBackActivityHelper {
     public void onActivityCreate() {
         this.mActivity.getWindow().setBackgroundDrawable(new ColorDrawable(0));
         this.mActivity.getWindow().getDecorView().setBackgroundDrawable((Drawable) null);
-        this.mSwipeBackLayout = (SwipeBackLayout) LayoutInflater.from(this.mActivity).inflate(R_.layout.swipeback_layout, (ViewGroup) null);
+        this.mSwipeBackLayout = (SwipeBackLayout) LayoutInflater.from(this.mActivity).inflate(R.layout.swipeback_layout, (ViewGroup) null);
         this.mSwipeBackLayout.addSwipeListener(new SwipeBackLayout.SwipeListener() {
             public void onScrollStateChange(int state, float scrollPercent) {
             }
