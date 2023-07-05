@@ -1,12 +1,11 @@
 plugins {
-    id("com.android.application")
-    kotlin("android")
-    kotlin("kapt")
-    kotlin("plugin.serialization")
-    kotlin("plugin.parcelize")
-    id("dagger.hilt.android.plugin")
+    id(libs.plugins.android.application.get().pluginId)
+    id(libs.plugins.kotlin.android.get().pluginId)
+    id(libs.plugins.kotlin.kapt.get().pluginId)
+    id(libs.plugins.kotlin.serialization.get().pluginId)
+    id(libs.plugins.kotlin.parcelize.get().pluginId)
+    id(libs.plugins.hilt.get().pluginId)
     alias(libs.plugins.androidGitVersion)
-    id("com.github.ben-manes.versions") version "0.42.0"
 }
 
 androidGitVersion {
@@ -126,6 +125,23 @@ dependencies {
 
     coreLibraryDesugaring(libs.android.desugar)
 
+    // Misc
+    implementation(libs.jraw)
+    implementation(libs.bundles.commonmark)
+    implementation(libs.jsoup)
+
+    // AndroidX
+    implementation(libs.androidx.appcompat)
+    implementation("androidx.browser:browser:1.3.0")
+    implementation("androidx.cardview:cardview:1.0.0")
+    implementation(libs.androidx.core)
+    implementation("androidx.fragment:fragment:1.6.0")
+    implementation("androidx.media:media:1.3.1")
+    implementation(libs.androidx.recyclerview)
+    implementation("androidx.webkit:webkit:1.4.0")
+    implementation(libs.material)
+    implementation(libs.kotlinx.coroutines.android)
+
     // AndroidX Kotlin
     implementation("androidx.collection:collection-ktx:1.2.0")
     implementation("androidx.fragment:fragment-ktx:1.6.0")
@@ -144,31 +160,8 @@ dependencies {
     implementation("androidx.security:security-crypto-ktx:1.1.0-alpha03")
     implementation("androidx.paging:paging-common-ktx:3.1.1")
 
-    // Misc
-    implementation(libs.jraw)
-    implementation(libs.bundles.commonmark)
-    implementation(libs.jsoup)
-
-    // AndroidX
-    implementation("androidx.appcompat:appcompat:1.3.1")
-    implementation("androidx.browser:browser:1.3.0")
-    implementation("androidx.cardview:cardview:1.0.0")
-    implementation("androidx.core:core:1.10.1")
-    implementation("androidx.fragment:fragment:1.6.0")
-    implementation("androidx.media:media:1.3.1")
-    implementation("androidx.recyclerview:recyclerview:1.2.1")
-    implementation("androidx.webkit:webkit:1.4.0")
-    implementation("com.google.android.material:material:1.4.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.1")
-
-    // ExoPlayer
     // Application level media player
-    // Cannot update beyond this point: extension"s minimum SDK version is 21 in 2.15.0 and above
-    implementation("com.google.android.exoplayer:exoplayer-core:${libs.versions.exoPlayer}")
-    implementation("com.google.android.exoplayer:exoplayer-dash:${libs.versions.exoPlayer}")
-    implementation("com.google.android.exoplayer:exoplayer-ui:${libs.versions.exoPlayer}")
-    implementation("com.google.android.exoplayer:extension-okhttp:${libs.versions.exoPlayer}")
-
+    implementation(libs.bundles.exoplayer)
 
     // Logging
     implementation(libs.kotlin.logging)
@@ -223,9 +216,6 @@ dependencies {
     // Library information
     implementation("com.mikepenz:aboutlibraries:6.2.3")
 
-
-    /**** Backend logic ****/
-
     // Core Java libraries from Google
     implementation("com.google.guava:guava:31.0.1-android")
 
@@ -261,14 +251,13 @@ dependencies {
     implementation("com.neovisionaries:nv-websocket-client:2.14")
 
     // Read, write, and create MP4 files
-    implementation("org.mp4parser:isoparser:1.9.41")
-    implementation("org.mp4parser:muxer:1.9.41")
+    implementation(libs.bundles.mp4parser)
 
     // Dependency Injection
-    implementation("com.google.dagger:hilt-android:${libs.versions.hilt}")
-    kapt("com.google.dagger:hilt-android-compiler:${libs.versions.hilt}")
-    implementation("androidx.hilt:hilt-common:1.0.0-alpha03")
-    kapt("androidx.hilt:hilt-compiler:1.0.0-alpha03")
+    implementation(libs.hilt.android)
+    kapt(libs.hilt.compiler)
+    implementation(libs.hilt.androidx.common)
+    kapt(libs.hilt.androidx.compiler)
 
     // Databinding
     kapt("com.android.databinding:compiler:3.1.4")
@@ -282,42 +271,34 @@ dependencies {
     // YouTube
     implementation(libs.newpipe.extractor)
 
-    /** Testing **/
+    //// Testing
+    androidTestImplementation(libs.kotlin.test)
+    testImplementation(libs.kotlin.test)
 
-    testImplementation(kotlin("test"))
-    testImplementation("junit:junit:4.13.2")
-    testImplementation("org.hamcrest:hamcrest:2.2")
-    testImplementation("org.mockito:mockito-core:3.12.4")
-    testImplementation("org.powermock:powermock-module-junit4:2.0.9")
-    testImplementation("com.github.IvanShafran:shared-preferences-mock:1.0")
-    testImplementation("org.robolectric:robolectric:4.10.3")
+    androidTestImplementation(libs.junit)
+    testImplementation(libs.junit)
+
+    androidTestImplementation(libs.roboelectric)
 
     // To use the androidx.test.core APIs
-    androidTestImplementation("androidx.test:core:1.5.0")
-    testImplementation("androidx.test:core:1.5.0")
+    androidTestImplementation(libs.androidx.test.core)
     // Kotlin extensions for androidx.test.core
-    androidTestImplementation("androidx.test:core-ktx:1.5.0")
-    testImplementation("androidx.core:core-ktx:1.5.0")
+    androidTestImplementation(libs.androidx.test.core.ktx)
 
     // To use the androidx.test.espresso
-    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
-    testImplementation("androidx.test.espresso:espresso-core:3.5.1")
+    androidTestImplementation(libs.androidx.test.espresso)
 
     // To use the JUnit Extension APIs
-    androidTestImplementation("androidx.test.ext:junit:1.1.5")
-    testImplementation("androidx.test.ext:junit:1.1.5")
+    androidTestImplementation(libs.androidx.test.junit)
     // Kotlin extensions for androidx.test.ext.junit
-    androidTestImplementation("androidx.test.ext:junit-ktx:1.1.5")
-    testImplementation("androidx.test.ext:junit-ktx:1.1.5")
+    androidTestImplementation(libs.androidx.test.junit.ktx)
 
     // To use the Truth Extension APIs
-    androidTestImplementation("androidx.test.ext:truth:1.5.0")
-    testImplementation("androidx.test.ext:truth:1.5.0")
+    androidTestImplementation(libs.androidx.test.truth)
 
     // To use the androidx.test.runner APIs
-    androidTestImplementation("androidx.test:runner:1.5.2")
-    testImplementation("androidx.test:runner:1.5.2")
+    androidTestImplementation(libs.androidx.test.runner)
 
     // To use android test orchestrator
-    androidTestUtil("androidx.test:orchestrator:1.4.2")
+    androidTestUtil(libs.androidx.test.orchestrator)
 }
