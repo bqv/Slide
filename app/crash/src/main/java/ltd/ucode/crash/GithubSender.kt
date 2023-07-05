@@ -1,7 +1,10 @@
 package ltd.ucode.crash
 
 import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import android.util.Log
+import androidx.core.content.ContextCompat.startActivity
 import org.acra.ReportField
 import org.acra.data.CrashReportData
 import org.acra.ktx.sendSilentlyWithAcra
@@ -39,6 +42,11 @@ class GithubSender(context: Context) : ReportSender {
                 messages.forEach {
                     issue.post(title, it)
                 }
+
+                try {
+                    val result = issue.link?.let(Uri::parse)!!
+                    startActivity(context, Intent(Intent.ACTION_VIEW, result), null)
+                } catch (_: Throwable) {}
             }.join()
         } catch (e: Exception) {
             metaException = e

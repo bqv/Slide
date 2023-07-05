@@ -71,6 +71,9 @@ class GithubIssueTracker(context: Context? = null) {
             else
                 issue!!.comment(body)
         }
+
+        val link: String?
+            get() = issue?.htmlUrl?.toURI()?.toString()
     }
 
     companion object {

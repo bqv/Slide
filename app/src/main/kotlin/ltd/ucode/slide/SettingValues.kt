@@ -5,10 +5,10 @@ import android.content.SharedPreferences
 import android.content.res.Configuration
 import ltd.ucode.slide.App.Companion.appContext
 import me.ccrama.redditslide.Constants
-import me.ccrama.redditslide.views.CreateCardView.CardEnum
 import me.ccrama.redditslide.Visuals.Palette.ThemeEnum
 import me.ccrama.redditslide.ui.settings.SettingsHandlingFragment
 import me.ccrama.redditslide.util.SortingUtil
+import me.ccrama.redditslide.views.CreateCardView.CardEnum
 import net.dean.jraw.models.CommentSort
 import net.dean.jraw.paginators.Sorting
 import net.dean.jraw.paginators.TimePeriod
@@ -674,7 +674,7 @@ object SettingValues {
         commentVolumeNav = this.settings.getBoolean(PREF_COMMENT_NAV, false)
         postNav = false
         fab = this.settings.getBoolean(PREF_FAB, true)
-        fabType = this.settings.getInt(PREF_FAB_TYPE, Constants.FAB_DISMISS)
+        fabType = this.settings.getInt(PREF_FAB_TYPE, Constants.FAB_POST)
         if (fabType > 3 || fabType < 0) {
             fabType = Constants.FAB_DISMISS
             this.settings.edit().putInt(PREF_FAB_TYPE, Constants.FAB_DISMISS).apply()
