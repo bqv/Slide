@@ -12,7 +12,7 @@ interface ISite {
     val usersMonthly: Int?
     val usersWeekly: Int?
 
-    val tagline: String
+    val taglines: List<String>
 
     val uri: String
         get() = "https://$name/"

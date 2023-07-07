@@ -6,6 +6,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import ltd.ucode.slide.data.ContentDatabase
 import ltd.ucode.slide.repository.AccountRepository
 import ltd.ucode.slide.repository.CommentRepository
 import ltd.ucode.slide.repository.GroupRepository
@@ -27,8 +28,18 @@ object RepositoryModule {
 
     @Provides
     @Singleton
-    fun providesInstanceRepository(@ApplicationContext context: Context, okHttpClient: OkHttpClient, @Named("userAgent") userAgent: String): InstanceRepository =
-        InstanceRepository(context = context, okHttpClient = okHttpClient, userAgent = userAgent)
+    fun providesInstanceRepository(@ApplicationContext context: Context,
+                                   okHttpClient: OkHttpClient,
+                                   @Named("userAgent") userAgent: String,
+                                   contentDatabase: ContentDatabase,
+                                   accountRepository: AccountRepository,
+    ): InstanceRepository =
+        InstanceRepository(context = context,
+            okHttpClient = okHttpClient,
+            userAgent = userAgent,
+            contentDatabase = contentDatabase,
+            accountRepository = accountRepository
+        )
 
     @Provides
     @Singleton
@@ -37,21 +48,33 @@ object RepositoryModule {
 
     @Provides
     @Singleton
-    fun providesCommentRepository(@ApplicationContext context: Context, instanceRepository: InstanceRepository): CommentRepository =
-        CommentRepository(context = context, instanceRepository = instanceRepository)
+    fun providesCommentRepository(@ApplicationContext context: Context,
+                                  instanceRepository: InstanceRepository
+    ): CommentRepository =
+        CommentRepository(context = context,
+            instanceRepository = instanceRepository)
 
     @Provides
     @Singleton
-    fun providesGroupRepository(@ApplicationContext context: Context, instanceRepository: InstanceRepository): GroupRepository =
-        GroupRepository(context = context, instanceRepository = instanceRepository)
+    fun providesGroupRepository(@ApplicationContext context: Context,
+                                instanceRepository: InstanceRepository
+    ): GroupRepository =
+        GroupRepository(context = context,
+            instanceRepository = instanceRepository)
 
     @Provides
     @Singleton
-    fun providesPostRepository(@ApplicationContext context: Context, instanceRepository: InstanceRepository): PostRepository =
-        PostRepository(context = context, instanceRepository = instanceRepository)
+    fun providesPostRepository(@ApplicationContext context: Context,
+                               instanceRepository: InstanceRepository
+    ): PostRepository =
+        PostRepository(context = context,
+            instanceRepository = instanceRepository)
 
     @Provides
     @Singleton
-    fun providesUserRepository(@ApplicationContext context: Context, instanceRepository: InstanceRepository): UserRepository =
-        UserRepository(context = context, instanceRepository = instanceRepository)
+    fun providesUserRepository(@ApplicationContext context: Context,
+                               instanceRepository: InstanceRepository
+    ): UserRepository =
+        UserRepository(context = context,
+            instanceRepository = instanceRepository)
 }

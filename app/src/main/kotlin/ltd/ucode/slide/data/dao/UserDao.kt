@@ -27,13 +27,13 @@ interface UserDao {
     suspend fun query(name: String): List<User>
 
     @Query("SELECT * FROM users AS u " +
-            "INNER JOIN instances AS i ON i.rowid = u.instance_rowid " +
-            "WHERE u.name LIKE :name AND i.name LIKE :instanceName ")
+            "INNER JOIN sites AS s ON s.rowid = u.instance_rowid " +
+            "WHERE u.name LIKE :name AND s.name LIKE :instanceName ")
     fun get(name: String, instanceName: String): List<User>
 
     @Query("SELECT * FROM users AS u " +
-            "INNER JOIN instances AS i ON i.rowid = u.instance_rowid " +
-            "WHERE u.name LIKE :name AND i.name LIKE :instanceName ")
+            "INNER JOIN sites AS s ON s.rowid = u.instance_rowid " +
+            "WHERE u.name LIKE :name AND s.name LIKE :instanceName ")
     suspend fun query(name: String, instanceName: String): List<User>
 
     @Insert(onConflict = OnConflictStrategy.ABORT)

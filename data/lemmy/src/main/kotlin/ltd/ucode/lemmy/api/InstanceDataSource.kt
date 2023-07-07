@@ -17,7 +17,7 @@ import kotlinx.serialization.json.encodeToJsonElement
 import kotlinx.serialization.json.int
 import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonObject
-import ltd.ucode.SnakeCaseSerializer
+import ltd.ucode.Serializers
 import ltd.ucode.lemmy.api.request.CreateCommentLikeRequest
 import ltd.ucode.lemmy.api.request.CreatePostLikeRequest
 import ltd.ucode.lemmy.api.request.GetCommentsRequest
@@ -439,7 +439,7 @@ open class InstanceDataSource (
             .baseUrl("https://${instance}/api/v3/")
             .client(okHttpClient)
             .addConverterFactory(
-                SnakeCaseSerializer.asConverterFactory(
+                Serializers.snakeCase.asConverterFactory(
                     "application/json".toMediaType()
                 )
             )

@@ -9,7 +9,4 @@ java {
 }
 
 dependencies {
-    implementation(libs.jraw)
-    implementation(libs.kotlinx.datetime)
-    implementation(libs.kotlinx.serialization)
 }

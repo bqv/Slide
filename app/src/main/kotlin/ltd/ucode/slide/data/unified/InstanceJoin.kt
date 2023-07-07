@@ -9,6 +9,6 @@ import ltd.ucode.slide.data.entity.Tagline
 class InstanceJoin(
     @Embedded val instance: Site,
 ) : ISite by instance {
-    @Relation(parentColumn = "rowid", entityColumn = "instance_id")
-    lateinit var taglines: List<Tagline>
+    @Relation(parentColumn = "rowid", entityColumn = "instance_rowid")
+    lateinit var taglineList: List<Tagline>
 }

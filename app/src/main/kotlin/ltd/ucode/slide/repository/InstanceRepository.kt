@@ -25,13 +25,12 @@ class InstanceRepository @Inject constructor(
     @ApplicationContext val context: Context,
     val okHttpClient: OkHttpClient,
     @Named("userAgent") val userAgent: String,
+    val contentDatabase: ContentDatabase,
+    val accountRepository: AccountRepository,
 ) {
     var defaultInstance: String = "lemmy.ml"
 
     private val logger: KLogger = KotlinLogging.logger {}
-
-    @Inject lateinit var contentDatabase: ContentDatabase
-    @Inject lateinit var accountRepository: AccountRepository
 
     init {
         logger.info { "Creating ${javaClass.simpleName}"}

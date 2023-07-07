@@ -31,22 +31,21 @@ data class Site(
 
     val discovered: Instant = Clock.System.now(),
     val updated: Instant? = null,
-
-    @Ignore var inaccessibleSince: Instant? = null
 ) : ISite {
-    @Ignore lateinit var taglines: List<Tagline>
+    @Ignore lateinit var _taglines: MutableList<Tagline>
+    @Ignore var inaccessibleSince: Instant? = null
 
-    override val tagline: String
-        get() = taglines.random().content
+    override val taglines: List<String>
+        get() = _taglines.map { it.content }
 
     @Entity(tableName = "site_images", indices = [
-        Index(value = ["site_rowid", "local_site_id"], unique = true)
+        Index(value = ["local_site_rowid", "remote_site_rowid"], unique = true)
     ])
     data class Image(
         @PrimaryKey(autoGenerate = true) @ColumnInfo(name = "rowid") val rowId: Int = -1,
-        @ColumnInfo(name = "site_rowid") val siteRowId: Int, // home site
-        @ColumnInfo(name = "local_instance_id") val localInstanceId: Int, // home instance
-        @ColumnInfo(name = "remote_instance_id") val remoteInstanceId: Int, // imaged instance
+        @ColumnInfo(name = "local_site_rowid") val localSiteRowId: Int,
+        @ColumnInfo(name = "remote_site_rowid") val remoteSiteRowId: Int,
+        @ColumnInfo(name = "remote_instance_id") val remoteInstanceId: Int,
 
         val discovered: Instant = Clock.System.now(),
         val updated: Instant? = null,

@@ -9,7 +9,7 @@ import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 
 @Entity(tableName = "taglines", indices = [
-    Index(value = ["name"], unique = true),
+    Index(value = ["instance_rowid", "content"], unique = true),
 ], foreignKeys = [
     ForeignKey(entity = Site::class,
         parentColumns = ["rowid"],

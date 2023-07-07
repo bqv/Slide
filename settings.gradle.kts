@@ -113,7 +113,7 @@ dependencyResolutionManagement {
             library("hilt-androidx-common", "androidx.hilt", "hilt-common").versionRef(hiltAndroidX)
             library("hilt-androidx-compiler", "androidx.hilt", "hilt-compiler").versionRef(hiltAndroidX)
 
-            library("jraw", "com.github.Haptic-Apps:JRAW:9c8a410a06") // TODO: drop
+            library("jraw", "com.github.Haptic-Apps", "JRAW").version("9c8a410a06") // TODO: drop
 
             library("jsoup", "org.jsoup:jsoup:1.16.1")
 
@@ -129,7 +129,8 @@ dependencyResolutionManagement {
             library("kotlinx-coroutines", "org.jetbrains.kotlinx", "kotlinx-coroutines-core").versionRef(coroutines)
             library("kotlinx-coroutines-android", "org.jetbrains.kotlinx", "kotlinx-coroutines-android").versionRef(coroutines)
             library("kotlinx-datetime", "org.jetbrains.kotlinx:kotlinx-datetime:0.3.2")
-            library("kotlinx-serialization", "org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.0")
+            library("kotlinx-serialization", "org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.1")
+            // Soon: https://github.com/Kotlin/kotlinx.serialization/commit/782b9f3be9970e0fd36215a86bf7fdba9f2bfe83
 
             library("markdown", "org.jetbrains:markdown:0.2.2")
             library("material", "com.google.android.material:material:1.4.0")
@@ -187,6 +188,7 @@ include(":app:util")
 include(":app:videoplugin")
 include(":data")
 include(":data:lemmy")
+include(":data:lotide")
 include(":data:reddit")
 include(":data:ycombinator")
 include(":readability")
