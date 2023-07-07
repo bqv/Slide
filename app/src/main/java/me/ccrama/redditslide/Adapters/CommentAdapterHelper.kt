@@ -30,13 +30,13 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.FragmentManager
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
-import com.afollestad.materialdialogs.DialogAction
 import com.afollestad.materialdialogs.MaterialDialog
-import com.afollestad.materialdialogs.MaterialDialog.ListCallback
-import com.afollestad.materialdialogs.MaterialDialog.SingleButtonCallback
+import com.afollestad.materialdialogs.customview.customView
+import com.afollestad.materialdialogs.input.getInputField
+import com.afollestad.materialdialogs.input.input
 import com.cocosw.bottomsheet.BottomSheet
 import com.google.android.material.snackbar.Snackbar
-import kotlinx.datetime.UtcOffset
+import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toInstant
 import ltd.ucode.lemmy.data.type.CommentView
 import ltd.ucode.slide.App.Companion.defaultShareText
@@ -159,18 +159,16 @@ object CommentAdapterHelper {
 
                 16 -> {
                     //report
-                    val reportDialog = MaterialDialog.Builder(mContext)
-                        .customView(R.layout.report_dialog, true)
-                        .title(R.string.report_comment)
-                        .positiveText(R.string.btn_report)
-                        .negativeText(R.string.btn_cancel)
-                        .onPositive(SingleButtonCallback { dialog, which ->
-                            val reasonGroup = dialog.customView!!
-                                .findViewById<RadioGroup>(R.id.report_reasons)
+                    val reportDialog = MaterialDialog(mContext).show {
+                        customView(R.layout.report_dialog, scrollable = true)
+                        title(R.string.report_comment)
+                        negativeButton(R.string.btn_cancel)
+                        positiveButton(R.string.btn_report) { dialog ->
+                            val reasonGroup =
+                                dialog.view.findViewById<RadioGroup>(R.id.report_reasons)
                             val reportReason: String =
                                 if (reasonGroup.checkedRadioButtonId == R.id.report_other) {
-                                    (dialog.customView!!
-                                        .findViewById<View>(R.id.input_report_reason) as EditText).text.toString()
+                                    (dialog.view.findViewById<View>(R.id.input_report_reason) as EditText).text.toString()
                                 } else {
                                     (reasonGroup
                                         .findViewById<View>(reasonGroup.checkedRadioButtonId) as RadioButton)
@@ -178,29 +176,31 @@ object CommentAdapterHelper {
                                 }
                             AsyncReportTask(adapter.currentBaseNode, adapter.listView)
                                 .execute(reportReason)
-                        }).build()
+                        }
+                    }
                     val reasonGroup =
-                        reportDialog.customView!!.findViewById<RadioGroup>(R.id.report_reasons)
+                        reportDialog.view.findViewById<RadioGroup>(R.id.report_reasons)
                     reasonGroup.setOnCheckedChangeListener { group, checkedId ->
-                        if (checkedId == R.id.report_other) reportDialog.customView!!.findViewById<View>(
-                            R.id.input_report_reason
-                        ).visibility = View.VISIBLE else reportDialog.customView!!
-                            .findViewById<View>(R.id.input_report_reason).visibility =
-                            View.GONE
+                        if (checkedId == R.id.report_other)
+                            reportDialog.view.findViewById<View>(
+                                R.id.input_report_reason
+                            ).visibility = View.VISIBLE
+                        else reportDialog.view
+                            .findViewById<View>(R.id.input_report_reason).visibility = View.GONE
                     }
 
                     // Load sub's report reasons and show the appropriate ones
                     object : AsyncTask<Void?, Void?, Ruleset>() {
                         override fun doInBackground(vararg voids: Void?): Ruleset {
                             /*
-                                    return Authentication.reddit!!.getRules(
-                                        adapter.currentBaseNode!!.community.name
-                                    )
-                                     */throw Exception("TODO")
+                            return Authentication.reddit!!.getRules(
+                                adapter.currentBaseNode!!.community.name
+                            )
+                             */throw Exception("TODO")
                         }
 
                         override fun onPostExecute(rules: Ruleset) {
-                            reportDialog.customView!!.findViewById<View>(R.id.report_loading).visibility =
+                            reportDialog.view.findViewById<View>(R.id.report_loading).visibility =
                                 View.GONE
                             if (rules.subredditRules.size > 0) {
                                 val subHeader = TextView(mContext)
@@ -237,7 +237,7 @@ object CommentAdapterHelper {
                     reportDialog.show()
                 }
 
-                10 ->                         //View comment parent
+                10 -> //View comment parent
                     viewCommentParent(adapter, holder, mContext, baseNode)
 
                 7 -> {
@@ -378,13 +378,13 @@ object CommentAdapterHelper {
                 val s: Snackbar
                 try {
                     if (holder.itemView != null) {
-                        if (isSaved(comment)) {
-                            s = Snackbar.make(
+                        s = if (isSaved(comment)) {
+                            Snackbar.make(
                                 holder.itemView, R.string.submission_comment_saved,
                                 Snackbar.LENGTH_LONG
                             )
                         } else {
-                            s = Snackbar.make(
+                            Snackbar.make(
                                 holder.itemView, R.string.submission_comment_unsaved,
                                 Snackbar.LENGTH_SHORT
                             )
@@ -401,10 +401,11 @@ object CommentAdapterHelper {
         object : AsyncTask<Void?, Void?, List<String?>>() {
             var d: Dialog? = null
             public override fun onPreExecute() {
-                d = MaterialDialog.Builder(mContext).progress(true, 100)
-                    .content(R.string.misc_please_wait)
-                    .title(R.string.profile_category_loading)
-                    .show()
+                d = MaterialDialog(mContext).show {
+                    //progress(true, 100)
+                    message(R.string.misc_please_wait)
+                    title(R.string.profile_category_loading)
+                }
             }
 
             override fun doInBackground(vararg params: Void?): List<String?> {
@@ -427,133 +428,7 @@ object CommentAdapterHelper {
             }
 
             public override fun onPostExecute(data: List<String?>) {
-                try {
-                    MaterialDialog.Builder(mContext).items(data)
-                        .title(R.string.sidebar_select_flair)
-                        .itemsCallback(object : ListCallback {
-                            override fun onSelection(
-                                dialog: MaterialDialog, itemView: View,
-                                which: Int, text: CharSequence
-                            ) {
-                                val t = data[which]
-                                if (which == data.size - 1) {
-                                    MaterialDialog.Builder(mContext).title(
-                                        R.string.category_set_name
-                                    )
-                                        .input(mContext.getString(
-                                            R.string.category_set_name_hint
-                                        ),
-                                            null,
-                                            false
-                                        ) { dialog1: MaterialDialog?, input: CharSequence? -> }
-                                        .positiveText(R.string.btn_set)
-                                        .onPositive(
-                                            object : SingleButtonCallback {
-                                                override fun onClick(
-                                                    dialog: MaterialDialog,
-                                                    which: DialogAction
-                                                ) {
-                                                    val flair = dialog.inputEditText!!
-                                                        .text
-                                                        .toString()
-                                                    object : AsyncTask<Void?, Void?, Boolean>() {
-                                                        protected override fun doInBackground(
-                                                            vararg params: Void?
-                                                        ): Boolean {
-                                                            try {
-                                                                /*
-                                                                AccountManager(
-                                                                    Authentication.reddit
-                                                                )
-                                                                    .save(
-                                                                        comment,
-                                                                        flair
-                                                                    )
-                                                                return true
-                                                                 */throw Exception("TODO")
-                                                            } catch (e: ApiException) {
-                                                                e.printStackTrace()
-                                                                return false
-                                                            }
-                                                        }
-
-                                                        override fun onPostExecute(
-                                                            done: Boolean
-                                                        ) {
-                                                            val s: Snackbar
-                                                            if (done) {
-                                                                if (itemView != null) {
-                                                                    s = Snackbar.make(
-                                                                        itemView,
-                                                                        R.string.submission_info_saved,
-                                                                        Snackbar.LENGTH_SHORT
-                                                                    )
-                                                                    LayoutUtils.showSnackbar(s)
-                                                                }
-                                                            } else {
-                                                                if (itemView != null) {
-                                                                    s = Snackbar.make(
-                                                                        itemView,
-                                                                        R.string.category_set_error,
-                                                                        Snackbar.LENGTH_SHORT
-                                                                    )
-                                                                    LayoutUtils.showSnackbar(s)
-                                                                }
-                                                            }
-                                                        }
-                                                    }.execute()
-                                                }
-                                            })
-                                        .negativeText(R.string.btn_cancel)
-                                        .show()
-                                } else {
-                                    object : AsyncTask<Void?, Void?, Boolean>() {
-                                        override fun doInBackground(vararg params: Void?): Boolean {
-                                            try {
-                                                /*
-                                                AccountManager(Authentication.reddit).save(
-                                                    comment, t
-                                                )
-                                                return true
-                                                 */throw Exception("TODO")
-                                            } catch (e: ApiException) {
-                                                e.printStackTrace()
-                                                return false
-                                            }
-                                        }
-
-                                        override fun onPostExecute(done: Boolean) {
-                                            val s: Snackbar
-                                            if (done) {
-                                                if (itemView != null) {
-                                                    s = Snackbar.make(
-                                                        itemView,
-                                                        R.string.submission_info_saved,
-                                                        Snackbar.LENGTH_SHORT
-                                                    )
-                                                    LayoutUtils.showSnackbar(s)
-                                                }
-                                            } else {
-                                                if (itemView != null) {
-                                                    s = Snackbar.make(
-                                                        itemView,
-                                                        R.string.category_set_error,
-                                                        Snackbar.LENGTH_SHORT
-                                                    )
-                                                    LayoutUtils.showSnackbar(s)
-                                                }
-                                            }
-                                        }
-                                    }.execute()
-                                }
-                            }
-                        })
-                        .show()
-                    if (d != null) {
-                        d!!.dismiss()
-                    }
-                } catch (ignored: Exception) {
-                }
+                // No flairs here
             }
         }.execute()
     }
@@ -1107,22 +982,21 @@ object CommentAdapterHelper {
         mContext: Context,
         holder: CommentViewHolder, comment: CommentView, adapter: CommentAdapter
     ) {
-        MaterialDialog.Builder(mContext).title(R.string.mod_remove_title)
-            .positiveText(R.string.btn_remove)
-            .alwaysCallInputCallback()
-            .input(mContext.getString(R.string.mod_remove_hint),
-                mContext.getString(R.string.mod_remove_template), false
-            ) { dialog: MaterialDialog?, input: CharSequence? -> }
-            .inputType(InputType.TYPE_TEXT_FLAG_CAP_SENTENCES)
-            .neutralText(R.string.mod_remove_insert_draft)
-            .onPositive { dialog, which ->
+        MaterialDialog(mContext).show {
+            title(R.string.mod_remove_title)
+            input(hintRes = R.string.mod_remove_hint,
+                prefillRes = R.string.mod_remove_template,
+                inputType = InputType.TYPE_TEXT_FLAG_CAP_SENTENCES,
+                waitForPositiveButton = false) { _, _ -> }
+            neutralButton(R.string.mod_remove_insert_draft)
+            positiveButton(R.string.btn_remove) { dialog ->
                 removeCommentReason(
                     comment, mContext, holder, adapter,
-                    dialog.inputEditText!!.text.toString()
+                    dialog.getInputField().text.toString()
                 )
             }
-            .negativeText(R.string.btn_cancel)
-            .show()
+            negativeButton(R.string.btn_cancel)
+        }
     }
 
     /**
@@ -1355,7 +1229,7 @@ object CommentAdapterHelper {
         )
         titleString.append(score)
         titleString.append(spacer)
-        val time = comment.comment.published.toInstant(UtcOffset.ZERO).toEpochMilliseconds()
+        val time = comment.comment.published.toInstant(TimeZone.UTC).toEpochMilliseconds()
         val timeAgo = TimeUtils.getTimeAgo(time, mContext)
         val timeSpan = SpannableStringBuilder().append(
             if ((timeAgo == null || timeAgo.isEmpty())) "just now" else timeAgo
@@ -1377,7 +1251,7 @@ object CommentAdapterHelper {
         titleString.append(timeSpan)
         titleString.append(
             (if ((comment.comment.updated != null)) " (edit " + TimeUtils.getTimeAgo(
-                comment.comment.updated!!.toInstant(UtcOffset.ZERO).toEpochMilliseconds(), mContext
+                comment.comment.updated!!.toInstant(TimeZone.UTC).toEpochMilliseconds(), mContext
             ) + ")" else "")
         )
         titleString.append("  ")
@@ -1545,7 +1419,7 @@ object CommentAdapterHelper {
         val e = dialoglayout.findViewById<EditText>(R.id.entry)
         e.setText(StringEscapeUtils.unescapeHtml4(baseNode.comment.contentHtml))
         DoEditorActions.doActions(
-            e, dialoglayout, fm, mContext,
+            e, dialoglayout, fm!!, mContext,
             StringEscapeUtils.unescapeHtml4(replyText), null
         )
         val builder = AlertDialog.Builder(mContext)

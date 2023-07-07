@@ -1,10 +1,11 @@
 plugins {
     id(libs.plugins.android.library.get().pluginId)
+    id(libs.plugins.kotlin.android.get().pluginId)
 }
 
 android {
     namespace = "gun0912.tedbottompicker"
-    compileSdk = 28
+    compileSdk = 30
 
     defaultConfig {
         minSdk = 16
@@ -16,8 +17,11 @@ android {
     }
     compileOptions {
         encoding = "UTF-8"
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+    kotlinOptions {
+        jvmTarget = "17"
     }
 }
 

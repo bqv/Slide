@@ -1,6 +1,5 @@
 package ltd.ucode.crash
 
-import android.content.Context
 import android.util.Base64
 import android.util.Log
 import com.auth0.jwt.JWT
@@ -18,8 +17,8 @@ import java.security.interfaces.RSAPrivateKey
 import java.security.spec.PKCS8EncodedKeySpec
 import java.util.Date
 
-class GithubIssueTracker(context: Context? = null) {
-    private enum class Label(name: String) {
+class GithubIssueTracker {
+    private enum class Label(val tag: String) {
         CRASH("crash"),
         BUG("bug"),
         DOCUMENTATION("documentation"),
@@ -33,7 +32,7 @@ class GithubIssueTracker(context: Context? = null) {
     }
 
     operator fun get(key: String): Issue {
-        val label: GHLabel = repository.getLabel(Label.CRASH.name)
+        val label: GHLabel = repository.getLabel(Label.CRASH.tag)
 
         fun canary(hash: String = "xxxxxxxx") = "<!--CRASH:$hash-->"
         Log.d(BuildConfig.LIBRARY_PACKAGE_NAME, "Wanting \"${canary(key)}\"")

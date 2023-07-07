@@ -8,7 +8,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import ltd.ucode.slide.App.Companion.appContext
 import ltd.ucode.slide.Authentication
-import ltd.ucode.slide.data.entity.Instance
+import ltd.ucode.slide.data.entity.Site
 import ltd.ucode.util.ExceptionExtensions.toast
 import org.acra.ktx.sendSilentlyWithAcra
 import javax.inject.Inject
@@ -17,8 +17,8 @@ import javax.inject.Inject
 class LoginViewModel @Inject constructor(
     private val model: LoginModel,
 ): ViewModel() {
-    private val _instanceList = MutableLiveData<Map<String, Instance>>()
-    val instanceList: LiveData<Map<String, Instance>> get() = _instanceList
+    private val _instanceList = MutableLiveData<Map<String, Site>>()
+    val instanceList: LiveData<Map<String, Site>> get() = _instanceList
 
     init {
         fetchInstanceList()
@@ -57,7 +57,7 @@ class LoginViewModel @Inject constructor(
         viewModelScope.launch {
             _instanceList.postValue(emptyMap())
             model.getInstanceList().let {
-                _instanceList.postValue(it.associateBy { instance: Instance -> instance.name })
+                _instanceList.postValue(it.associateBy { instance: Site -> instance.name })
             }
         }
     }

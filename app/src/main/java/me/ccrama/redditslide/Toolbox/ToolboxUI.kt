@@ -25,9 +25,8 @@ import android.widget.RadioGroup
 import android.widget.Spinner
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
-import com.afollestad.materialdialogs.DialogAction
 import com.afollestad.materialdialogs.MaterialDialog
-import com.afollestad.materialdialogs.MaterialDialog.SingleButtonCallback
+import com.afollestad.materialdialogs.customview.customView
 import ltd.ucode.lemmy.data.type.CommentView
 import ltd.ucode.slide.Authentication
 import ltd.ucode.slide.R
@@ -76,26 +75,20 @@ object ToolboxUI {
         callback: CompletedRemovalCallback
     ) {
         val removalReasons: RemovalReasons
-        val builder = MaterialDialog.Builder(context)
+        val builder = MaterialDialog(context)
 
         // Set the dialog title
         when (thing) {
             is Comment -> {
-                builder.title(
-                    context.resources.getString(
-                        R.string.toolbox_removal_title,
-                        thing.subredditName
-                    )
+                builder.title(text = context.resources.getString(
+                    R.string.toolbox_removal_title, thing.subredditName)
                 )
                 removalReasons = Toolbox.getConfig(thing.subredditName).removalReasons
             }
 
             is IPost -> {
-                builder.title(
-                    context.resources.getString(
-                        R.string.toolbox_removal_title,
-                        thing.groupName
-                    )
+                builder.title(text = context.resources.getString(
+                    R.string.toolbox_removal_title, thing.groupName)
                 )
                 removalReasons = Toolbox.getConfig(thing.groupName).removalReasons
             }
@@ -169,10 +162,9 @@ object ToolboxUI {
         actionLock.isChecked = SettingValues.toolboxLock
 
         // Set up dialog buttons
-        builder.customView(dialogContent, false)
-        builder.positiveText(R.string.mod_btn_remove)
-        builder.negativeText(R.string.btn_cancel)
-        builder.onPositive(SingleButtonCallback { dialog, which ->
+        builder.customView(view = dialogContent, scrollable = false)
+        builder.negativeButton(R.string.btn_cancel)
+        builder.positiveButton(R.string.mod_btn_remove) { dialog ->
             val removalString = StringBuilder()
             val flairText = StringBuilder()
             val flairCSS = StringBuilder()
@@ -215,8 +207,8 @@ object ToolboxUI {
                     .replace("{reason}", logReason.text.toString()),
                 removalReasons.logSub, arrayOf(flairText.toString(), flairCSS.toString())
             )
-        })
-        builder.build().show()
+        }
+        builder.show()
     }
 
     /**
@@ -348,31 +340,27 @@ object ToolboxUI {
                 )
 
                 // show add note dialog
-                MaterialDialog.Builder(context)
-                    .customView(layout, true)
-                    .autoDismiss(false)
-                    .positiveText(R.string.btn_add)
-                    .onPositive(object : SingleButtonCallback {
-                        override fun onClick(dialog: MaterialDialog, which: DialogAction) {
-                            if (noteText.getText().length == 0) {
-                                noteText.setError(context.getString(R.string.toolbox_note_text_required))
-                                return
-                            }
-                            val selected: Int = spinner.selectedItemPosition
-                            AsyncAddUsernoteTask(context).execute(
-                                subreddit,
-                                author,
-                                noteText.getText().toString(),
-                                currentLink,
-                                if (selected - 1 >= 0) typeMap.keys.toTypedArray().get(selected - 1)
-                                    .toString() else null
-                            )
-                            dialog.dismiss()
+                MaterialDialog(context).show {
+                    customView(view = layout, scrollable = true)
+                    noAutoDismiss()
+                    positiveButton(R.string.btn_add) {dialog: MaterialDialog ->
+                        if (noteText.getText().isEmpty()) {
+                            noteText.setError(context.getString(R.string.toolbox_note_text_required))
+                            return@positiveButton
                         }
-                    })
-                    .negativeText(R.string.btn_cancel)
-                    .onNegative(SingleButtonCallback { dialog1: MaterialDialog, which1: DialogAction? -> dialog1.dismiss() })
-                    .show()
+                        val selected: Int = spinner.selectedItemPosition
+                        AsyncAddUsernoteTask(context).execute(
+                            subreddit,
+                            author,
+                            noteText.getText().toString(),
+                            currentLink,
+                            if (selected - 1 >= 0) typeMap.keys.toTypedArray().get(selected - 1)
+                                .toString() else null
+                        )
+                        dialog.dismiss()
+                    }
+                    negativeButton(R.string.btn_cancel) { dialog1: MaterialDialog -> dialog1.dismiss() }
+                }
             }
             .setPositiveButton(R.string.btn_close, null)
             .show()
@@ -799,17 +787,16 @@ object ToolboxUI {
         override fun onPostExecute(success: Boolean) {
             if (!success) {
                 val context = contextRef.get() ?: return
-                MaterialDialog.Builder(context)
-                    .title(R.string.toolbox_wiki_edit_reauth)
-                    .content(R.string.toolbox_wiki_edit_reauth_question)
-                    .negativeText(R.string.misc_maybe_later)
-                    .positiveText(R.string.btn_yes)
-                    .onPositive { dialog1: MaterialDialog?, which1: DialogAction? ->
+                MaterialDialog(context).show {
+                    title(R.string.toolbox_wiki_edit_reauth)
+                    message(R.string.toolbox_wiki_edit_reauth_question)
+                    negativeButton(R.string.misc_maybe_later)
+                    positiveButton(R.string.btn_yes) { dialog1: MaterialDialog? ->
                         context.startActivity(
                             Intent(context, Reauthenticate::class.java)
                         )
                     }
-                    .show()
+                }
             }
         }
     }

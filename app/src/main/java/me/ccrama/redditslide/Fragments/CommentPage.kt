@@ -32,11 +32,15 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout.OnRefreshListener
 import com.afollestad.materialdialogs.MaterialDialog
+import com.afollestad.materialdialogs.customview.customView
+import com.afollestad.materialdialogs.list.listItems
+import com.afollestad.materialdialogs.list.listItemsSingleChoice
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.snackbar.Snackbar
 import com.rey.material.widget.Slider
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.datetime.TimeZone
 import kotlinx.datetime.UtcOffset
 import kotlinx.datetime.toInstant
 import ltd.ucode.reddit.data.RedditSubmission
@@ -328,11 +332,11 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
                 fab!!.layoutParams = fabs
             }
             fab!!.setOnClickListener {
-                val replyDialog = MaterialDialog.Builder(requireActivity())
-                    .customView(R.layout.edit_comment, false)
-                    .cancelable(false)
-                    .build()
-                val replyView = replyDialog.customView
+                val replyDialog = MaterialDialog(requireActivity()).show {
+                    customView(R.layout.edit_comment, scrollable = false)
+                    cancelable(false)
+                }
+                val replyView = replyDialog.view
 
                 // Make the account selector visible
                 replyView!!.findViewById<View>(R.id.profile).visibility = View.VISIBLE
@@ -348,7 +352,7 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
                     e,
                     replyView,
                     requireActivity().supportFragmentManager,
-                    activity,
+                    requireActivity(),
                     if (adapter!!.submission!!.url == null) adapter!!.submission!!.body else null,
                     arrayOf(
                         adapter!!.submission!!.creator.name
@@ -378,17 +382,14 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
                     }
                     val keys = ArrayList(accounts.keys)
                     val i = keys.indexOf(changedProfile[0])
-                    val builder = MaterialDialog.Builder(requireContext())
-                    builder.title(getString(R.string.replies_switch_accounts))
-                    builder.items(*keys.toTypedArray())
-                    builder.itemsCallbackSingleChoice(i) { dialog, itemView, which, text ->
-                        changedProfile[0] = keys[which]
-                        profile.text = "/u/" + changedProfile[0]
-                        true
+                    val builder = MaterialDialog(requireContext()).show {
+                        title(R.string.replies_switch_accounts)
+                        listItemsSingleChoice(i, items = keys.filterNotNull(), waitForPositiveButton = false) { dialog, which, text ->
+                            changedProfile[0] = keys[which]
+                            profile.text = "/u/" + changedProfile[0]
+                        }
+                        negativeButton(R.string.btn_cancel)
                     }
-                    builder.alwaysCallSingleChoiceCallback()
-                    builder.negativeText(R.string.btn_cancel)
-                    builder.show()
                 }
                 replyView.findViewById<View>(R.id.submit)
                     .setOnClickListener {
@@ -489,7 +490,7 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
                                         var commentcount = 0
                                         for (o in adapter!!.currentComments!!) {
                                             if (o!!.comment != null && o!!.comment!!.comment
-                                                    .published.toInstant(UtcOffset.ZERO).toEpochMilliseconds() > sortTime
+                                                    .published.toInstant(TimeZone.UTC).toEpochMilliseconds() > sortTime
                                             ) {
                                                 commentcount += 1
                                             }
@@ -1013,7 +1014,7 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
                                 startActivity(i)
                             }
                         sidebar.findViewById<View>(R.id.syncflair)
-                            .setOnClickListener { ImageFlairs.syncFlairs(getContext(), subreddit) }
+                            .setOnClickListener { ImageFlairs.syncFlairs(requireContext(), subreddit!!) }
                         sidebar.findViewById<View>(R.id.theme)
                             .setOnClickListener {
                                 val style = ColorPreferences(
@@ -1034,13 +1035,12 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
                             }
                         sidebar.findViewById<View>(R.id.mods)
                             .setOnClickListener {
-                                val d: Dialog = MaterialDialog.Builder(activity!!).title(
-                                    R.string.sidebar_findingmods
-                                )
-                                    .cancelable(true)
-                                    .content(R.string.misc_please_wait)
-                                    .progress(true, 100)
-                                    .show()
+                                val d: Dialog = MaterialDialog(activity!!).show {
+                                    title(R.string.sidebar_findingmods)
+                                    cancelable(true)
+                                    message(R.string.misc_please_wait)
+                                    //progress(true, 100)
+                                }
                                 object : AsyncTask<Void?, Void?, Void?>() {
                                     var mods: ArrayList<UserRecord>? = null
                                     override fun doInBackground(vararg params: Void?): Void? {
@@ -1057,20 +1057,15 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
                                         return null
                                     }
 
-                                    protected override fun onPostExecute(aVoid: Void?) {
-                                        val names = ArrayList<String?>()
+                                    override fun onPostExecute(aVoid: Void?) {
+                                        val names = ArrayList<String>()
                                         for (rec in mods!!) {
                                             names.add(rec.fullName)
                                         }
                                         d.dismiss()
-                                        MaterialDialog.Builder(activity!!).title(
-                                            getString(
-                                                R.string.sidebar_submods,
-                                                subreddit
-                                            )
-                                        )
-                                            .items(names)
-                                            .itemsCallback { dialog, itemView, which, text ->
+                                        MaterialDialog(activity!!).show {
+                                            title(text = getString(R.string.sidebar_submods, subreddit))
+                                            listItems(items = names) { dialog, which, text ->
                                                 val i = Intent(
                                                     activity,
                                                     Profile::class.java
@@ -1081,8 +1076,7 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
                                                 )
                                                 startActivity(i)
                                             }
-                                            .positiveText(R.string.btn_message)
-                                            .onPositive { dialog, which ->
+                                            positiveButton(R.string.btn_message) { dialog ->
                                                 val i = Intent(
                                                     activity,
                                                     SendMessage::class.java
@@ -1093,7 +1087,7 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
                                                 )
                                                 startActivity(i)
                                             }
-                                            .show()
+                                        }
                                     }
                                 }.executeOnExecutor(THREAD_POOL_EXECUTOR)
                             }
@@ -1127,45 +1121,31 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
                                         return null
                                     }
 
-                                    protected override fun onPostExecute(aVoid: Void?) {
-                                        MaterialDialog.Builder(requireContext()).title(
-                                            "Add /c/" + baseSub.displayName + " to"
-                                        )
-                                            .items(multis.keys)
-                                            .itemsCallback { dialog, itemView, which, text ->
+                                    override fun onPostExecute(aVoid: Void?) {
+                                        MaterialDialog(requireContext()).show {
+                                            title(text = "Add /c/" + baseSub.displayName + " to")
+                                            listItems(items = multis.keys.filterNotNull()) { dialog, which, text ->
                                                 object : AsyncTask<Void?, Void?, Void?>() {
-                                                    override fun doInBackground(
-                                                        vararg params: Void?
-                                                    ): Void? {
+                                                    override fun doInBackground(vararg params: Void?): Void? {
                                                         try {
                                                             val multiName = multis.keys
                                                                 .toTypedArray()[which]
                                                             val subs: MutableList<String> =
                                                                 ArrayList()
                                                             for (sub in multis[multiName]!!.subreddits) {
-                                                                subs.add(
-                                                                    sub.displayName
-                                                                )
+                                                                subs.add(sub.displayName)
                                                             }
-                                                            subs.add(
-                                                                baseSub.displayName
-                                                            )
-                                                            MultiRedditManager(
-                                                                Authentication.reddit
-                                                            )
+                                                            subs.add(baseSub.displayName)
+                                                            MultiRedditManager(Authentication.reddit)
                                                                 .createOrUpdate(
                                                                     MultiRedditUpdateRequest.Builder(
                                                                         Authentication.name,
                                                                         multiName
                                                                     )
-                                                                        .subreddits(
-                                                                            subs
-                                                                        )
+                                                                        .subreddits(subs)
                                                                         .build()
                                                                 )
-                                                            syncMultiReddits(
-                                                                getContext()
-                                                            )
+                                                            syncMultiReddits(context)
                                                             activity!!.runOnUiThread {
                                                                 Snackbar.make(
                                                                     toolbar!!,
@@ -1174,8 +1154,7 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
                                                                         multiName
                                                                     ),
                                                                     Snackbar.LENGTH_LONG
-                                                                )
-                                                                    .show()
+                                                                ).show()
                                                             }
                                                         } catch (e: NetworkException) {
                                                             activity!!.runOnUiThread {
@@ -1224,7 +1203,7 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
                                                     THREAD_POOL_EXECUTOR
                                                 )
                                             }
-                                            .show()
+                                        }
                                     }
                                 }.executeOnExecutor(THREAD_POOL_EXECUTOR)
                             }
@@ -1472,11 +1451,12 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
 
         var d: Dialog? = null
         override fun onPreExecute() {
-            d = MaterialDialog.Builder(activity!!).title(R.string.subreddit_sidebar_progress)
-                .progress(true, 100)
-                .content(R.string.misc_please_wait)
-                .cancelable(false)
-                .show()
+            d = MaterialDialog(activity!!).show {
+                title(R.string.subreddit_sidebar_progress)
+                //progress(true, 100)
+                message(R.string.misc_please_wait)
+                cancelable(false)
+            }
         }
     }
 
@@ -1570,7 +1550,7 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
             } catch (e: IOException) {
                 e.printStackTrace()
             }
-            if (s != null && s.comments != null) {
+            if (s?.comments != null) {
                 doRefresh(false)
                 comments = SubmissionComments(fullname!!, this, mSwipeRefreshLayout!!, s)
                 if (adapter == null) {
@@ -1820,7 +1800,7 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
                         }
 
                         CommentNavType.TIME -> matches = (o.comment!!.comment != null
-                                && o.comment!!.comment.published.toInstant(UtcOffset.ZERO).toEpochMilliseconds() > sortTime)
+                                && o.comment!!.comment.published.toInstant(TimeZone.UTC).toEpochMilliseconds() > sortTime)
 
                         /*
                         CommentNavType.GILDED -> matches = o.comment!!.comment.timesGilded > 0 || o.comment!!.comment.timesSilvered > 0 || o.comment!!.comment.timesPlatinized > 0
@@ -1910,7 +1890,7 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
                             }
 
                             CommentNavType.TIME -> matches =
-                                o.comment!!.comment.published.toInstant(UtcOffset.ZERO).toEpochMilliseconds() > sortTime
+                                o.comment!!.comment.published.toInstant(TimeZone.UTC).toEpochMilliseconds() > sortTime
 
                             /*
                             CommentNavType.GILDED -> matches =

@@ -30,8 +30,8 @@ dependencyResolutionManagement {
             plugin("hilt", "dagger.hilt.android.plugin").versionRef(hilt)
 
             plugin("androidCacheFix", "org.gradle.android.cache-fix").version("2.7.2")
-            plugin("byeByeJetifier", "com.dipien.byebyejetifier").version("1.2.2")
             plugin("gradleDoctor", "com.osacky.doctor").version("0.8.1")
+            plugin("dependencyAnalysis", "com.autonomousapps.dependency-analysis").version("1.20.0")
 
             // Dependencies
             val acra = version("acra", "5.10.1")
@@ -61,7 +61,7 @@ dependencyResolutionManagement {
             library("androidx-test-junit-ktx", "androidx.test.ext:junit-ktx:1.1.5")
             library("androidx-test-espresso", "androidx.test.espresso:espresso-core:3.5.1")
             library("androidx-test-truth", "androidx.test.ext:truth:1.5.0")
-            library("androidx-test-runner", "androidx.test.ext:runner:1.5.2")
+            library("androidx-test-runner", "androidx.test:runner:1.5.2")
             library("androidx-test-orchestrator", "androidx.test:orchestrator:1.4.2")
 
             val autoDsl = version("autoDsl", "2.2.10")
@@ -72,13 +72,15 @@ dependencyResolutionManagement {
             library("autoService-ksp", "com.google.auto.service", "auto-service").versionRef(autoService)
             library("autoService-annotations", "com.google.auto.service", "auto-service-annotations").versionRef(autoService)
 
+            library("blurhash", "com.vanniktech:blurhash:0.1.0")
+
             val commonmark = version("commonmark", "0.21.0") // TODO: update
             library("commonmark-annotations", "org.commonmark", "commonmark").versionRef(commonmark)
             library("commonmark-extension-strikethrough", "org.commonmark", "commonmark-ext-gfm-strikethrough").versionRef(commonmark)
             library("commonmark-extension-tables", "org.commonmark", "commonmark-ext-gfm-tables").versionRef(commonmark)
             bundle("commonmark", listOf("commonmark-annotations", "commonmark-extension-strikethrough", "commonmark-extension-tables"))
 
-            val exoplayer = version("exoPlayer", "2.18.7")
+            val exoplayer = version("exoPlayer", "2.19.0") // TODO: https://github.com/androidx/media/releases/tag/1.1.0
             library("exoplayer-core", "com.google.android.exoplayer", "exoplayer-core").versionRef(exoplayer)
             library("exoplayer-dash", "com.google.android.exoplayer", "exoplayer-dash").versionRef(exoplayer)
             library("exoplayer-hls", "com.google.android.exoplayer", "exoplayer-hls").versionRef(exoplayer)
@@ -121,7 +123,7 @@ dependencyResolutionManagement {
 
             library("kotlin-logging", "io.github.oshai:kotlin-logging-jvm:4.0.0")
 
-            library("kotlin-test", "org.jetbrains.kotlinx", "kotlinx-test").versionRef(kotlin)
+            library("kotlin-test", "org.jetbrains.kotlin", "kotlin-test").versionRef(kotlin)
 
             val coroutines = version("coroutines", "1.7.1")
             library("kotlinx-coroutines", "org.jetbrains.kotlinx", "kotlinx-coroutines-core").versionRef(coroutines)
@@ -132,11 +134,25 @@ dependencyResolutionManagement {
             library("markdown", "org.jetbrains:markdown:0.2.2")
             library("material", "com.google.android.material:material:1.4.0")
 
+            val materialdialogs = version("materialdialogs", "3.3.0")
+            library("materialDialogs-core", "com.afollestad.material-dialogs", "core").versionRef(materialdialogs)
+            library("materialDialogs-input", "com.afollestad.material-dialogs", "input").versionRef(materialdialogs)
+            library("materialDialogs-files", "com.afollestad.material-dialogs", "files").versionRef(materialdialogs)
+            library("materialDialogs-color", "com.afollestad.material-dialogs", "color").versionRef(materialdialogs)
+            library("materialDialogs-datetime", "com.afollestad.material-dialogs", "datetime").versionRef(materialdialogs)
+            library("materialDialogs-bottomsheets", "com.afollestad.material-dialogs", "bottomsheets").versionRef(materialdialogs)
+            library("materialDialogs-lifecycle", "com.afollestad.material-dialogs", "lifecycle").versionRef(materialdialogs)
+            bundle("materialDialogs", listOf("materialDialogs-core", "materialDialogs-lifecycle",
+                "materialDialogs-input", "materialDialogs-files", "materialDialogs-color",
+                "materialDialogs-datetime", "materialDialogs-bottomsheets"))
+
+            library("materialProgressBar", "me.zhanghai.android.materialprogressbar:library:1.6.1")
+
             library("mp4parser-isoparser", "org.mp4parser:isoparser:1.9.41")
             library("mp4parser-muxer", "org.mp4parser:muxer:1.9.41")
             bundle("mp4parser", listOf("mp4parser-isoparser", "mp4parser-muxer"))
 
-            library("newpipe-extractor", "com.github.TeamNewPipe:NewPipeExtractor:v0.22.1") // TODO: migrate :videoplugin
+            library("newpipe-extractor", "com.github.teamnewpipe:NewPipeExtractor:v0.22.6") // TODO: migrate :videoplugin
 
             library("okhttp", "com.squareup.okhttp3", "okhttp").version("4.11.0")
 
@@ -152,7 +168,9 @@ dependencyResolutionManagement {
             library("slf4j-handroid", "com.gitlab.mvysny.slf4j:slf4j-handroid:2.0.4")
             bundle("slf4j", listOf("slf4j-handroid"))
 
-            library("tedonactivityresult", "io.github.ParkSangGwon:tedonactivityresult:1.0.10")
+            library("slidingUpPanel", "com.github.hannesa2:AndroidSlidingUpPanel:4.5.0")
+
+            library("tedonactivityresult", "io.github.ParkSangGwon:tedonactivityresult:1.1.4")
 
             library("testng", "org.testng:testng:6.9.6")
         }

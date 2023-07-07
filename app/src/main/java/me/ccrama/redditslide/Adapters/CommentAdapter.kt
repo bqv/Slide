@@ -40,6 +40,7 @@ import com.mikepenz.itemanimators.SlideRightAlphaAnimator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.datetime.TimeZone
 import kotlinx.datetime.UtcOffset
 import kotlinx.datetime.toInstant
 import ltd.ucode.lemmy.data.type.CommentView
@@ -375,7 +376,7 @@ class CommentAdapter(
             //Set typeface for body
             val type = FontPreferences(mContext).fontTypeComment.typeface
             val typeface: Typeface = if (type >= 0) {
-                RobotoTypefaces.obtainTypeface(mContext!!, type)
+                RobotoTypefaces.obtainTypeface(mContext!!, type!!)
             } else {
                 Typeface.DEFAULT
             }
@@ -498,7 +499,7 @@ class CommentAdapter(
             submissionViewHolder = firstHolder
             PopulateSubmissionViewHolder(postRepository, commentRepository).populateSubmissionViewHolder(
                 firstHolder, submission!!, mPage.requireActivity(), true, true,
-                mutableListOf<IPost>(), listView, false, false, submission!!.groupName, this
+                mutableListOf(), listView, false, false, submission!!.groupName, this
             )
             if (Authentication.isLoggedIn && Authentication.didOnline) {
                 if (submission!!.isArchived || submission!!.isLocked) {
@@ -551,12 +552,12 @@ class CommentAdapter(
                 try {
                     holder.content.text = mContext!!.getString(
                         R.string.comment_load_more_string_new,
-                        baseNode.children.localizedCount
+                        baseNode.children.localizedCount!!
                     )
                 } catch (e: Exception) {
                     holder.content.setText(R.string.comment_load_more_number_unknown)
                 }
-            } else if (!baseNode.children.childrenIds.isEmpty()) {
+            } else if (baseNode.children.childrenIds.isNotEmpty()) {
                 holder.content.setText(R.string.comment_load_more_number_unknown)
             } else {
                 holder.content.setText(R.string.thread_continue)
@@ -1215,7 +1216,7 @@ class CommentAdapter(
                         menu.visibility = View.GONE
                         currentlyEditing = replyLine
                         DoEditorActions.doActions(
-                            currentlyEditing, replyArea, fm,
+                            currentlyEditing!!, replyArea, fm,
                             mPage.requireActivity(), comment.comment.content, getParents(baseNode)
                         )
                         currentlyEditing!!.onFocusChangeListener =
@@ -1487,7 +1488,7 @@ class CommentAdapter(
         var color: Int
         val c = baseNode!!
         if (lastSeen != 0L
-            && lastSeen < c.comment.published.toInstant(UtcOffset.ZERO).toEpochMilliseconds()
+            && lastSeen < c.comment.published.toInstant(TimeZone.UTC).toEpochMilliseconds()
             && !dataSet.single
             && commentLastVisit
             && Authentication.name != c.creator.name
@@ -1882,7 +1883,7 @@ class CommentAdapter(
         return i
     }
 
-    fun getParents(comment: CommentView?): Array<String?> {
+    fun getParents(comment: CommentView?): Array<String> {
         val bodies = arrayOfNulls<String>(comment!!.comment.depth + 1)
         bodies[0] = comment.creator.name
         return emptyArray()/*

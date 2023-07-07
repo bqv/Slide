@@ -76,8 +76,13 @@ import androidx.fragment.app.FragmentStatePagerAdapter
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.viewpager.widget.ViewPager.SimpleOnPageChangeListener
-import com.afollestad.materialdialogs.DialogAction
 import com.afollestad.materialdialogs.MaterialDialog
+import com.afollestad.materialdialogs.WhichButton
+import com.afollestad.materialdialogs.actions.getActionButton
+import com.afollestad.materialdialogs.input.getInputField
+import com.afollestad.materialdialogs.input.input
+import com.afollestad.materialdialogs.list.listItems
+import com.afollestad.materialdialogs.list.listItemsSingleChoice
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.tabs.TabLayout
 import com.lusfold.androidkeyvaluestore.KVStore
@@ -143,10 +148,13 @@ import me.ccrama.redditslide.ui.settings.SettingsActivity
 import me.ccrama.redditslide.ui.settings.SettingsGeneralFragment
 import me.ccrama.redditslide.ui.settings.SettingsSubAdapter
 import me.ccrama.redditslide.ui.settings.SettingsThemeFragment
+import me.ccrama.redditslide.util.EditTextValidator
 import me.ccrama.redditslide.util.LayoutUtils
 import me.ccrama.redditslide.util.LogUtil
 import me.ccrama.redditslide.util.NetworkStateReceiver.NetworkStateReceiverListener
 import me.ccrama.redditslide.util.NetworkUtil
+import me.ccrama.redditslide.util.StringUtil
+import me.ccrama.redditslide.util.TimeUtils
 import me.ccrama.redditslide.views.CatchStaggeredGridLayoutManager
 import me.ccrama.redditslide.views.CommentOverflow
 import me.ccrama.redditslide.views.PreCachingLayoutManager
@@ -166,6 +174,7 @@ import net.dean.jraw.models.UserRecord
 import net.dean.jraw.paginators.Sorting
 import net.dean.jraw.paginators.TimePeriod
 import net.dean.jraw.paginators.UserRecordPaginator
+import okhttp3.internal.wait
 import org.ligi.snackengage.SnackEngage
 import org.ligi.snackengage.conditions.AfterNumberOfOpportunities
 import org.ligi.snackengage.conditions.NeverAgainWhenClickedOnce
@@ -615,11 +624,11 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             }
 
             R.id.search -> {
-                val builder = MaterialDialog.Builder(this).title(R.string.search_title)
-                    .alwaysCallInputCallback()
-                    .input(
-                        getString(R.string.search_msg), ""
-                    ) { materialDialog, charSequence -> term = charSequence.toString() }
+                val builder = MaterialDialog(this)
+                    .title(R.string.search_title)
+                    .input(getString(R.string.search_msg), waitForPositiveButton = false) { _, charSequence ->
+                        term = charSequence.toString()
+                    }
 
                 //Add "search current sub" if it is not frontpage/all/random
                 if (!subreddit.equals("frontpage", ignoreCase = true)
@@ -632,30 +641,27 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                     && !subreddit.equals("myrandom", ignoreCase = true)
                     && !subreddit.equals("randnsfw", ignoreCase = true)
                 ) {
-                    builder.positiveText(getString(R.string.search_subreddit, subreddit))
-                        .onPositive { materialDialog, dialogAction ->
-                            val i = Intent(this@MainActivity, Search::class.java)
-                            i.putExtra(Search.EXTRA_TERM, term)
-                            i.putExtra(Search.EXTRA_SUBREDDIT, subreddit)
-                            Log.v(
-                                me.ccrama.redditslide.util.LogUtil.getTag(),
-                                "INTENT SHOWS $term AND $subreddit"
-                            )
-                            startActivity(i)
-                        }
-                    builder.neutralText(R.string.search_all)
-                        .onNeutral { materialDialog, dialogAction ->
-                            val i = Intent(this@MainActivity, Search::class.java)
-                            i.putExtra(Search.EXTRA_TERM, term)
-                            startActivity(i)
-                        }
+                    builder.positiveButton(text = getString(R.string.search_subreddit, subreddit)) { _ ->
+                        val i = Intent(this@MainActivity, Search::class.java)
+                        i.putExtra(Search.EXTRA_TERM, term)
+                        i.putExtra(Search.EXTRA_SUBREDDIT, subreddit)
+                        Log.v(
+                            LogUtil.getTag(),
+                            "INTENT SHOWS $term AND $subreddit"
+                        )
+                        startActivity(i)
+                    }
+                    builder.neutralButton(R.string.search_all) { _ ->
+                        val i = Intent(this@MainActivity, Search::class.java)
+                        i.putExtra(Search.EXTRA_TERM, term)
+                        startActivity(i)
+                    }
                 } else {
-                    builder.positiveText(R.string.search_all)
-                        .onPositive { materialDialog, dialogAction ->
-                            val i = Intent(this@MainActivity, Search::class.java)
-                            i.putExtra(Search.EXTRA_TERM, term)
-                            startActivity(i)
-                        }
+                    builder.positiveButton(R.string.search_all) { _ ->
+                        val i = Intent(this@MainActivity, Search::class.java)
+                        i.putExtra(Search.EXTRA_TERM, term)
+                        startActivity(i)
+                    }
                 }
                 builder.show()
                 true
@@ -997,12 +1003,11 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             || !SettingValues.appRestart.contains("hasCleared")
         ) {
             lifecycleScope.executeAsyncTask({
-                d = MaterialDialog.Builder(this@MainActivity)
+                d = MaterialDialog(this@MainActivity)
                     .title(R.string.misc_setting_up)
-                    .content(R.string.misc_setting_up_message)
-                    .progress(true, 100)
+                    .message(R.string.misc_setting_up_message)
+                    //.progress(true, 100)
                     .cancelable(false)
-                    .build()
                 d!!.show()
             }, {
                 val m = KVStore.getInstance()
@@ -1039,12 +1044,11 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
         }
         if (Authentication.name!!.contains("@")) {
             lifecycleScope.executeAsyncTask({
-                d = MaterialDialog.Builder(this@MainActivity)
+                d = MaterialDialog(this@MainActivity)
                     .title(R.string.misc_setting_up)
-                    .content(R.string.misc_setting_up_message)
-                    .progress(true, 100)
+                    .message(R.string.misc_setting_up_message)
+                    //.progress(true, 100)
                     .cancelable(false)
-                    .build()
                     .also { it.show() }
             }, {
                 instanceRepository.connect(Authentication.name!!)
@@ -1091,7 +1095,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             )
         } catch (e: Exception) {
         }
-        me.ccrama.redditslide.util.LogUtil.v("Installed browsers")
+        LogUtil.v("Installed browsers")
         val intent = Intent()
         intent.action = Intent.ACTION_VIEW
         intent.data = Uri.parse(Constants.TEST_URL)
@@ -1100,7 +1104,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             PackageManager.GET_DISABLED_COMPONENTS
         )
         for (i in allApps) {
-            if (i.activityInfo.isEnabled) me.ccrama.redditslide.util.LogUtil.v(i.activityInfo.packageName)
+            if (i.activityInfo.isEnabled) LogUtil.v(i.activityInfo.packageName)
         }
     }
 
@@ -1262,17 +1266,15 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                     }
                 })
             header.findViewById<View>(R.id.multi).setOnLongClickListener {
-                MaterialDialog.Builder(this@MainActivity).inputRange(3, 20)
-                    .alwaysCallInputCallback()
-                    .input(getString(R.string.user_enter), null) { dialog, input ->
-                        val editText = dialog.inputEditText
-                        me.ccrama.redditslide.util.EditTextValidator.validateUsername(editText)
-                        if (input.length >= 3 && input.length <= 20) {
-                            dialog.getActionButton(DialogAction.POSITIVE).isEnabled = true
+                MaterialDialog(this@MainActivity)
+                    .input(getString(R.string.user_enter), waitForPositiveButton = false) { dialog, input ->
+                        val editText = dialog.getInputField()
+                        EditTextValidator.validateUsername(editText)
+                        if (input.length in 3..20) {
+                            dialog.getActionButton(WhichButton.POSITIVE).isEnabled = true
                         }
                     }
-                    .positiveText(R.string.user_btn_gotomultis)
-                    .onPositive { dialog, which ->
+                    .positiveButton(R.string.user_btn_gotomultis) { dialog ->
                         if (runAfterLoad == null) {
                             val inte = Intent(
                                 this@MainActivity,
@@ -1280,12 +1282,12 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                             )
                             inte.putExtra(
                                 Profile.EXTRA_PROFILE,
-                                dialog.inputEditText!!.text.toString()
+                                dialog.getInputField().text.toString()
                             )
                             this@MainActivity.startActivity(inte)
                         }
                     }
-                    .negativeText(R.string.btn_cancel)
+                    .negativeButton(R.string.btn_cancel)
                     .show()
                 true
             }
@@ -1389,13 +1391,13 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             val keys = ArrayList(accounts.keys)
             val accountList = header.findViewById<LinearLayout>(R.id.accountsarea)
             for (accName in keys) {
-                me.ccrama.redditslide.util.LogUtil.v(accName)
+                LogUtil.v(accName)
                 val t = layoutInflater.inflate(
                     R.layout.account_textview_white, accountList,
                     false
                 )
                 (t.findViewById<View>(R.id.name) as TextView?)!!.text = accName
-                me.ccrama.redditslide.util.LogUtil.v("Adding click to " + (t.findViewById<View>(R.id.name) as TextView?)?.text)
+                LogUtil.v("Adding click to " + (t.findViewById<View>(R.id.name) as TextView?)?.text)
                 t.findViewById<View>(R.id.remove).setOnClickListener {
                     AlertDialog.Builder(this@MainActivity)
                         .setTitle(R.string.profile_remove)
@@ -1420,9 +1422,9 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                                 for (s in keys) {
                                     if (!s.equals(accName, ignoreCase = true)) {
                                         d = true
-                                        me.ccrama.redditslide.util.LogUtil.v("Switching to $s")
+                                        LogUtil.v("Switching to $s")
                                         for ((key, value) in accounts) {
-                                            me.ccrama.redditslide.util.LogUtil.v("$key:$value")
+                                            LogUtil.v("$key:$value")
                                         }
                                         if (accounts.containsKey(s) && !accounts[s]
                                                 !!.isEmpty()
@@ -1475,11 +1477,11 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                 }
                 t.setOnClickListener {
                     val accName = (t.findViewById<View>(R.id.name) as TextView?)?.text.toString()
-                    me.ccrama.redditslide.util.LogUtil.v("Found name is $accName")
+                    LogUtil.v("Found name is $accName")
                     if (!accName.equals(Authentication.name, ignoreCase = true)) {
-                        me.ccrama.redditslide.util.LogUtil.v("Switching to $accName")
+                        LogUtil.v("Switching to $accName")
                         if (!accounts[accName]!!.isEmpty()) {
-                            me.ccrama.redditslide.util.LogUtil.v("Using token " + accounts[accName])
+                            LogUtil.v("Using token " + accounts[accName])
                             SettingValues.authentication.edit()
                                 .putString("lasttoken", accounts[accName])
                                 .remove("backedCreds")
@@ -1585,7 +1587,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             val keys = ArrayList(accounts.keys)
             val accountList = header.findViewById<LinearLayout>(R.id.accountsarea)
             for (accName in keys) {
-                me.ccrama.redditslide.util.LogUtil.v(accName)
+                LogUtil.v(accName)
                 val t = layoutInflater.inflate(
                     R.layout.account_textview_white, accountList,
                     false
@@ -1615,7 +1617,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                                 for (s in keys) {
                                     if (!s.equals(accName, ignoreCase = true)) {
                                         d = true
-                                        me.ccrama.redditslide.util.LogUtil.v("Switching to $s")
+                                        LogUtil.v("Switching to $s")
                                         if (!accounts[s]!!.isEmpty()) {
                                             SettingValues.authentication.edit()
                                                 .putString("lasttoken", accounts[s])
@@ -1697,17 +1699,15 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                 })
             headerMain = header
             header.findViewById<View>(R.id.multi).setOnClickListener {
-                MaterialDialog.Builder(this@MainActivity).inputRange(3, 20)
-                    .alwaysCallInputCallback()
-                    .input(getString(R.string.user_enter), null) { dialog, input ->
-                        val editText = dialog.inputEditText
-                        me.ccrama.redditslide.util.EditTextValidator.validateUsername(editText)
+                MaterialDialog(this@MainActivity)
+                    .input(hintRes = R.string.user_enter, waitForPositiveButton = false) { dialog, input ->
+                        val editText = dialog.getInputField()
+                        EditTextValidator.validateUsername(editText)
                         if (input.length >= 3 && input.length <= 20) {
-                            dialog.getActionButton(DialogAction.POSITIVE).isEnabled = true
+                            dialog.getActionButton(WhichButton.POSITIVE).isEnabled = true
                         }
                     }
-                    .positiveText(R.string.user_btn_gotomultis)
-                    .onPositive { dialog, which ->
+                    .positiveButton(R.string.user_btn_gotomultis) { dialog ->
                         if (runAfterLoad == null) {
                             val inte = Intent(
                                 this@MainActivity,
@@ -1715,12 +1715,12 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                             )
                             inte.putExtra(
                                 Profile.EXTRA_PROFILE,
-                                dialog.inputEditText!!.text.toString()
+                                dialog.getInputField().text.toString()
                             )
                             this@MainActivity.startActivity(inte)
                         }
                     }
-                    .negativeText(R.string.btn_cancel)
+                    .negativeButton(R.string.btn_cancel)
                     .show()
             }
         } else {
@@ -1813,25 +1813,23 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                 })
             }
             header.findViewById<View>(R.id.prof).setOnClickListener {
-                MaterialDialog.Builder(this@MainActivity).inputRange(3, 20)
-                    .alwaysCallInputCallback()
-                    .input(getString(R.string.user_enter), null) { dialog, input ->
-                        val editText = dialog.inputEditText
-                        me.ccrama.redditslide.util.EditTextValidator.validateUsername(editText)
+                MaterialDialog(this@MainActivity)
+                    .input(hintRes = R.string.user_enter, waitForPositiveButton = false) { dialog, input ->
+                        val editText = dialog.getInputField()
+                        EditTextValidator.validateUsername(editText)
                         if (input.length >= 3 && input.length <= 20) {
-                            dialog.getActionButton(DialogAction.POSITIVE).isEnabled = true
+                            dialog.getActionButton(WhichButton.POSITIVE).isEnabled = true
                         }
                     }
-                    .positiveText(R.string.user_btn_goto)
-                    .onPositive { dialog, which ->
+                    .positiveButton(R.string.user_btn_goto) { dialog ->
                         val inte = Intent(this@MainActivity, Profile::class.java)
                         inte.putExtra(
                             Profile.EXTRA_PROFILE,
-                            dialog.inputEditText!!.text.toString()
+                            dialog.getInputField().text.toString()
                         )
                         this@MainActivity.startActivity(inte)
                     }
-                    .negativeText(R.string.btn_cancel)
+                    .negativeButton(R.string.btn_cancel)
                     .show()
             }
         }
@@ -1936,9 +1934,9 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                 headerMain!!.findViewById<View>(R.id.friends)
                     .setOnClickListener(object : me.ccrama.redditslide.util.OnSingleClickListener() {
                         override fun onSingleClick(view: View) {
-                            MaterialDialog.Builder(this@MainActivity).title("Friends")
-                                .items(friends)
-                                .itemsCallback { dialog, itemView, which, text ->
+                            MaterialDialog(this@MainActivity)
+                                .title(text = "Friends")
+                                .listItems(items = friends.filterNotNull()) { dialog, which, text ->
                                     val i = Intent(
                                         this@MainActivity,
                                         Profile::class.java
@@ -1969,13 +1967,13 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             doSubSidebarNoLoad(usedArray!![position])
         }
         val page = adapter!!.currentFragment as SubmissionsView?
-        if (page != null && page.adapter != null) {
+        if (page?.adapter != null) {
             val p = page.adapter!!.dataSet
             if (p.offline && p.cached != null) {
                 Toast.makeText(
                     this@MainActivity, getString(
                         R.string.offline_last_update,
-                        me.ccrama.redditslide.util.TimeUtils.getTimeAgo(p.cached!!.time, this@MainActivity)
+                        TimeUtils.getTimeAgo(p.cached!!.time, this@MainActivity)
                     ), Toast.LENGTH_LONG
                 )
                     .show()
@@ -2020,7 +2018,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
 
             //get all subs that have Notifications enabled
             val rawSubs =
-                me.ccrama.redditslide.util.StringUtil.stringToArray(SettingValues.appRestart.getString(CheckForMail.SUBS_TO_GET, ""))
+                StringUtil.stringToArray(SettingValues.appRestart.getString(CheckForMail.SUBS_TO_GET, ""))
             val subThresholds = HashMap<String, Int>()
             for (s in rawSubs) {
                 try {
@@ -2051,14 +2049,9 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                         }
                         return@executeAsyncTask null
                     }, {
-                        MaterialDialog.Builder(this@MainActivity).title(
-                            getString(
-                                R.string.multi_add_to,
-                                subreddit.displayName
-                            )
-                        )
-                            .items(multis.keys)
-                            .itemsCallback { dialog, itemView, which, text ->
+                        MaterialDialog(this@MainActivity)
+                            .title(text = getString(R.string.multi_add_to, subreddit.displayName))
+                            .listItems(items = multis.keys.filterNotNull()) { dialog, which, text ->
                                 lifecycleScope.executeAsyncTask({}, {
                                     try {
                                         val multiName = multis.keys
@@ -2151,39 +2144,25 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                             .setTitle(getString(R.string.sub_post_notifs_title, sub))
                             .setMessage(R.string.sub_post_notifs_msg)
                             .setPositiveButton(R.string.btn_ok) { dialog, which ->
-                                MaterialDialog.Builder(this@MainActivity)
+                                MaterialDialog(this@MainActivity)
                                     .title(R.string.sub_post_notifs_threshold)
-                                    .items(
-                                        *arrayOf<String>(
-                                            "1", "5", "10", "20", "40", "50"
+                                    .listItemsSingleChoice(
+                                        items = listOf("1", "5", "10", "20", "40", "50"),
+                                        waitForPositiveButton = false,
+                                        initialSelection = 0) { dialog, which, text ->
+                                        val subs = StringUtil.stringToArray(
+                                            SettingValues.appRestart.getString(CheckForMail.SUBS_TO_GET, "")
                                         )
-                                    )
-                                    .alwaysCallSingleChoiceCallback()
-                                    .itemsCallbackSingleChoice(
-                                        0
-                                    ) { dialog, itemView, which, text ->
-                                        val subs = me.ccrama.redditslide.util.StringUtil.stringToArray(
-                                            SettingValues.appRestart
-                                                .getString(
-                                                    CheckForMail.SUBS_TO_GET,
-                                                    ""
-                                                )
-                                        )
-                                        subs.add(
-                                            sub
-                                                    + ":"
-                                                    + text
-                                        )
+                                        subs.add(sub + ":" + text)
                                         SettingValues.appRestart
                                             .edit()
                                             .putString(
                                                 CheckForMail.SUBS_TO_GET,
-                                                me.ccrama.redditslide.util.StringUtil.arrayToString(
+                                                StringUtil.arrayToString(
                                                     subs
                                                 )
                                             )
                                             .commit()
-                                        return@itemsCallbackSingleChoice true
                                     }
                                     .cancelable(false)
                                     .show()
@@ -2524,13 +2503,12 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                 )
             }
             dialoglayout.findViewById<View>(R.id.mods).setOnClickListener {
-                val d: Dialog = MaterialDialog.Builder(this@MainActivity).title(
-                    R.string.sidebar_findingmods
-                )
+                val d: Dialog = MaterialDialog(this@MainActivity)
+                    .title(R.string.sidebar_findingmods)
                     .cancelable(true)
-                    .content(R.string.misc_please_wait)
-                    .progress(true, 100)
-                    .show()
+                    .message(R.string.misc_please_wait)
+                    //.progress(true, 100)
+                    .also { it.show() }
                 object : AsyncTask<Void?, Void?, Void?>() {
                     var mods: ArrayList<UserRecord>? = null
                     protected override fun doInBackground(vararg params: Void?): Void? {
@@ -2548,22 +2526,19 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                     }
 
                     override fun onPostExecute(aVoid: Void?) {
-                        val names = ArrayList<String?>()
+                        val names = ArrayList<String>()
                         for (rec in mods!!) {
                             names.add(rec.fullName)
                         }
                         d.dismiss()
-                        MaterialDialog.Builder(this@MainActivity).title(
-                            getString(R.string.sidebar_submods, subreddit)
-                        )
-                            .items(names)
-                            .itemsCallback { dialog, itemView, which, text ->
+                        MaterialDialog(this@MainActivity)
+                            .title(text = getString(R.string.sidebar_submods, subreddit))
+                            .listItems(items = names) { dialog, which, text ->
                                 val i = Intent(this@MainActivity, Profile::class.java)
                                 i.putExtra(Profile.EXTRA_PROFILE, names[which])
                                 startActivity(i)
                             }
-                            .positiveText(R.string.btn_message)
-                            .onPositive { dialog, which ->
+                            .positiveButton(R.string.btn_message) { dialog ->
                                 val i = Intent(
                                     this@MainActivity,
                                     SendMessage::class.java
@@ -2616,172 +2591,6 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                             if (current != null) {
                                 (dialoglayout.findViewById<View>(R.id.flair_text) as TextView?)!!.text =
                                     getString(R.string.sidebar_flair, current)
-                            }
-                            flair!!.setOnClickListener {
-                                MaterialDialog.Builder(this@MainActivity).items(flairText!!)
-                                    .title(R.string.sidebar_select_flair)
-                                    .itemsCallback { dialog, itemView, which, text ->
-                                        val t = flairs!![which]
-                                        if (t.isTextEditable) {
-                                            MaterialDialog.Builder(
-                                                this@MainActivity
-                                            ).title(
-                                                R.string.sidebar_select_flair_text
-                                            )
-                                                .input(
-                                                    getString(
-                                                        R.string.mod_flair_hint
-                                                    ),
-                                                    t.text, true
-                                                ) { dialog1: MaterialDialog?, input: CharSequence? -> }
-                                                .positiveText(R.string.btn_set)
-                                                .onPositive { dialog, which ->
-                                                    val flair = dialog.inputEditText!!
-                                                        .text
-                                                        .toString()
-                                                    object : AsyncTask<Void?, Void?, Boolean>() {
-                                                        protected override fun doInBackground(
-                                                            vararg params: Void?
-                                                        ): Boolean {
-                                                            return try {
-                                                                ModerationManager(
-                                                                    Authentication.reddit
-                                                                )
-                                                                    .setFlair(
-                                                                        subreddit,
-                                                                        t,
-                                                                        flair,
-                                                                        Authentication.name
-                                                                    )
-                                                                val currentF = m!!.getCurrentFlair(
-                                                                    subreddit
-                                                                )
-                                                                current = if (currentF
-                                                                        .text
-                                                                        .isEmpty()
-                                                                ) {
-                                                                    ("["
-                                                                            + currentF
-                                                                        .cssClass
-                                                                            + "]")
-                                                                } else {
-                                                                    currentF
-                                                                        .text
-                                                                }
-                                                                true
-                                                            } catch (e: Exception) {
-                                                                e.printStackTrace()
-                                                                false
-                                                            }
-                                                        }
-
-                                                        override fun onPostExecute(
-                                                            done: Boolean
-                                                        ) {
-                                                            val s: Snackbar
-                                                            if (done) {
-                                                                if (current
-                                                                    != null
-                                                                ) {
-                                                                    (dialoglayout
-                                                                        .findViewById<View>(
-                                                                            R.id.flair_text
-                                                                        ) as TextView?)!!.text =
-                                                                        getString(
-                                                                            R.string.sidebar_flair,
-                                                                            current
-                                                                        )
-                                                                }
-                                                                s = Snackbar.make(
-                                                                    mToolbar!!,
-                                                                    R.string.snackbar_flair_success,
-                                                                    Snackbar.LENGTH_SHORT
-                                                                )
-                                                            } else {
-                                                                s = Snackbar.make(
-                                                                    mToolbar!!,
-                                                                    R.string.snackbar_flair_error,
-                                                                    Snackbar.LENGTH_SHORT
-                                                                )
-                                                            }
-                                                            if (s
-                                                                != null
-                                                            ) {
-                                                                me.ccrama.redditslide.util.LayoutUtils.showSnackbar(s)
-                                                            }
-                                                        }
-                                                    }.executeOnExecutor(
-                                                        THREAD_POOL_EXECUTOR
-                                                    )
-                                                }
-                                                .negativeText(R.string.btn_cancel)
-                                                .show()
-                                        } else {
-                                            object : AsyncTask<Void?, Void?, Boolean>() {
-                                                protected override fun doInBackground(
-                                                    vararg params: Void?
-                                                ): Boolean {
-                                                    return try {
-                                                        ModerationManager(
-                                                            Authentication.reddit
-                                                        ).setFlair(
-                                                            subreddit, t, null,
-                                                            Authentication.name
-                                                        )
-                                                        val currentF = m!!.getCurrentFlair(
-                                                            subreddit
-                                                        )
-                                                        current = if (currentF.text
-                                                                .isEmpty()
-                                                        ) {
-                                                            ("["
-                                                                    + currentF.cssClass
-                                                                    + "]")
-                                                        } else {
-                                                            currentF.text
-                                                        }
-                                                        true
-                                                    } catch (e: Exception) {
-                                                        e.printStackTrace()
-                                                        false
-                                                    }
-                                                }
-
-                                                override fun onPostExecute(
-                                                    done: Boolean
-                                                ) {
-                                                    val s: Snackbar
-                                                    if (done) {
-                                                        if (current != null) {
-                                                            (dialoglayout.findViewById<View>(
-                                                                R.id.flair_text
-                                                            ) as TextView?)!!.text = getString(
-                                                                R.string.sidebar_flair,
-                                                                current
-                                                            )
-                                                        }
-                                                        s = Snackbar.make(
-                                                            mToolbar!!,
-                                                            R.string.snackbar_flair_success,
-                                                            Snackbar.LENGTH_SHORT
-                                                        )
-                                                    } else {
-                                                        s = Snackbar.make(
-                                                            mToolbar!!,
-                                                            R.string.snackbar_flair_error,
-                                                            Snackbar.LENGTH_SHORT
-                                                        )
-                                                    }
-                                                    if (s != null) {
-                                                        me.ccrama.redditslide.util.LayoutUtils.showSnackbar(s)
-                                                    }
-                                                }
-                                            }.executeOnExecutor(
-                                                THREAD_POOL_EXECUTOR
-                                            )
-                                        }
-                                    }
-                                    .show()
                             }
                         }
                     }
@@ -3040,7 +2849,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             val m = popup.menu.add(s)
         }
         popup.setOnMenuItemClickListener { item ->
-            me.ccrama.redditslide.util.LogUtil.v("Chosen is " + item.order)
+            LogUtil.v("Chosen is " + item.order)
             var i = 0
             for (s in base) {
                 if (s == item.title) {
@@ -3110,7 +2919,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             val m = popup.menu.add(s)
         }
         popup.setOnMenuItemClickListener { item ->
-            me.ccrama.redditslide.util.LogUtil.v("Chosen is " + item.order)
+            LogUtil.v("Chosen is " + item.order)
             var i = 0
             for (s in base) {
                 if (s == item.title) {
@@ -3470,7 +3279,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                     }
                 })
         } else {
-            me.ccrama.redditslide.util.LogUtil.v("TabLayout notnull")
+            LogUtil.v("TabLayout notnull")
             mToolbar!!.setOnClickListener { scrollToTop() }
         }
     }
@@ -3496,18 +3305,15 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
     fun updateSubs(subs: ArrayList<String>) {
         if (subs.isEmpty() && !me.ccrama.redditslide.util.NetworkUtil.isConnected(this)) {
             findViewById<View>(R.id.toolbar).visibility = View.GONE
-            d = MaterialDialog.Builder(this@MainActivity).title(
-                R.string.offline_no_content_found
-            )
-                .positiveText(R.string.offline_enter_online)
-                .negativeText(R.string.btn_close)
-                .cancelable(false)
-                .onNegative { dialog, which -> finish() }
-                .onPositive { dialog, which ->
+            d = MaterialDialog(this@MainActivity)
+                .title(R.string.offline_no_content_found)
+                .positiveButton(R.string.offline_enter_online) { dialog ->
                     SettingValues.appRestart.edit().remove("forceoffline").commit()
                     App.forceRestart(this@MainActivity, false)
                 }
-                .show()
+                .negativeButton(R.string.btn_close) { dialog -> finish() }
+                .cancelable(false)
+                .also { it.show() }
         } else {
             drawerLayout = findViewById<DrawerLayout>(R.id.drawer_layout)
             if (!resources.getBoolean(R.bool.isTablet)) {
@@ -3996,7 +3802,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                 count = me.inboxCount //Force reload of the LoggedInAccount object
                 UserSubscriptions.doFriendsOfMain(this@MainActivity)
             } catch (e: Exception) {
-                Log.w(me.ccrama.redditslide.util.LogUtil.getTag(), "Cannot fetch inbox count")
+                Log.w(LogUtil.getTag(), "Cannot fetch inbox count")
                 count = -1
             }
             return null
@@ -4214,7 +4020,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
 
         override fun getPageTitle(position: Int): CharSequence? {
             return if (usedArray != null) {
-                me.ccrama.redditslide.util.StringUtil.abbreviate(usedArray!![position], 25)
+                StringUtil.abbreviate(usedArray!![position], 25)
             } else {
                 ""
             }
@@ -4358,7 +4164,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
 
         override fun getPageTitle(position: Int): CharSequence? {
             return if (usedArray != null && position != toOpenComments) {
-                me.ccrama.redditslide.util.StringUtil.abbreviate(usedArray!![position], 25)
+                StringUtil.abbreviate(usedArray!![position], 25)
             } else {
                 ""
             }
@@ -4416,7 +4222,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                     Math.max(currentEdgeSize, (displaySize.x * displayWidthPercentage).toInt())
                 )
             } catch (e: Exception) {
-                me.ccrama.redditslide.util.LogUtil.e("$e: Exception thrown while changing navdrawer edge size")
+                LogUtil.e("$e: Exception thrown while changing navdrawer edge size")
             }
         }
 

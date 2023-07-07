@@ -1,170 +1,164 @@
-package me.ccrama.redditslide.views;
+package me.ccrama.redditslide.views
 
-import android.content.Context;
-import android.graphics.Color;
-import android.media.AudioManager;
-import android.net.Uri;
-import android.util.AttributeSet;
-import android.util.Log;
-import android.view.SurfaceView;
-import android.view.animation.AlphaAnimation;
-import android.view.animation.Animation;
-import android.view.animation.AnimationSet;
-import android.widget.ImageView;
-import android.widget.RelativeLayout;
-
-import androidx.annotation.NonNull;
-import androidx.core.content.ContextCompat;
-import androidx.media.AudioAttributesCompat;
-import androidx.media.AudioFocusRequestCompat;
-import androidx.media.AudioManagerCompat;
-
-import com.google.android.exoplayer2.MediaItem;
-import com.google.android.exoplayer2.Player;
-import com.google.android.exoplayer2.SimpleExoPlayer;
-import com.google.android.exoplayer2.ext.okhttp.OkHttpDataSource;
-import com.google.android.exoplayer2.source.MediaSource;
-import com.google.android.exoplayer2.source.ProgressiveMediaSource;
-import com.google.android.exoplayer2.source.TrackGroupArray;
-import com.google.android.exoplayer2.source.dash.DashMediaSource;
-import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
-import com.google.android.exoplayer2.trackselection.ExoTrackSelection;
-import com.google.android.exoplayer2.trackselection.TrackSelectionArray;
-import com.google.android.exoplayer2.ui.AspectRatioFrameLayout;
-import com.google.android.exoplayer2.ui.PlayerControlView;
-import com.google.android.exoplayer2.upstream.DataSource;
-import com.google.android.exoplayer2.upstream.cache.CacheDataSource;
-import com.google.android.exoplayer2.util.MimeTypes;
-import com.google.android.exoplayer2.video.VideoSize;
-
-import ltd.ucode.slide.R;
-import ltd.ucode.slide.App;
-import ltd.ucode.slide.SettingValues;
-import me.ccrama.redditslide.util.BlendModeUtil;
-import me.ccrama.redditslide.util.GifUtils;
-import me.ccrama.redditslide.util.LogUtil;
-import me.ccrama.redditslide.util.NetworkUtil;
+import android.content.Context
+import android.graphics.Color
+import android.media.AudioManager
+import android.net.Uri
+import android.util.AttributeSet
+import android.util.Log
+import android.view.SurfaceView
+import android.view.View
+import android.view.animation.AlphaAnimation
+import android.view.animation.Animation
+import android.view.animation.AnimationSet
+import android.widget.ImageView
+import android.widget.RelativeLayout
+import androidx.core.content.ContextCompat
+import androidx.media.AudioAttributesCompat
+import androidx.media.AudioFocusRequestCompat
+import androidx.media.AudioManagerCompat
+import com.google.android.exoplayer2.MediaItem
+import com.google.android.exoplayer2.Player
+import com.google.android.exoplayer2.SimpleExoPlayer
+import com.google.android.exoplayer2.Tracks
+import com.google.android.exoplayer2.ext.okhttp.OkHttpDataSource
+import com.google.android.exoplayer2.source.MediaSource
+import com.google.android.exoplayer2.source.ProgressiveMediaSource
+import com.google.android.exoplayer2.source.dash.DashMediaSource
+import com.google.android.exoplayer2.trackselection.DefaultTrackSelector
+import com.google.android.exoplayer2.ui.AspectRatioFrameLayout
+import com.google.android.exoplayer2.ui.PlayerControlView
+import com.google.android.exoplayer2.upstream.DataSource
+import com.google.android.exoplayer2.upstream.cache.CacheDataSource
+import com.google.android.exoplayer2.util.MimeTypes
+import com.google.android.exoplayer2.video.VideoSize
+import ltd.ucode.slide.App
+import ltd.ucode.slide.R
+import ltd.ucode.slide.SettingValues
+import ltd.ucode.slide.SettingValues.isMuted
+import me.ccrama.redditslide.util.BlendModeUtil
+import me.ccrama.redditslide.util.GifUtils
+import me.ccrama.redditslide.util.LogUtil
+import me.ccrama.redditslide.util.NetworkUtil
 
 /**
  * View containing an ExoPlayer
  */
-public class ExoVideoView extends RelativeLayout {
-    private Context context;
-    private SimpleExoPlayer player;
-    private DefaultTrackSelector trackSelector;
-    private PlayerControlView playerUI;
-    private boolean muteAttached = false;
-    private boolean hqAttached = false;
-    private AudioFocusHelper audioFocusHelper;
+class ExoVideoView @JvmOverloads constructor(
+    private val context: Context?,
+    attrs: AttributeSet? = null,
+    ui: Boolean = true
+) : RelativeLayout(
+    context, attrs
+) {
+    private var player: SimpleExoPlayer? = null
+    private var trackSelector: DefaultTrackSelector? = null
+    private var playerUI: PlayerControlView? = null
+    private var muteAttached = false
+    private var hqAttached = false
+    private var audioFocusHelper: AudioFocusHelper? = null
 
-    public ExoVideoView(final Context context) {
-        this(context, null, true);
-    }
+    constructor(context: Context?, ui: Boolean) : this(context, null, ui) {}
 
-    public ExoVideoView(final Context context, final boolean ui) {
-        this(context, null, ui);
-    }
-
-    public ExoVideoView(final Context context, final AttributeSet attrs) {
-        this(context, attrs, true);
-    }
-
-    public ExoVideoView(final Context context, final AttributeSet attrs, final boolean ui) {
-        super(context, attrs);
-        this.context = context;
-
-        setupPlayer();
+    init {
+        setupPlayer()
         if (ui) {
-            setupUI();
+            setupUI()
         }
     }
 
     /**
      * Initializes the view to render onto and the SimpleExoPlayer instance
      */
-    private void setupPlayer() {
+    private fun setupPlayer() {
         // Create a view to render the video onto and an AspectRatioFrameLayout to size the video correctly
-        AspectRatioFrameLayout frame = new AspectRatioFrameLayout(context);
-        LayoutParams params = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
-        params.addRule(CENTER_IN_PARENT, TRUE);
-        frame.setLayoutParams(params);
-        frame.setResizeMode(AspectRatioFrameLayout.RESIZE_MODE_FIT);
-
-        SurfaceView renderView = new SurfaceView(context);
-        frame.addView(renderView);
-        addView(frame);
+        val frame = AspectRatioFrameLayout(context!!)
+        val params = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT)
+        params.addRule(CENTER_IN_PARENT, TRUE)
+        frame.layoutParams = params
+        frame.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
+        val renderView = SurfaceView(context)
+        frame.addView(renderView)
+        addView(frame)
 
         // Create a track selector so we can set specific video quality for DASH
-        trackSelector = new DefaultTrackSelector(context);
-        if ((SettingValues.lowResAlways
-                || (NetworkUtil.isConnected(context) && !NetworkUtil.isConnectedWifi(context) && SettingValues.lowResMobile))
-                && SettingValues.lqVideos) {
-            trackSelector.setParameters(trackSelector.buildUponParameters().setForceLowestBitrate(true));
+        trackSelector = DefaultTrackSelector(context)
+        if (SettingValues.lowResAlways || NetworkUtil.isConnected(context) && !NetworkUtil.isConnectedWifi(
+                context
+            ) && SettingValues.lowResMobile
+            && SettingValues.lqVideos
+        ) {
+            trackSelector!!.setParameters(
+                trackSelector!!.buildUponParameters().setForceLowestBitrate(true)
+            )
         } else {
-            trackSelector.setParameters(trackSelector.buildUponParameters().setForceHighestSupportedBitrate(true));
+            trackSelector!!.setParameters(
+                trackSelector!!.buildUponParameters().setForceHighestSupportedBitrate(true)
+            )
         }
 
         // Create the player, attach it to the view, make it repeat infinitely
-        player = new SimpleExoPlayer.Builder(context).setTrackSelector(trackSelector).build();
-        player.setVideoSurfaceView(renderView);
-        player.setRepeatMode(Player.REPEAT_MODE_ALL);
+        player = SimpleExoPlayer.Builder(context).setTrackSelector(trackSelector!!).build()
+        player!!.setVideoSurfaceView(renderView)
+        player!!.repeatMode = Player.REPEAT_MODE_ALL
 
         // Mute by default
-        player.setVolume(0f);
+        player!!.volume = 0f
 
         // Create audio focus helper
-        audioFocusHelper = new AudioFocusHelper(ContextCompat.getSystemService(context, AudioManager.class));
-
-        player.addListener(new Player.Listener() {
+        audioFocusHelper = AudioFocusHelper(
+            ContextCompat.getSystemService(
+                context, AudioManager::class.java
+            )
+        )
+        player!!.addListener(object : Player.Listener {
             // Make the video use the correct aspect ratio
-            @Override
-            public void onVideoSizeChanged(@NonNull VideoSize videoSize) {
+            override fun onVideoSizeChanged(videoSize: VideoSize) {
                 frame.setAspectRatio(
-                        videoSize.height == 0 || videoSize.width == 0
-                                ? 1
-                                : videoSize.width * videoSize.pixelWidthHeightRatio / videoSize.height);
+                    if (videoSize.height == 0 || videoSize.width == 0) 1f
+                    else videoSize.width * videoSize.pixelWidthHeightRatio / videoSize.height
+                )
             }
 
             // Logging
-            @Override
-            public void onTracksChanged(@NonNull TrackGroupArray trackGroups,
-                                        @NonNull TrackSelectionArray trackSelections) {
-                StringBuilder toLog = new StringBuilder();
-                for (int i = 0; i < trackGroups.length; i++) {
-                    for (int j = 0; j < trackGroups.get(i).length; j++) {
-                        toLog.append("Format:\t").append(trackGroups.get(i).getFormat(j)).append("\n");
+            override fun onTracksChanged(tracks: Tracks) {
+                val trackGroups = tracks.groups
+                val toLog = StringBuilder()
+                for (i in trackGroups.indices) {
+                    for (j in 0 until trackGroups[i].length) {
+                        toLog.append("Format:\t").append(trackGroups[i].getTrackFormat(j))
+                            .append("\n")
                     }
                 }
                 // FIXME: How do I make onTracksChanged work with ExoTrackSelection?
                 /*for (TrackSelection i : trackSelections.getAll()) {
                     if (i != null)
                         toLog.append("Selected format:\t").append(i.getSelectedFormat()).append("\n");
-                }*/
-                Log.v(LogUtil.getTag(), toLog.toString());
+                }*/Log.v(LogUtil.getTag(), toLog.toString())
             }
-        });
+        })
     }
 
     /**
      * Sets up the player UI
      */
-    private void setupUI() {
+    private fun setupUI() {
         // Create a PlayerControlView for our video controls and add it
-        playerUI = new PlayerControlView(context);
-        playerUI.setPlayer(player);
-        playerUI.setShowTimeoutMs(2000);
-        playerUI.hide();
-        addView(playerUI);
+        playerUI = PlayerControlView(context!!)
+        playerUI!!.player = player
+        playerUI!!.showTimeoutMs = 2000
+        playerUI!!.hide()
+        addView(playerUI)
 
         // Show/hide the player UI on tap
-        setOnClickListener((v) -> {
-            playerUI.clearAnimation();
-            if (playerUI.isVisible()) {
-                playerUI.startAnimation(new PlayerUIFadeInAnimation(playerUI, false, 300));
+        setOnClickListener { v: View? ->
+            playerUI!!.clearAnimation()
+            if (playerUI!!.isVisible) {
+                playerUI!!.startAnimation(PlayerUIFadeInAnimation(playerUI!!, false, 300))
             } else {
-                playerUI.startAnimation(new PlayerUIFadeInAnimation(playerUI, true, 300));
+                playerUI!!.startAnimation(PlayerUIFadeInAnimation(playerUI!!, true, 300))
             }
-        });
+        }
     }
 
     /**
@@ -174,68 +168,61 @@ public class ExoVideoView extends RelativeLayout {
      * @param type     Type of video
      * @param listener EventLister attached to the player, helpful for player state
      */
-    public void setVideoURI(Uri uri, VideoType type, Player.Listener listener) {
+    fun setVideoURI(uri: Uri, type: VideoType?, listener: Player.Listener?) {
         // Create the data sources used to retrieve and cache the video
-        DataSource.Factory downloader =
-                new OkHttpDataSource.Factory(App.client)
-                        .setDefaultRequestProperties(GifUtils.AsyncLoadGif.makeHeaderMap(uri.getHost()));
-        DataSource.Factory cacheDataSourceFactory =
-                new CacheDataSource.Factory()
-                        .setCache(App.videoCache)
-                        .setUpstreamDataSourceFactory(downloader);
+        val downloader: DataSource.Factory = OkHttpDataSource.Factory(
+            App.client!!
+        )
+            .setDefaultRequestProperties(GifUtils.AsyncLoadGif.makeHeaderMap(uri.host!!))
+        val cacheDataSourceFactory: DataSource.Factory = CacheDataSource.Factory()
+            .setCache(App.videoCache!!)
+            .setUpstreamDataSourceFactory(downloader)
 
         // Create an appropriate media source for the video type
-        MediaSource videoSource;
-        switch (type) {
-            // DASH video, e.g. v.redd.it video
-            case DASH:
-                videoSource = new DashMediaSource.Factory(cacheDataSourceFactory)
-                        .createMediaSource(MediaItem.fromUri(uri));
-                break;
+        val videoSource: MediaSource = when (type) {
+            VideoType.DASH -> DashMediaSource.Factory(cacheDataSourceFactory)
+                .createMediaSource(MediaItem.fromUri(uri))
 
-            // Standard video, e.g. MP4 file
-            case STANDARD:
-            default:
-                videoSource = new ProgressiveMediaSource.Factory(cacheDataSourceFactory)
-                        .createMediaSource(MediaItem.fromUri(uri));
-                break;
+            VideoType.STANDARD -> ProgressiveMediaSource.Factory(cacheDataSourceFactory)
+                .createMediaSource(MediaItem.fromUri(uri))
+
+            else -> ProgressiveMediaSource.Factory(cacheDataSourceFactory)
+                .createMediaSource(MediaItem.fromUri(uri))
         }
-
-        player.setMediaSource(videoSource);
-        player.prepare();
+        player!!.setMediaSource(videoSource)
+        player!!.prepare()
         if (listener != null) {
-            player.addListener(listener);
+            player!!.addListener(listener)
         }
     }
 
-    @Override
-    protected void onDetachedFromWindow() {
-        super.onDetachedFromWindow();
+    override fun onDetachedFromWindow() {
+        super.onDetachedFromWindow()
         // If we don't release the player here, hardware decoders won't be released, breaking ExoPlayer device-wide
-        stop();
+        stop()
     }
 
     /**
      * Plays the video
      */
-    public void play() {
-        player.play();
+    fun play() {
+        player!!.play()
     }
 
     /**
      * Pauses the video
      */
-    public void pause() {
-        player.pause();
+    fun pause() {
+        player!!.pause()
     }
 
     /**
      * Stops the video and releases the player
      */
-    public void stop() {
-        player.stop();
-        player.release();
-        audioFocusHelper.loseFocus(); // do this last so audio doesn't overlap
+    fun stop() {
+        player!!.stop()
+        player!!.release()
+        audioFocusHelper!!.loseFocus() // do this last so audio doesn't overlap
     }
 
     /**
@@ -243,8 +230,8 @@ public class ExoVideoView extends RelativeLayout {
      *
      * @param time timestamp
      */
-    public void seekTo(long time) {
-        player.seekTo(time);
+    fun seekTo(time: Long) {
+        player!!.seekTo(time)
     }
 
     /**
@@ -252,9 +239,8 @@ public class ExoVideoView extends RelativeLayout {
      *
      * @return current timestamp
      */
-    public long getCurrentPosition() {
-        return player.getCurrentPosition();
-    }
+    val currentPosition: Long
+        get() = player!!.currentPosition
 
     /**
      * Attach a mute button to the view. The view will then handle hiding/showing that button as appropriate.
@@ -262,56 +248,62 @@ public class ExoVideoView extends RelativeLayout {
      *
      * @param mute Mute button
      */
-    public void attachMuteButton(final ImageView mute) {
+    fun attachMuteButton(mute: ImageView) {
         // Hide the mute button by default
-        mute.setVisibility(GONE);
-
-        player.addListener(new Player.Listener() {
-            @Override
-            public void onTracksChanged(@NonNull TrackGroupArray trackGroups,
-                                        @NonNull TrackSelectionArray trackSelections) {
+        mute.visibility = GONE
+        player!!.addListener(object : Player.Listener {
+            override fun onTracksChanged(tracks: Tracks) {
+                val trackGroups = tracks.groups
                 // We only need to run this on the first track change, i.e. when the video is loaded
                 // Skip this if mute has already been configured, otherwise mark it as configured
-                if (muteAttached && trackGroups.length > 0) {
-                    return;
+                muteAttached = if (muteAttached && trackGroups.size > 0) {
+                    return
                 } else {
-                    muteAttached = true;
+                    true
                 }
+                val trackSelections = tracks.groups
                 // Loop through the tracks and check if any contain audio, if so set up the mute button
-                for (int i = 0; i < trackSelections.length; i++) {
-                    final ExoTrackSelection selection = (ExoTrackSelection) trackSelections.get(i);
-                    if (selection != null && selection.getSelectedFormat() != null
-                            && MimeTypes.isAudio(selection.getSelectedFormat().sampleMimeType)) {
-
-                        mute.setVisibility(VISIBLE);
+                for (i in trackSelections.indices) {
+                    val selection = trackSelections[i]
+                    if (!selection!!.isSelected) continue
+                    if (selection != null && selection.getTrackFormat(0) != null && MimeTypes.isAudio(
+                            selection.getTrackFormat(0).sampleMimeType
+                        )
+                    ) {
+                        mute.visibility = VISIBLE
                         // Set initial mute state
-                        if (!SettingValues.INSTANCE.isMuted()) {
-                            player.setVolume(1f);
-                            BlendModeUtil.tintImageViewAsSrcAtop(mute, Color.WHITE);
-                            audioFocusHelper.gainFocus();
+                        if (!isMuted) {
+                            player!!.volume = 1f
+                            BlendModeUtil.tintImageViewAsSrcAtop(mute, Color.WHITE)
+                            audioFocusHelper!!.gainFocus()
                         } else {
-                            player.setVolume(0f);
-                            BlendModeUtil.tintImageViewAsSrcAtop(mute, getResources().getColor(R.color.md_red_500));
+                            player!!.volume = 0f
+                            BlendModeUtil.tintImageViewAsSrcAtop(
+                                mute,
+                                resources.getColor(R.color.md_red_500)
+                            )
                         }
-
-                        mute.setOnClickListener((v) -> {
-                            if (SettingValues.INSTANCE.isMuted()) {
-                                player.setVolume(1f);
-                                SettingValues.INSTANCE.setMuted(false);
-                                BlendModeUtil.tintImageViewAsSrcAtop(mute, Color.WHITE);
-                                audioFocusHelper.gainFocus();
+                        mute.setOnClickListener { v: View? ->
+                            if (isMuted) {
+                                player!!.volume = 1f
+                                isMuted = false
+                                BlendModeUtil.tintImageViewAsSrcAtop(mute, Color.WHITE)
+                                audioFocusHelper!!.gainFocus()
                             } else {
-                                player.setVolume(0f);
-                                SettingValues.INSTANCE.setMuted(true);
-                                BlendModeUtil.tintImageViewAsSrcAtop(mute, getResources().getColor(R.color.md_red_500));
-                                audioFocusHelper.loseFocus();
+                                player!!.volume = 0f
+                                isMuted = true
+                                BlendModeUtil.tintImageViewAsSrcAtop(
+                                    mute,
+                                    resources.getColor(R.color.md_red_500)
+                                )
+                                audioFocusHelper!!.loseFocus()
                             }
-                        });
-                        return;
+                        }
+                        return
                     }
                 }
             }
-        });
+        })
     }
 
     /**
@@ -319,143 +311,126 @@ public class ExoVideoView extends RelativeLayout {
      *
      * @param hq HQ button
      */
-    public void attachHqButton(final ImageView hq) {
+    fun attachHqButton(hq: ImageView) {
         // Hidden by default - we don't yet know if we'll have multiple qualities to select from
-        hq.setVisibility(GONE);
-
-        player.addListener(new Player.Listener() {
-            @Override
-            public void onTracksChanged(@NonNull TrackGroupArray trackGroups,
-                                        @NonNull TrackSelectionArray trackSelections) {
-                if (hqAttached || trackGroups.length == 0
-                        || trackSelector.getParameters().forceHighestSupportedBitrate) {
-                    return;
-                } else {
-                    hqAttached = true;
-                }
+        hq.visibility = GONE
+        player!!.addListener(object : Player.Listener {
+            override fun onTracksChanged(tracks: Tracks) {
+                val trackGroups = tracks.groups
+                hqAttached =
+                    if (hqAttached || trackGroups.size == 0 || trackSelector!!.parameters.forceHighestSupportedBitrate) {
+                        return
+                    } else {
+                        true
+                    }
                 // Lopp through the tracks, check if they're video. If we have at least 2 video tracks we can set
                 // up quality selection.
-                int videoTrackCounter = 0;
-                for (int trackGroup = 0; trackGroup < trackGroups.length; trackGroup++) {
-                    for (int format = 0; format < trackGroups.get(trackGroup).length; format++) {
-                        if (MimeTypes.isVideo(trackGroups.get(trackGroup).getFormat(format).sampleMimeType)) {
-                            videoTrackCounter++;
+                var videoTrackCounter = 0
+                for (trackGroup in trackGroups.indices) {
+                    for (format in 0 until trackGroups[trackGroup].length) {
+                        if (MimeTypes.isVideo(trackGroups[trackGroup].getTrackFormat(format).sampleMimeType)) {
+                            videoTrackCounter++
                         }
                         if (videoTrackCounter > 1) {
-                            break;
+                            break
                         }
                     }
                     if (videoTrackCounter > 1) {
-                        break;
+                        break
                     }
                 }
                 // If we have enough video tracks to have a quality button, set it up.
                 if (videoTrackCounter > 1) {
-                    hq.setVisibility(VISIBLE);
-
-                    hq.setOnClickListener((v) -> {
-                        trackSelector.setParameters(trackSelector.buildUponParameters()
+                    hq.visibility = VISIBLE
+                    hq.setOnClickListener { v: View? ->
+                        trackSelector!!.setParameters(
+                            trackSelector!!.buildUponParameters()
                                 .setForceLowestBitrate(false)
-                                .setForceHighestSupportedBitrate(true));
-                        hq.setVisibility(GONE);
-                    });
+                                .setForceHighestSupportedBitrate(true)
+                        )
+                        hq.visibility = GONE
+                    }
                 }
             }
-        });
+        })
     }
 
-    public enum VideoType {
-        STANDARD,
-        DASH
+    enum class VideoType {
+        STANDARD, DASH
     }
 
     /**
      * Helps manage audio focus
      */
-    private class AudioFocusHelper implements AudioManager.OnAudioFocusChangeListener {
-        private AudioManager manager;
-        private boolean wasPlaying;
-        private AudioFocusRequestCompat request;
+    private inner class AudioFocusHelper internal constructor(private val manager: AudioManager?) :
+        AudioManager.OnAudioFocusChangeListener {
+        private var wasPlaying = false
+        private var request: AudioFocusRequestCompat? = null
 
-        AudioFocusHelper(AudioManager manager) {
-            this.manager = manager;
-
+        init {
             if (request == null) {
-                AudioAttributesCompat audioAttributes = new AudioAttributesCompat.Builder()
-                        .setContentType(AudioAttributesCompat.CONTENT_TYPE_MOVIE)
-                        .setUsage(AudioAttributesCompat.USAGE_MEDIA)
-                        .build();
-                request = new AudioFocusRequestCompat.Builder(AudioManagerCompat.AUDIOFOCUS_GAIN_TRANSIENT)
-                        //.setAcceptsDelayedFocusGain(false)
+                val audioAttributes = AudioAttributesCompat.Builder()
+                    .setContentType(AudioAttributesCompat.CONTENT_TYPE_MOVIE)
+                    .setUsage(AudioAttributesCompat.USAGE_MEDIA)
+                    .build()
+                request =
+                    AudioFocusRequestCompat.Builder(AudioManagerCompat.AUDIOFOCUS_GAIN_TRANSIENT) //.setAcceptsDelayedFocusGain(false)
                         .setAudioAttributes(audioAttributes)
                         .setOnAudioFocusChangeListener(this)
                         .setWillPauseWhenDucked(true)
-                        .build();
+                        .build()
             }
         }
 
         /**
          * Lose audio focus
          */
-        void loseFocus() {
-            AudioManagerCompat.abandonAudioFocusRequest(manager, request);
+        fun loseFocus() {
+            AudioManagerCompat.abandonAudioFocusRequest(manager!!, request!!)
         }
 
         /**
          * Gain audio focus
          */
-        void gainFocus() {
-            AudioManagerCompat.requestAudioFocus(manager, request);
+        fun gainFocus() {
+            AudioManagerCompat.requestAudioFocus(manager!!, request!!)
         }
 
-        @Override
-        public void onAudioFocusChange(int focusChange) {
+        override fun onAudioFocusChange(focusChange: Int) {
             // Pause on audiofocus loss, play on gain
             if (focusChange == AudioManager.AUDIOFOCUS_LOSS) {
-                wasPlaying = player.getPlayWhenReady();
-                player.pause();
+                wasPlaying = player!!.playWhenReady
+                player!!.pause()
             } else if (focusChange == AudioManager.AUDIOFOCUS_GAIN) {
-                player.setPlayWhenReady(wasPlaying);
+                player!!.playWhenReady = wasPlaying
             }
         }
     }
 
-    static class PlayerUIFadeInAnimation extends AnimationSet {
-        private PlayerControlView animationView;
-        private boolean toVisible;
-
-        PlayerUIFadeInAnimation(PlayerControlView view, boolean toVisible, long duration) {
-            super(false);
-            this.toVisible = toVisible;
-            this.animationView = view;
-
-            float startAlpha = toVisible ? 0 : 1;
-            float endAlpha = toVisible ? 1 : 0;
-
-            AlphaAnimation alphaAnimation = new AlphaAnimation(startAlpha, endAlpha);
-            alphaAnimation.setDuration(duration);
-
-            addAnimation(alphaAnimation);
-            setAnimationListener(new PlayerUIFadeInAnimation.Listener());
+    internal class PlayerUIFadeInAnimation(
+        private val animationView: PlayerControlView,
+        private val toVisible: Boolean,
+        duration: Long
+    ) : AnimationSet(false) {
+        init {
+            val startAlpha = (if (toVisible) 0 else 1).toFloat()
+            val endAlpha = (if (toVisible) 1 else 0).toFloat()
+            val alphaAnimation = AlphaAnimation(startAlpha, endAlpha)
+            alphaAnimation.duration = duration
+            addAnimation(alphaAnimation)
+            setAnimationListener(Listener())
         }
 
-        private class Listener implements AnimationListener {
-
-            @Override
-            public void onAnimationStart(Animation animation) {
-                animationView.show();
+        private inner class Listener : AnimationListener {
+            override fun onAnimationStart(animation: Animation) {
+                animationView.show()
             }
 
-            @Override
-            public void onAnimationEnd(Animation animation) {
-                if (toVisible)
-                    animationView.show();
-                else
-                    animationView.hide();
+            override fun onAnimationEnd(animation: Animation) {
+                if (toVisible) animationView.show() else animationView.hide()
             }
 
-            @Override
-            public void onAnimationRepeat(Animation animation) {
+            override fun onAnimationRepeat(animation: Animation) {
                 // Purposefully left blank
             }
         }

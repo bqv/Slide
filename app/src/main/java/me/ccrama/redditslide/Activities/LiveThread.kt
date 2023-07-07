@@ -1,455 +1,427 @@
-package me.ccrama.redditslide.Activities;
+package me.ccrama.redditslide.Activities
 
-import android.content.Context;
-import android.content.Intent;
-import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
-import android.os.AsyncTask;
-import android.os.Bundle;
-import android.view.Gravity;
-import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
-import android.view.View;
-import android.view.ViewGroup;
-import android.webkit.WebChromeClient;
-import android.webkit.WebView;
-import android.widget.HorizontalScrollView;
-import android.widget.ImageView;
-import android.widget.TextView;
+import android.R
+import android.content.Context
+import android.content.DialogInterface
+import android.content.Intent
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
+import android.os.AsyncTask
+import android.os.Bundle
+import android.view.Gravity
+import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuItem
+import android.view.View
+import android.view.ViewGroup
+import android.webkit.WebChromeClient
+import android.webkit.WebView
+import android.widget.HorizontalScrollView
+import android.widget.ImageView
+import android.widget.TextView
+import androidx.appcompat.app.AlertDialog
+import androidx.drawerlayout.widget.DrawerLayout
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.afollestad.materialdialogs.MaterialDialog
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.google.gson.Gson
+import com.neovisionaries.ws.client.WebSocket
+import com.neovisionaries.ws.client.WebSocketAdapter
+import com.neovisionaries.ws.client.WebSocketException
+import com.neovisionaries.ws.client.WebSocketFactory
+import ltd.ucode.slide.App
+import ltd.ucode.slide.Authentication
+import ltd.ucode.slide.ContentType.Companion.hostContains
+import ltd.ucode.slide.R.color
+import ltd.ucode.slide.R.id
+import ltd.ucode.slide.R.layout
+import ltd.ucode.slide.R.string
+import ltd.ucode.slide.ui.BaseActivityAnim
+import me.ccrama.redditslide.Activities.LiveThread.PaginatorAdapter.ItemHolder
+import me.ccrama.redditslide.SpoilerRobotoTextView
+import me.ccrama.redditslide.Visuals.Palette
+import me.ccrama.redditslide.util.CompatUtil
+import me.ccrama.redditslide.util.HttpUtil
+import me.ccrama.redditslide.util.LinkUtil
+import me.ccrama.redditslide.util.LogUtil
+import me.ccrama.redditslide.util.SubmissionParser
+import me.ccrama.redditslide.util.TimeUtils
+import me.ccrama.redditslide.util.TwitterObject
+import me.ccrama.redditslide.views.CommentOverflow
+import me.ccrama.redditslide.views.SidebarLayout
+import net.dean.jraw.managers.LiveThreadManager
+import net.dean.jraw.models.LiveThread
+import net.dean.jraw.models.LiveUpdate
+import net.dean.jraw.paginators.LiveThreadPaginator
+import okhttp3.OkHttpClient
+import java.io.IOException
+import java.net.URI
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
-import androidx.drawerlayout.widget.DrawerLayout;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
+class LiveThread() : BaseActivityAnim() {
+    var thread: LiveThread? = null
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            R.id.home -> {
+                onBackPressed()
+                return true
+            }
 
-import com.afollestad.materialdialogs.MaterialDialog;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectReader;
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
-import com.neovisionaries.ws.client.WebSocket;
-import com.neovisionaries.ws.client.WebSocketAdapter;
-import com.neovisionaries.ws.client.WebSocketException;
-import com.neovisionaries.ws.client.WebSocketFactory;
+            id.info -> {
+                (findViewById<View>(id.drawer_layout) as DrawerLayout).openDrawer(
+                    Gravity.RIGHT
+                )
+                return true
+            }
 
-import net.dean.jraw.managers.LiveThreadManager;
-import net.dean.jraw.models.LiveUpdate;
-import net.dean.jraw.paginators.LiveThreadPaginator;
-
-import java.io.IOException;
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-
-import ltd.ucode.slide.Authentication;
-import ltd.ucode.slide.ContentType;
-import ltd.ucode.slide.R;
-import ltd.ucode.slide.App;
-import ltd.ucode.slide.ui.BaseActivityAnim;
-import me.ccrama.redditslide.SpoilerRobotoTextView;
-import me.ccrama.redditslide.views.CommentOverflow;
-import me.ccrama.redditslide.views.SidebarLayout;
-import me.ccrama.redditslide.Visuals.Palette;
-import me.ccrama.redditslide.util.CompatUtil;
-import me.ccrama.redditslide.util.HttpUtil;
-import me.ccrama.redditslide.util.LinkUtil;
-import me.ccrama.redditslide.util.LogUtil;
-import me.ccrama.redditslide.util.SubmissionParser;
-import me.ccrama.redditslide.util.TimeUtils;
-import me.ccrama.redditslide.util.TwitterObject;
-import okhttp3.OkHttpClient;
-
-public class LiveThread extends BaseActivityAnim {
-
-    public static final String EXTRA_LIVEURL = "liveurl";
-    public net.dean.jraw.models.LiveThread thread;
-
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case android.R.id.home:
-                onBackPressed();
-                return true;
-            case R.id.info:
-                ((DrawerLayout) findViewById(R.id.drawer_layout)).openDrawer(Gravity.RIGHT);
-                return true;
-            default:
-                return false;
+            else -> return false
         }
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.settings_info, menu);
-        return true;
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        val inflater = menuInflater
+        inflater.inflate(ltd.ucode.slide.R.menu.settings_info, menu)
+        return true
     }
 
-    public RecyclerView baseRecycler;
-
-    public String term;
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
+    var baseRecycler: RecyclerView? = null
+    var term: String? = null
+    override fun onDestroy() {
+        super.onDestroy()
         //todo finish
     }
 
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        overrideSwipeFromAnywhere();
-        getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-        getWindow().getDecorView().setBackground(null);
-        super.onCreate(savedInstanceState);
-
-        applyColorTheme();
-
-        setContentView(R.layout.activity_livethread);
-        baseRecycler = (RecyclerView) findViewById(R.id.content_view);
-        baseRecycler.setLayoutManager(new LinearLayoutManager(LiveThread.this));
-        new AsyncTask<Void, Void, Void>() {
-            MaterialDialog d;
-
-            @Override
-            public void onPreExecute() {
-                d = new MaterialDialog.Builder(LiveThread.this)
-                        .title(R.string.livethread_loading_title)
-                        .content(R.string.misc_please_wait)
-                        .progress(true, 100)
-                        .cancelable(false)
-                        .show();
+    public override fun onCreate(savedInstanceState: Bundle?) {
+        overrideSwipeFromAnywhere()
+        window.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+        window.decorView.background = null
+        super.onCreate(savedInstanceState)
+        applyColorTheme()
+        setContentView(layout.activity_livethread)
+        baseRecycler = findViewById<View>(id.content_view) as RecyclerView
+        baseRecycler!!.layoutManager = LinearLayoutManager(this@LiveThread)
+        object : AsyncTask<Void?, Void?, Void?>() {
+            var d: MaterialDialog? = null
+            public override fun onPreExecute() {
+                d = MaterialDialog(this@LiveThread)
+                    .title(string.livethread_loading_title)
+                    .message(string.misc_please_wait)
+                    //.progress(true, 100)
+                    .cancelable(false)
+                    .also { it.show() }
             }
 
-            @Override
-            protected Void doInBackground(Void... params) {
+            override fun doInBackground(vararg params: Void?): Void? {
                 try {
-                    thread = new LiveThreadManager(Authentication.reddit).get(getIntent().getStringExtra(EXTRA_LIVEURL));
-                } catch(Exception e){
-
+                    thread = LiveThreadManager(Authentication.reddit)[intent.getStringExtra(
+                        EXTRA_LIVEURL
+                    )]
+                } catch (e: Exception) {
                 }
-                return null;
+                return null
             }
 
-            @Override
-            public void onPostExecute(Void aVoid) {
-                if(thread == null){
-                    new AlertDialog.Builder(LiveThread.this)
-                            .setTitle(R.string.livethread_not_found)
-                            .setMessage(R.string.misc_please_try_again_soon)
-                            .setPositiveButton(R.string.btn_ok, (dialog, which) ->
-                                    finish())
-                            .setOnDismissListener(dialog ->
-                                    finish())
-                            .setCancelable(false)
-                            .show();
+            public override fun onPostExecute(aVoid: Void?) {
+                if (thread == null) {
+                    AlertDialog.Builder(this@LiveThread)
+                        .setTitle(string.livethread_not_found)
+                        .setMessage(string.misc_please_try_again_soon)
+                        .setPositiveButton(string.btn_ok) { dialog: DialogInterface?, which: Int -> finish() }
+                        .setOnDismissListener { dialog: DialogInterface? -> finish() }
+                        .setCancelable(false)
+                        .show()
                 } else {
-                    d.dismiss();
-                    setupAppBar(R.id.toolbar, thread.getTitle(), true, false);
-                    (findViewById(R.id.toolbar)).setBackgroundResource(R.color.md_red_300);
-                    (findViewById(R.id.header_sub)).setBackgroundResource(R.color.md_red_300);
-                    themeSystemBars(Palette.getDarkerColor(getResources().getColor(R.color.md_red_300)));
-                    setRecentBar(getString(R.string.livethread_recents_title, thread.getTitle()), getResources().getColor(R.color.md_red_300));
-
-                    doPaginator();
+                    d!!.dismiss()
+                    setupAppBar(id.toolbar, thread!!.title, enableUpButton = true, colorToolbar = false)
+                    (findViewById<View>(id.toolbar)).setBackgroundResource(color.md_red_300)
+                    (findViewById<View>(id.header_sub)).setBackgroundResource(color.md_red_300)
+                    themeSystemBars(Palette.getDarkerColor(resources.getColor(color.md_red_300)))
+                    setRecentBar(
+                        getString(
+                            string.livethread_recents_title,
+                            thread!!.title
+                        ), resources.getColor(color.md_red_300)
+                    )
+                    doPaginator()
                 }
             }
-        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR)
     }
 
-    ArrayList<LiveUpdate> updates;
-    LiveThreadPaginator paginator;
+    var updates: ArrayList<LiveUpdate>? = null
+    var paginator: LiveThreadPaginator? = null
 
-    public void doPaginator() {
-        new AsyncTask<Void, Void, Void>() {
-            @Override
-            protected Void doInBackground(Void... params) {
-                paginator = new LiveThreadManager(Authentication.reddit).stream(thread);
-                updates = new ArrayList<>(paginator.accumulateMerged(5));
-                return null;
+    fun doPaginator() {
+        object : AsyncTask<Void?, Void?, Void?>() {
+            override fun doInBackground(vararg params: Void?): Void? {
+                paginator = LiveThreadManager(Authentication.reddit).stream(thread)
+                updates = ArrayList(paginator!!.accumulateMerged(5))
+                return null
             }
 
-            @Override
-            public void onPostExecute(Void aVoid) {
-
-                doLiveThreadUpdates();
+            public override fun onPostExecute(aVoid: Void?) {
+                doLiveThreadUpdates()
             }
-        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR)
     }
 
-    public void doLiveThreadUpdates() {
-        final PaginatorAdapter adapter = new PaginatorAdapter(this);
-        baseRecycler.setAdapter(adapter);
-        doLiveSidebar();
-        if (thread.getWebsocketUrl() != null && !thread.getWebsocketUrl().isEmpty()) {
-            new AsyncTask<Void, Void, Void>() {
-                @Override
-                protected Void doInBackground(Void... params) {
-                    final ObjectReader o = new ObjectMapper().reader();
-
+    fun doLiveThreadUpdates() {
+        val adapter = PaginatorAdapter(this)
+        baseRecycler!!.adapter = adapter
+        doLiveSidebar()
+        if (thread!!.websocketUrl != null && thread!!.websocketUrl.isNotEmpty()) {
+            object : AsyncTask<Void?, Void?, Void?>() {
+                override fun doInBackground(vararg params: Void?): Void? {
+                    val o = ObjectMapper().reader()
                     try {
-                        WebSocket ws = new WebSocketFactory().createSocket(thread.getWebsocketUrl());
-                        ws.addListener(new WebSocketAdapter() {
-                            @Override
-                            public void onTextMessage(
-                                    WebSocket websocket, String s) {
-                                LogUtil.v("Recieved" + s);
+                        val ws = WebSocketFactory().createSocket(
+                            thread!!.websocketUrl
+                        )
+                        ws.addListener(object : WebSocketAdapter() {
+                            override fun onTextMessage(
+                                websocket: WebSocket, s: String
+                            ) {
+                                LogUtil.v("Recieved$s")
                                 if (s.contains("\"type\": \"update\"")) {
                                     try {
-                                        LiveUpdate u = new LiveUpdate(o.readTree(s).get("payload").get("data"));
-                                        updates.add(0, u);
-                                        runOnUiThread(new Runnable() {
-                                            @Override
-                                            public void run() {
-                                                adapter.notifyItemInserted(0);
-                                                baseRecycler.smoothScrollToPosition(0);
-                                            }
-                                        });
-                                    } catch (IOException e) {
-                                        e.printStackTrace();
+                                        val u = LiveUpdate(o.readTree(s)["payload"]["data"])
+                                        updates!!.add(0, u)
+                                        runOnUiThread(Runnable {
+                                            adapter.notifyItemInserted(0)
+                                            baseRecycler!!.smoothScrollToPosition(0)
+                                        })
+                                    } catch (e: IOException) {
+                                        e.printStackTrace()
                                     }
                                 } else if (s.contains("embeds_ready")) {
-                                    String node = updates.get(0).getDataNode().toString();
-                                    LogUtil.v("Getting");
+                                    var node = updates!![0].dataNode.toString()
+                                    LogUtil.v("Getting")
                                     try {
-                                        node = node.replace("\"embeds\":[]", "\"embeds\":" + o.readTree(s).get("payload").get("media_embeds").toString());
-                                        LiveUpdate u = new LiveUpdate(o.readTree(node));
-                                        updates.set(0, u);
-                                        runOnUiThread(new Runnable() {
-                                            @Override
-                                            public void run() {
-                                                adapter.notifyItemChanged(0);
-                                            }
-                                        });
-                                    } catch (Exception e) {
-                                        e.printStackTrace();
+                                        node = node.replace(
+                                            "\"embeds\":[]",
+                                            "\"embeds\":" + o.readTree(s)["payload"]["media_embeds"].toString()
+                                        )
+                                        val u = LiveUpdate(o.readTree(node))
+                                        updates!![0] = u
+                                        runOnUiThread { adapter.notifyItemChanged(0) }
+                                    } catch (e: Exception) {
+                                        e.printStackTrace()
                                     }
-
-                                } /* todoelse if(s.contains("delete")){
+                                } /* todo else if(s.contains("delete")){
                                     updates.remove(0);
                                     adapter.notifyItemRemoved(0);
                                 }*/
                             }
-                        });
-                        ws.connect();
-                    } catch (IOException | WebSocketException e) {
-                        e.printStackTrace();
+                        })
+                        ws.connect()
+                    } catch (e: IOException) {
+                        e.printStackTrace()
+                    } catch (e: WebSocketException) {
+                        e.printStackTrace()
                     }
-                    return null;
+                    return null
                 }
-            }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-
+            }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR)
         }
     }
 
-    public class PaginatorAdapter extends RecyclerView.Adapter<PaginatorAdapter.ItemHolder> {
+    inner class PaginatorAdapter(context: Context?) : RecyclerView.Adapter<ItemHolder>() {
+        private val layoutInflater: LayoutInflater
 
-        private LayoutInflater layoutInflater;
-
-        public PaginatorAdapter(Context context) {
-            layoutInflater = LayoutInflater.from(context);
+        init {
+            layoutInflater = LayoutInflater.from(context)
         }
 
-        @Override
-        public PaginatorAdapter.ItemHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            View itemView = layoutInflater.inflate(R.layout.live_list_item, parent, false);
-            return new ItemHolder(itemView);
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ItemHolder {
+            val itemView =
+                layoutInflater.inflate(layout.live_list_item, parent, false)
+            return ItemHolder(itemView)
         }
 
-        @Override
-        public void onBindViewHolder(final PaginatorAdapter.ItemHolder holder, int position) {
-            final LiveUpdate u = updates.get(position);
-
-            holder.title.setText("/u/" + u.getAuthor() + " " + TimeUtils.getTimeAgo(u.getCreated().getTime(), LiveThread.this));
-            if (u.getBody().isEmpty()) {
-                holder.info.setVisibility(View.GONE);
+        override fun onBindViewHolder(holder: ItemHolder, position: Int) {
+            val u = updates!![position]
+            holder.title.text =
+                "/u/" + u.author + " " + TimeUtils.getTimeAgo(u.created.time, this@LiveThread)
+            if (u.body.isEmpty()) {
+                holder.info.visibility = View.GONE
             } else {
-                holder.info.setVisibility(View.VISIBLE);
-                holder.info.setTextHtml(CompatUtil.fromHtml(u.getDataNode().get("body_html").asText()), "NO SUBREDDIT");
+                holder.info.visibility = View.VISIBLE
+                holder.info.setTextHtml(
+                    CompatUtil.fromHtml(u.dataNode["body_html"].asText()),
+                    "NO SUBREDDIT"
+                )
             }
-            holder.title.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    Intent i = new Intent(LiveThread.this, Profile.class);
-                    i.putExtra(Profile.EXTRA_PROFILE, u.getAuthor());
-                    startActivity(i);
-                }
-            });
-            holder.imageArea.setVisibility(View.GONE);
-            holder.twitterArea.setVisibility(View.GONE);
-            holder.twitterArea.stopLoading();
-            if (u.getEmbeds().isEmpty()) {
-                holder.go.setVisibility(View.GONE);
+            holder.title.setOnClickListener {
+                val i = Intent(this@LiveThread, Profile::class.java)
+                i.putExtra(Profile.EXTRA_PROFILE, u.author)
+                startActivity(i)
+            }
+            holder.imageArea.visibility = View.GONE
+            holder.twitterArea.visibility = View.GONE
+            holder.twitterArea.stopLoading()
+            if (u.embeds.isEmpty()) {
+                holder.go.visibility = View.GONE
             } else {
-                final String url = u.getEmbeds().get(0).getUrl();
-                holder.go.setVisibility(View.VISIBLE);
-                holder.go.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        Intent i = new Intent(LiveThread.this, Website.class);
-                        i.putExtra(LinkUtil.EXTRA_URL, url);
-                        startActivity(i);
-                    }
-                });
-                final String host = URI.create(url).getHost().toLowerCase(Locale.ENGLISH);
-
-                if (ContentType.hostContains(host, "imgur.com")) {
-                    LogUtil.v("Imgur");
-                    holder.imageArea.setVisibility(View.VISIBLE);
-                    holder.imageArea.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            holder.go.callOnClick();
-                        }
-                    });
-                    ((App) getApplicationContext()).getImageLoader().displayImage(url, holder.imageArea);
-                } else if (ContentType.hostContains(host, "twitter.com")) {
-                    LogUtil.v("Twitter");
-
-                    holder.twitterArea.setVisibility(View.VISIBLE);
-                    new LoadTwitter(holder.twitterArea, url).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                val url = u.embeds[0].url
+                holder.go.visibility = View.VISIBLE
+                holder.go.setOnClickListener {
+                    val i = Intent(this@LiveThread, Website::class.java)
+                    i.putExtra(LinkUtil.EXTRA_URL, url)
+                    startActivity(i)
+                }
+                val host = URI.create(url).host.lowercase()
+                if (hostContains(host, "imgur.com")) {
+                    LogUtil.v("Imgur")
+                    holder.imageArea.visibility = View.VISIBLE
+                    holder.imageArea.setOnClickListener { holder.go.callOnClick() }
+                    (applicationContext as App).imageLoader!!.displayImage(url, holder.imageArea)
+                } else if (hostContains(host, "twitter.com")) {
+                    LogUtil.v("Twitter")
+                    holder.twitterArea.visibility = View.VISIBLE
+                    LoadTwitter(
+                        holder.twitterArea,
+                        url
+                    ).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR)
                 }
             }
-
         }
 
-        public class LoadTwitter extends AsyncTask<String, Void, Void> {
+        inner class LoadTwitter(private val view: WebView, var url: String) :
+            AsyncTask<String?, Void?, Void?>() {
+            private val client: OkHttpClient?
+            private val gson: Gson
+            var twitter: TwitterObject? = null
 
-            private OkHttpClient client;
-            private Gson gson;
-            String url;
-            private WebView view;
-            TwitterObject twitter;
-
-            public LoadTwitter(@NonNull WebView view, @NonNull String url) {
-                this.view = view;
-                this.url = url;
-                client = App.client;
-                gson = new Gson();
+            init {
+                client = App.client
+                gson = Gson()
             }
 
-            public void parseJson() {
+            fun parseJson() {
                 try {
-                    JsonObject result = HttpUtil.getJsonObject(client, gson, "https://publish.twitter.com/oembed?url=" + url, null);
-                    LogUtil.v("Got " + CompatUtil.fromHtml(result.toString()));
-                    twitter = new ObjectMapper().readValue(result.toString(), TwitterObject.class);
-                } catch (Exception e) {
-                    e.printStackTrace();
+                    val result = HttpUtil.getJsonObject(
+                        client,
+                        gson,
+                        "https://publish.twitter.com/oembed?url=$url",
+                        null
+                    )
+                    LogUtil.v("Got " + CompatUtil.fromHtml(result.toString()))
+                    twitter = ObjectMapper().readValue(result.toString(), TwitterObject::class.java)
+                } catch (e: Exception) {
+                    e.printStackTrace()
                 }
             }
 
-            @Override
-            protected Void doInBackground(final String... sub) {
-                parseJson();
-                return null;
+            override fun doInBackground(vararg sub: String?): Void? {
+                parseJson()
+                return null
             }
 
-            @Override
-            public void onPostExecute(Void aVoid) {
-                if (twitter != null && twitter.getHtml() != null) {
-                    view.loadData(twitter.getHtml().replace("//platform.twitter", "https://platform.twitter"), "text/html", "UTF-8");
+            public override fun onPostExecute(aVoid: Void?) {
+                if (twitter != null && twitter!!.html != null) {
+                    view.loadData(
+                        twitter!!.html.replace(
+                            "//platform.twitter",
+                            "https://platform.twitter"
+                        ), "text/html", "UTF-8"
+                    )
                 }
             }
-
-
         }
 
-
-        @Override
-        public int getItemCount() {
-            return updates.size();
+        override fun getItemCount(): Int {
+            return updates!!.size
         }
 
-        public class ItemHolder extends RecyclerView.ViewHolder {
+        inner class ItemHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+            var title: TextView
+            var info: SpoilerRobotoTextView
+            var imageArea: ImageView
+            var twitterArea: WebView
+            var go: View
 
-            TextView title;
-            SpoilerRobotoTextView info;
-            ImageView imageArea;
-            WebView twitterArea;
-            View go;
-
-
-            public ItemHolder(View itemView) {
-                super(itemView);
-                title = itemView.findViewById(R.id.title);
-                info = itemView.findViewById(R.id.body);
-                go = itemView.findViewById(R.id.go);
-                imageArea = itemView.findViewById(R.id.image_area);
-                twitterArea = itemView.findViewById(R.id.twitter_area);
-                twitterArea.setWebChromeClient(new WebChromeClient());
-                twitterArea.getSettings().setJavaScriptEnabled(true);
-                twitterArea.setBackgroundColor(Color.TRANSPARENT);
-                twitterArea.setLayerType(WebView.LAYER_TYPE_SOFTWARE, null);
-
+            init {
+                title = itemView.findViewById(id.title)
+                info = itemView.findViewById(id.body)
+                go = itemView.findViewById(id.go)
+                imageArea = itemView.findViewById(id.image_area)
+                twitterArea = itemView.findViewById(id.twitter_area)
+                twitterArea.webChromeClient = WebChromeClient()
+                twitterArea.settings.javaScriptEnabled = true
+                twitterArea.setBackgroundColor(Color.TRANSPARENT)
+                twitterArea.setLayerType(WebView.LAYER_TYPE_SOFTWARE, null)
             }
-
         }
     }
 
-    public void doLiveSidebar() {
-        findViewById(R.id.loader).setVisibility(View.GONE);
-
-        final View dialoglayout = findViewById(R.id.sidebarsub);
-
-        dialoglayout.findViewById(R.id.sub_stuff).setVisibility(View.GONE);
-
-        ((TextView) dialoglayout.findViewById(R.id.sub_infotitle)).setText((thread.getState() ? "LIVE: " : "") + thread.getTitle());
-        ((TextView) dialoglayout.findViewById(R.id.active_users)).setText(thread.getLocalizedViewerCount() + " viewing");
-        ((TextView) dialoglayout.findViewById(R.id.active_users)).setText(thread.getLocalizedViewerCount());
-
-        {
-            final String text = thread.getDataNode().get("resources_html").asText();
-            final SpoilerRobotoTextView body = (SpoilerRobotoTextView) findViewById(R.id.sidebar_text);
-            CommentOverflow overflow = (CommentOverflow) findViewById(R.id.commentOverflow);
-            setViews(text, "none", body, overflow);
+    fun doLiveSidebar() {
+        findViewById<View>(id.loader).visibility = View.GONE
+        val dialoglayout = findViewById<View>(id.sidebarsub)
+        dialoglayout.findViewById<View>(id.sub_stuff).visibility = View.GONE
+        (dialoglayout.findViewById<View>(id.sub_infotitle) as TextView).text =
+            (if (thread!!.state) "LIVE: " else "") + thread!!.title
+        (dialoglayout.findViewById<View>(id.active_users) as TextView).text =
+            thread!!.localizedViewerCount + " viewing"
+        (dialoglayout.findViewById<View>(id.active_users) as TextView).text =
+            thread!!.localizedViewerCount
+        run {
+            val text: String = thread!!.getDataNode().get("resources_html").asText()
+            val body: SpoilerRobotoTextView =
+                findViewById<View>(id.sidebar_text) as SpoilerRobotoTextView
+            val overflow: CommentOverflow =
+                findViewById<View>(id.commentOverflow) as CommentOverflow
+            setViews(text, "none", body, overflow)
         }
-        {
-            final String text = thread.getDataNode().get("description_html").asText();
-            final SpoilerRobotoTextView body = (SpoilerRobotoTextView) findViewById(R.id.sub_title);
-            CommentOverflow overflow = (CommentOverflow) findViewById(R.id.sub_title_overflow);
-            setViews(text, "none", body, overflow);
+        run {
+            val text: String = thread!!.getDataNode().get("description_html").asText()
+            val body: SpoilerRobotoTextView =
+                findViewById<View>(id.sub_title) as SpoilerRobotoTextView
+            val overflow: CommentOverflow =
+                findViewById<View>(id.sub_title_overflow) as CommentOverflow
+            setViews(text, "none", body, overflow)
         }
     }
 
-    private void setViews(String rawHTML, String subreddit, SpoilerRobotoTextView firstTextView, CommentOverflow commentOverflow) {
+    private fun setViews(
+        rawHTML: String,
+        subreddit: String,
+        firstTextView: SpoilerRobotoTextView,
+        commentOverflow: CommentOverflow
+    ) {
         if (rawHTML.isEmpty()) {
-            return;
+            return
         }
-
-        List<String> blocks = SubmissionParser.getBlocks(rawHTML);
-
-        int startIndex = 0;
+        val blocks = SubmissionParser.getBlocks(rawHTML)
+        var startIndex = 0
         // the <div class="md"> case is when the body contains a table or code block first
-        if (!blocks.get(0).equals("<div class=\"md\">")) {
-            firstTextView.setVisibility(View.VISIBLE);
-            firstTextView.setTextHtml(blocks.get(0), subreddit);
-            startIndex = 1;
+        if (blocks.get(0) != "<div class=\"md\">") {
+            firstTextView.visibility = View.VISIBLE
+            firstTextView.setTextHtml(blocks[0], subreddit)
+            startIndex = 1
         } else {
-            firstTextView.setText("");
-            firstTextView.setVisibility(View.GONE);
+            firstTextView.text = ""
+            firstTextView.visibility = View.GONE
         }
-
-        if (blocks.size() > 1) {
+        if (blocks.size > 1) {
             if (startIndex == 0) {
-                commentOverflow.setViews(blocks, subreddit);
+                commentOverflow.setViews(blocks, subreddit)
             } else {
-                commentOverflow.setViews(blocks.subList(startIndex, blocks.size()), subreddit);
+                commentOverflow.setViews(blocks.subList(startIndex, blocks.size), subreddit)
             }
-            SidebarLayout sidebar = (SidebarLayout) findViewById(R.id.drawer_layout);
-            for (int i = 0; i < commentOverflow.getChildCount(); i++) {
-                View maybeScrollable = commentOverflow.getChildAt(i);
-                if (maybeScrollable instanceof HorizontalScrollView) {
-                    sidebar.addScrollable(maybeScrollable);
+            val sidebar = findViewById<View>(id.drawer_layout) as SidebarLayout
+            for (i in 0 until commentOverflow.childCount) {
+                val maybeScrollable = commentOverflow.getChildAt(i)
+                if (maybeScrollable is HorizontalScrollView) {
+                    sidebar.addScrollable(maybeScrollable)
                 }
             }
         } else {
-            commentOverflow.removeAllViews();
+            commentOverflow.removeAllViews()
         }
     }
 
+    companion object {
+        @JvmField
+        val EXTRA_LIVEURL = "liveurl"
+    }
 }

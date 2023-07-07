@@ -22,7 +22,7 @@ import ltd.ucode.slide.data.IUser
         parentColumns = ["rowid"],
         childColumns = ["instance_rowid"])
 ])
-data class User(
+data class Group(
     @PrimaryKey(autoGenerate = true) @ColumnInfo(name = "rowid") val rowId: Int = -1,
     override val name: String,
     @ColumnInfo(name = "instance_rowid") val instanceRowId: Int, // home instance
@@ -67,8 +67,8 @@ data class User(
     )
 
     companion object {
-        fun from(other: PersonView, instance: Site): User {
-            return User(name = other.person.name,
+        fun from(other: PersonView, instance: Site): Group {
+            return Group(name = other.person.name,
                 instanceRowId = instance.rowId,
                 personId = other.person.id.id,
                 uri = other.person.actorId)
@@ -77,7 +77,7 @@ data class User(
         }
     }
 
-    fun copy(other: Person): User {
+    fun copy(other: Person): Group {
         return copy(
             personId = other.id.id,
 
@@ -98,7 +98,7 @@ data class User(
         )
     }
 
-    fun copy(other: PersonAggregates): User {
+    fun copy(other: PersonAggregates): Group {
         return copy(
             commentCount = other.commentCount,
             commentScore = other.commentScore,

@@ -1,114 +1,95 @@
-package me.ccrama.redditslide.ImgurAlbum;
+package me.ccrama.redditslide.ImgurAlbum
 
-import android.content.Context;
-import android.net.Uri;
-import android.os.AsyncTask;
+import android.content.Context
+import android.net.Uri
+import android.os.AsyncTask
+import com.afollestad.materialdialogs.MaterialDialog
+import ltd.ucode.slide.App
+import me.ccrama.redditslide.util.ImgurUtils
+import me.ccrama.redditslide.util.ProgressRequestBody
+import okhttp3.MediaType
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.MultipartBody
+import okhttp3.Request
+import okhttp3.RequestBody
+import okhttp3.Response
+import okio.BufferedSink
+import org.json.JSONObject
+import java.io.IOException
 
-import com.afollestad.materialdialogs.MaterialDialog;
+open class UploadImgurAlbum : AsyncTask<Uri?, Int?, String?>() {
+    @JvmField
+    var finalUrl: String? = null
+    @JvmField
+    var c: Context? = null
+    var totalCount = 0
+    var uploadCount = 0
+    @JvmField
+    var dialog: MaterialDialog? = null
 
-import org.json.JSONObject;
+    override fun doInBackground(vararg sub: Uri?): String? {
+        totalCount = sub.size
+        val client = App.client
+        var albumurl: String
+        run {
+            val request: Request = Request.Builder()
+                .header("Authorization", "Client-ID bef87913eb202e9")
+                .url("https://api.imgur.com/3/album")
+                .post(object : RequestBody() {
+                    override fun contentType(): MediaType? {
+                        return null
+                    }
 
-import java.io.File;
-import java.io.IOException;
-
-import ltd.ucode.slide.App;
-import me.ccrama.redditslide.util.ImgurUtils;
-import me.ccrama.redditslide.util.ProgressRequestBody;
-import okhttp3.MediaType;
-import okhttp3.MultipartBody;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
-import okio.BufferedSink;
-
-public class UploadImgurAlbum extends AsyncTask<Uri, Integer, String> {
-    public String finalUrl;
-    public Context c;
-    public int totalCount;
-    public int uploadCount;
-    public MaterialDialog dialog;
-
-    @Override
-    protected String doInBackground(Uri... sub) {
-        totalCount = sub.length;
-        final OkHttpClient client = App.client;
-
-        String albumurl;
-        {
-            Request request = new Request.Builder().header("Authorization",
-                    "Client-ID bef87913eb202e9")
-                    .url("https://api.imgur.com/3/album")
-                    .post(new RequestBody() {
-                        @Override
-                        public MediaType contentType() {
-                            return null;
-                        }
-
-                        @Override
-                        public void writeTo(BufferedSink sink) {
-                        }
-                    })
-                    .build();
-
-            Response response = null;
+                    override fun writeTo(sink: BufferedSink) {}
+                })
+                .build()
+            var response: Response? = null
             try {
-                response = client.newCall(request).execute();
-
-                if (!response.isSuccessful()) {
-                    throw new IOException("Unexpected code " + response);
+                response = client!!.newCall(request).execute()
+                if (!response.isSuccessful) {
+                    throw IOException("Unexpected code $response")
                 }
-                JSONObject album = new JSONObject(response.body().string());
-                albumurl = album.getJSONObject("data").getString("deletehash");
-                finalUrl = "http://imgur.com/a/" + album.getJSONObject("data").getString("id");
-            } catch (Exception e) {
-                e.printStackTrace();
-                return null;
+                val album = JSONObject(response.body!!.string())
+                albumurl = album.getJSONObject("data").getString("deletehash")
+                finalUrl = "http://imgur.com/a/" + album.getJSONObject("data").getString("id")
+            } catch (e: Exception) {
+                e.printStackTrace()
+                return null
             }
         }
-
         try {
-            MultipartBody.Builder formBodyBuilder =
-                    new MultipartBody.Builder().setType(MultipartBody.FORM);
-            for (Uri uri : sub) {
-                File bitmap = ImgurUtils.createFile(uri, c);
-                formBodyBuilder.addFormDataPart("image", bitmap.getName(),
-                        RequestBody.create(MediaType.parse("image/*"), bitmap));
-                formBodyBuilder.addFormDataPart("album", albumurl);
-                MultipartBody formBody = formBodyBuilder.build();
-
-                ProgressRequestBody body =
-                        new ProgressRequestBody(formBody, this::publishProgress);
-
-                Request request = new Request.Builder().header("Authorization",
-                        "Client-ID bef87913eb202e9")
-                        .url("https://api.imgur.com/3/image")
-                        .post(body)
-                        .build();
-
-                Response response = client.newCall(request).execute();
-                if (!response.isSuccessful()) {
-                    throw new IOException("Unexpected code " + response);
+            val formBodyBuilder = MultipartBody.Builder()
+            for (uri in sub) {
+                val bitmap = ImgurUtils.createFile(uri, c!!)
+                formBodyBuilder.addFormDataPart(
+                    "image", bitmap.name,
+                    RequestBody.create("image/*".toMediaType(), bitmap)
+                )
+                formBodyBuilder.addFormDataPart("album", albumurl)
+                val formBody: MultipartBody = formBodyBuilder.build()
+                val body = ProgressRequestBody(formBody) { values: Int -> publishProgress(values) }
+                val request = Request.Builder()
+                    .header("Authorization", "Client-ID bef87913eb202e9")
+                    .url("https://api.imgur.com/3/image")
+                    .post(body)
+                    .build()
+                val response = client!!.newCall(request).execute()
+                if (!response.isSuccessful) {
+                    throw IOException("Unexpected code $response")
                 }
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
-        return null;
+        return null
     }
 
-    @Override
-    protected void onPreExecute() {
-        super.onPreExecute();
-    }
-
-    @Override
-    protected void onProgressUpdate(Integer... values) {
-        int progress = values[0];
-        if (progress < dialog.getCurrentProgress() || uploadCount == 0) {
-            uploadCount += 1;
-        }
-        dialog.setContent("Image " + uploadCount + "/" + totalCount);
-        dialog.setProgress(progress);
+    override fun onProgressUpdate(vararg values: Int?) {
+        val progress = values[0]!!
+        //if (progress < dialog!!.getCurrentProgress() || uploadCount == 0) {
+        //    uploadCount += 1
+        //}
+        dialog!!.setTitle("Image $uploadCount/$totalCount")
+        //dialog!!.setProgress(progress)
     }
 }

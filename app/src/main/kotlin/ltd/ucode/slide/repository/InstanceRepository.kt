@@ -12,7 +12,7 @@ import ltd.ucode.lemmy.data.type.NodeInfoResult
 import ltd.ucode.lemmy.data.type.jwt.Token
 import ltd.ucode.lemmy.data.value.Addressable
 import ltd.ucode.slide.data.ContentDatabase
-import ltd.ucode.slide.data.entity.Instance
+import ltd.ucode.slide.data.entity.Site
 import okhttp3.OkHttpClient
 import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
@@ -128,11 +128,11 @@ class InstanceRepository @Inject constructor(
         instances.remove(username, instance)
     }
 
-    suspend fun fetchInstanceList(limit: Int? = null): List<Instance> {
+    suspend fun fetchInstanceList(limit: Int? = null): List<Site> {
         val nodeList = FediverseStats.getLemmyServers(userAgent, limit)
             ?.thefederation_node.orEmpty()
 
-        return nodeList.map(Instance::from)
+        return nodeList.map(Site::from)
     }
 
     fun connect(account: String): AccountDataSource {

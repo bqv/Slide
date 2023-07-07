@@ -42,7 +42,7 @@
             android:progress="0" />
     </RelativeLayout>
 
-    <me.ccrama.redditslide.views.SubsamplingScaleImageView
+    <com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView
         android:id="@+id/submission_image"
         android:layout_width="match_parent"
         android:transitionName="large_image"

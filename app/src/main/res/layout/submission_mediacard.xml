@@ -57,7 +57,7 @@
             android:scaleType="centerCrop"
             app:riv_corner_radius="2dp" />
 
-        <me.ccrama.redditslide.views.SubsamplingScaleImageView
+        <com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView
             android:id="@+id/submission_image"
             android:layout_width="match_parent"
             android:layout_height="match_parent"

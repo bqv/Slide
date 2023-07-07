@@ -1,92 +1,79 @@
-package me.ccrama.redditslide.Activities;
+package me.ccrama.redditslide.Activities
 
-import android.content.Intent;
-import android.os.Bundle;
-import android.text.InputType;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
+import android.content.Intent
+import android.os.Bundle
+import android.text.InputType
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentManager
+import androidx.fragment.app.FragmentTransaction
+import com.afollestad.materialdialogs.MaterialDialog
+import com.afollestad.materialdialogs.WhichButton
+import com.afollestad.materialdialogs.actions.getActionButton
+import com.afollestad.materialdialogs.input.getInputField
+import com.afollestad.materialdialogs.input.input
+import ltd.ucode.slide.R
+import ltd.ucode.slide.ui.BaseActivityAnim
+import me.ccrama.redditslide.Fragments.SubredditListView
 
-import androidx.annotation.NonNull;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentTransaction;
-
-import com.afollestad.materialdialogs.DialogAction;
-import com.afollestad.materialdialogs.MaterialDialog;
-
-import ltd.ucode.slide.ui.BaseActivityAnim;
-import me.ccrama.redditslide.Fragments.SubredditListView;
-import ltd.ucode.slide.R;
-
-/**
- * Created by ccrama on 9/17/2015.
- */
-public class SubredditSearch extends BaseActivityAnim {
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.menu_edit, menu);
-        return true;
+class SubredditSearch constructor() : BaseActivityAnim() {
+    public override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        val inflater: MenuInflater = getMenuInflater()
+        inflater.inflate(R.menu.menu_edit, menu)
+        return true
     }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-
-            case android.R.id.home:
-                onBackPressed();
-                return true;
-            case R.id.edit: {
-                new MaterialDialog.Builder(SubredditSearch.this)
-                        .alwaysCallInputCallback()
-                        .inputType(InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS)
-                        .inputRange(3, 100)
-                        .input(getString(R.string.discover_search), term, new MaterialDialog.InputCallback() {
-                            @Override
-                            public void onInput(MaterialDialog dialog, CharSequence input) {
-                                dialog.getActionButton(DialogAction.POSITIVE).setEnabled(input.length() >= 3);
-                            }
-                        })
-                        .positiveText(R.string.search_all)
-                        .onPositive(new MaterialDialog.SingleButtonCallback() {
-                            @Override
-                            public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
-                                Intent inte = new Intent(SubredditSearch.this, SubredditSearch.class);
-                                inte.putExtra("term", dialog.getInputEditText().getText().toString());
-                                SubredditSearch.this.startActivity(inte);
-                                finish();
-                            }
-                        })
-                        .negativeText(R.string.btn_cancel)
-                        .show();
+    public override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.getItemId()) {
+            android.R.id.home -> {
+                onBackPressed()
+                return true
             }
-            return true;
-            default:
-                return false;
+
+            R.id.edit -> {
+                run {
+                    MaterialDialog(this@SubredditSearch)
+                        .input(hintRes = R.string.discover_search, prefill = term,
+                            waitForPositiveButton = false,
+                        inputType = InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS) { dialog: MaterialDialog, input: CharSequence ->
+                            dialog.getActionButton(WhichButton.POSITIVE).isEnabled = input.length >= 3
+                        }
+                        .positiveButton(R.string.search_all) { dialog: MaterialDialog ->
+                            val inte: Intent =
+                                Intent(this@SubredditSearch, SubredditSearch::class.java)
+                            inte.putExtra(
+                                "term",
+                                dialog.getInputField().text.toString()
+                            )
+                            this@SubredditSearch.startActivity(inte)
+                            finish()
+                        }
+                        .negativeButton(R.string.btn_cancel)
+                        .show()
+                }
+                return true
+            }
+
+            else -> return false
         }
     }
 
-    String term;
-
-    @Override
-    public void onCreate(Bundle savedInstance) {
-        super.onCreate(savedInstance);
-        term = getIntent().getExtras().getString("term");
-        applyColorTheme("");
-        setContentView(R.layout.activity_fragmentinner);
-        setupAppBar(R.id.toolbar, term, true, true);
-
-        Fragment f = new SubredditListView();
-        Bundle args = new Bundle();
-        args.putString("id", term);
-        f.setArguments(args);
-        FragmentManager fragmentManager = getSupportFragmentManager();
-        FragmentTransaction fragmentTransaction =
-                fragmentManager.beginTransaction();
-        fragmentTransaction.replace(R.id.fragmentcontent, f);
-        fragmentTransaction.commit();
+    var term: String? = null
+    public override fun onCreate(savedInstance: Bundle?) {
+        super.onCreate(savedInstance)
+        term = intent.extras!!.getString("term")
+        applyColorTheme("")
+        setContentView(R.layout.activity_fragmentinner)
+        setupAppBar(R.id.toolbar, term, enableUpButton = true, colorToolbar = true)
+        val f: Fragment = SubredditListView()
+        val args: Bundle = Bundle()
+        args.putString("id", term)
+        f.arguments = args
+        val fragmentManager: FragmentManager = supportFragmentManager
+        val fragmentTransaction: FragmentTransaction = fragmentManager.beginTransaction()
+        fragmentTransaction.replace(R.id.fragmentcontent, f)
+        fragmentTransaction.commit()
     }
-
-
 }

@@ -1,7 +1,7 @@
 package ltd.ucode.lemmy.data
 
 import kotlinx.datetime.Instant
-import kotlinx.datetime.UtcOffset
+import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toInstant
 import ltd.ucode.lemmy.Markdown
 import ltd.ucode.lemmy.data.type.PostView
@@ -97,10 +97,10 @@ open class LemmyPost(val instance: String, val data: PostView) : IPost() {
         }
 
     override val published: Instant
-        get() = data.post.published.toInstant(UtcOffset.ZERO)
+        get() = data.post.published.toInstant(TimeZone.UTC)
 
     override val updated: Instant?
-        get() = data.post.updated?.toInstant(UtcOffset.ZERO)
+        get() = data.post.updated?.toInstant(TimeZone.UTC)
 
     override val contentDescription: String
         get() = URL(data.community.actorId).host

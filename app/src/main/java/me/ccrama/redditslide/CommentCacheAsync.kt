@@ -11,9 +11,9 @@ import androidx.core.content.ContextCompat
 import kotlinx.coroutines.runBlocking
 import ltd.ucode.lemmy.api.ApiException
 import ltd.ucode.lemmy.data.LemmyPost
+import ltd.ucode.lemmy.data.id.PostId
 import ltd.ucode.lemmy.data.type.CommentSortType
 import ltd.ucode.lemmy.data.type.CommentView
-import ltd.ucode.lemmy.data.id.PostId
 import ltd.ucode.slide.App
 import ltd.ucode.slide.Authentication
 import ltd.ucode.slide.ContentType
@@ -169,7 +169,7 @@ class CommentCacheAsync : AsyncTask<Any?, Any?, Any?> {
                                 if (context is Activity) {
                                     (context as Activity).runOnUiThread {
                                         GifUtils.cacheSaveGif(
-                                            Uri.parse(GifUtils.AsyncLoadGif.formatUrl(s.url)),
+                                            Uri.parse(GifUtils.AsyncLoadGif.formatUrl(s.url!!)),
                                             context as Activity,
                                             s.groupName,
                                             null,

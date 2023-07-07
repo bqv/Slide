@@ -35,12 +35,10 @@ import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.FragmentStatePagerAdapter
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.viewpager.widget.ViewPager.SimpleOnPageChangeListener
-import com.afollestad.materialdialogs.DialogAction
 import com.afollestad.materialdialogs.MaterialDialog
-import com.afollestad.materialdialogs.MaterialDialog.InputCallback
-import com.afollestad.materialdialogs.MaterialDialog.ListCallback
-import com.afollestad.materialdialogs.MaterialDialog.ListCallbackSingleChoice
-import com.afollestad.materialdialogs.MaterialDialog.SingleButtonCallback
+import com.afollestad.materialdialogs.input.input
+import com.afollestad.materialdialogs.list.listItems
+import com.afollestad.materialdialogs.list.listItemsSingleChoice
 import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
 import ltd.ucode.slide.App
@@ -89,9 +87,7 @@ import net.dean.jraw.ApiException
 import net.dean.jraw.http.MultiRedditUpdateRequest
 import net.dean.jraw.http.NetworkException
 import net.dean.jraw.managers.AccountManager
-import net.dean.jraw.managers.ModerationManager
 import net.dean.jraw.managers.MultiRedditManager
-import net.dean.jraw.models.FlairTemplate
 import net.dean.jraw.models.MultiReddit
 import net.dean.jraw.models.MultiSubreddit
 import net.dean.jraw.models.Submission
@@ -209,7 +205,7 @@ class SubredditView : BaseActivity() {
                 .getLayoutManager() as CatchStaggeredGridLayoutManager?)!!.findFirstVisibleItemPositions(
                 null
             )
-            if (firstVisibleItems != null && firstVisibleItems.size > 0) {
+            if (firstVisibleItems != null && firstVisibleItems.isNotEmpty()) {
                 for (firstVisibleItem: Int in firstVisibleItems) {
                     pastVisiblesItems = firstVisibleItem
                 }
@@ -349,52 +345,36 @@ class SubredditView : BaseActivity() {
             }
 
             R.id.search -> {
-                val builder = MaterialDialog.Builder(this).title(R.string.search_title)
-                    .alwaysCallInputCallback()
-                    .input(getString(R.string.search_msg), "",
-                        InputCallback { materialDialog, charSequence ->
-                            term = charSequence.toString()
-                        })
-                    .neutralText(R.string.search_all)
-                    .onNeutral(object : SingleButtonCallback {
-                        override fun onClick(
-                            materialDialog: MaterialDialog,
-                            dialogAction: DialogAction
-                        ) {
+                MaterialDialog(this).show {
+                    title(R.string.search_title)
+                    input(getString(R.string.search_msg), waitForPositiveButton = false) { _, charSequence ->
+                        term = charSequence.toString()
+                    }
+                    neutralButton(R.string.search_all) {
+                        val i = Intent(this@SubredditView, Search::class.java)
+                        i.putExtra(Search.EXTRA_TERM, term)
+                        startActivity(i)
+                    }
+
+                    //Add "search current sub" if it is not frontpage/all/random
+                    if ((!subreddit.equals("frontpage", ignoreCase = true)
+                                && !subreddit.equals("all", ignoreCase = true)
+                                && !subreddit.equals("random", ignoreCase = true)
+                                && !subreddit.equals("popular", ignoreCase = true)
+                                && subreddit != "myrandom"
+                                && subreddit != "randnsfw"
+                                && !subreddit.equals("friends", ignoreCase = true)
+                                && !subreddit.equals("mod", ignoreCase = true))
+                    ) {
+                        positiveButton(text = getString(R.string.search_subreddit, subreddit)) {
                             val i = Intent(this@SubredditView, Search::class.java)
                             i.putExtra(Search.EXTRA_TERM, term)
+                            i.putExtra(Search.EXTRA_SUBREDDIT, subreddit)
+                            Log.v(LogUtil.getTag(), "INTENT SHOWS $term AND $subreddit")
                             startActivity(i)
                         }
-                    })
-
-                //Add "search current sub" if it is not frontpage/all/random
-                if ((!subreddit.equals("frontpage", ignoreCase = true)
-                            && !subreddit.equals("all", ignoreCase = true)
-                            && !subreddit.equals("random", ignoreCase = true)
-                            && !subreddit.equals("popular", ignoreCase = true)
-                            && subreddit != "myrandom"
-                            && subreddit != "randnsfw"
-                            && !subreddit.equals("friends", ignoreCase = true)
-                            && !subreddit.equals("mod", ignoreCase = true))
-                ) {
-                    builder.positiveText(getString(R.string.search_subreddit, subreddit))
-                        .onPositive(object : SingleButtonCallback {
-                            override fun onClick(
-                                materialDialog: MaterialDialog,
-                                dialogAction: DialogAction
-                            ) {
-                                val i = Intent(this@SubredditView, Search::class.java)
-                                i.putExtra(Search.EXTRA_TERM, term)
-                                i.putExtra(Search.EXTRA_SUBREDDIT, subreddit)
-                                Log.v(
-                                    LogUtil.getTag(),
-                                    "INTENT SHOWS $term AND $subreddit"
-                                )
-                                startActivity(i)
-                            }
-                        })
+                    }
                 }
-                builder.show()
                 return true
             }
 
@@ -508,7 +488,7 @@ class SubredditView : BaseActivity() {
                     startActivity(i)
                 }
             dialoglayout.findViewById<View>(R.id.syncflair)
-                .setOnClickListener { ImageFlairs.syncFlairs(this@SubredditView, subreddit) }
+                .setOnClickListener { ImageFlairs.syncFlairs(this@SubredditView, subreddit!!) }
             dialoglayout.findViewById<View>(R.id.submit)
                 .setOnClickListener {
                     val i = Intent(this@SubredditView, Submit::class.java)
@@ -597,13 +577,12 @@ class SubredditView : BaseActivity() {
             dialoglayout.findViewById<View>(R.id.mods)
                 .setOnClickListener(object : View.OnClickListener {
                     override fun onClick(v: View) {
-                        val d: Dialog = MaterialDialog.Builder(this@SubredditView).title(
-                            R.string.sidebar_findingmods
-                        )
-                            .cancelable(true)
-                            .content(R.string.misc_please_wait)
-                            .progress(true, 100)
-                            .show()
+                        val d: Dialog = MaterialDialog(this@SubredditView).show {
+                            title(R.string.sidebar_findingmods)
+                            cancelable(true)
+                            message(R.string.misc_please_wait)
+                            //progress(true, 100)
+                        }
                         object : AsyncTask<Void?, Void?, Void?>() {
                             var mods: ArrayList<UserRecord>? = null
                             override fun doInBackground(vararg params: Void?): Void? {
@@ -621,264 +600,29 @@ class SubredditView : BaseActivity() {
                             }
 
                             override fun onPostExecute(aVoid: Void?) {
-                                val names = ArrayList<String?>()
+                                val names = ArrayList<String>()
                                 for (rec: UserRecord in mods!!) {
                                     names.add(rec.fullName)
                                 }
                                 d.dismiss()
-                                MaterialDialog.Builder(this@SubredditView).title(
-                                    getString(R.string.sidebar_submods, subreddit)
-                                )
-                                    .items(names)
-                                    .itemsCallback { dialog, itemView, which, text ->
+                                MaterialDialog(this@SubredditView).show {
+                                    title(text = getString(R.string.sidebar_submods, subreddit))
+                                    listItems(items = names) { dialog, which, text ->
                                         val i = Intent(this@SubredditView, Profile::class.java)
                                         i.putExtra(Profile.EXTRA_PROFILE, names[which])
                                         startActivity(i)
                                     }
-                                    .positiveText(R.string.btn_message)
-                                    .onPositive { dialog, which ->
-                                        val i = Intent(
-                                            this@SubredditView,
-                                            SendMessage::class.java
-                                        )
-                                        i.putExtra(SendMessage.EXTRA_NAME, "/r/$subOverride")
+                                    positiveButton(R.string.btn_message) { dialog ->
+                                        val i = Intent(this@SubredditView, SendMessage::class.java)
+                                        i.putExtra(SendMessage.EXTRA_NAME, "/c/$subOverride")
                                         startActivity(i)
                                     }
-                                    .show()
+                                }
                             }
                         }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR)
                     }
                 })
-            dialoglayout.findViewById<View>(R.id.flair).visibility = View.GONE
-            if (Authentication.didOnline && Authentication.isLoggedIn) {
-                object : AsyncTask<View?, Void?, View>() {
-                    var flairs: List<FlairTemplate>? = null
-                    var flairText: ArrayList<String?>? = null
-                    var current: String? = null
-                    var m: AccountManager? = null
-                    override fun doInBackground(vararg params: View?): View {
-                        try {
-                            m = AccountManager(Authentication.reddit)
-                            val node = m!!.getFlairChoicesRootNode(subOverride, null)
-                            flairs = m!!.getFlairChoices(subOverride, node)
-                            val currentF = m!!.getCurrentFlair(subOverride, node)
-                            if (currentF != null) {
-                                if (currentF.text.isEmpty()) {
-                                    current = ("[" + currentF.cssClass + "]")
-                                } else {
-                                    current = (currentF.text)
-                                }
-                            }
-                            flairText = ArrayList()
-                            for (temp: FlairTemplate in flairs!!) {
-                                if (temp.text.isEmpty()) {
-                                    flairText!!.add("[" + temp.cssClass + "]")
-                                } else {
-                                    flairText!!.add(temp.text)
-                                }
-                            }
-                        } catch (e1: Exception) {
-                            e1.printStackTrace()
-                        }
-                        return params[0]!!
-                    }
-
-                    override fun onPostExecute(flair: View) {
-                        if (((flairs != null
-                                    ) && !flairs!!.isEmpty()
-                                    && (flairText != null
-                                    ) && !flairText!!.isEmpty())
-                        ) {
-                            flair.visibility = View.VISIBLE
-                            if (current != null) {
-                                (dialoglayout.findViewById<View>(R.id.flair_text) as TextView).text =
-                                    getString(R.string.sidebar_flair, current)
-                            }
-                            flair.setOnClickListener(object : View.OnClickListener {
-                                override fun onClick(v: View) {
-                                    MaterialDialog.Builder(this@SubredditView).items(flairText!!)
-                                        .title(R.string.sidebar_select_flair)
-                                        .itemsCallback(object : ListCallback {
-                                            override fun onSelection(
-                                                dialog: MaterialDialog,
-                                                itemView: View, which: Int,
-                                                text: CharSequence
-                                            ) {
-                                                val t = flairs!![which]
-                                                if (t.isTextEditable) {
-                                                    MaterialDialog.Builder(
-                                                        this@SubredditView
-                                                    ).title(
-                                                        R.string.sidebar_select_flair_text
-                                                    )
-                                                        .input(
-                                                            getString(
-                                                                R.string.mod_flair_hint
-                                                            ),
-                                                            t.text, true
-                                                        ) { dialog1: MaterialDialog?, input: CharSequence? -> }
-                                                        .positiveText(R.string.btn_set)
-                                                        .onPositive(
-                                                            object : SingleButtonCallback {
-                                                                override fun onClick(
-                                                                    dialog: MaterialDialog,
-                                                                    which: DialogAction
-                                                                ) {
-                                                                    val flair = dialog.inputEditText!!
-                                                                        .getText()
-                                                                        .toString()
-                                                                    object :
-                                                                        AsyncTask<Void?, Void?, Boolean>() {
-                                                                        override fun doInBackground(
-                                                                            vararg params: Void?
-                                                                        ): Boolean {
-                                                                            try {
-                                                                                ModerationManager(
-                                                                                    Authentication.reddit
-                                                                                )
-                                                                                    .setFlair(
-                                                                                        subOverride,
-                                                                                        t,
-                                                                                        flair,
-                                                                                        Authentication.name
-                                                                                    )
-                                                                                val currentF =
-                                                                                    m!!.getCurrentFlair(
-                                                                                        subOverride
-                                                                                    )
-                                                                                if (currentF
-                                                                                        .text
-                                                                                        .isEmpty()
-                                                                                ) {
-                                                                                    current = (("["
-                                                                                            + currentF
-                                                                                        .cssClass
-                                                                                            + "]"))
-                                                                                } else {
-                                                                                    current =
-                                                                                        (currentF
-                                                                                            .text)
-                                                                                }
-                                                                                return true
-                                                                            } catch (e: Exception) {
-                                                                                e.printStackTrace()
-                                                                                return false
-                                                                            }
-                                                                        }
-
-                                                                        override fun onPostExecute(
-                                                                            done: Boolean
-                                                                        ) {
-                                                                            val s: Snackbar
-                                                                            if (done) {
-                                                                                if ((current
-                                                                                            != null)
-                                                                                ) {
-                                                                                    (dialoglayout
-                                                                                        .findViewById<View>(
-                                                                                            R.id.flair_text
-                                                                                        ) as TextView).text =
-                                                                                        getString(
-                                                                                            R.string.sidebar_flair,
-                                                                                            current
-                                                                                        )
-                                                                                }
-                                                                                s = Snackbar.make(
-                                                                                    (mToolbar)!!,
-                                                                                    R.string.snackbar_flair_success,
-                                                                                    Snackbar.LENGTH_SHORT
-                                                                                )
-                                                                            } else {
-                                                                                s = Snackbar.make(
-                                                                                    (mToolbar)!!,
-                                                                                    R.string.snackbar_flair_error,
-                                                                                    Snackbar.LENGTH_SHORT
-                                                                                )
-                                                                            }
-                                                                            if (s != null) {
-                                                                                LayoutUtils.showSnackbar(
-                                                                                    s
-                                                                                )
-                                                                            }
-                                                                        }
-                                                                    }.executeOnExecutor(
-                                                                        THREAD_POOL_EXECUTOR
-                                                                    )
-                                                                }
-                                                            })
-                                                        .negativeText(R.string.btn_cancel)
-                                                        .show()
-                                                } else {
-                                                    object : AsyncTask<Void?, Void?, Boolean>() {
-                                                        override fun doInBackground(
-                                                            vararg params: Void?
-                                                        ): Boolean {
-                                                            try {
-                                                                ModerationManager(
-                                                                    Authentication.reddit
-                                                                ).setFlair(
-                                                                    subOverride, t, null,
-                                                                    Authentication.name
-                                                                )
-                                                                val currentF = m!!.getCurrentFlair(
-                                                                    subOverride
-                                                                )
-                                                                if (currentF.text
-                                                                        .isEmpty()
-                                                                ) {
-                                                                    current = (("["
-                                                                            + currentF.cssClass
-                                                                            + "]"))
-                                                                } else {
-                                                                    current = (currentF.text)
-                                                                }
-                                                                return true
-                                                            } catch (e: Exception) {
-                                                                e.printStackTrace()
-                                                                return false
-                                                            }
-                                                        }
-
-                                                        override fun onPostExecute(
-                                                            done: Boolean
-                                                        ) {
-                                                            val s: Snackbar
-                                                            if (done) {
-                                                                if (current != null) {
-                                                                    (dialoglayout.findViewById<View>(
-                                                                        R.id.flair_text
-                                                                    ) as TextView).text = getString(
-                                                                        R.string.sidebar_flair,
-                                                                        current
-                                                                    )
-                                                                }
-                                                                s = Snackbar.make(
-                                                                    (mToolbar)!!,
-                                                                    R.string.snackbar_flair_success,
-                                                                    Snackbar.LENGTH_SHORT
-                                                                )
-                                                            } else {
-                                                                s = Snackbar.make(
-                                                                    (mToolbar)!!,
-                                                                    R.string.snackbar_flair_error,
-                                                                    Snackbar.LENGTH_SHORT
-                                                                )
-                                                            }
-                                                            if (s != null) {
-                                                                LayoutUtils.showSnackbar(s)
-                                                            }
-                                                        }
-                                                    }.executeOnExecutor(THREAD_POOL_EXECUTOR)
-                                                }
-                                            }
-                                        })
-                                        .show()
-                                }
-                            })
-                        }
-                    }
-                }.execute(dialoglayout.findViewById(R.id.flair) as View)
-            }
+            /* we dont even have flairs anymore */
         } else {
             if (drawerLayout != null) {
                 drawerLayout!!.setDrawerLockMode(
@@ -1231,94 +975,86 @@ class SubredditView : BaseActivity() {
                             }
 
                             override fun onPostExecute(aVoid: Void?) {
-                                MaterialDialog.Builder(this@SubredditView).title(
-                                    "Add /r/" + subreddit.displayName + " to"
-                                )
-                                    .items(multis.keys)
-                                    .itemsCallback(object : ListCallback {
-                                        override fun onSelection(
-                                            dialog: MaterialDialog,
-                                            itemView: View, which: Int,
-                                            text: CharSequence
-                                        ) {
-                                            object : AsyncTask<Void?, Void?, Void?>() {
-                                                override fun doInBackground(vararg params: Void?): Void? {
-                                                    try {
-                                                        val multiName = multis.keys
-                                                            .toTypedArray()[which]
-                                                        val subs: MutableList<String> = ArrayList()
-                                                        for (sub: MultiSubreddit in multis[multiName]!!.subreddits) {
-                                                            subs.add(sub.displayName)
-                                                        }
-                                                        subs.add(subreddit.displayName)
-                                                        MultiRedditManager(
-                                                            Authentication.reddit
-                                                        ).createOrUpdate(
-                                                            MultiRedditUpdateRequest.Builder(
-                                                                Authentication.name,
-                                                                multiName
-                                                            ).subreddits(
-                                                                subs
-                                                            ).build()
+                                MaterialDialog(this@SubredditView).show {
+                                    title(text = "Add /c/" + subreddit.displayName + " to")
+                                    listItems(items = multis.keys.filterNotNull()) { dialog: MaterialDialog, which: Int, text: CharSequence ->
+                                        object : AsyncTask<Void?, Void?, Void?>() {
+                                            override fun doInBackground(vararg params: Void?): Void? {
+                                                try {
+                                                    val multiName = multis.keys
+                                                        .toTypedArray()[which]
+                                                    val subs: MutableList<String> = ArrayList()
+                                                    for (sub: MultiSubreddit in multis[multiName]!!.subreddits) {
+                                                        subs.add(sub.displayName)
+                                                    }
+                                                    subs.add(subreddit.displayName)
+                                                    MultiRedditManager(
+                                                        Authentication.reddit
+                                                    ).createOrUpdate(
+                                                        MultiRedditUpdateRequest.Builder(
+                                                            Authentication.name,
+                                                            multiName
+                                                        ).subreddits(
+                                                            subs
+                                                        ).build()
+                                                    )
+                                                    UserSubscriptions.syncMultiReddits(
+                                                        this@SubredditView
+                                                    )
+                                                    runOnUiThread {
+                                                        drawerLayout!!.closeDrawers()
+                                                        val s = Snackbar.make(
+                                                            (mToolbar)!!,
+                                                            getString(
+                                                        R.string.multi_subreddit_added,
+                                                        multiName
+                                                        ),
+                                                            Snackbar.LENGTH_LONG
                                                         )
-                                                        UserSubscriptions.syncMultiReddits(
-                                                            this@SubredditView
-                                                        )
+                                                        LayoutUtils.showSnackbar(s)
+                                                    }
+                                                } catch (e: NetworkException) {
+                                                    runOnUiThread {
                                                         runOnUiThread {
-                                                            drawerLayout!!.closeDrawers()
-                                                            val s = Snackbar.make(
+                                                            Snackbar.make(
                                                                 (mToolbar)!!,
                                                                 getString(
-                                                                    R.string.multi_subreddit_added,
-                                                                    multiName
-                                                                ),
+                                                            R.string.multi_error
+                                                            ),
                                                                 Snackbar.LENGTH_LONG
                                                             )
-                                                            LayoutUtils.showSnackbar(s)
-                                                        }
-                                                    } catch (e: NetworkException) {
-                                                        runOnUiThread {
-                                                            runOnUiThread {
-                                                                Snackbar.make(
-                                                                    (mToolbar)!!,
-                                                                    getString(
-                                                                        R.string.multi_error
-                                                                    ),
-                                                                    Snackbar.LENGTH_LONG
+                                                                .setAction(
+                                                                    R.string.btn_ok,
+                                                                    null
                                                                 )
-                                                                    .setAction(
-                                                                        R.string.btn_ok,
-                                                                        null
-                                                                    )
-                                                                    .show()
-                                                            }
+                                                                .show()
                                                         }
-                                                        e.printStackTrace()
-                                                    } catch (e: ApiException) {
-                                                        runOnUiThread {
-                                                            runOnUiThread {
-                                                                Snackbar.make(
-                                                                    (mToolbar)!!,
-                                                                    getString(
-                                                                        R.string.multi_error
-                                                                    ),
-                                                                    Snackbar.LENGTH_LONG
-                                                                )
-                                                                    .setAction(
-                                                                        R.string.btn_ok,
-                                                                        null
-                                                                    )
-                                                                    .show()
-                                                            }
-                                                        }
-                                                        e.printStackTrace()
                                                     }
-                                                    return null
+                                                    e.printStackTrace()
+                                                } catch (e: ApiException) {
+                                                    runOnUiThread {
+                                                        runOnUiThread {
+                                                            Snackbar.make(
+                                                                (mToolbar)!!,
+                                                                getString(
+                                                            R.string.multi_error
+                                                            ),
+                                                                Snackbar.LENGTH_LONG
+                                                            )
+                                                                .setAction(
+                                                                    R.string.btn_ok,
+                                                                    null
+                                                                )
+                                                                .show()
+                                                        }
+                                                    }
+                                                    e.printStackTrace()
                                                 }
-                                            }.executeOnExecutor(THREAD_POOL_EXECUTOR)
-                                        }
-                                    })
-                                    .show()
+                                                return null
+                                            }
+                                        }.executeOnExecutor(THREAD_POOL_EXECUTOR)
+                                    }
+                                }
                             }
                         }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR)
                     }
@@ -1527,49 +1263,25 @@ class SubredditView : BaseActivity() {
                                         .setPositiveButton(
                                             R.string.btn_ok
                                         ) { dialog: DialogInterface?, which: Int ->
-                                            MaterialDialog.Builder(this@SubredditView)
-                                                .title(R.string.sub_post_notifs_threshold)
-                                                .items(
-                                                    *arrayOf<String>(
-                                                        "1", "5", "10", "20", "40", "50"
-                                                    )
-                                                )
-                                                .alwaysCallSingleChoiceCallback()
-                                                .itemsCallbackSingleChoice(0,
-                                                    object : ListCallbackSingleChoice {
-                                                        override fun onSelection(
-                                                            dialog: MaterialDialog,
-                                                            itemView: View,
-                                                            which: Int,
-                                                            text: CharSequence
-                                                        ): Boolean {
-                                                            val subs: ArrayList<String> =
-                                                                StringUtil.stringToArray(
-                                                                    appRestart
-                                                                        .getString(
-                                                                            CheckForMail.SUBS_TO_GET,
-                                                                            ""
-                                                                        )
-                                                                )
-                                                            subs.add(
-                                                                (sub
-                                                                        + ":"
-                                                                        + text)
-                                                            )
-                                                            appRestart
-                                                                .edit()
-                                                                .putString(
-                                                                    CheckForMail.SUBS_TO_GET,
-                                                                    StringUtil.arrayToString(
-                                                                        subs
-                                                                    )
-                                                                )
-                                                                .commit()
-                                                            return true
-                                                        }
-                                                    })
-                                                .cancelable(false)
-                                                .show()
+                                            MaterialDialog(this@SubredditView).show {
+                                                title(R.string.sub_post_notifs_threshold)
+                                                listItemsSingleChoice(
+                                                    items = listOf("1", "5", "10", "20", "40", "50"),
+                                                    initialSelection = 0
+                                                ) { dialog: MaterialDialog, which: Int, text: CharSequence ->
+                                                    val subs: ArrayList<String> =
+                                                        StringUtil.stringToArray(appRestart.getString(CheckForMail.SUBS_TO_GET, ""))
+                                                    subs.add("$sub:$text")
+                                                    appRestart
+                                                        .edit()
+                                                        .putString(
+                                                            CheckForMail.SUBS_TO_GET,
+                                                            StringUtil.arrayToString(subs)
+                                                        )
+                                                        .commit()
+                                                }
+                                                cancelable(false)
+                                            }
                                         }
                                         .setNegativeButton(R.string.btn_cancel, null)
                                         .setNegativeButton(

@@ -1,455 +1,415 @@
-package me.ccrama.redditslide.Activities;
+package me.ccrama.redditslide.Activities
 
-import android.animation.ValueAnimator;
-import android.app.Notification;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
-import android.content.DialogInterface;
-import android.content.Intent;
-import android.content.res.TypedArray;
-import android.graphics.Bitmap;
-import android.graphics.Color;
-import android.graphics.drawable.Drawable;
-import android.media.MediaScannerConnection;
-import android.net.Uri;
-import android.os.AsyncTask;
-import android.os.Bundle;
-import android.os.Environment;
-import android.os.Handler;
-import android.util.Log;
-import android.view.View;
-import android.view.WindowManager;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.ProgressBar;
-import android.widget.TextView;
-import android.widget.Toast;
+import android.animation.ValueAnimator
+import android.app.NotificationManager
+import android.app.PendingIntent
+import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.Color
+import android.media.MediaScannerConnection
+import android.os.AsyncTask
+import android.os.Bundle
+import android.os.Environment
+import android.os.Handler
+import android.util.Log
+import android.view.View
+import android.view.WindowManager
+import android.widget.ImageView
+import android.widget.LinearLayout
+import android.widget.ProgressBar
+import android.widget.TextView
+import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
+import androidx.core.app.NotificationCompat
+import androidx.core.content.ContextCompat
+import com.afollestad.materialdialogs.MaterialDialog
+import com.afollestad.materialdialogs.files.folderChooser
+import com.cocosw.bottomsheet.BottomSheet
+import com.davemorrissey.labs.subscaleview.DefaultOnImageEventListener
+import com.davemorrissey.labs.subscaleview.DefaultOnStateChangedListener
+import com.google.gson.Gson
+import com.google.gson.JsonObject
+import com.nostra13.universalimageloader.core.DisplayImageOptions
+import com.nostra13.universalimageloader.core.assist.FailReason
+import com.nostra13.universalimageloader.core.assist.ImageScaleType
+import com.nostra13.universalimageloader.core.imageaware.ImageViewAware
+import com.nostra13.universalimageloader.core.listener.ImageLoadingListener
+import com.nostra13.universalimageloader.core.listener.ImageLoadingProgressListener
+import ltd.ucode.slide.App
+import ltd.ucode.slide.App.Companion.defaultShareText
+import ltd.ucode.slide.ContentType
+import ltd.ucode.slide.ContentType.Companion.displayImage
+import ltd.ucode.slide.ContentType.Companion.getContentType
+import ltd.ucode.slide.ContentType.Companion.isGif
+import ltd.ucode.slide.ContentType.Companion.isImage
+import ltd.ucode.slide.ContentType.Companion.isImgurHash
+import ltd.ucode.slide.ContentType.Companion.isImgurImage
+import ltd.ucode.slide.ContentType.Companion.isImgurLink
+import ltd.ucode.slide.R
+import ltd.ucode.slide.SettingValues
+import ltd.ucode.slide.SettingValues.appRestart
+import ltd.ucode.slide.SettingValues.imageDownloadButton
+import me.ccrama.redditslide.Fragments.SubmissionsView.Companion.datachanged
+import me.ccrama.redditslide.Notifications.ImageDownloadNotificationService
+import me.ccrama.redditslide.SecretConstants
+import me.ccrama.redditslide.SubmissionViews.OpenVRedditTask
+import me.ccrama.redditslide.Visuals.ColorPreferences
+import me.ccrama.redditslide.util.AnimatorUtil
+import me.ccrama.redditslide.util.BlendModeUtil
+import me.ccrama.redditslide.util.CompatUtil
+import me.ccrama.redditslide.util.DialogUtil
+import me.ccrama.redditslide.util.FileUtil
+import me.ccrama.redditslide.util.GifUtils.AsyncLoadGif
+import me.ccrama.redditslide.util.HttpUtil
+import me.ccrama.redditslide.util.LinkUtil
+import me.ccrama.redditslide.util.LinkUtil.openExternally
+import me.ccrama.redditslide.util.LogUtil
+import me.ccrama.redditslide.util.NetworkUtil
+import me.ccrama.redditslide.util.ShareUtil
+import me.ccrama.redditslide.views.ExoVideoView
+import com.davemorrissey.labs.subscaleview.ImageSource
+import com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView
+import org.apache.commons.text.StringEscapeUtils
+import java.io.BufferedInputStream
+import java.io.File
+import java.io.FileOutputStream
+import java.io.IOException
+import java.net.MalformedURLException
+import java.net.URI
+import java.net.URISyntaxException
+import java.net.URL
+import java.util.Arrays
+import java.util.Locale
+import java.util.UUID
+import kotlin.math.roundToInt
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
-import androidx.core.app.NotificationCompat;
-import androidx.core.content.ContextCompat;
+class MediaView : FullScreenActivity() {
+    var subreddit: String? = null
+    private var submissionTitle: String? = null
+    private var index = 0
+    var previous = 0f
+    var hidden = false
+    var imageShown = false
+    var actuallyLoaded: String? = null
+    var isGif = false
+    private var mNotifyManager: NotificationManager? = null
+    private var mBuilder: NotificationCompat.Builder? = null
+    private var stopPosition: Long = 0
+    private var gif: AsyncLoadGif? = null
+    private var contentUrl: String? = null
+    private var videoView: ExoVideoView? = null
+    private var gson: Gson? = null
+    private var mashapeKey: String? = null
 
-import com.cocosw.bottomsheet.BottomSheet;
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
-import com.nostra13.universalimageloader.core.DisplayImageOptions;
-import com.nostra13.universalimageloader.core.assist.FailReason;
-import com.nostra13.universalimageloader.core.assist.ImageScaleType;
-import com.nostra13.universalimageloader.core.imageaware.ImageViewAware;
-import com.nostra13.universalimageloader.core.listener.ImageLoadingListener;
-import com.nostra13.universalimageloader.core.listener.ImageLoadingProgressListener;
-
-import org.apache.commons.text.StringEscapeUtils;
-
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.net.URLConnection;
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
-
-import ltd.ucode.slide.ContentType;
-import me.ccrama.redditslide.Fragments.FolderChooserDialogCreate;
-import me.ccrama.redditslide.Fragments.SubmissionsView;
-import me.ccrama.redditslide.Notifications.ImageDownloadNotificationService;
-import ltd.ucode.slide.R;
-import ltd.ucode.slide.App;
-import me.ccrama.redditslide.SecretConstants;
-import ltd.ucode.slide.SettingValues;
-import me.ccrama.redditslide.SubmissionViews.OpenVRedditTask;
-import me.ccrama.redditslide.views.ExoVideoView;
-import me.ccrama.redditslide.views.ImageSource;
-import me.ccrama.redditslide.views.SubsamplingScaleImageView;
-import me.ccrama.redditslide.Visuals.ColorPreferences;
-import me.ccrama.redditslide.util.AnimatorUtil;
-import me.ccrama.redditslide.util.BlendModeUtil;
-import me.ccrama.redditslide.util.CompatUtil;
-import me.ccrama.redditslide.util.DialogUtil;
-import me.ccrama.redditslide.util.FileUtil;
-import me.ccrama.redditslide.util.GifUtils;
-import me.ccrama.redditslide.util.HttpUtil;
-import me.ccrama.redditslide.util.LinkUtil;
-import me.ccrama.redditslide.util.LogUtil;
-import me.ccrama.redditslide.util.NetworkUtil;
-import me.ccrama.redditslide.util.ShareUtil;
-
-import static me.ccrama.redditslide.Notifications.ImageDownloadNotificationService.EXTRA_SUBMISSION_TITLE;
-
-
-/**
- * Created by ccrama on 3/5/2015.
- */
-public class MediaView extends FullScreenActivity
-        implements FolderChooserDialogCreate.FolderCallback {
-    public static final String EXTRA_URL         = "url";
-    public static final String SUBREDDIT         = "sub";
-    public static final String ADAPTER_POSITION  = "adapter_position";
-    public static final String SUBMISSION_URL    = "submission";
-    public static final String EXTRA_DISPLAY_URL = "displayUrl";
-    public static final String EXTRA_LQ          = "lq";
-    public static final String EXTRA_SHARE_URL   = "urlShare";
-
-    public static String   fileLoc;
-    public        String   subreddit;
-    private       String   submissionTitle;
-    private       int      index;
-    public static Runnable doOnClick;
-    public static boolean  didLoadGif;
-
-    public float   previous;
-    public boolean hidden;
-    public boolean imageShown;
-    public String  actuallyLoaded;
-    public boolean isGif;
-
-    private NotificationManager        mNotifyManager;
-    private NotificationCompat.Builder mBuilder;
-    private long                       stopPosition;
-    private GifUtils.AsyncLoadGif      gif;
-    private String                     contentUrl;
-    private ExoVideoView               videoView;
-    private Gson                       gson;
-    private String                     mashapeKey;
-
-    private static boolean shouldTruncate(String url) {
-        try {
-            final URI uri = new URI(url);
-            final String path = uri.getPath();
-
-            return !ContentType.isGif(uri) && !ContentType.isImage(uri) && path.contains(".");
-        } catch (URISyntaxException e) {
-            return false;
-        }
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
+    override fun onResume() {
+        super.onResume()
         if (videoView != null) {
-            videoView.seekTo(stopPosition);
-            videoView.play();
+            videoView!!.seekTo(stopPosition)
+            videoView!!.play()
         }
     }
 
-    public void showBottomSheetImage() {
-        int[] attrs = new int[]{R.attr.tintColor};
-        TypedArray ta = obtainStyledAttributes(attrs);
-
-        int color = ta.getColor(0, Color.WHITE);
-        Drawable external = getResources().getDrawable(R.drawable.ic_open_in_browser);
-        Drawable share = getResources().getDrawable(R.drawable.ic_share);
-        Drawable image = getResources().getDrawable(R.drawable.ic_image);
-        Drawable save = getResources().getDrawable(R.drawable.ic_download);
-        Drawable collection = getResources().getDrawable(R.drawable.ic_folder);
-        Drawable file = getResources().getDrawable(R.drawable.ic_save);
-        Drawable thread = getResources().getDrawable(R.drawable.ic_forum);
-
-        final List<Drawable> drawableSet = Arrays.asList(
-                external, share, image, save, collection, file, thread);
-        BlendModeUtil.tintDrawablesAsSrcAtop(drawableSet, color);
-
-        ta.recycle();
-
-        contentUrl = contentUrl.replace("/DASHPlaylist.mpd", "");
-
-        BottomSheet.Builder b = new BottomSheet.Builder(this).title(contentUrl);
-
-        b.sheet(2, external, getString(R.string.open_externally));
-        b.sheet(5, share, getString(R.string.submission_link_share));
-
-        if (!isGif) b.sheet(3, image, getString(R.string.share_image));
-        b.sheet(4, save, "Save " + (isGif ? "MP4" : "image"));
-        b.sheet(16, collection, "Save " + (isGif ? "MP4" : "image") + " to");
+    fun showBottomSheetImage() {
+        val attrs = intArrayOf(R.attr.tintColor)
+        val ta = obtainStyledAttributes(attrs)
+        val color = ta.getColor(0, Color.WHITE)
+        val external = resources.getDrawable(R.drawable.ic_open_in_browser)
+        val share = resources.getDrawable(R.drawable.ic_share)
+        val image = resources.getDrawable(R.drawable.ic_image)
+        val save = resources.getDrawable(R.drawable.ic_download)
+        val collection = resources.getDrawable(R.drawable.ic_folder)
+        val file = resources.getDrawable(R.drawable.ic_save)
+        val thread = resources.getDrawable(R.drawable.ic_forum)
+        val drawableSet = Arrays.asList(
+            external, share, image, save, collection, file, thread
+        )
+        BlendModeUtil.tintDrawablesAsSrcAtop(drawableSet, color)
+        ta.recycle()
+        contentUrl = contentUrl!!.replace("/DASHPlaylist.mpd", "")
+        val b = BottomSheet.Builder(this).title(contentUrl)
+        b.sheet(2, external, getString(R.string.open_externally))
+        b.sheet(5, share, getString(R.string.submission_link_share))
+        if (!isGif) b.sheet(3, image, getString(R.string.share_image))
+        b.sheet(4, save, "Save " + if (isGif) "MP4" else "image")
+        b.sheet(16, collection, "Save " + (if (isGif) "MP4" else "image") + " to")
         if (isGif
-                && !contentUrl.contains(".mp4")
-                && !contentUrl.contains("streamable.com")
-                && !contentUrl.contains("gfycat.com")
-                && !contentUrl.contains("redgifs.com")
-                && !contentUrl.contains("v.redd.it")) {
-            String type = contentUrl.substring(contentUrl.lastIndexOf(".") + 1).toUpperCase();
+            && !contentUrl!!.contains(".mp4")
+            && !contentUrl!!.contains("streamable.com")
+            && !contentUrl!!.contains("gfycat.com")
+            && !contentUrl!!.contains("redgifs.com")
+            && !contentUrl!!.contains("v.redd.it")
+        ) {
+            var type = contentUrl!!.substring(contentUrl!!.lastIndexOf(".") + 1)
+                .uppercase(Locale.getDefault())
             try {
-                if (type.equals("GIFV") && new URL(contentUrl).getHost().equals("i.imgur.com")) {
-                    type = "GIF";
-                    contentUrl = contentUrl.replace(".gifv", ".gif");
+                if (type == "GIFV" && URL(contentUrl).host == "i.imgur.com") {
+                    type = "GIF"
+                    contentUrl = contentUrl!!.replace(".gifv", ".gif")
                     //todo possibly share gifs  b.sheet(9, ic_share, "Share GIF");
                 }
-            } catch (MalformedURLException e) {
-                e.printStackTrace();
+            } catch (e: MalformedURLException) {
+                e.printStackTrace()
             }
-            b.sheet(6, file, getString(R.string.mediaview_save, type));
+            b.sheet(6, file, getString(R.string.mediaview_save, type))
+        }
+        if (contentUrl!!.contains("v.redd.it")) {
+            b.sheet(15, thread, "View video thread")
+        }
+        b.listener { dialog, which ->
+            when (which) {
+                2 -> {
+                    openExternally(contentUrl!!)
+                }
 
-        }
-        if (contentUrl.contains("v.redd.it")) {
-            b.sheet(15, thread, "View video thread");
-        }
-        b.listener(new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                switch (which) {
-                    case (2): {
-                        LinkUtil.openExternally(contentUrl);
-                        break;
-                    }
-                    case (3): {
-                        ShareUtil.shareImage(actuallyLoaded, MediaView.this);
-                        break;
-                    }
-                    case (5): {
-                        App.defaultShareText("", StringEscapeUtils.unescapeHtml4(contentUrl), MediaView.this);
-                        break;
-                    }
-                    case (6): {
-                        saveFile(contentUrl);
-                    }
-                    break;
-                    case (15): {
-                        new OpenVRedditTask(MediaView.this, subreddit).executeOnExecutor(
-                                AsyncTask.THREAD_POOL_EXECUTOR, contentUrl);
-                    }
-                    break;
-                    case (9): {
-                        shareGif(contentUrl);
-                    }
-                    break;
-                    case (4): {
-                        doImageSave();
-                    }
-                    break;
-                    case (16): {
-                        doImageSaveForLocation();
-                        break;
-                    }
+                3 -> {
+                    ShareUtil.shareImage(actuallyLoaded, this@MediaView)
+                }
+
+                5 -> {
+                    defaultShareText(
+                        "",
+                        StringEscapeUtils.unescapeHtml4(contentUrl),
+                        this@MediaView
+                    )
+                }
+
+                6 -> {
+                    saveFile(contentUrl!!)
+                }
+
+                15 -> {
+                    OpenVRedditTask(this@MediaView, subreddit).executeOnExecutor(
+                        AsyncTask.THREAD_POOL_EXECUTOR, contentUrl
+                    )
+                }
+
+                9 -> {
+                    shareGif(contentUrl!!)
+                }
+
+                4 -> {
+                    doImageSave()
+                }
+
+                16 -> {
+                    doImageSaveForLocation()
                 }
             }
-        });
-        b.show();
+        }
+        b.show()
     }
 
-    public void doImageSave() {
+    fun doImageSave() {
         if (!isGif) {
-            if (SettingValues.INSTANCE.getAppRestart().getString("imagelocation", "").isEmpty()) {
-                showFirstDialog();
-            } else if (!new File(SettingValues.INSTANCE.getAppRestart().getString("imagelocation", "")).exists()) {
-                showErrorDialog();
+            if (appRestart.getString("imagelocation", "")!!.isEmpty()) {
+                showFirstDialog()
+            } else if (!File(appRestart.getString("imagelocation", "")).exists()) {
+                showErrorDialog()
             } else {
-                Intent i = new Intent(this, ImageDownloadNotificationService.class);
+                val i = Intent(this, ImageDownloadNotificationService::class.java)
                 //always download the original file, or use the cached original if that is currently displayed
-                i.putExtra("actuallyLoaded", contentUrl);
-                if (subreddit != null && !subreddit.isEmpty()) i.putExtra("subreddit", subreddit);
-                if (submissionTitle != null) i.putExtra(EXTRA_SUBMISSION_TITLE, submissionTitle);
-                i.putExtra("index", index);
-                startService(i);
+                i.putExtra("actuallyLoaded", contentUrl)
+                if (subreddit != null && !subreddit!!.isEmpty()) i.putExtra("subreddit", subreddit)
+                if (submissionTitle != null) i.putExtra(
+                    ImageDownloadNotificationService.EXTRA_SUBMISSION_TITLE,
+                    submissionTitle
+                )
+                i.putExtra("index", index)
+                startService(i)
             }
         } else {
-            doOnClick.run();
+            doOnClick!!.run()
         }
     }
 
-    public void doImageSaveForLocation() {
+    fun doImageSaveForLocation() {
         if (!isGif) {
-            new FolderChooserDialogCreate.Builder(MediaView.this)
-                    .chooseButton(R.string.btn_select) // changes label of the choose button
-                    .isSaveToLocation(true)
-                    .initialPath(Environment.getExternalStorageDirectory()
-                            .getPath()) // changes initial path, defaults to external storage directory
-                    .allowNewFolder(true, 0)
-                    .show(MediaView.this);
+            MaterialDialog(this@MediaView).show {
+                folderChooser(this@MediaView,
+                    initialDirectory = Environment.getExternalStorageDirectory(),
+                    allowFolderCreation = true) { _, folder ->
+                    onFolderSelection(folder, true)
+                }
+            }
         }
     }
 
-    public void saveFile(final String baseUrl) {
-        new AsyncTask<Void, Void, Void>() {
-            @Override
-            protected Void doInBackground(Void... params) {
-                if (SettingValues.INSTANCE.getAppRestart().getString("imagelocation", "").isEmpty()) {
-                    showFirstDialog();
-                } else if (!new File(SettingValues.INSTANCE.getAppRestart().getString("imagelocation", "")).exists()) {
-                    showErrorDialog();
+    fun saveFile(baseUrl: String) {
+        object : AsyncTask<Void?, Void?, Void?>() {
+            override fun doInBackground(vararg params: Void?): Void? {
+                if (appRestart.getString("imagelocation", "")!!.isEmpty()) {
+                    showFirstDialog()
+                } else if (!File(appRestart.getString("imagelocation", "")).exists()) {
+                    showErrorDialog()
                 } else {
-                    final File f = new File(
-                            SettingValues.INSTANCE.getAppRestart().getString("imagelocation", "") + File.separator + UUID
-                                    .randomUUID()
-                                    .toString() + baseUrl.substring(baseUrl.lastIndexOf(".")));
-                    mNotifyManager =
-                            ContextCompat.getSystemService(MediaView.this, NotificationManager.class);
-                    mBuilder = new NotificationCompat.Builder(MediaView.this, App.CHANNEL_IMG);
-                    mBuilder.setContentTitle(getString(R.string.mediaview_saving, baseUrl))
-                            .setSmallIcon(R.drawable.ic_download);
+                    val f = File(
+                        appRestart.getString("imagelocation", "") + File.separator + UUID
+                            .randomUUID()
+                            .toString() + baseUrl.substring(baseUrl.lastIndexOf("."))
+                    )
+                    mNotifyManager = ContextCompat.getSystemService(
+                        this@MediaView,
+                        NotificationManager::class.java
+                    )
+                    mBuilder = NotificationCompat.Builder(this@MediaView, App.CHANNEL_IMG)
+                    mBuilder!!.setContentTitle(getString(R.string.mediaview_saving, baseUrl))
+                        .setSmallIcon(R.drawable.ic_download)
                     try {
-
-                        final URL url =
-                                new URL(baseUrl); //wont exist on server yet, just load the full version
-                        URLConnection ucon = url.openConnection();
-                        ucon.setReadTimeout(5000);
-                        ucon.setConnectTimeout(10000);
-                        InputStream is = ucon.getInputStream();
-                        BufferedInputStream inStream = new BufferedInputStream(is, 1024 * 5);
-                        int length = ucon.getContentLength();
-                        f.createNewFile();
-                        FileOutputStream outStream = new FileOutputStream(f);
-                        byte[] buff = new byte[5 * 1024];
-
-                        int len;
-                        int last = 0;
-                        while ((len = inStream.read(buff)) != -1) {
-                            outStream.write(buff, 0, len);
-                            int percent = Math.round(100.0f * f.length() / length);
+                        val url =
+                            URL(baseUrl) //wont exist on server yet, just load the full version
+                        val ucon = url.openConnection()
+                        ucon.readTimeout = 5000
+                        ucon.connectTimeout = 10000
+                        val `is` = ucon.getInputStream()
+                        val inStream = BufferedInputStream(`is`, 1024 * 5)
+                        val length = ucon.contentLength
+                        f.createNewFile()
+                        val outStream = FileOutputStream(f)
+                        val buff = ByteArray(5 * 1024)
+                        var len: Int
+                        var last = 0
+                        while (inStream.read(buff).also { len = it } != -1) {
+                            outStream.write(buff, 0, len)
+                            val percent = Math.round(100.0f * f.length() / length)
                             if (percent > last) {
-                                last = percent;
-                                mBuilder.setProgress(length, (int) f.length(), false);
-                                mNotifyManager.notify(1, mBuilder.build());
+                                last = percent
+                                mBuilder!!.setProgress(length, f.length().toInt(), false)
+                                mNotifyManager!!.notify(1, mBuilder!!.build())
                             }
                         }
-                        outStream.flush();
-                        outStream.close();
-                        inStream.close();
-                        MediaScannerConnection.scanFile(MediaView.this,
-                                new String[]{f.getAbsolutePath()}, null,
-                                new MediaScannerConnection.OnScanCompletedListener() {
-                                    public void onScanCompleted(String path, Uri uri) {
-                                        Intent mediaScanIntent = FileUtil.getFileIntent(f,
-                                                new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE),
-                                                MediaView.this);
-                                        MediaView.this.sendBroadcast(mediaScanIntent);
-
-                                        final Intent shareIntent = new Intent(Intent.ACTION_VIEW);
-                                        PendingIntent contentIntent =
-                                                PendingIntent.getActivity(MediaView.this, 0,
-                                                        shareIntent,
-                                                        PendingIntent.FLAG_CANCEL_CURRENT);
-
-
-                                        Notification notif = new NotificationCompat.Builder(
-                                                MediaView.this, App.CHANNEL_IMG)
-                                                .setContentTitle(getString(R.string.gif_saved))
-                                                .setSmallIcon(R.drawable.ic_save)
-                                                .setContentIntent(contentIntent)
-                                                .build();
-
-                                        NotificationManager mNotificationManager =
-                                                ContextCompat.getSystemService(MediaView.this, NotificationManager.class);
-                                        if (mNotificationManager != null) {
-                                            mNotificationManager.notify(1, notif);
-                                        }
-                                    }
-                                });
-                    } catch (Exception e) {
-                        e.printStackTrace();
+                        outStream.flush()
+                        outStream.close()
+                        inStream.close()
+                        MediaScannerConnection.scanFile(
+                            this@MediaView, arrayOf(f.absolutePath), null
+                        ) { path, uri ->
+                            val mediaScanIntent = FileUtil.getFileIntent(
+                                f,
+                                Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE),
+                                this@MediaView
+                            )
+                            this@MediaView.sendBroadcast(mediaScanIntent)
+                            val shareIntent = Intent(Intent.ACTION_VIEW)
+                            val contentIntent = PendingIntent.getActivity(
+                                this@MediaView, 0,
+                                shareIntent,
+                                PendingIntent.FLAG_CANCEL_CURRENT!!
+                            )
+                            val notif = NotificationCompat.Builder(
+                                this@MediaView, App.CHANNEL_IMG
+                            )
+                                .setContentTitle(getString(R.string.gif_saved))
+                                .setSmallIcon(R.drawable.ic_save)
+                                .setContentIntent(contentIntent)
+                                .build()
+                            val mNotificationManager = ContextCompat.getSystemService(
+                                this@MediaView,
+                                NotificationManager::class.java
+                            )
+                            mNotificationManager?.notify(1, notif)
+                        }
+                    } catch (e: Exception) {
+                        e.printStackTrace()
                     }
                 }
-                return null;
+                return null
             }
-        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-
+        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR)
     }
 
-    public void shareGif(final String baseUrl) {
-        new AsyncTask<Void, Void, Void>() {
-            @Override
-            protected Void doInBackground(Void... params) {
-                if (SettingValues.INSTANCE.getAppRestart().getString("imagelocation", "").isEmpty()) {
-                    showFirstDialog();
-                } else if (!new File(SettingValues.INSTANCE.getAppRestart().getString("imagelocation", "")).exists()) {
-                    showErrorDialog();
+    fun shareGif(baseUrl: String) {
+        object : AsyncTask<Void?, Void?, Void?>() {
+            override fun doInBackground(vararg params: Void?): Void? {
+                if (appRestart.getString("imagelocation", "")!!.isEmpty()) {
+                    showFirstDialog()
+                } else if (!File(appRestart.getString("imagelocation", "")).exists()) {
+                    showErrorDialog()
                 } else {
-                    final File f = new File(
-                            SettingValues.INSTANCE.getAppRestart().getString("imagelocation", "") + File.separator + UUID
-                                    .randomUUID()
-                                    .toString() + baseUrl.substring(baseUrl.lastIndexOf(".")));
-                    mNotifyManager =
-                            ContextCompat.getSystemService(MediaView.this, NotificationManager.class);
-                    mBuilder = new NotificationCompat.Builder(MediaView.this, App.CHANNEL_IMG);
-                    mBuilder.setContentTitle(getString(R.string.mediaview_saving, baseUrl))
-                            .setSmallIcon(R.drawable.ic_download);
+                    val f = File(
+                        appRestart.getString("imagelocation", "") + File.separator + UUID
+                            .randomUUID()
+                            .toString() + baseUrl.substring(baseUrl.lastIndexOf("."))
+                    )
+                    mNotifyManager = ContextCompat.getSystemService(
+                        this@MediaView,
+                        NotificationManager::class.java
+                    )
+                    mBuilder = NotificationCompat.Builder(this@MediaView, App.CHANNEL_IMG)
+                    mBuilder!!.setContentTitle(getString(R.string.mediaview_saving, baseUrl))
+                        .setSmallIcon(R.drawable.ic_download)
                     try {
-
-                        final URL url =
-                                new URL(baseUrl); //wont exist on server yet, just load the full version
-                        URLConnection ucon = url.openConnection();
-                        ucon.setReadTimeout(5000);
-                        ucon.setConnectTimeout(10000);
-                        InputStream is = ucon.getInputStream();
-                        BufferedInputStream inStream = new BufferedInputStream(is, 1024 * 5);
-                        int length = ucon.getContentLength();
-                        f.createNewFile();
-                        FileOutputStream outStream = new FileOutputStream(f);
-                        byte[] buff = new byte[5 * 1024];
-
-                        int len;
-                        int last = 0;
-                        while ((len = inStream.read(buff)) != -1) {
-                            outStream.write(buff, 0, len);
-                            int percent = Math.round(100.0f * f.length() / length);
+                        val url =
+                            URL(baseUrl) //wont exist on server yet, just load the full version
+                        val ucon = url.openConnection()
+                        ucon.readTimeout = 5000
+                        ucon.connectTimeout = 10000
+                        val `is` = ucon.getInputStream()
+                        val inStream = BufferedInputStream(`is`, 1024 * 5)
+                        val length = ucon.contentLength
+                        f.createNewFile()
+                        val outStream = FileOutputStream(f)
+                        val buff = ByteArray(5 * 1024)
+                        var len: Int
+                        var last = 0
+                        while (inStream.read(buff).also { len = it } != -1) {
+                            outStream.write(buff, 0, len)
+                            val percent = Math.round(100.0f * f.length() / length)
                             if (percent > last) {
-                                last = percent;
-                                mBuilder.setProgress(length, (int) f.length(), false);
-                                mNotifyManager.notify(1, mBuilder.build());
+                                last = percent
+                                mBuilder!!.setProgress(length, f.length().toInt(), false)
+                                mNotifyManager!!.notify(1, mBuilder!!.build())
                             }
                         }
-                        outStream.flush();
-                        outStream.close();
-                        inStream.close();
-                        MediaScannerConnection.scanFile(MediaView.this,
-                                new String[]{f.getAbsolutePath()}, null,
-                                new MediaScannerConnection.OnScanCompletedListener() {
-                                    public void onScanCompleted(String path, Uri uri) {
-                                        Intent mediaScanIntent = FileUtil.getFileIntent(f,
-                                                new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE),
-                                                MediaView.this);
-                                        MediaView.this.sendBroadcast(mediaScanIntent);
-
-                                        final Intent shareIntent = new Intent(Intent.ACTION_SEND);
-                                        startActivity(
-                                                Intent.createChooser(shareIntent, "Share GIF"));
-                                        NotificationManager mNotificationManager =
-                                                ContextCompat.getSystemService(MediaView.this,
-                                                        NotificationManager.class);
-                                        if (mNotificationManager != null) {
-                                            mNotificationManager.cancel(1);
-                                        }
-                                    }
-                                });
-                    } catch (Exception e) {
-                        e.printStackTrace();
+                        outStream.flush()
+                        outStream.close()
+                        inStream.close()
+                        MediaScannerConnection.scanFile(
+                            this@MediaView, arrayOf(f.absolutePath), null
+                        ) { path, uri ->
+                            val mediaScanIntent = FileUtil.getFileIntent(
+                                f,
+                                Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE),
+                                this@MediaView
+                            )
+                            this@MediaView.sendBroadcast(mediaScanIntent)
+                            val shareIntent = Intent(Intent.ACTION_SEND)
+                            startActivity(
+                                Intent.createChooser(shareIntent, "Share GIF")
+                            )
+                            val mNotificationManager = ContextCompat.getSystemService(
+                                this@MediaView,
+                                NotificationManager::class.java
+                            )
+                            mNotificationManager?.cancel(1)
+                        }
+                    } catch (e: Exception) {
+                        e.printStackTrace()
                     }
                 }
-                return null;
+                return null
             }
-        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-
+        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR)
     }
 
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        ((SubsamplingScaleImageView) findViewById(R.id.submission_image)).recycle();
+    override fun onDestroy() {
+        super.onDestroy()
+        (findViewById<View>(R.id.submission_image) as SubsamplingScaleImageView).recycle()
         if (gif != null) {
-            gif.cancel();
-            gif.cancel(true);
+            gif!!.cancel()
+            gif!!.cancel(true)
         }
-
-        doOnClick = null;
-        if (!didLoadGif && fileLoc != null && !fileLoc.isEmpty()) {
-            new File(fileLoc).delete();
+        doOnClick = null
+        if (!didLoadGif && fileLoc != null && !fileLoc!!.isEmpty()) {
+            File(fileLoc).delete()
         }
     }
 
-    @Override
-    public void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
+    public override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
         if (videoView != null) {
-            stopPosition = videoView.getCurrentPosition();
-            videoView.pause();
-            outState.putLong("position", stopPosition);
+            stopPosition = videoView!!.currentPosition
+            videoView!!.pause()
+            outState.putLong("position", stopPosition)
         }
     }
 
@@ -497,730 +457,610 @@ public class MediaView extends FullScreenActivity
         return super.dispatchTouchEvent(event);
     }
      */
-
-    public void hideOnLongClick() {
-        (findViewById(R.id.gifheader)).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (findViewById(R.id.gifheader).getVisibility() == View.GONE) {
-                    AnimatorUtil.animateIn(findViewById(R.id.gifheader), 56);
-                    AnimatorUtil.fadeOut(findViewById(R.id.black));
-                    getWindow().getDecorView().setSystemUiVisibility(0);
-                } else {
-                    AnimatorUtil.animateOut(findViewById(R.id.gifheader));
-                    AnimatorUtil.fadeIn(findViewById(R.id.black));
-                    getWindow().getDecorView()
-                            .setSystemUiVisibility(View.SYSTEM_UI_FLAG_LOW_PROFILE);
-                }
+    fun hideOnLongClick() {
+        findViewById<View>(R.id.gifheader).setOnClickListener {
+            if (findViewById<View>(R.id.gifheader).visibility == View.GONE) {
+                AnimatorUtil.animateIn(findViewById(R.id.gifheader), 56)
+                AnimatorUtil.fadeOut(findViewById(R.id.black))
+                window.decorView.systemUiVisibility = 0
+            } else {
+                AnimatorUtil.animateOut(findViewById(R.id.gifheader))
+                AnimatorUtil.fadeIn(findViewById(R.id.black))
+                window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LOW_PROFILE
             }
-        });
-        findViewById(R.id.submission_image).setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View v2) {
-                if (findViewById(R.id.gifheader).getVisibility() == View.GONE) {
-                    AnimatorUtil.animateIn(findViewById(R.id.gifheader), 56);
-                    AnimatorUtil.fadeOut(findViewById(R.id.black));
-                    getWindow().getDecorView().setSystemUiVisibility(0);
-                } else {
-                    finish();
-                }
+        }
+        findViewById<View>(R.id.submission_image).setOnClickListener {
+            if (findViewById<View>(R.id.gifheader).visibility == View.GONE) {
+                AnimatorUtil.animateIn(findViewById(R.id.gifheader), 56)
+                AnimatorUtil.fadeOut(findViewById(R.id.black))
+                window.decorView.systemUiVisibility = 0
+            } else {
+                finish()
             }
-        });
+        }
     }
 
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        overrideRedditSwipeAnywhere();
-        super.onCreate(savedInstanceState);
-        getTheme().applyStyle(new ColorPreferences(this).getDarkThemeSubreddit(""), true);
-
-        gson = new Gson();
-        mashapeKey = SecretConstants.getImgurApiKey(this);
-
+    public override fun onCreate(savedInstanceState: Bundle?) {
+        overrideRedditSwipeAnywhere()
+        super.onCreate(savedInstanceState)
+        theme.applyStyle(ColorPreferences(this).getDarkThemeSubreddit(""), true)
+        gson = Gson()
+        mashapeKey = SecretConstants.getImgurApiKey(this)
         if (savedInstanceState != null && savedInstanceState.containsKey("position")) {
-            stopPosition = savedInstanceState.getLong("position");
+            stopPosition = savedInstanceState.getLong("position")
         }
-
-        doOnClick = new Runnable() {
-            @Override
-            public void run() {
-
-            }
-        };
-        setContentView(R.layout.activity_media);
+        doOnClick = Runnable { }
+        setContentView(R.layout.activity_media)
 
         //Keep the screen on
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-
-        final String firstUrl = getIntent().getExtras().getString(EXTRA_DISPLAY_URL, "");
-        contentUrl = getIntent().getExtras().getString(EXTRA_URL);
-
-        if(contentUrl == null || contentUrl.isEmpty()){
-            finish();
-            return;
+        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        val firstUrl = intent.extras!!
+            .getString(EXTRA_DISPLAY_URL, "")
+        contentUrl = intent.extras!!.getString(EXTRA_URL)
+        if (contentUrl == null || contentUrl!!.isEmpty()) {
+            finish()
+            return
         }
-        setShareUrl(contentUrl);
-
-        if (contentUrl.contains("reddituploads.com")) {
-            contentUrl = CompatUtil.fromHtml(contentUrl).toString();
+        shareUrl = contentUrl
+        if (contentUrl!!.contains("reddituploads.com")) {
+            contentUrl = CompatUtil.fromHtml(contentUrl!!).toString()
         }
-        if (contentUrl != null && shouldTruncate(contentUrl)) {
-            contentUrl = contentUrl.substring(0, contentUrl.lastIndexOf("."));
+        if (contentUrl != null && shouldTruncate(contentUrl!!)) {
+            contentUrl = contentUrl!!.substring(0, contentUrl!!.lastIndexOf("."))
         }
-
-        actuallyLoaded = contentUrl;
-        if (getIntent().hasExtra(SUBMISSION_URL)) {
-            final int commentUrl = getIntent().getExtras().getInt(ADAPTER_POSITION);
-            findViewById(R.id.comments).setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    finish();
-                    SubmissionsView.datachanged(commentUrl);
-                }
-            });
+        actuallyLoaded = contentUrl
+        if (intent.hasExtra(SUBMISSION_URL)) {
+            val commentUrl = intent.extras!!.getInt(ADAPTER_POSITION)
+            findViewById<View>(R.id.comments).setOnClickListener {
+                finish()
+                datachanged(commentUrl)
+            }
         } else {
-            findViewById(R.id.comments).setVisibility(View.GONE);
+            findViewById<View>(R.id.comments).visibility = View.GONE
         }
-        if (getIntent().hasExtra(SUBREDDIT)) {
-            subreddit = getIntent().getExtras().getString(SUBREDDIT);
+        if (intent.hasExtra(SUBREDDIT)) {
+            subreddit = intent.extras!!.getString(SUBREDDIT)
         }
-        if (getIntent().hasExtra(EXTRA_SUBMISSION_TITLE)) {
-            submissionTitle = getIntent().getExtras().getString(EXTRA_SUBMISSION_TITLE);
+        if (intent.hasExtra(ImageDownloadNotificationService.EXTRA_SUBMISSION_TITLE)) {
+            submissionTitle =
+                intent.extras!!.getString(ImageDownloadNotificationService.EXTRA_SUBMISSION_TITLE)
         }
-        index = getIntent().getIntExtra("index", -1);
-        findViewById(R.id.mute).setVisibility(View.GONE);
-
-        if (getIntent().hasExtra(EXTRA_LQ)) {
-            String lqUrl = getIntent().getStringExtra(EXTRA_DISPLAY_URL);
-            displayImage(lqUrl);
-            findViewById(R.id.hq).setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    imageShown = false;
-                    doLoad(contentUrl);
-                    findViewById(R.id.hq).setVisibility(View.GONE);
-                }
-            });
-        } else if (ContentType.isImgurImage(contentUrl) && SettingValues.loadImageLq && (
-                SettingValues.lowResAlways
-                        || (!NetworkUtil.isConnectedWifi(this) && SettingValues.lowResMobile))) {
-            String url = contentUrl;
-            url = url.substring(0, url.lastIndexOf(".")) + (SettingValues.lqLow ? "m"
-                    : (SettingValues.lqMid ? "l" : "h")) + url.substring(url.lastIndexOf(".")
-            );
-
-            displayImage(url);
-            findViewById(R.id.hq).setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    imageShown = false;
-                    doLoad(contentUrl);
-                    findViewById(R.id.hq).setVisibility(View.GONE);
-                }
-            });
+        index = intent.getIntExtra("index", -1)
+        findViewById<View>(R.id.mute).visibility = View.GONE
+        if (intent.hasExtra(EXTRA_LQ)) {
+            val lqUrl = intent.getStringExtra(EXTRA_DISPLAY_URL)
+            displayImage(lqUrl)
+            findViewById<View>(R.id.hq).setOnClickListener {
+                imageShown = false
+                doLoad(contentUrl!!)
+                findViewById<View>(R.id.hq).visibility = View.GONE
+            }
+        } else if (isImgurImage(contentUrl) && SettingValues.loadImageLq && (SettingValues.lowResAlways || !NetworkUtil.isConnectedWifi(
+                this
+            )) && SettingValues.lowResMobile
+        ) {
+            var url: String = contentUrl!!
+            url = url.substring(
+                0,
+                url.lastIndexOf(".")
+            ) + (if (SettingValues.lqLow) "m" else if (SettingValues.lqMid) "l" else "h") + url.substring(
+                url.lastIndexOf(".")
+            )
+            displayImage(url)
+            findViewById<View>(R.id.hq).setOnClickListener {
+                imageShown = false
+                doLoad(contentUrl!!)
+                findViewById<View>(R.id.hq).visibility = View.GONE
+            }
         } else {
-            if (!firstUrl.isEmpty() && contentUrl != null && ContentType.displayImage(
-                    ContentType.getContentType(contentUrl))) {
-                ((ProgressBar) findViewById(R.id.progress)).setIndeterminate(true);
-                if (ContentType.isImgurHash(firstUrl)) {
-                    displayImage(firstUrl + ".png");
+            if (!firstUrl.isEmpty() && contentUrl != null && displayImage(
+                    getContentType(contentUrl!!)
+                )
+            ) {
+                (findViewById<View>(R.id.progress) as ProgressBar).isIndeterminate = true
+                if (isImgurHash(firstUrl)) {
+                    displayImage("$firstUrl.png")
                 } else {
-                    displayImage(firstUrl);
+                    displayImage(firstUrl)
                 }
             } else if (firstUrl.isEmpty()) {
-                imageShown = false;
-                ((ProgressBar) findViewById(R.id.progress)).setIndeterminate(true);
+                imageShown = false
+                (findViewById<View>(R.id.progress) as ProgressBar).isIndeterminate = true
             }
-            findViewById(R.id.hq).setVisibility(View.GONE);
-            doLoad(contentUrl);
+            findViewById<View>(R.id.hq).visibility = View.GONE
+            doLoad(contentUrl!!)
         }
-
-        if (!SettingValues.INSTANCE.getAppRestart().contains("tutorialSwipe")) {
-            startActivityForResult(new Intent(this, SwipeTutorial.class), 3);
+        if (!appRestart.contains("tutorialSwipe")) {
+            startActivityForResult(Intent(this, SwipeTutorial::class.java), 3)
         }
-        findViewById(R.id.more).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showBottomSheetImage();
-            }
-        });
-        findViewById(R.id.save).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                doImageSave();
-            }
-        });
-        if (!SettingValues.INSTANCE.getImageDownloadButton()) {
-            findViewById(R.id.save).setVisibility(View.INVISIBLE);
+        findViewById<View>(R.id.more).setOnClickListener { showBottomSheetImage() }
+        findViewById<View>(R.id.save).setOnClickListener { doImageSave() }
+        if (!imageDownloadButton) {
+            findViewById<View>(R.id.save).visibility = View.INVISIBLE
         }
-
-        hideOnLongClick();
+        hideOnLongClick()
     }
 
-    public void doLoad(final String contentUrl) {
-        ContentType.Type contentType = ContentType.getContentType(contentUrl);
-        switch (contentType) {
-            case DEVIANTART:
-                doLoadDeviantArt(contentUrl);
-                break;
-            case IMAGE:
-                doLoadImage(contentUrl);
-                break;
-            case IMGUR:
-                doLoadImgur(contentUrl);
-                break;
-            case XKCD:
-                doLoadXKCD(contentUrl);
-                break;
-            case STREAMABLE:
-            case VREDDIT_DIRECT:
-            case VREDDIT_REDIRECT:
-            case GIF:
-                doLoadGif(contentUrl);
-                break;
+    fun doLoad(contentUrl: String) {
+        when (getContentType(contentUrl)) {
+            ContentType.Type.DEVIANTART -> doLoadDeviantArt(contentUrl)
+            ContentType.Type.IMAGE -> doLoadImage(contentUrl)
+            ContentType.Type.IMGUR -> doLoadImgur(contentUrl)
+            ContentType.Type.XKCD -> doLoadXKCD(contentUrl)
+            ContentType.Type.STREAMABLE, ContentType.Type.VREDDIT_DIRECT, ContentType.Type.VREDDIT_REDIRECT, ContentType.Type.GIF -> doLoadGif(
+                contentUrl
+            )
+
+            else -> {}
         }
     }
 
-    public void doLoadGif(final String dat) {
-        isGif = true;
-        videoView = (ExoVideoView) findViewById(R.id.gif);
-        findViewById(R.id.black).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (findViewById(R.id.gifheader).getVisibility() == View.GONE) {
-                    AnimatorUtil.animateIn(findViewById(R.id.gifheader), 56);
-                    AnimatorUtil.fadeOut(findViewById(R.id.black));
-                }
+    fun doLoadGif(dat: String?) {
+        isGif = true
+        videoView = findViewById<View>(R.id.gif) as ExoVideoView
+        findViewById<View>(R.id.black).setOnClickListener {
+            if (findViewById<View>(R.id.gifheader).visibility == View.GONE) {
+                AnimatorUtil.animateIn(findViewById(R.id.gifheader), 56)
+                AnimatorUtil.fadeOut(findViewById(R.id.black))
             }
-        });
-        videoView.clearFocus();
-        findViewById(R.id.gifarea).setVisibility(View.VISIBLE);
-        findViewById(R.id.submission_image).setVisibility(View.GONE);
-        final ProgressBar loader = (ProgressBar) findViewById(R.id.gifprogress);
-        findViewById(R.id.progress).setVisibility(View.GONE);
-        gif = new GifUtils.AsyncLoadGif(this, videoView, loader,
-                findViewById(R.id.placeholder), doOnClick, true, true,
-                ((TextView) findViewById(R.id.size)), subreddit, submissionTitle);
-        videoView.attachMuteButton((ImageView) findViewById(R.id.mute));
-        videoView.attachHqButton((ImageView) findViewById(R.id.hq));
-        gif.execute(dat);
-        findViewById(R.id.more).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showBottomSheetImage();
-            }
-        });
+        }
+        videoView!!.clearFocus()
+        findViewById<View>(R.id.gifarea).visibility = View.VISIBLE
+        findViewById<View>(R.id.submission_image).visibility = View.GONE
+        val loader = findViewById<View>(R.id.gifprogress) as ProgressBar
+        findViewById<View>(R.id.progress).visibility = View.GONE
+        gif = AsyncLoadGif(
+            this, videoView!!, loader,
+            findViewById<View>(R.id.placeholder), doOnClick, true, true,
+            findViewById<View>(R.id.size) as TextView, subreddit!!, submissionTitle
+        )
+        videoView!!.attachMuteButton(findViewById<View>(R.id.mute) as ImageView)
+        videoView!!.attachHqButton(findViewById<View>(R.id.hq) as ImageView)
+        gif!!.execute(dat)
+        findViewById<View>(R.id.more).setOnClickListener { showBottomSheetImage() }
     }
 
-    public void doLoadImgur(String url) {
+    fun doLoadImgur(url: String) {
+        var url = url
         if (url.endsWith("/")) {
-            url = url.substring(0, url.length() - 1);
+            url = url.substring(0, url.length - 1)
         }
-        final String finalUrl = url;
-        String hash = url.substring(url.lastIndexOf("/"));
-
+        val finalUrl = url
+        var hash = url.substring(url.lastIndexOf("/"))
         if (NetworkUtil.isConnected(this)) {
-            if (hash.startsWith("/")) hash = hash.substring(1);
-            final String apiUrl = "https://imgur-apiv3.p.mashape.com/3/image/" + hash + ".json";
-            LogUtil.v(apiUrl);
-
-            new AsyncTask<Void, Void, JsonObject>() {
-                @Override
-                protected JsonObject doInBackground(Void... params) {
-                    return HttpUtil.getImgurMashapeJsonObject(App.client, gson, apiUrl,
-                            mashapeKey);
+            if (hash.startsWith("/")) hash = hash.substring(1)
+            val apiUrl = "https://imgur-apiv3.p.mashape.com/3/image/$hash.json"
+            LogUtil.v(apiUrl)
+            object : AsyncTask<Void?, Void?, JsonObject?>() {
+                override fun doInBackground(vararg params: Void?): JsonObject? {
+                    return HttpUtil.getImgurMashapeJsonObject(
+                        App.client, gson, apiUrl,
+                        mashapeKey
+                    )
                 }
 
-                @Override
-                protected void onPostExecute(JsonObject result) {
-                    if (result != null && !result.isJsonNull() && result.has("error")) {
-                        LogUtil.v("Error loading content");
-                        (MediaView.this).finish();
+                override fun onPostExecute(result: JsonObject?) {
+                    if (result != null && !result.isJsonNull && result.has("error")) {
+                        LogUtil.v("Error loading content")
+                        finish()
                     } else {
                         try {
-                            if (result != null && !result.isJsonNull() && result.has("image")) {
-                                String type = result.get("image")
-                                        .getAsJsonObject()
-                                        .get("image")
-                                        .getAsJsonObject()
-                                        .get("type")
-                                        .getAsString();
-                                String urls = result.get("image")
-                                        .getAsJsonObject()
-                                        .get("links")
-                                        .getAsJsonObject()
-                                        .get("original")
-                                        .getAsString();
-
+                            if (result != null && !result.isJsonNull && result.has("image")) {
+                                val type = result["image"]
+                                    .asJsonObject["image"]
+                                    .asJsonObject["type"]
+                                    .asString
+                                val urls = result["image"]
+                                    .asJsonObject["links"]
+                                    .asJsonObject["original"]
+                                    .asString
                                 if (type.contains("gif")) {
-                                    doLoadGif(urls);
+                                    doLoadGif(urls)
                                 } else if (!imageShown) { //only load if there is no image
-                                    displayImage(urls);
+                                    displayImage(urls)
                                 }
                             } else if (result != null && result.has("data")) {
-                                String type = result.get("data")
-                                        .getAsJsonObject()
-                                        .get("type")
-                                        .getAsString();
-                                String urls = result.get("data")
-                                        .getAsJsonObject()
-                                        .get("link")
-                                        .getAsString();
-                                String mp4 = "";
-                                if (result.get("data").getAsJsonObject().has("mp4")) {
-                                    mp4 = result.get("data")
-                                            .getAsJsonObject()
-                                            .get("mp4")
-                                            .getAsString();
+                                val type = result["data"]
+                                    .asJsonObject["type"]
+                                    .asString
+                                val urls = result["data"]
+                                    .asJsonObject["link"]
+                                    .asString
+                                var mp4: String? = ""
+                                if (result["data"].asJsonObject.has("mp4")) {
+                                    mp4 = result["data"]
+                                        .asJsonObject["mp4"]
+                                        .asString
                                 }
-
                                 if (type.contains("gif")) {
-                                    doLoadGif(((mp4 == null || mp4.isEmpty()) ? urls : mp4));
+                                    doLoadGif(if (mp4 == null || mp4.isEmpty()) urls else mp4)
                                 } else if (!imageShown) { //only load if there is no image
-                                    displayImage(urls);
+                                    displayImage(urls)
                                 }
                             } else {
-                                if (!imageShown) doLoadImage(finalUrl);
+                                if (!imageShown) doLoadImage(finalUrl)
                             }
-                        } catch (Exception e2) {
-                            e2.printStackTrace();
-                            Intent i = new Intent(MediaView.this, Website.class);
-                            i.putExtra(LinkUtil.EXTRA_URL, finalUrl);
-                            MediaView.this.startActivity(i);
-                            finish();
+                        } catch (e2: Exception) {
+                            e2.printStackTrace()
+                            val i = Intent(this@MediaView, Website::class.java)
+                            i.putExtra(LinkUtil.EXTRA_URL, finalUrl)
+                            this@MediaView.startActivity(i)
+                            finish()
                         }
                     }
-
                 }
-            }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+            }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR)
         }
     }
 
-    public void doLoadXKCD(String url) {
+    fun doLoadXKCD(url: String) {
+        var url = url
         if (!url.endsWith("/")) {
-            url = url + "/";
+            url = "$url/"
         }
-
         if (NetworkUtil.isConnected(this)) {
-            final String apiUrl = url + "info.0.json";
-            LogUtil.v(apiUrl);
-
-            final String finalUrl = url;
-            new AsyncTask<Void, Void, JsonObject>() {
-                @Override
-                protected JsonObject doInBackground(Void... params) {
-                    return HttpUtil.getJsonObject(App.client, gson, apiUrl);
+            val apiUrl = url + "info.0.json"
+            LogUtil.v(apiUrl)
+            val finalUrl = url
+            object : AsyncTask<Void?, Void?, JsonObject?>() {
+                override fun doInBackground(vararg params: Void?): JsonObject? {
+                    return HttpUtil.getJsonObject(App.client, gson, apiUrl)
                 }
 
-                @Override
-                protected void onPostExecute(final JsonObject result) {
-                    if (result != null && !result.isJsonNull() && result.has("error")) {
-                        LogUtil.v("Error loading content");
-                        (MediaView.this).finish();
+                override fun onPostExecute(result: JsonObject?) {
+                    if (result != null && !result.isJsonNull && result.has("error")) {
+                        LogUtil.v("Error loading content")
+                        finish()
                     } else {
                         try {
-                            if (result != null && !result.isJsonNull() && result.has("img")) {
-                                doLoadImage(result.get("img").getAsString());
-                                findViewById(R.id.submission_image).setOnLongClickListener(
-                                        new View.OnLongClickListener() {
-                                            @Override
-                                            public boolean onLongClick(View v) {
-                                                try {
-                                                    new AlertDialog.Builder(MediaView.this)
-                                                            .setTitle(result.get("safe_title").getAsString())
-                                                            .setMessage(result.get("alt").getAsString())
-                                                            .show();
-                                                } catch (Exception ignored) {
-
-                                                }
-                                                return true;
-                                            }
-                                        });
+                            if (result != null && !result.isJsonNull && result.has("img")) {
+                                doLoadImage(result["img"].asString)
+                                findViewById<View>(R.id.submission_image).setOnLongClickListener {
+                                    try {
+                                        AlertDialog.Builder(this@MediaView)
+                                            .setTitle(result["safe_title"].asString)
+                                            .setMessage(result["alt"].asString)
+                                            .show()
+                                    } catch (ignored: Exception) {
+                                    }
+                                    true
+                                }
                             } else {
-                                Intent i = new Intent(MediaView.this, Website.class);
-                                i.putExtra(LinkUtil.EXTRA_URL, finalUrl);
-                                MediaView.this.startActivity(i);
-                                finish();
+                                val i = Intent(this@MediaView, Website::class.java)
+                                i.putExtra(LinkUtil.EXTRA_URL, finalUrl)
+                                this@MediaView.startActivity(i)
+                                finish()
                             }
-                        } catch (Exception e2) {
-                            e2.printStackTrace();
-                            Intent i = new Intent(MediaView.this, Website.class);
-                            i.putExtra(LinkUtil.EXTRA_URL, finalUrl);
-                            MediaView.this.startActivity(i);
-                            finish();
+                        } catch (e2: Exception) {
+                            e2.printStackTrace()
+                            val i = Intent(this@MediaView, Website::class.java)
+                            i.putExtra(LinkUtil.EXTRA_URL, finalUrl)
+                            this@MediaView.startActivity(i)
+                            finish()
                         }
                     }
-
                 }
-            }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+            }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR)
         }
     }
 
-    public void doLoadDeviantArt(String url) {
-        final String apiUrl = "http://backend.deviantart.com/oembed?url=" + url;
-        LogUtil.v(apiUrl);
-        new AsyncTask<Void, Void, JsonObject>() {
-            @Override
-            protected JsonObject doInBackground(Void... params) {
-                return HttpUtil.getJsonObject(App.client, gson, apiUrl);
+    fun doLoadDeviantArt(url: String) {
+        val apiUrl = "http://backend.deviantart.com/oembed?url=$url"
+        LogUtil.v(apiUrl)
+        object : AsyncTask<Void?, Void?, JsonObject?>() {
+            override fun doInBackground(vararg params: Void?): JsonObject? {
+                return HttpUtil.getJsonObject(App.client, gson, apiUrl)
             }
 
-            @Override
-            protected void onPostExecute(JsonObject result) {
-                LogUtil.v("doLoad onPostExecute() called with: " + "result = [" + result + "]");
-                if (result != null && !result.isJsonNull() && (result.has("fullsize_url")
-                        || result.has("url"))) {
-                    String url;
-                    if (result.has("fullsize_url")) {
-                        url = result.get("fullsize_url").getAsString();
+            override fun onPostExecute(result: JsonObject?) {
+                LogUtil.v("doLoad onPostExecute() called with: result = [$result]")
+                if (result != null && !result.isJsonNull && (result.has("fullsize_url")
+                            || result.has("url"))
+                ) {
+                    val url: String = if (result.has("fullsize_url")) {
+                        result["fullsize_url"].asString
                     } else {
-                        url = result.get("url").getAsString();
+                        result["url"].asString
                     }
-                    doLoadImage(url);
+                    doLoadImage(url)
                 } else {
-                    Intent i = new Intent(MediaView.this, Website.class);
-                    i.putExtra(LinkUtil.EXTRA_URL, contentUrl);
-                    MediaView.this.startActivity(i);
-                    finish();
+                    val i = Intent(this@MediaView, Website::class.java)
+                    i.putExtra(LinkUtil.EXTRA_URL, contentUrl)
+                    this@MediaView.startActivity(i)
+                    finish()
                 }
             }
-        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR)
     }
 
-    public void doLoadImage(String contentUrl) {
+    fun doLoadImage(contentUrl: String?) {
+        var contentUrl = contentUrl
         if (contentUrl != null && contentUrl.contains("bildgur.de")) {
-            contentUrl = contentUrl.replace("b.bildgur.de", "i.imgur.com");
+            contentUrl = contentUrl.replace("b.bildgur.de", "i.imgur.com")
         }
-        if (contentUrl != null && ContentType.isImgurLink(contentUrl)) {
-            contentUrl = contentUrl + ".png";
+        if (contentUrl != null && isImgurLink(contentUrl)) {
+            contentUrl = "$contentUrl.png"
         }
-        findViewById(R.id.gifprogress).setVisibility(View.GONE);
-
+        findViewById<View>(R.id.gifprogress).visibility = View.GONE
         if (contentUrl != null && contentUrl.contains("m.imgur.com")) {
-            contentUrl = contentUrl.replace("m.imgur.com", "i.imgur.com");
+            contentUrl = contentUrl.replace("m.imgur.com", "i.imgur.com")
         }
         if (contentUrl == null) {
-            finish();
+            finish()
             //todo maybe something better
-
         }
-
-        if ((contentUrl != null
-                && !contentUrl.startsWith("https://i.redditmedia.com")
-                && !contentUrl.startsWith("https://i.reddituploads.com")
-                && !contentUrl.contains(
-                "imgur.com"))) { //we can assume redditmedia and imgur links are to direct images and not websites
-            findViewById(R.id.progress).setVisibility(View.VISIBLE);
-            ((ProgressBar) findViewById(R.id.progress)).setIndeterminate(true);
-
-            final String finalUrl2 = contentUrl;
-            new AsyncTask<Void, Void, Void>() {
-                @Override
-                protected Void doInBackground(Void... params) {
+        if (contentUrl != null && !contentUrl.startsWith("https://i.redditmedia.com")
+            && !contentUrl.startsWith("https://i.reddituploads.com")
+            && !contentUrl.contains(
+                "imgur.com"
+            )
+        ) { //we can assume redditmedia and imgur links are to direct images and not websites
+            findViewById<View>(R.id.progress).visibility = View.VISIBLE
+            (findViewById<View>(R.id.progress) as ProgressBar).isIndeterminate = true
+            val finalUrl2: String = contentUrl
+            object : AsyncTask<Void?, Void?, Void?>() {
+                override fun doInBackground(vararg params: Void?): Void? {
                     try {
-                        URL obj = new URL(finalUrl2);
-                        URLConnection conn = obj.openConnection();
-                        final String type = conn.getHeaderField("Content-Type");
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                if (!imageShown
-                                        && type != null
-                                        && !type.isEmpty()
-                                        && type.startsWith("image/")) {
-                                    //is image
-                                    if (type.contains("gif")) {
-                                        doLoadGif(finalUrl2.replace(".jpg", ".gif")
-                                                .replace(".png", ".gif"));
-                                    } else if (!imageShown) {
-                                        displayImage(finalUrl2);
-                                    }
-                                    actuallyLoaded = finalUrl2;
+                        val obj = URL(finalUrl2)
+                        val conn = obj.openConnection()
+                        val type = conn.getHeaderField("Content-Type")
+                        runOnUiThread {
+                            if (!imageShown && type != null && !type.isEmpty()
+                                && type.startsWith("image/")
+                            ) {
+                                //is image
+                                if (type.contains("gif")) {
+                                    doLoadGif(
+                                        finalUrl2.replace(".jpg", ".gif")
+                                            .replace(".png", ".gif")
+                                    )
                                 } else if (!imageShown) {
-                                    Intent i = new Intent(MediaView.this, Website.class);
-                                    i.putExtra(LinkUtil.EXTRA_URL, finalUrl2);
-                                    MediaView.this.startActivity(i);
-                                    finish();
+                                    displayImage(finalUrl2)
                                 }
+                                actuallyLoaded = finalUrl2
+                            } else if (!imageShown) {
+                                val i = Intent(this@MediaView, Website::class.java)
+                                i.putExtra(LinkUtil.EXTRA_URL, finalUrl2)
+                                this@MediaView.startActivity(i)
+                                finish()
                             }
-                        });
-
-                    } catch (IOException e) {
-                        e.printStackTrace();
+                        }
+                    } catch (e: IOException) {
+                        e.printStackTrace()
                     }
-                    return null;
+                    return null
                 }
 
-                @Override
-                protected void onPostExecute(Void aVoid) {
-                    findViewById(R.id.progress).setVisibility(View.GONE);
+                override fun onPostExecute(aVoid: Void?) {
+                    findViewById<View>(R.id.progress).visibility = View.GONE
                 }
-            }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-
+            }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR)
         } else {
-            displayImage(contentUrl);
+            displayImage(contentUrl)
         }
-
-        actuallyLoaded = contentUrl;
+        actuallyLoaded = contentUrl
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == 3) {
-            SettingValues.INSTANCE.getAppRestart().edit().putBoolean("tutorialSwipe", true).apply();
+            appRestart.edit().putBoolean("tutorialSwipe", true).apply()
         }
     }
 
-    public void displayImage(final String urlB) {
-        LogUtil.v("Displaying " + urlB);
-        final String url = StringEscapeUtils.unescapeHtml4(urlB);
-
+    fun displayImage(urlB: String?) {
+        LogUtil.v("Displaying $urlB")
+        val url = StringEscapeUtils.unescapeHtml4(urlB)
         if (!imageShown) {
-            actuallyLoaded = url;
-            final SubsamplingScaleImageView i =
-                    (SubsamplingScaleImageView) findViewById(R.id.submission_image);
-
-            i.setMinimumDpi(70);
-            i.setMinimumTileDpi(240);
-            final ProgressBar bar = (ProgressBar) findViewById(R.id.progress);
-            bar.setIndeterminate(false);
-            bar.setProgress(0);
-
-            final Handler handler = new Handler();
-            final Runnable progressBarDelayRunner = new Runnable() {
-                public void run() {
-                    bar.setVisibility(View.VISIBLE);
-                }
-            };
-            handler.postDelayed(progressBarDelayRunner, 500);
-
-            ImageView fakeImage = new ImageView(MediaView.this);
-            fakeImage.setLayoutParams(new LinearLayout.LayoutParams(i.getWidth(), i.getHeight()));
-            fakeImage.setScaleType(ImageView.ScaleType.CENTER_CROP);
-
-            File f = ((App) getApplicationContext()).getImageLoader().getDiskCache().get(url);
+            actuallyLoaded = url
+            val i = findViewById<View>(R.id.submission_image) as SubsamplingScaleImageView
+            i.setMinimumDpi(70)
+            i.setMinimumTileDpi(240)
+            val bar = findViewById<View>(R.id.progress) as ProgressBar
+            bar.isIndeterminate = false
+            bar.progress = 0
+            val handler = Handler()
+            val progressBarDelayRunner = Runnable { bar.visibility = View.VISIBLE }
+            handler.postDelayed(progressBarDelayRunner, 500)
+            val fakeImage = ImageView(this@MediaView)
+            fakeImage.layoutParams = LinearLayout.LayoutParams(i.width, i.height)
+            fakeImage.scaleType = ImageView.ScaleType.CENTER_CROP
+            val f = (applicationContext as App).imageLoader!!.diskCache[url]
             if (f != null && f.exists()) {
-                imageShown = true;
-
-                i.setOnImageEventListener(new SubsamplingScaleImageView.DefaultOnImageEventListener() {
-                    @Override
-                    public void onImageLoadError(Exception e) {
-                        imageShown = false;
-                        LogUtil.v("No image displayed");
+                imageShown = true
+                i.setOnImageEventListener(object : DefaultOnImageEventListener {
+                    override fun onImageLoadError(e: Throwable) {
+                        imageShown = false
+                        LogUtil.v("No image displayed")
                     }
-                });
+                })
                 try {
-                    i.setImage(ImageSource.uri(f.getAbsolutePath()));
-                } catch (Exception e) {
-                    imageShown = false;
+                    i.setImage(ImageSource.Uri(f.absolutePath))
+                } catch (e: Exception) {
+                    imageShown = false
                     //todo  i.setImage(ImageSource.bitmap(loadedImage));
                 }
-                (findViewById(R.id.progress)).setVisibility(View.GONE);
-                handler.removeCallbacks(progressBarDelayRunner);
+                findViewById<View>(R.id.progress).visibility = View.GONE
+                handler.removeCallbacks(progressBarDelayRunner)
+                previous = i.scale
+                val base = i.scale
+                i.postDelayed({
+                    i.onStateChangedListener = object : DefaultOnStateChangedListener {
+                        override fun onScaleChanged(newScale: Float, origin: Int) {
+                            if (newScale > previous && !hidden && newScale > base) {
+                                hidden = true
+                                val base = findViewById<View>(R.id.gifheader)
+                                val va = ValueAnimator.ofFloat(1.0f, 0.2f)
+                                val mDuration = 250 //in millis
+                                va.duration = mDuration.toLong()
+                                va.addUpdateListener { animation ->
+                                    val value = animation.animatedValue as Float
+                                    base.alpha = value
+                                }
+                                va.start()
+                                //hide
+                            } else if (newScale <= previous && hidden) {
+                                hidden = false
+                                val base = findViewById<View>(R.id.gifheader)
+                                val va = ValueAnimator.ofFloat(0.2f, 1.0f)
+                                val mDuration = 250 //in millis
+                                va.duration = mDuration.toLong()
+                                va.addUpdateListener { animation ->
+                                    val value = animation.animatedValue as Float
+                                    base.alpha = value
+                                }
+                                va.start()
+                                //unhide
+                            }
+                            previous = newScale
+                        }
+                    }
+                }, 2000)
+            } else {
+                val size = findViewById<View>(R.id.size) as TextView
+                (application as App).imageLoader!!
+                    .displayImage(url, ImageViewAware(fakeImage),
+                        DisplayImageOptions.Builder().resetViewBeforeLoading(true)
+                            .cacheOnDisk(true)
+                            .imageScaleType(ImageScaleType.NONE)
+                            .cacheInMemory(false)
+                            .build(), object : ImageLoadingListener {
+                            override fun onLoadingStarted(imageUri: String, view: View) {
+                                imageShown = true
+                                size.visibility = View.VISIBLE
+                            }
 
-                previous = i.scale;
-                final float base = i.scale;
-                i.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        i.setOnStateChangedListener(
-                                new SubsamplingScaleImageView.DefaultOnStateChangedListener() {
-                                    @Override
-                                    public void onScaleChanged(float newScale, int origin) {
+                            override fun onLoadingFailed(
+                                imageUri: String, view: View,
+                                failReason: FailReason
+                            ) {
+                                Log.v(LogUtil.getTag(), "LOADING FAILED")
+                                imageShown = false
+                            }
+
+                            override fun onLoadingComplete(
+                                imageUri: String, view: View,
+                                loadedImage: Bitmap
+                            ) {
+                                imageShown = true
+                                size.visibility = View.GONE
+                                val f = (applicationContext as App).imageLoader!!
+                                    .diskCache[url]
+                                if (f != null && f.exists()) {
+                                    i.setImage(ImageSource.Uri(f.absolutePath))
+                                } else {
+                                    i.setImage(ImageSource.Bitmap(loadedImage))
+                                }
+                                findViewById<View>(R.id.progress).visibility = View.GONE
+                                handler.removeCallbacks(progressBarDelayRunner)
+                                previous = i.scale
+                                val base = i.scale
+                                i.onStateChangedListener = object : DefaultOnStateChangedListener {
+                                    override fun onScaleChanged(newScale: Float, origin: Int) {
                                         if (newScale > previous && !hidden && newScale > base) {
-                                            hidden = true;
-                                            final View base = findViewById(R.id.gifheader);
-
-                                            ValueAnimator va = ValueAnimator.ofFloat(1.0f, 0.2f);
-                                            int mDuration = 250; //in millis
-                                            va.setDuration(mDuration);
-                                            va.addUpdateListener(
-                                                    new ValueAnimator.AnimatorUpdateListener() {
-                                                        public void onAnimationUpdate(
-                                                                ValueAnimator animation) {
-                                                            Float value =
-                                                                    (Float) animation.getAnimatedValue();
-                                                            base.setAlpha(value);
-                                                        }
-                                                    });
-                                            va.start();
+                                            hidden = true
+                                            val base = findViewById<View>(R.id.gifheader)
+                                            val va = ValueAnimator.ofFloat(
+                                                1.0f,
+                                                0.2f
+                                            )
+                                            val mDuration = 250 //in millis
+                                            va.duration = mDuration.toLong()
+                                            va.addUpdateListener { animation ->
+                                                val value = animation
+                                                    .animatedValue as Float
+                                                base.alpha = value
+                                            }
+                                            va.start()
                                             //hide
                                         } else if (newScale <= previous && hidden) {
-                                            hidden = false;
-                                            final View base = findViewById(R.id.gifheader);
-
-                                            ValueAnimator va = ValueAnimator.ofFloat(0.2f, 1.0f);
-                                            int mDuration = 250; //in millis
-                                            va.setDuration(mDuration);
-                                            va.addUpdateListener(
-                                                    new ValueAnimator.AnimatorUpdateListener() {
-                                                        public void onAnimationUpdate(
-                                                                ValueAnimator animation) {
-                                                            Float value =
-                                                                    (Float) animation.getAnimatedValue();
-                                                            base.setAlpha(value);
-                                                        }
-                                                    });
-                                            va.start();
+                                            hidden = false
+                                            val base = findViewById<View>(R.id.gifheader)
+                                            val va = ValueAnimator.ofFloat(
+                                                0.2f,
+                                                1.0f
+                                            )
+                                            val mDuration = 250 //in millis
+                                            va.duration = mDuration.toLong()
+                                            va.addUpdateListener { animation ->
+                                                val value = animation
+                                                    .animatedValue as Float
+                                                base.alpha = value
+                                            }
+                                            va.start()
                                             //unhide
                                         }
-                                        previous = newScale;
+                                        previous = newScale
                                     }
-                                });
-                    }
-                }, 2000);
+                                }
+                            }
 
-            } else {
-                final TextView size = (TextView) findViewById(R.id.size);
-
-                ((App) getApplication()).getImageLoader()
-                        .displayImage(url, new ImageViewAware(fakeImage),
-                                new DisplayImageOptions.Builder().resetViewBeforeLoading(true)
-                                        .cacheOnDisk(true)
-                                        .imageScaleType(ImageScaleType.NONE)
-                                        .cacheInMemory(false)
-                                        .build(), new ImageLoadingListener() {
-
-                                    @Override
-                                    public void onLoadingStarted(String imageUri, View view) {
-                                        imageShown = true;
-                                        size.setVisibility(View.VISIBLE);
-                                    }
-
-                                    @Override
-                                    public void onLoadingFailed(String imageUri, View view,
-                                            FailReason failReason) {
-                                        Log.v(LogUtil.getTag(), "LOADING FAILED");
-                                        imageShown = false;
-                                    }
-
-                                    @Override
-                                    public void onLoadingComplete(String imageUri, View view,
-                                            Bitmap loadedImage) {
-                                        imageShown = true;
-                                        size.setVisibility(View.GONE);
-
-                                        File f = ((App) getApplicationContext()).getImageLoader()
-                                                .getDiskCache()
-                                                .get(url);
-                                        if (f != null && f.exists()) {
-                                            i.setImage(ImageSource.uri(f.getAbsolutePath()));
-                                        } else {
-                                            i.setImage(ImageSource.bitmap(loadedImage));
-                                        }
-                                        (findViewById(R.id.progress)).setVisibility(View.GONE);
-                                        handler.removeCallbacks(progressBarDelayRunner);
-
-                                        previous = i.scale;
-                                        final float base = i.scale;
-                                        i.setOnStateChangedListener(
-                                                new SubsamplingScaleImageView.DefaultOnStateChangedListener() {
-                                                    @Override
-                                                    public void onScaleChanged(float newScale, int origin) {
-                                                        if (newScale > previous
-                                                                && !hidden
-                                                                && newScale > base) {
-                                                            hidden = true;
-                                                            final View base =
-                                                                    findViewById(R.id.gifheader);
-
-                                                            ValueAnimator va =
-                                                                    ValueAnimator.ofFloat(1.0f,
-                                                                            0.2f);
-                                                            int mDuration = 250; //in millis
-                                                            va.setDuration(mDuration);
-                                                            va.addUpdateListener(
-                                                                    new ValueAnimator.AnimatorUpdateListener() {
-                                                                        public void onAnimationUpdate(
-                                                                                ValueAnimator animation) {
-                                                                            Float value =
-                                                                                    (Float) animation
-                                                                                            .getAnimatedValue();
-                                                                            base.setAlpha(value);
-                                                                        }
-                                                                    });
-                                                            va.start();
-                                                            //hide
-                                                        } else if (newScale <= previous && hidden) {
-                                                            hidden = false;
-                                                            final View base =
-                                                                    findViewById(R.id.gifheader);
-
-                                                            ValueAnimator va =
-                                                                    ValueAnimator.ofFloat(0.2f,
-                                                                            1.0f);
-                                                            int mDuration = 250; //in millis
-                                                            va.setDuration(mDuration);
-                                                            va.addUpdateListener(
-                                                                    new ValueAnimator.AnimatorUpdateListener() {
-                                                                        public void onAnimationUpdate(
-                                                                                ValueAnimator animation) {
-                                                                            Float value =
-                                                                                    (Float) animation
-                                                                                            .getAnimatedValue();
-                                                                            base.setAlpha(value);
-                                                                        }
-                                                                    });
-                                                            va.start();
-                                                            //unhide
-                                                        }
-                                                        previous = newScale;
-                                                    }
-                                                });
-                                    }
-
-                                    @Override
-                                    public void onLoadingCancelled(String imageUri, View view) {
-                                        Log.v(LogUtil.getTag(), "LOADING CANCELLED");
-
-                                    }
-                                }, new ImageLoadingProgressListener() {
-                                    @Override
-                                    public void onProgressUpdate(String imageUri, View view,
-                                            int current, int total) {
-                                        size.setText(FileUtil.readableFileSize(total));
-
-                                        ((ProgressBar) findViewById(R.id.progress)).setProgress(
-                                                Math.round(100.0f * current / total));
-                                    }
-                                });
+                            override fun onLoadingCancelled(imageUri: String, view: View) {
+                                Log.v(LogUtil.getTag(), "LOADING CANCELLED")
+                            }
+                        }, { imageUri, view, current, total ->
+                            size.text = FileUtil.readableFileSize(total.toLong())
+                            (findViewById<View>(R.id.progress) as ProgressBar).progress =
+                                (100.0f * current / total).roundToInt()
+                        })
             }
         }
     }
 
-    private void showFirstDialog() {
-        runOnUiThread(() ->
-                DialogUtil.showFirstDialog(MediaView.this));
+    private fun showFirstDialog() {
+        runOnUiThread { DialogUtil.showFirstDialog(this@MediaView) { _, folder -> onFolderSelection(folder) } }
     }
 
-    private void showErrorDialog() {
-        runOnUiThread(() ->
-                DialogUtil.showErrorDialog(MediaView.this));
+    private fun showErrorDialog() {
+        runOnUiThread { DialogUtil.showErrorDialog(this@MediaView) { _, folder -> onFolderSelection(folder) } }
     }
 
-    @Override
-    public void onFolderSelection(@NonNull FolderChooserDialogCreate dialog,
-                                  @NonNull File folder, boolean isSaveToLocation) {
+    fun onFolderSelection(folder: File, isSaveToLocation: Boolean = false) {
         if (isSaveToLocation) {
-            Intent i = new Intent(this, ImageDownloadNotificationService.class);
+            val i = Intent(this, ImageDownloadNotificationService::class.java)
             //always download the original file, or use the cached original if that is currently displayed
-            i.putExtra("actuallyLoaded", contentUrl);
-            i.putExtra("saveToLocation", folder.getAbsolutePath());
-            if (subreddit != null && !subreddit.isEmpty()) i.putExtra("subreddit", subreddit);
-            if (submissionTitle != null) i.putExtra(EXTRA_SUBMISSION_TITLE, submissionTitle);
-            i.putExtra("index", index);
-            startService(i);
+            i.putExtra("actuallyLoaded", contentUrl)
+            i.putExtra("saveToLocation", folder.absolutePath)
+            if (subreddit != null && !subreddit!!.isEmpty()) i.putExtra("subreddit", subreddit)
+            if (submissionTitle != null) i.putExtra(
+                ImageDownloadNotificationService.EXTRA_SUBMISSION_TITLE,
+                submissionTitle
+            )
+            i.putExtra("index", index)
+            startService(i)
         } else {
-            SettingValues.INSTANCE.getAppRestart().edit().putString("imagelocation", folder.getAbsolutePath()).apply();
-            Toast.makeText(this,
-                    getString(R.string.settings_set_image_location, folder.getAbsolutePath()),
-                    Toast.LENGTH_LONG).show();
+            appRestart.edit().putString("imagelocation", folder.absolutePath).apply()
+            Toast.makeText(
+                this,
+                getString(R.string.settings_set_image_location, folder.absolutePath),
+                Toast.LENGTH_LONG
+            ).show()
         }
     }
 
-    @Override
-    public void onFolderChooserDismissed(@NonNull FolderChooserDialogCreate dialog) {
+
+    companion object {
+        const val EXTRA_URL = "url"
+        const val SUBREDDIT = "sub"
+        const val ADAPTER_POSITION = "adapter_position"
+        const val SUBMISSION_URL = "submission"
+        const val EXTRA_DISPLAY_URL = "displayUrl"
+        const val EXTRA_LQ = "lq"
+        const val EXTRA_SHARE_URL = "urlShare"
+        var fileLoc: String? = null
+        @JvmField
+        var doOnClick: Runnable? = null
+        @JvmField
+        var didLoadGif = false
+
+        private fun shouldTruncate(url: String): Boolean {
+            return try {
+                val uri = URI(url)
+                val path = uri.path
+                !isGif(uri) && !isImage(uri) && path.contains(".")
+            } catch (e: URISyntaxException) {
+                false
+            }
+        }
     }
 }

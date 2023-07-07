@@ -1,9 +1,10 @@
 package me.ccrama.redditslide.Fragments
 
-import android.os.Bundle
+import android.view.View
 import android.widget.CheckBox
 import androidx.annotation.IdRes
 import com.afollestad.materialdialogs.MaterialDialog
+import com.afollestad.materialdialogs.customview.customView
 import ltd.ucode.slide.R
 import ltd.ucode.slide.SettingValues
 import me.ccrama.redditslide.ui.settings.SettingsThemeFragment
@@ -11,39 +12,41 @@ import me.ccrama.redditslide.ui.settings.SettingsThemeFragment
 // TODO: Replace all this $#!^ with a bitset...
 private var selectedDrawerItems: Long = 0
 
-class DrawerItemsDialog(builder: Builder) :
-    MaterialDialog(builder.customView(R.layout.dialog_drawer_items, false)
-        .title(R.string.settings_general_title_drawer_items)
-        .positiveText(android.R.string.ok)
-        .canceledOnTouchOutside(false)
-        .onPositive { dialog, which ->
-            if (SettingsThemeFragment.changed) {
+class DrawerItemsDialog(val dialog: MaterialDialog) {
+    init {
+        dialog.apply {
+            customView(R.layout.dialog_drawer_items, scrollable = false)
+            title(R.string.settings_general_title_drawer_items)
+            positiveButton(android.R.string.ok) { dialog ->
+                if (SettingsThemeFragment.changed) {
+                    SettingValues.selectedDrawerItems = selectedDrawerItems
+                }
+            }
+            cancelOnTouchOutside(false)
+            setOnShowListener {
+                selectedDrawerItems = SettingValues.selectedDrawerItems
+                if (selectedDrawerItems == -1L) {
+                    selectedDrawerItems = 0
+                    for (settingDrawerItem in SettingsDrawerEnum.values()) {
+                        selectedDrawerItems += settingDrawerItem.value
+                    }
+                    SettingValues.selectedDrawerItems = selectedDrawerItems
+                }
+                setupViews()
+            }
+            setOnDismissListener {
                 SettingValues.selectedDrawerItems = selectedDrawerItems
             }
-        }) {
-
-    public override fun onCreate(savedInstanceState: Bundle) {
-        super.onCreate(savedInstanceState)
-        selectedDrawerItems = SettingValues.selectedDrawerItems
-        if (selectedDrawerItems == -1L) {
-            selectedDrawerItems = 0
-            for (settingDrawerItem in SettingsDrawerEnum.values()) {
-                selectedDrawerItems += settingDrawerItem.value
+            setOnCancelListener {
+                SettingValues.selectedDrawerItems = selectedDrawerItems
             }
-            SettingValues.selectedDrawerItems = selectedDrawerItems
         }
-        setupViews()
-    }
-
-    public override fun onStop() {
-        super.onStop()
-        SettingValues.selectedDrawerItems = selectedDrawerItems
     }
 
     private fun setupViews() {
         for (settingDrawerItem in SettingsDrawerEnum.values()) {
-            findViewById(settingDrawerItem.layoutId).setOnClickListener {
-                val checkBox = findViewById(settingDrawerItem.checkboxId) as CheckBox
+            dialog.findViewById<View>(settingDrawerItem.layoutId).setOnClickListener {
+                val checkBox = dialog.findViewById<CheckBox>(settingDrawerItem.checkboxId)
                 if (checkBox.isChecked) {
                     selectedDrawerItems -= settingDrawerItem.value
                 } else {
@@ -52,9 +55,17 @@ class DrawerItemsDialog(builder: Builder) :
                 checkBox.isChecked = !checkBox.isChecked
             }
             SettingsThemeFragment.changed = true
-            (findViewById(settingDrawerItem.checkboxId) as CheckBox).isChecked =
+            (dialog.findViewById<CheckBox>(settingDrawerItem.checkboxId)).isChecked =
                 selectedDrawerItems and settingDrawerItem.value != 0L
         }
+    }
+
+    fun show() {
+        dialog.show()
+    }
+
+    inline fun show(crossinline func: MaterialDialog.() -> Unit) {
+        dialog.show(func)
     }
 
     enum class SettingsDrawerEnum(

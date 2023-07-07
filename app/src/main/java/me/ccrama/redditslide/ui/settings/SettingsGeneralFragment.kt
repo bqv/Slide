@@ -19,10 +19,9 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.PopupMenu
 import androidx.appcompat.widget.SwitchCompat
-import com.afollestad.materialdialogs.DialogAction
 import com.afollestad.materialdialogs.MaterialDialog
-import com.afollestad.materialdialogs.MaterialDialog.InputCallback
-import com.afollestad.materialdialogs.MaterialDialog.SingleButtonCallback
+import com.afollestad.materialdialogs.input.input
+import com.afollestad.materialdialogs.list.listItemsSingleChoice
 import com.google.android.material.snackbar.Snackbar
 import com.rey.material.widget.Slider
 import ltd.ucode.slide.App
@@ -33,7 +32,6 @@ import ltd.ucode.slide.SettingValues
 import me.ccrama.redditslide.Constants
 import me.ccrama.redditslide.Constants.BackButtonBehaviorOptions
 import me.ccrama.redditslide.Fragments.DrawerItemsDialog
-import me.ccrama.redditslide.Fragments.FolderChooserDialogCreate
 import me.ccrama.redditslide.Notifications.CheckForMail
 import me.ccrama.redditslide.Notifications.NotificationJobScheduler
 import me.ccrama.redditslide.UserSubscriptions
@@ -52,8 +50,7 @@ import java.io.File
 import java.util.Arrays
 import java.util.Locale
 
-class SettingsGeneralFragment<ActivityType>(private val context: ActivityType) :
-    FolderChooserDialogCreate.FolderCallback where ActivityType : AppCompatActivity?, ActivityType : FolderChooserDialogCreate.FolderCallback? {
+class SettingsGeneralFragment(private val context: AppCompatActivity?) {
     private var input: String? = null
 
     /* Allow SettingsGeneral and Settings Activity classes to use the same XML functionality */
@@ -69,9 +66,7 @@ class SettingsGeneralFragment<ActivityType>(private val context: ActivityType) :
         context.findViewById<View>(R.id.settings_general_drawer_items)
             .setOnClickListener { v: View? ->
                 DrawerItemsDialog(
-                    MaterialDialog.Builder(
-                        context
-                    )
+                    MaterialDialog(context)
                 ).show()
             }
         run {
@@ -148,9 +143,7 @@ class SettingsGeneralFragment<ActivityType>(private val context: ActivityType) :
         val setSaveLocationLayout =
             context.findViewById<RelativeLayout>(R.id.settings_general_set_save_location)
         setSaveLocationLayout?.setOnClickListener { v: View? ->
-            DialogUtil.showFolderChooserDialog(
-                context
-            )
+            DialogUtil.showFolderChooserDialog(context) { _, folder -> onFolderSelection(folder) }
         }
         val setSaveLocationView =
             context.findViewById<TextView>(R.id.settings_general_set_save_location_view)
@@ -308,17 +301,17 @@ class SettingsGeneralFragment<ActivityType>(private val context: ActivityType) :
             val popup: PopupMenu = PopupMenu(
                 context, (v)!!
             )
-            popup.getMenuInflater().inflate(R.menu.back_button_behavior_settings, popup.getMenu())
+            popup.menuInflater.inflate(R.menu.back_button_behavior_settings, popup.menu)
             popup.setOnMenuItemClickListener(PopupMenu.OnMenuItemClickListener { item: MenuItem ->
-                when (item.getItemId()) {
+                when (item.itemId) {
                     R.id.back_button_behavior_default -> {
                         SettingValues.backButtonBehavior =
-                            BackButtonBehaviorOptions.Default.getValue()
+                            BackButtonBehaviorOptions.Default.value
                     }
 
                     R.id.back_button_behavior_confirm_exit -> {
                         SettingValues.backButtonBehavior =
-                            BackButtonBehaviorOptions.ConfirmExit.getValue()
+                            BackButtonBehaviorOptions.ConfirmExit.value
                     }
 
                     R.id.back_button_behavior_open_drawer -> {
@@ -540,7 +533,7 @@ class SettingsGeneralFragment<ActivityType>(private val context: ActivityType) :
         var subText = context!!.getString(R.string.sub_post_notifs_settings_none)
         val subs = StringBuilder()
         for (s: String in rawSubs) {
-            if (!s.isEmpty()) {
+            if (s.isNotEmpty()) {
                 try {
                     val split = s.split(":".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
                     subs.append(split[0])
@@ -603,7 +596,7 @@ class SettingsGeneralFragment<ActivityType>(private val context: ActivityType) :
         val list: MutableList<String?> = ArrayList()
         i = 0
         for (s: String? in all) {
-            if (s != null && !s.isEmpty()) {
+            if (!s.isNullOrEmpty()) {
                 list.add(s)
                 if (subThresholds.containsKey(s)) {
                     checked[i] = true
@@ -622,9 +615,9 @@ class SettingsGeneralFragment<ActivityType>(private val context: ActivityType) :
                 checked
             ) { dialog: DialogInterface?, which: Int, isChecked: Boolean ->
                 if (!isChecked) {
-                    toCheck.remove(finalAll.get(which))
+                    toCheck.remove(finalAll[which])
                 } else {
-                    toCheck.add(finalAll.get(which))
+                    toCheck.add(finalAll[which])
                 }
             }
             .setTitle(R.string.sub_post_notifs_title_settings)
@@ -632,26 +625,18 @@ class SettingsGeneralFragment<ActivityType>(private val context: ActivityType) :
                 context!!.getString(R.string.btn_add).uppercase(Locale.getDefault())
             ) { dialog: DialogInterface?, which: Int -> showThresholdDialog(toCheck, false) }
             .setNegativeButton(R.string.sub_post_notifs_settings_search) { dialog: DialogInterface?, which: Int ->
-                MaterialDialog.Builder(
-                    context
-                )
-                    .title(R.string.reorder_add_subreddit)
-                    .inputRangeRes(2, 21, R.color.md_red_500)
-                    .alwaysCallInputCallback()
-                    .input(
-                        context.getString(R.string.reorder_subreddit_name), null,
-                        false
-                    ) { dialog, raw ->
+                MaterialDialog(context).show {
+                    title(R.string.reorder_add_subreddit)
+                    input(hintRes = R.string.reorder_subreddit_name, waitForPositiveButton = false) { dialog, raw ->
                         input = raw.toString()
                             .replace(
                                 "\\s".toRegex(),
                                 ""
                             ) //remove whitespace from input
                     }
-                    .positiveText(R.string.btn_add)
-                    .onPositive { dialog, which -> AsyncGetSubreddit().execute(input) }
-                    .negativeText(R.string.btn_cancel)
-                    .show()
+                    positiveButton(R.string.btn_add) { dialog -> AsyncGetSubreddit().execute(input) }
+                    negativeButton(R.string.btn_cancel)
+                }
             }
             .show()
     }
@@ -681,22 +666,21 @@ class SettingsGeneralFragment<ActivityType>(private val context: ActivityType) :
                 toAdd.add(s.lowercase())
             }
         }
-        if (!toAdd.isEmpty()) {
-            MaterialDialog.Builder(context!!).title(
-                R.string.sub_post_notifs_threshold
-            )
-                .items(*arrayOf<String>("1", "5", "10", "20", "40", "50"))
-                .alwaysCallSingleChoiceCallback()
-                .itemsCallbackSingleChoice(0
-                ) { dialog, itemView, which, text ->
+        if (toAdd.isNotEmpty()) {
+            MaterialDialog(context!!).show {
+                title(R.string.sub_post_notifs_threshold)
+                listItemsSingleChoice(null,
+                    items = listOf("1", "5", "10", "20", "40", "50"),
+                    waitForPositiveButton = false,
+                    initialSelection = 0,
+                ) { dialog, which, text ->
                     for (s: String in toAdd) {
                         subsRaw.add("$s:$text")
                     }
                     saveAndUpdateSubs(subsRaw)
-                    true
                 }
-                .cancelable(false)
-                .show()
+                cancelable(false)
+            }
         } else {
             saveAndUpdateSubs(subsRaw)
         }
@@ -709,10 +693,7 @@ class SettingsGeneralFragment<ActivityType>(private val context: ActivityType) :
         setSubText()
     }
 
-    override fun onFolderSelection(
-        dialog: FolderChooserDialogCreate,
-        folder: File, isSaveToLocation: Boolean
-    ) {
+    fun onFolderSelection(folder: File) {
         SettingValues.appRestart.edit().putString("imagelocation", folder.absolutePath).apply()
         Toast.makeText(
             context,
@@ -723,7 +704,6 @@ class SettingsGeneralFragment<ActivityType>(private val context: ActivityType) :
             folder.absolutePath
     }
 
-    override fun onFolderChooserDismissed(dialog: FolderChooserDialogCreate) {}
     private inner class AsyncGetSubreddit : AsyncTask<String?, Void?, Subreddit?>() {
         public override fun onPostExecute(subreddit: Subreddit?) {
             if (subreddit != null || input.equals("friends", ignoreCase = true) || input.equals(
@@ -794,8 +774,7 @@ class SettingsGeneralFragment<ActivityType>(private val context: ActivityType) :
             }
             landscape.setOnPositionChangeListener { slider, b, v, v1, i, i1 ->
                 if (checkBox.isChecked) {
-                    checkBox.text = context.getString(
-                        R.string.settings_notification,
+                    checkBox.text = context.getString(R.string.settings_notification,
                         TimeUtils.getTimeInHoursAndMins(i1 * 15, context.baseContext)
                     )
                 }

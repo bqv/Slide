@@ -24,7 +24,9 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import com.afollestad.materialdialogs.MaterialDialog
+import com.afollestad.materialdialogs.customview.customView
 import com.cocosw.bottomsheet.BottomSheet
+import com.sothree.slidinguppanel.PanelState
 import com.sothree.slidinguppanel.SlidingUpPanelLayout
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -222,7 +224,7 @@ object PopulateShadowboxInfo {
 
                             override fun onPostExecute(aVoid: Void?) {
                                 (rootView.findViewById<View>(R.id.sliding_layout) as SlidingUpPanelLayout).panelState =
-                                    SlidingUpPanelLayout.PanelState.COLLAPSED
+                                    PanelState.COLLAPSED
                                 if (isSaved(s)) {
                                     BlendModeUtil.tintImageViewAsSrcAtop(
                                         save,
@@ -250,7 +252,7 @@ object PopulateShadowboxInfo {
                         run {
                             downvotebutton.setOnClickListener {
                                 (rootView.findViewById<View>(R.id.sliding_layout) as SlidingUpPanelLayout).setPanelState(
-                                    SlidingUpPanelLayout.PanelState.COLLAPSED
+                                    PanelState.COLLAPSED
                                 )
                                 if (SettingValues.storeHistory) {
                                     if (!s.isNsfw || SettingValues.storeNSFWHistory) {
@@ -313,7 +315,7 @@ object PopulateShadowboxInfo {
                         run {
                             upvotebutton.setOnClickListener {
                                 (rootView.findViewById<View>(R.id.sliding_layout) as SlidingUpPanelLayout).setPanelState(
-                                    SlidingUpPanelLayout.PanelState.COLLAPSED
+                                    PanelState.COLLAPSED
                                 )
                                 if (SettingValues.storeHistory) {
                                     if (!s.isNsfw || SettingValues.storeNSFWHistory) {
@@ -554,7 +556,7 @@ object PopulateShadowboxInfo {
 
                                 override fun onPostExecute(aVoid: Void?) {
                                     (rootView.findViewById<View>(R.id.sliding_layout) as SlidingUpPanelLayout).panelState =
-                                        SlidingUpPanelLayout.PanelState.COLLAPSED
+                                        PanelState.COLLAPSED
                                     if (isSaved(s)) {
                                         BlendModeUtil.tintImageViewAsSrcAtop(
                                             save,
@@ -583,7 +585,7 @@ object PopulateShadowboxInfo {
                         run {
                             downvotebutton.setOnClickListener {
                                 (rootView.findViewById<View>(R.id.sliding_layout) as SlidingUpPanelLayout).setPanelState(
-                                    SlidingUpPanelLayout.PanelState.COLLAPSED
+                                    PanelState.COLLAPSED
                                 )
                                 if (getVoteDirection(s) != VoteDirection.DOWNVOTE) { //has not been downvoted
                                     points.setTextColor(
@@ -645,7 +647,7 @@ object PopulateShadowboxInfo {
                         run {
                             upvotebutton.setOnClickListener {
                                 (rootView.findViewById<View>(R.id.sliding_layout) as SlidingUpPanelLayout).setPanelState(
-                                    SlidingUpPanelLayout.PanelState.COLLAPSED
+                                    PanelState.COLLAPSED
                                 )
                                 if (getVoteDirection(s) != VoteDirection.UPVOTE) { //has not been upvoted
                                     points.setTextColor(
@@ -763,21 +765,19 @@ object PopulateShadowboxInfo {
                         7 -> openExternally(submission.url!!)
                         4 -> defaultShareText(submission.title, submission.url, mContext)
                         12 -> {
-                            val reportDialog = MaterialDialog.Builder(mContext)
-                                .customView(R.layout.report_dialog, true)
-                                .title(R.string.report_post)
-                                .positiveText(R.string.btn_report)
-                                .negativeText(R.string.btn_cancel)
-                                .onPositive { dialog, which ->
-                                    val reasonGroup = dialog.customView!!
-                                        .findViewById<RadioGroup>(R.id.report_reasons)
-                                    val reportReason: String
-                                    if (reasonGroup.checkedRadioButtonId == R.id.report_other) {
-                                        reportReason = (dialog.customView!!
+                            val reportDialog = MaterialDialog(mContext).show {
+                                customView(R.layout.report_dialog, scrollable = true)
+                                title(R.string.report_post)
+                                negativeButton(R.string.btn_cancel)
+                                positiveButton(R.string.btn_report) { dialog ->
+                                    val reasonGroup =
+                                        dialog.view.findViewById<RadioGroup>(R.id.report_reasons)
+                                    val reportReason: String = if (reasonGroup.checkedRadioButtonId == R.id.report_other) {
+                                        (dialog.view
                                             .findViewById<View>(R.id.input_report_reason) as EditText)
                                             .text.toString()
                                     } else {
-                                        reportReason = (reasonGroup
+                                        (reasonGroup
                                             .findViewById<View>(reasonGroup.checkedRadioButtonId) as RadioButton)
                                             .text.toString()
                                     }
@@ -786,15 +786,13 @@ object PopulateShadowboxInfo {
                                             AsyncTask.THREAD_POOL_EXECUTOR,
                                             reportReason
                                         )
-                                }.build()
+                                }
+                            }
                             val reasonGroup =
-                                reportDialog.customView!!.findViewById<RadioGroup>(R.id.report_reasons)
+                                reportDialog.view.findViewById<RadioGroup>(R.id.report_reasons)
                             reasonGroup.setOnCheckedChangeListener { group, checkedId ->
-                                if (checkedId == R.id.report_other) reportDialog.customView!!.findViewById<View>(
-                                    R.id.input_report_reason
-                                ).visibility = View.VISIBLE else reportDialog.customView!!
-                                    .findViewById<View>(R.id.input_report_reason).visibility =
-                                    View.GONE
+                                reportDialog.view.findViewById<View>(R.id.input_report_reason).visibility =
+                                    if (checkedId == R.id.report_other) View.VISIBLE else View.GONE
                             }
 
                             // Load sub's report reasons and show the appropriate ones
@@ -804,7 +802,7 @@ object PopulateShadowboxInfo {
                                 }
 
                                 override fun onPostExecute(rules: Ruleset) {
-                                    reportDialog.customView!!.findViewById<View>(R.id.report_loading).visibility =
+                                    reportDialog.view.findViewById<View>(R.id.report_loading).visibility =
                                         View.GONE
                                     if (rules.subredditRules.size > 0) {
                                         val subHeader = TextView(mContext)

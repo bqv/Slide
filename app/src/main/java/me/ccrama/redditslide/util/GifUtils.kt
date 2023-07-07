@@ -1,118 +1,107 @@
-package me.ccrama.redditslide.util;
+package me.ccrama.redditslide.util
 
-import android.app.Activity;
-import android.app.Notification;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
-import android.content.Intent;
-import android.graphics.Color;
-import android.media.MediaScannerConnection;
-import android.net.Uri;
-import android.os.AsyncTask;
-import android.os.Looper;
-import android.view.View;
-import android.widget.ProgressBar;
-import android.widget.TextView;
-import android.widget.Toast;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
-import androidx.core.app.NotificationCompat;
-import androidx.core.content.ContextCompat;
-
-import com.google.android.exoplayer2.Player;
-import com.google.android.exoplayer2.ext.okhttp.OkHttpDataSource;
-import com.google.android.exoplayer2.source.dash.manifest.AdaptationSet;
-import com.google.android.exoplayer2.source.dash.manifest.DashManifest;
-import com.google.android.exoplayer2.source.dash.manifest.DashManifestParser;
-import com.google.android.exoplayer2.source.dash.manifest.Representation;
-import com.google.android.exoplayer2.upstream.DataSource;
-import com.google.android.exoplayer2.upstream.DataSourceInputStream;
-import com.google.android.exoplayer2.upstream.DataSpec;
-import com.google.android.exoplayer2.upstream.cache.CacheDataSource;
-import com.google.android.exoplayer2.util.MimeTypes;
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
-
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.io.output.NullOutputStream;
-import org.mp4parser.Container;
-import org.mp4parser.muxer.Movie;
-import org.mp4parser.muxer.Track;
-import org.mp4parser.muxer.builder.DefaultMp4Builder;
-import org.mp4parser.muxer.container.mp4.MovieCreator;
-import org.mp4parser.muxer.tracks.ClippedTrack;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.nio.BufferOverflowException;
-import java.nio.ByteBuffer;
-import java.nio.channels.WritableByteChannel;
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
-
-import me.ccrama.redditslide.Activities.MediaView;
-import me.ccrama.redditslide.Activities.Website;
-import ltd.ucode.slide.R;
-import ltd.ucode.slide.App;
-import ltd.ucode.slide.SettingValues;
-import me.ccrama.redditslide.views.ExoVideoView;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
+import android.app.Activity
+import android.app.NotificationManager
+import android.app.PendingIntent
+import android.content.DialogInterface
+import android.content.Intent
+import android.graphics.Color
+import android.media.MediaScannerConnection
+import android.net.Uri
+import android.os.AsyncTask
+import android.os.Looper
+import android.view.View
+import android.widget.ProgressBar
+import android.widget.TextView
+import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
+import androidx.core.app.NotificationCompat
+import androidx.core.content.ContextCompat
+import com.google.android.exoplayer2.Player
+import com.google.android.exoplayer2.ext.okhttp.OkHttpDataSource
+import com.google.android.exoplayer2.source.dash.manifest.DashManifestParser
+import com.google.android.exoplayer2.upstream.DataSource
+import com.google.android.exoplayer2.upstream.DataSourceInputStream
+import com.google.android.exoplayer2.upstream.DataSpec
+import com.google.android.exoplayer2.upstream.cache.CacheDataSource
+import com.google.android.exoplayer2.util.MimeTypes
+import com.google.gson.Gson
+import com.google.gson.JsonObject
+import ltd.ucode.slide.App
+import ltd.ucode.slide.R
+import ltd.ucode.slide.SettingValues
+import ltd.ucode.slide.SettingValues.appRestart
+import ltd.ucode.slide.SettingValues.imageSubfolders
+import me.ccrama.redditslide.Activities.MediaView
+import me.ccrama.redditslide.Activities.Website
+import me.ccrama.redditslide.util.LinkUtil.openExternally
+import me.ccrama.redditslide.views.ExoVideoView
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.Response
+import org.apache.commons.io.FileUtils
+import org.apache.commons.io.IOUtils
+import org.apache.commons.io.output.NullOutputStream
+import org.mp4parser.muxer.Movie
+import org.mp4parser.muxer.builder.DefaultMp4Builder
+import org.mp4parser.muxer.container.mp4.MovieCreator
+import org.mp4parser.muxer.tracks.ClippedTrack
+import java.io.File
+import java.io.FileInputStream
+import java.io.FileNotFoundException
+import java.io.FileOutputStream
+import java.io.IOException
+import java.io.InputStream
+import java.io.OutputStream
+import java.net.HttpURLConnection
+import java.net.URL
+import java.nio.BufferOverflowException
+import java.nio.ByteBuffer
+import java.nio.channels.WritableByteChannel
+import java.util.Locale
 
 /**
  * GIF handling utilities
  */
-public class GifUtils {
+object GifUtils {
     /**
      * Create a notification that opens a newly-saved GIF
      *
      * @param f File referencing the GIF
      * @param c
      */
-    public static void doNotifGif(File f, Activity c) {
-        MediaScannerConnection.scanFile(c,
-                new String[]{f.getAbsolutePath()}, null,
-                new MediaScannerConnection.OnScanCompletedListener() {
-                    public void onScanCompleted(String path, Uri uri) {
-                        final Intent shareIntent = FileUtil.getFileIntent(f, new Intent(Intent.ACTION_VIEW), c);
-                        PendingIntent contentIntent =
-                                PendingIntent.getActivity(c, 0, shareIntent, PendingIntent.FLAG_CANCEL_CURRENT);
-
-
-                        Notification notif =
-                                new NotificationCompat.Builder(c, App.CHANNEL_IMG).setContentTitle(c.getString(R.string.gif_saved))
-                                        .setSmallIcon(R.drawable.ic_save)
-                                        .setContentIntent(contentIntent)
-                                        .build();
-
-                        NotificationManager mNotificationManager =
-                                ContextCompat.getSystemService(c, NotificationManager.class);
-                        if (mNotificationManager != null) {
-                            mNotificationManager.notify((int) System.currentTimeMillis(), notif);
-                        }
-                    }
-                }
-        );
+    fun doNotifGif(f: File?, c: Activity) {
+        MediaScannerConnection.scanFile(
+            c, arrayOf(f!!.absolutePath), null
+        ) { path, uri ->
+            val shareIntent = FileUtil.getFileIntent(f, Intent(Intent.ACTION_VIEW), c)
+            val contentIntent =
+                PendingIntent.getActivity(
+                    c,
+                    0,
+                    shareIntent,
+                    PendingIntent.FLAG_CANCEL_CURRENT or PendingIntent.FLAG_MUTABLE
+                )
+            val notif = NotificationCompat.Builder(c, App.CHANNEL_IMG).setContentTitle(
+                c.getString(
+                    R.string.gif_saved
+                )
+            )
+                .setSmallIcon(R.drawable.ic_save)
+                .setContentIntent(contentIntent)
+                .build()
+            val mNotificationManager =
+                ContextCompat.getSystemService(c, NotificationManager::class.java)
+            mNotificationManager?.notify(System.currentTimeMillis().toInt(), notif)
+        }
     }
 
-    private static void showErrorDialog(final Activity a) {
-        DialogUtil.showErrorDialog((MediaView) a);
+    private fun showErrorDialog(a: Activity) {
+        DialogUtil.showErrorDialog(a as MediaView) { _, folder -> a.onFolderSelection(folder) }
     }
 
-    private static void showFirstDialog(final Activity a) {
-        DialogUtil.showFirstDialog((MediaView) a);
+    private fun showFirstDialog(a: Activity) {
+        DialogUtil.showFirstDialog(a as MediaView) { _, folder -> a.onFolderSelection(folder) }
     }
 
     /**
@@ -123,359 +112,401 @@ public class GifUtils {
      * @param subreddit Subreddit for saving in sub-specific folders
      * @param save      Whether to permanently save the GIF of just temporarily cache it
      */
-    public static void cacheSaveGif(Uri uri, Activity a, String subreddit, String submissionTitle, boolean save) {
+    fun cacheSaveGif(
+        uri: Uri,
+        a: Activity,
+        subreddit: String,
+        submissionTitle: String?,
+        save: Boolean
+    ) {
         if (save) {
             try {
-                Toast.makeText(a, a.getString(R.string.mediaview_notif_title), Toast.LENGTH_SHORT).show();
-            } catch (Exception ignored) {
+                Toast.makeText(a, a.getString(R.string.mediaview_notif_title), Toast.LENGTH_SHORT)
+                    .show()
+            } catch (ignored: Exception) {
             }
         }
-
-        if (SettingValues.INSTANCE.getAppRestart().getString("imagelocation", "").isEmpty()) {
-            showFirstDialog(a);
-        } else if (!new File(SettingValues.INSTANCE.getAppRestart().getString("imagelocation", "")).exists()) {
-            showErrorDialog(a);
+        if (appRestart.getString("imagelocation", "")!!.isEmpty()) {
+            showFirstDialog(a)
+        } else if (!File(appRestart.getString("imagelocation", "")).exists()) {
+            showErrorDialog(a)
         } else {
-            new AsyncTask<Void, Integer, Boolean>() {
-                File outFile;
-                NotificationManager notifMgr = ContextCompat.getSystemService(a, NotificationManager.class);
+            object : AsyncTask<Void?, Int?, Boolean>() {
+                var outFile: File? = null
+                var notifMgr = ContextCompat.getSystemService(a, NotificationManager::class.java)
 
-                @Override
-                protected void onPreExecute() {
-                    super.onPreExecute();
+                override fun onPreExecute() {
+                    super.onPreExecute()
                     if (save) {
-                        Notification notif = new NotificationCompat.Builder(a, App.CHANNEL_IMG)
-                                .setContentTitle(a.getString(R.string.mediaview_saving,
-                                        uri.toString().replace("/DASHPlaylist.mpd", "")))
-                                .setSmallIcon(R.drawable.ic_download)
-                                .setProgress(0, 0, true)
-                                .setOngoing(true)
-                                .build();
-                        notifMgr.notify(1, notif);
+                        val notif = NotificationCompat.Builder(a, App.CHANNEL_IMG)
+                            .setContentTitle(
+                                a.getString(
+                                    R.string.mediaview_saving,
+                                    uri.toString().replace("/DASHPlaylist.mpd", "")
+                                )
+                            )
+                            .setSmallIcon(R.drawable.ic_download)
+                            .setProgress(0, 0, true)
+                            .setOngoing(true)
+                            .build()
+                        notifMgr!!.notify(1, notif)
                     }
                 }
 
-                @Override
-                protected Boolean doInBackground(Void... voids) {
-                    String folderPath = SettingValues.INSTANCE.getAppRestart().getString("imagelocation", "");
-
-                    String subFolderPath = "";
-                    if (SettingValues.INSTANCE.getImageSubfolders() && !subreddit.isEmpty()) {
-                        subFolderPath = File.separator + subreddit;
+                override fun doInBackground(vararg voids: Void?): Boolean {
+                    val folderPath = appRestart.getString("imagelocation", "")
+                    var subFolderPath = ""
+                    if (imageSubfolders && !subreddit.isEmpty()) {
+                        subFolderPath = File.separator + subreddit
                     }
-
-                    String extension = ".mp4";
-
-                    outFile = FileUtil.getValidFile(folderPath, subFolderPath, submissionTitle, "", extension);
-
-                    OutputStream out = null;
-                    InputStream in = null;
-
+                    val extension = ".mp4"
+                    outFile = FileUtil.getValidFile(
+                        folderPath,
+                        subFolderPath,
+                        submissionTitle,
+                        "",
+                        extension
+                    )
+                    var out: OutputStream? = null
+                    var `in`: InputStream? = null
                     try {
-                        DataSource.Factory downloader =
-                                new OkHttpDataSource.Factory(App.client)
-                                        .setUserAgent(a.getString(R.string.app_name));
-                        DataSource.Factory cacheDataSourceFactory =
-                                new CacheDataSource.Factory()
-                                        .setCache(App.videoCache)
-                                        .setUpstreamDataSourceFactory(downloader);
-                        if (uri.getLastPathSegment().endsWith("DASHPlaylist.mpd")) {
-                            InputStream dashManifestStream = new DataSourceInputStream(cacheDataSourceFactory.createDataSource(),
-                                    new DataSpec(uri));
-                            DashManifest dashManifest = new DashManifestParser().parse(uri, dashManifestStream);
-                            dashManifestStream.close();
-
-                            Uri audioUri = null;
-                            Uri videoUri = null;
-
-                            for (int i = 0; i < dashManifest.getPeriodCount(); i++) {
-                                for (AdaptationSet as : dashManifest.getPeriod(i).adaptationSets) {
-                                    boolean isAudio = false;
-                                    int bitrate = 0;
-                                    String hqUri = null;
-                                    for (Representation r : as.representations) {
+                        val downloader: DataSource.Factory = OkHttpDataSource.Factory(
+                            App.client!!
+                        )
+                            .setUserAgent(a.getString(R.string.app_name))
+                        val cacheDataSourceFactory: DataSource.Factory = CacheDataSource.Factory()
+                            .setCache(App.videoCache!!)
+                            .setUpstreamDataSourceFactory(downloader)
+                        if (uri.lastPathSegment!!.endsWith("DASHPlaylist.mpd")) {
+                            val dashManifestStream: InputStream = DataSourceInputStream(
+                                cacheDataSourceFactory.createDataSource(),
+                                DataSpec(uri)
+                            )
+                            val dashManifest = DashManifestParser().parse(uri, dashManifestStream)
+                            dashManifestStream.close()
+                            var audioUri: Uri? = null
+                            var videoUri: Uri? = null
+                            for (i in 0 until dashManifest.periodCount) {
+                                for (`as` in dashManifest.getPeriod(i).adaptationSets) {
+                                    var isAudio = false
+                                    var bitrate = 0
+                                    var hqUri: String? = null
+                                    for (r in `as`.representations) {
                                         if (r.format.bitrate > bitrate) {
-                                            bitrate = r.format.bitrate;
-                                            hqUri = r.baseUrl;
+                                            bitrate = r.format.bitrate
+                                            hqUri = r.baseUrls[0].url
                                         }
                                         if (MimeTypes.isAudio(r.format.sampleMimeType)) {
-                                            isAudio = true;
+                                            isAudio = true
                                         }
                                     }
                                     if (isAudio) {
-                                        audioUri = Uri.parse(hqUri);
+                                        audioUri = Uri.parse(hqUri)
                                     } else {
-                                        videoUri = Uri.parse(hqUri);
+                                        videoUri = Uri.parse(hqUri)
                                     }
                                 }
                             }
-
                             if (audioUri != null) {
-                                LogUtil.v("Downloading DASH audio from: " + audioUri);
-                                DataSourceInputStream audioInputStream = new DataSourceInputStream(
-                                        cacheDataSourceFactory.createDataSource(), new DataSpec(audioUri));
+                                LogUtil.v("Downloading DASH audio from: $audioUri")
+                                val audioInputStream = DataSourceInputStream(
+                                    cacheDataSourceFactory.createDataSource(), DataSpec(audioUri)
+                                )
                                 if (save) {
-                                    FileUtils.copyInputStreamToFile(audioInputStream,
-                                            new File(a.getCacheDir().getAbsolutePath(), "audio.mp4"));
+                                    FileUtils.copyInputStreamToFile(
+                                        audioInputStream,
+                                        File(a.cacheDir.absolutePath, "audio.mp4")
+                                    )
                                 } else {
-                                    IOUtils.copy(audioInputStream, NullOutputStream.NULL_OUTPUT_STREAM);
+                                    IOUtils.copy(
+                                        audioInputStream,
+                                        NullOutputStream.NULL_OUTPUT_STREAM
+                                    )
                                 }
-                                audioInputStream.close();
+                                audioInputStream.close()
                             }
                             if (videoUri != null) {
-                                LogUtil.v("Downloading DASH video from: " + videoUri);
-                                DataSourceInputStream videoInputStream = new DataSourceInputStream(
-                                        cacheDataSourceFactory.createDataSource(), new DataSpec(videoUri));
+                                LogUtil.v("Downloading DASH video from: $videoUri")
+                                val videoInputStream = DataSourceInputStream(
+                                    cacheDataSourceFactory.createDataSource(), DataSpec(videoUri)
+                                )
                                 if (save) {
-                                    FileUtils.copyInputStreamToFile(videoInputStream,
-                                            new File(a.getCacheDir().getAbsolutePath(), "video.mp4"));
+                                    FileUtils.copyInputStreamToFile(
+                                        videoInputStream,
+                                        File(a.cacheDir.absolutePath, "video.mp4")
+                                    )
                                 } else {
-                                    IOUtils.copy(videoInputStream, NullOutputStream.NULL_OUTPUT_STREAM);
+                                    IOUtils.copy(
+                                        videoInputStream,
+                                        NullOutputStream.NULL_OUTPUT_STREAM
+                                    )
                                 }
-                                videoInputStream.close();
+                                videoInputStream.close()
                             }
-
-                            if (!save) {
-                                return true;
+                            `in` = if (!save) {
+                                return true
                             } else if (audioUri != null && videoUri != null) {
-                                if (mux(new File(a.getCacheDir().getAbsolutePath(), "video.mp4").getAbsolutePath(),
-                                        new File(a.getCacheDir().getAbsolutePath(), "audio.mp4").getAbsolutePath(),
-                                        new File(a.getCacheDir().getAbsolutePath(), "muxed.mp4").getAbsolutePath())) {
-                                    in = new FileInputStream(new File(a.getCacheDir().getAbsolutePath(), "muxed.mp4"));
+                                if (mux(
+                                        File(a.cacheDir.absolutePath, "video.mp4").absolutePath,
+                                        File(a.cacheDir.absolutePath, "audio.mp4").absolutePath,
+                                        File(a.cacheDir.absolutePath, "muxed.mp4").absolutePath
+                                    )
+                                ) {
+                                    FileInputStream(File(a.cacheDir.absolutePath, "muxed.mp4"))
                                 } else {
-                                    throw new IOException("Muxing failed!");
+                                    throw IOException("Muxing failed!")
                                 }
                             } else {
-                                in = new FileInputStream(new File(a.getCacheDir().getAbsolutePath(), "video.mp4"));
+                                FileInputStream(File(a.cacheDir.absolutePath, "video.mp4"))
                             }
                         } else {
-                            in = new DataSourceInputStream(cacheDataSourceFactory.createDataSource(), new DataSpec(uri));
+                            `in` = DataSourceInputStream(
+                                cacheDataSourceFactory.createDataSource(),
+                                DataSpec(uri)
+                            )
                         }
-
-                        out = save ? new FileOutputStream(outFile) : NullOutputStream.NULL_OUTPUT_STREAM;
-                        IOUtils.copy(in, out);
-                        out.close();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        LogUtil.e("Error saving GIF called with: "
-                                + "from = ["
-                                + uri
-                                + "], in = ["
-                                + in
-                                + "]");
-                        return false;
-                    } finally {
-                        try {
-                            if (out != null) {
-                                out.close();
-                            }
-                            if (in != null) {
-                                in.close();
-                            }
-                        } catch (IOException e) {
-                            LogUtil.e("Error closing GIF called with: "
+                        out =
+                            if (save) FileOutputStream(outFile) else NullOutputStream.NULL_OUTPUT_STREAM
+                        IOUtils.copy(`in`, out)
+                        out!!.close()
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                        LogUtil.e(
+                            "Error saving GIF called with: "
                                     + "from = ["
                                     + uri
-                                    + "], out = ["
-                                    + out
-                                    + "]");
-                            return false;
+                                    + "], in = ["
+                                    + `in`
+                                    + "]"
+                        )
+                        return false
+                    } finally {
+                        try {
+                            out?.close()
+                            `in`?.close()
+                        } catch (e: IOException) {
+                            LogUtil.e(
+                                "Error closing GIF called with: "
+                                        + "from = ["
+                                        + uri
+                                        + "], out = ["
+                                        + out
+                                        + "]"
+                            )
+                            return false
                         }
                     }
-                    return true;
+                    return true
                 }
 
-                @Override
-                protected void onPostExecute(Boolean success) {
-                    super.onPostExecute(success);
+                override fun onPostExecute(success: Boolean) {
+                    super.onPostExecute(success)
                     if (save) {
-                        notifMgr.cancel(1);
+                        notifMgr!!.cancel(1)
                         if (success) {
-                            doNotifGif(outFile, a);
+                            doNotifGif(outFile, a)
                         } else {
-                            showErrorDialog(a);
+                            showErrorDialog(a)
                         }
                     }
                 }
-            }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+            }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR)
         }
     }
 
-    public static class AsyncLoadGif extends AsyncTask<String, Void, Uri> {
+    /**
+     * Shows a ProgressBar in the UI. If this method is called from a non-main thread, it will run
+     * the UI code on the main thread
+     *
+     * @param activity        The activity context to use to display the ProgressBar
+     * @param progressBar     The ProgressBar to display
+     * @param isIndeterminate True to show an indeterminate ProgressBar, false otherwise
+     */
+    private fun showProgressBar(
+        activity: Activity?, progressBar: ProgressBar?,
+        isIndeterminate: Boolean
+    ) {
+        if (activity == null) return
+        if (Looper.myLooper() == Looper.getMainLooper()) {
+            // Current Thread is Main Thread.
+            if (progressBar != null) progressBar.isIndeterminate = isIndeterminate
+        } else {
+            activity.runOnUiThread(Runnable {
+                if (progressBar != null) progressBar.isIndeterminate = isIndeterminate
+            })
+        }
+    }
 
-        private Activity c;
-        private ExoVideoView video;
-        private ProgressBar progressBar;
-        private View placeholder;
-        private View gifSave;
-        private boolean closeIfNull;
-        private Runnable doOnClick;
-        private boolean autostart;
-        public String subreddit;
-        public String submissionTitle;
+    /**
+     * Mux a video and audio file (e.g. from DASH) together into a single video
+     *
+     * @param videoFile  Video file
+     * @param audioFile  Audio file
+     * @param outputFile File to output muxed video to
+     * @return Whether the muxing completed successfully
+     */
+    private fun mux(videoFile: String, audioFile: String, outputFile: String): Boolean {
+        val rawVideo: Movie
+        rawVideo = try {
+            MovieCreator.build(videoFile)
+        } catch (e: RuntimeException) {
+            e.printStackTrace()
+            return false
+        } catch (e: IOException) {
+            e.printStackTrace()
+            return false
+        }
+        val audio: Movie = try {
+            MovieCreator.build(audioFile)
+        } catch (e: IOException) {
+            e.printStackTrace()
+            return false
+        } catch (e: NullPointerException) {
+            e.printStackTrace()
+            return false
+        }
+        val audioTrack = audio.tracks[0]
+        val videoTrack = rawVideo.tracks[0]
+        val video = Movie()
+        val croppedTrackAudio = ClippedTrack(audioTrack, 0, audioTrack.samples.size.toLong())
+        video.addTrack(croppedTrackAudio)
+        val croppedTrackVideo = ClippedTrack(videoTrack, 0, videoTrack.samples.size.toLong())
+        video.addTrack(croppedTrackVideo)
+        val out = DefaultMp4Builder().build(video)
+        val fos: FileOutputStream = try {
+            FileOutputStream(outputFile)
+        } catch (e: FileNotFoundException) {
+            e.printStackTrace()
+            return false
+        }
+        val byteBufferByteChannel = BufferedWritableFileByteChannel(fos)
+        try {
+            out.writeContainer(byteBufferByteChannel)
+            byteBufferByteChannel.close()
+            fos.close()
+        } catch (e: IOException) {
+            e.printStackTrace()
+            return false
+        }
+        return true
+    }
 
-        private TextView size;
+    open class AsyncLoadGif : AsyncTask<String?, Void?, Uri?> {
+        private var c: Activity
+        private var video: ExoVideoView
+        private var progressBar: ProgressBar?
+        private var placeholder: View?
+        private val gifSave: View? = null
+        private var closeIfNull: Boolean
+        private var doOnClick: Runnable? = null
+        private var autostart: Boolean
+        var subreddit: String
+        var submissionTitle: String? = null
+        private var size: TextView? = null
 
-        public AsyncLoadGif(@NonNull Activity c, @NonNull ExoVideoView video,
-                @Nullable ProgressBar p, @Nullable View placeholder, @Nullable Runnable gifSave,
-                boolean closeIfNull, boolean autostart, String subreddit) {
-            this.c = c;
-            this.subreddit = subreddit;
-            this.video = video;
-            this.progressBar = p;
-            this.closeIfNull = closeIfNull;
-            this.placeholder = placeholder;
-            this.doOnClick = gifSave;
-            this.autostart = autostart;
+        constructor(
+            c: Activity, video: ExoVideoView,
+            p: ProgressBar?, placeholder: View?, gifSave: Runnable?,
+            closeIfNull: Boolean, autostart: Boolean, subreddit: String
+        ) {
+            this.c = c
+            this.subreddit = subreddit
+            this.video = video
+            progressBar = p
+            this.closeIfNull = closeIfNull
+            this.placeholder = placeholder
+            doOnClick = gifSave
+            this.autostart = autostart
         }
 
-        public AsyncLoadGif(@NonNull Activity c, @NonNull ExoVideoView video,
-                @Nullable ProgressBar p, @Nullable View placeholder, @Nullable Runnable gifSave,
-                boolean closeIfNull, boolean autostart, TextView size, String subreddit, String submissionTitle) {
-            this.c = c;
-            this.video = video;
-            this.subreddit = subreddit;
-            this.progressBar = p;
-            this.closeIfNull = closeIfNull;
-            this.placeholder = placeholder;
-            this.doOnClick = gifSave;
-            this.autostart = autostart;
-            this.size = size;
-            this.submissionTitle = submissionTitle;
+        constructor(
+            c: Activity,
+            video: ExoVideoView,
+            p: ProgressBar?,
+            placeholder: View?,
+            gifSave: Runnable?,
+            closeIfNull: Boolean,
+            autostart: Boolean,
+            size: TextView?,
+            subreddit: String,
+            submissionTitle: String?
+        ) {
+            this.c = c
+            this.video = video
+            this.subreddit = subreddit
+            progressBar = p
+            this.closeIfNull = closeIfNull
+            this.placeholder = placeholder
+            doOnClick = gifSave
+            this.autostart = autostart
+            this.size = size
+            this.submissionTitle = submissionTitle
         }
 
-        public void onError() {
+        open fun onError() {}
 
+        constructor(
+            c: Activity, video: ExoVideoView,
+            p: ProgressBar?, placeholder: View?, closeIfNull: Boolean,
+            autostart: Boolean, subreddit: String
+        ) {
+            this.c = c
+            this.video = video
+            this.subreddit = subreddit
+            progressBar = p
+            this.closeIfNull = closeIfNull
+            this.placeholder = placeholder
+            this.autostart = autostart
         }
 
-        public AsyncLoadGif(@NonNull Activity c, @NonNull ExoVideoView video,
-                @Nullable ProgressBar p, @Nullable View placeholder, boolean closeIfNull,
-                boolean autostart, String subreddit) {
-            this.c = c;
-            this.video = video;
-            this.subreddit = subreddit;
-            this.progressBar = p;
-            this.closeIfNull = closeIfNull;
-            this.placeholder = placeholder;
-            this.autostart = autostart;
+        fun cancel() {
+            LogUtil.v("cancelling")
+            video.stop()
         }
 
-        public void cancel() {
-            LogUtil.v("cancelling");
-            video.stop();
+        override fun onPreExecute() {
+            super.onPreExecute()
+            gson = Gson()
         }
 
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            gson = new Gson();
-        }
+        var gson: Gson? = null
 
-        Gson gson;
-
-        public enum VideoType {
+        enum class VideoType {
             IMGUR, STREAMABLE, GFYCAT, DIRECT, OTHER, VREDDIT;
 
-            public boolean shouldLoadPreview() {
-                return this == OTHER;
+            fun shouldLoadPreview(): Boolean {
+                return this == OTHER
             }
         }
 
         /**
-         * Format a video URL correctly and strip unnecessary parts
+         * Get an API response for a given host and gfy name
          *
-         * @param s URL to format
-         * @return Formatted URL
+         * @param host the host to send the req to
+         * @param name the name of the gfy
+         * @return the result
          */
-        public static String formatUrl(String s) {
-            if (s.endsWith("v") && !s.contains("streamable.com")) {
-                s = s.substring(0, s.length() - 1);
-            } else if (s.contains("gfycat") && (!s.contains("mp4") && !s.contains("webm"))) {
-                s = s.replace("-size_restricted", "");
-                s = s.replace(".gif", "");
-            }
-            if ((s.contains(".webm") || s.contains(".gif")) && !s.contains(".gifv") && s.contains("imgur.com")) {
-                s = s.replace(".gif", ".mp4");
-                s = s.replace(".webm", ".mp4");
-            }
-            if (s.endsWith("/")) s = s.substring(0, s.length() - 1);
-            if (s.endsWith("?r")) s = s.substring(0, s.length() - 2);
-            if (s.contains("v.redd.it") && !s.contains("DASHPlaylist")) {
-                if (s.contains("DASH")) {
-                    s = s.substring(0, s.indexOf("DASH"));
-                }
-                if (s.endsWith("/")) {
-                    s = s.substring(0, s.length() - 1);
-                }
-
-                s += "/DASHPlaylist.mpd";
-            }
-
-            return s;
+        fun getApiResponse(host: String, name: String): JsonObject {
+            val domain = "api.$host.com"
+            val gfycatUrl = "https://$domain/v1/gfycats$name"
+            return HttpUtil.getJsonObject(client, gson, gfycatUrl, makeHeaderMap(domain))
         }
 
         /**
-         * Identifies the type of a video URL
+         * Get the correct mp4/mobile url from a given result JsonObject
          *
-         * @param url URL to identify the type of
-         * @return The type of video
+         * @param result the result to check
+         * @return the video url
          */
-        public static VideoType getVideoType(String url) {
-            String realURL = url.toLowerCase(Locale.ENGLISH);
-            if (realURL.contains("v.redd.it")) {
-                return VideoType.VREDDIT;
+        fun getUrlFromApi(result: JsonObject): String {
+            return if (!SettingValues.hqgif && result.getAsJsonObject("gfyItem").has("mobileUrl")) {
+                result.getAsJsonObject("gfyItem")["mobileUrl"].asString
+            } else {
+                result.getAsJsonObject("gfyItem")["mp4Url"].asString
             }
-            if (realURL.contains(".mp4") || realURL.contains("webm") || realURL.contains("redditmedia.com")
-                    || realURL.contains("preview.redd.it")) {
-                return VideoType.DIRECT;
-            }
-            if (realURL.contains("gfycat") && !realURL.contains("mp4")) return VideoType.GFYCAT;
-            if (realURL.contains("redgifs") && !realURL.contains("mp4")) return VideoType.GFYCAT;
-            if (realURL.contains("imgur.com")) return VideoType.IMGUR;
-            if (realURL.contains("streamable.com")) return VideoType.STREAMABLE;
-            return VideoType.OTHER;
         }
 
-      public static Map<String, String> makeHeaderMap(String domain){
-        Map<String, String> map = new HashMap<>();
-        map.put("Host", domain);
-        map.put("Sec-Fetch-Dest", "empty");
-        map.put("Sec-Fetch-Mode", "cors");
-        map.put("Sec-Fetch-Site", "same-origin");
-        map.put("User-Agent", "Mozilla/5.0 (Windows NT 10.0; rv:107.0) Gecko/20100101 Firefox/107.0");
-        return map;
-      }
-
-      /**
-       * Get an API response for a given host and gfy name
-       *
-       * @param host the host to send the req to
-       * @param name the name of the gfy
-       * @return the result
-       */
-        JsonObject getApiResponse(String host, String name){
-          String domain = "api." + host + ".com";
-          String gfycatUrl = "https://" + domain + "/v1/gfycats" + name;
-
-          return HttpUtil.getJsonObject(client, gson, gfycatUrl, makeHeaderMap(domain));
-        }
-
-       /**
-        * Get the correct mp4/mobile url from a given result JsonObject
-        *
-        * @param result the result to check
-        * @return the video url
-        */
-        String getUrlFromApi(JsonObject result){
-          if (!SettingValues.hqgif && result.getAsJsonObject("gfyItem").has("mobileUrl")) {
-            return result.getAsJsonObject("gfyItem").get("mobileUrl").getAsString();
-          } else {
-            return result.getAsJsonObject("gfyItem").get("mp4Url").getAsString();
-          }
-        }
-
-
-        OkHttpClient client = App.client;
+        var client = App.client
 
         /**
          * Load the correct URL for a gfycat gif
@@ -485,66 +516,67 @@ public class GifUtils {
          * @param gson
          * @return Correct URL
          */
-        Uri loadGfycat(String name, String fullUrl, Gson gson) {
-            showProgressBar(c, progressBar, true);
-            String host = "gfycat";
+        fun loadGfycat(name: String, fullUrl: String, gson: Gson?): Uri? {
+            var name = name
+            showProgressBar(c, progressBar, true)
+            var host = "gfycat"
             if (fullUrl.contains("redgifs")) {
-                host = "redgifs";
+                host = "redgifs"
             }
-            if (!name.startsWith("/")) name = "/" + name;
+            if (!name.startsWith("/")) name = "/$name"
             if (name.contains("-")) {
-                name = name.split("-")[0];
+                name = name.split("-".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()[0]
             }
-            final JsonObject result = getApiResponse(host, name);
-            if (result == null || result.get("gfyItem") == null || result.getAsJsonObject("gfyItem")
-                    .get("mp4Url")
-                    .isJsonNull()) {
+            val result = getApiResponse(host, name)
+            if (result == null || result["gfyItem"] == null || result.getAsJsonObject("gfyItem")["mp4Url"]
+                    .isJsonNull
+            ) {
                 //If the result null, the gfycat link may be redirecting to gifdeliverynetwork which is powered by redgifs.
                 //Try getting the redirected url from gfycat and check if redirected url is gifdeliverynetwork and if it is,
                 // we fetch the actual .mp4/.webm url from the redgifs api
                 if (result == null) {
                     try {
-                        URL newUrl = new URL(fullUrl);
-                        HttpURLConnection ucon = (HttpURLConnection) newUrl.openConnection();
-                        ucon.setInstanceFollowRedirects(false);
-                        String secondURL = new URL(ucon.getHeaderField("location")).toString();
-                        if (secondURL.contains("gifdeliverynetwork")){
-                            return Uri.parse(getUrlFromApi(getApiResponse("redgifs", name.toLowerCase())));
+                        val newUrl = URL(fullUrl)
+                        val ucon = newUrl.openConnection() as HttpURLConnection
+                        ucon.instanceFollowRedirects = false
+                        val secondURL = URL(ucon.getHeaderField("location")).toString()
+                        if (secondURL.contains("gifdeliverynetwork")) {
+                            return Uri.parse(
+                                getUrlFromApi(
+                                    getApiResponse(
+                                        "redgifs", name.lowercase(
+                                            Locale.getDefault()
+                                        )
+                                    )
+                                )
+                            )
                         }
-
-                    } catch (IOException e) {
-                        e.printStackTrace();
+                    } catch (e: IOException) {
+                        e.printStackTrace()
                     }
                 }
-
-                onError();
+                onError()
                 if (closeIfNull) {
-                    c.runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            try {
-                                new AlertDialog.Builder(c)
-                                        .setTitle(R.string.gif_err_title)
-                                        .setMessage(R.string.gif_err_msg)
-                                        .setCancelable(false)
-                                        .setPositiveButton(R.string.btn_ok, (dialog, which) ->
-                                                c.finish())
-                                        .setNeutralButton(R.string.open_externally, (dialog, which) -> {
-                                            LinkUtil.openExternally(fullUrl);
-                                            c.finish();
-                                        })
-                                        .create()
-                                        .show();
-                            } catch (Exception ignored) {
-                            }
+                    c.runOnUiThread {
+                        try {
+                            AlertDialog.Builder(c)
+                                .setTitle(R.string.gif_err_title)
+                                .setMessage(R.string.gif_err_msg)
+                                .setCancelable(false)
+                                .setPositiveButton(R.string.btn_ok) { dialog: DialogInterface?, which: Int -> c.finish() }
+                                .setNeutralButton(R.string.open_externally) { dialog: DialogInterface?, which: Int ->
+                                    openExternally(fullUrl)
+                                    c.finish()
+                                }
+                                .create()
+                                .show()
+                        } catch (ignored: Exception) {
                         }
-                    });
+                    }
                 }
-
-                return null;
+                return null
             }
-
-            return Uri.parse(getUrlFromApi(result));
+            return Uri.parse(getUrlFromApi(result))
         }
 
         /*Loads a direct MP4, used for DASH mp4 or direct/imgur videos, currently unused
@@ -576,40 +608,43 @@ public class GifUtils {
                 }
             }
         }*/
-
         //Handles failures of loading a DASH mp4 or muxing a Reddit video
-        private void catchVRedditFailure(Exception e, String url) {
-            LogUtil.e(e,
-                    "Error loading URL " + url); //Most likely is an image, not a gif!
-            if (c instanceof MediaView && url.contains("imgur.com") && url.endsWith(
-                    ".mp4")) {
-                c.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        (c).startActivity(new Intent(c, MediaView.class).putExtra(
-                                MediaView.EXTRA_URL, url.replace(".mp4",
-                                        ".png"))); //Link is likely an image and not a gif
-                        (c).finish();
-                    }
-                });
+        private fun catchVRedditFailure(e: Exception, url: String) {
+            LogUtil.e(
+                e,
+                "Error loading URL $url"
+            ) //Most likely is an image, not a gif!
+            if (c is MediaView && url.contains("imgur.com") && url.endsWith(
+                    ".mp4"
+                )
+            ) {
+                c.runOnUiThread {
+                    c.startActivity(
+                        Intent(c, MediaView::class.java).putExtra(
+                            MediaView.EXTRA_URL, url.replace(
+                                ".mp4",
+                                ".png"
+                            )
+                        )
+                    ) //Link is likely an image and not a gif
+                    c.finish()
+                }
             } else {
-                openWebsite(url);
+                openWebsite(url)
             }
         }
 
-        @Override
-        protected Uri doInBackground(String... sub) {
-            MediaView.didLoadGif = false;
-            Gson gson = new Gson();
-            final String url = formatUrl(sub[0]);
-            VideoType videoType = getVideoType(url);
-            LogUtil.v(url + ", VideoType: " + videoType);
+        override fun doInBackground(vararg sub: String?): Uri? {
+            MediaView.didLoadGif = false
+            val gson = Gson()
+            val url = formatUrl(sub[0]!!)
+            val videoType = getVideoType(url)
+            LogUtil.v("$url, VideoType: $videoType")
             if (size != null) {
-                getRemoteFileSize(url, client, size, c);
+                getRemoteFileSize(url, client, size!!, c)
             }
-            switch (videoType) {
-                case VREDDIT:
-                    /* We may not need this after all, but keeping the code here in case we run into more DASH issues. This is implemented in the iOS app
+            when (videoType) {
+                VideoType.VREDDIT ->                     /* We may not need this after all, but keeping the code here in case we run into more DASH issues. This is implemented in the iOS app
                     try {
                         //If it's an HLSPlaylist, there is a good chance we can find a DASH mp4 url
                         if (url.contains("HLSPlaylist")) {
@@ -634,195 +669,259 @@ public class GifUtils {
                     } catch (Exception e) {
                         catchVRedditFailure(e, url);
                     }
-                    break;*/
-                    return Uri.parse(url);
-                case GFYCAT:
-                    String name = url.substring(url.lastIndexOf("/"));
-                    String gfycatUrl = "https://api.gfycat.com/v1/gfycats" + name;
+                    break;*/return Uri.parse(url)
+
+                VideoType.GFYCAT -> {
+                    val name = url.substring(url.lastIndexOf("/"))
+                    val gfycatUrl = "https://api.gfycat.com/v1/gfycats$name"
 
                     //Check if resolved gfycat link is gifdeliverynetwork. If it is gifdeliverynetwork, open the link externally
                     try {
-                        Uri uri = loadGfycat(name, url, gson);
-                        if(uri.toString().contains("gifdeliverynetwork")){
-                            openWebsite(url);
-                            return null;
-                        } else return uri;
-                    } catch (Exception e) {
-                        LogUtil.e(e, "Error loading gfycat video url = ["
-                                + url
-                                + "] gfycatUrl = ["
-                                + gfycatUrl
-                                + "]");
+                        val uri = loadGfycat(name, url, gson)
+                        return if (uri.toString().contains("gifdeliverynetwork")) {
+                            openWebsite(url)
+                            null
+                        } else uri
+                    } catch (e: Exception) {
+                        LogUtil.e(
+                            e, "Error loading gfycat video url = ["
+                                    + url
+                                    + "] gfycatUrl = ["
+                                    + gfycatUrl
+                                    + "]"
+                        )
                     }
-                    break;
-                case DIRECT:
-                case IMGUR:
-                    try {
-                        return Uri.parse(url);
-                    } catch (Exception e) {
-                        LogUtil.e(e,
-                                "Error loading URL " + url); //Most likely is an image, not a gif!
-                        if (c instanceof MediaView && url.contains("imgur.com") && url.endsWith(
-                                ".mp4")) {
-                            c.runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    (c).startActivity(new Intent(c, MediaView.class).putExtra(
-                                            MediaView.EXTRA_URL, url.replace(".mp4",
-                                                    ".png"))); //Link is likely an image and not a gif
-                                    (c).finish();
-                                }
-                            });
-                        } else {
-                            openWebsite(url);
-                        }
-                    }
-                    break;
-                case STREAMABLE:
-                    String hash = url.substring(url.lastIndexOf("/") + 1);
-                    String streamableUrl = "https://api.streamable.com/videos/" + hash;
-                    LogUtil.v(streamableUrl);
-                    try {
-                        final JsonObject result =
-                                HttpUtil.getJsonObject(client, gson, streamableUrl);
-                        String obj;
-                        if (result == null
-                                || result.get("files") == null
-                                || !(result.getAsJsonObject("files").has("mp4")
-                                || result.getAsJsonObject("files").has("mp4-mobile"))) {
+                }
 
-                            onError();
+                VideoType.DIRECT, VideoType.IMGUR -> try {
+                    return Uri.parse(url)
+                } catch (e: Exception) {
+                    LogUtil.e(
+                        e,
+                        "Error loading URL $url"
+                    ) //Most likely is an image, not a gif!
+                    if (c is MediaView && url.contains("imgur.com") && url.endsWith(
+                            ".mp4"
+                        )
+                    ) {
+                        c.runOnUiThread {
+                            c.startActivity(
+                                Intent(c, MediaView::class.java).putExtra(
+                                    MediaView.EXTRA_URL, url.replace(
+                                        ".mp4",
+                                        ".png"
+                                    )
+                                )
+                            ) //Link is likely an image and not a gif
+                            c.finish()
+                        }
+                    } else {
+                        openWebsite(url)
+                    }
+                }
+
+                VideoType.STREAMABLE -> {
+                    val hash = url.substring(url.lastIndexOf("/") + 1)
+                    val streamableUrl = "https://api.streamable.com/videos/$hash"
+                    LogUtil.v(streamableUrl)
+                    try {
+                        val result = HttpUtil.getJsonObject(client, gson, streamableUrl)
+                        val obj: String
+                        if (result == null || result["files"] == null || !(result.getAsJsonObject("files")
+                                .has("mp4")
+                                    || result.getAsJsonObject("files").has("mp4-mobile"))
+                        ) {
+                            onError()
                             if (closeIfNull) {
-                                c.runOnUiThread(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        new AlertDialog.Builder(c)
-                                                .setTitle(R.string.error_video_not_found)
-                                                .setMessage(R.string.error_video_message)
-                                                .setCancelable(false)
-                                                .setPositiveButton(R.string.btn_ok, (dialog, which) ->
-                                                        c.finish())
-                                                .create()
-                                                .show();
-                                    }
-                                });
+                                c.runOnUiThread {
+                                    AlertDialog.Builder(c)
+                                        .setTitle(R.string.error_video_not_found)
+                                        .setMessage(R.string.error_video_message)
+                                        .setCancelable(false)
+                                        .setPositiveButton(R.string.btn_ok) { dialog: DialogInterface?, which: Int -> c.finish() }
+                                        .create()
+                                        .show()
+                                }
                             }
                         } else {
-                            if (result.getAsJsonObject()
-                                    .get("files")
-                                    .getAsJsonObject()
-                                    .has("mp4-mobile") && !result.getAsJsonObject()
-                                    .get("files")
-                                    .getAsJsonObject()
-                                    .get("mp4-mobile")
-                                    .getAsJsonObject()
-                                    .get("url")
-                                    .getAsString()
-                                    .isEmpty()) {
-                                obj = result.getAsJsonObject()
-                                        .get("files")
-                                        .getAsJsonObject()
-                                        .get("mp4-mobile")
-                                        .getAsJsonObject()
-                                        .get("url")
-                                        .getAsString();
+                            obj = if (result.asJsonObject["files"]
+                                    .asJsonObject
+                                    .has("mp4-mobile") && !result.asJsonObject["files"]
+                                    .asJsonObject["mp4-mobile"]
+                                    .asJsonObject["url"]
+                                    .asString
+                                    .isEmpty()
+                            ) {
+                                result.asJsonObject["files"]
+                                    .asJsonObject["mp4-mobile"]
+                                    .asJsonObject["url"]
+                                    .asString
                             } else {
-                                obj = result.getAsJsonObject()
-                                        .get("files")
-                                        .getAsJsonObject()
-                                        .get("mp4")
-                                        .getAsJsonObject()
-                                        .get("url")
-                                        .getAsString();
+                                result.asJsonObject["files"]
+                                    .asJsonObject["mp4"]
+                                    .asJsonObject["url"]
+                                    .asString
                             }
-                            return Uri.parse(obj);
+                            return Uri.parse(obj)
                         }
-                    } catch (Exception e) {
-                        LogUtil.e(e, "Error loading streamable video url = ["
-                                + url
-                                + "] streamableUrl = ["
-                                + streamableUrl
-                                + "]");
-
-                        c.runOnUiThread(this::onError);
+                    } catch (e: Exception) {
+                        LogUtil.e(
+                            e, "Error loading streamable video url = ["
+                                    + url
+                                    + "] streamableUrl = ["
+                                    + streamableUrl
+                                    + "]"
+                        )
+                        c.runOnUiThread { onError() }
                         if (closeIfNull) {
-                            c.runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    try {
-                                        new AlertDialog.Builder(c)
-                                                .setTitle(R.string.error_video_not_found)
-                                                .setMessage(R.string.error_video_message)
-                                                .setCancelable(false)
-                                                .setPositiveButton(R.string.btn_ok, (dialog, which) ->
-                                                        c.finish())
-                                                .create()
-                                                .show();
-                                    } catch (Exception ignored) {
-                                    }
+                            c.runOnUiThread {
+                                try {
+                                    AlertDialog.Builder(c)
+                                        .setTitle(R.string.error_video_not_found)
+                                        .setMessage(R.string.error_video_message)
+                                        .setCancelable(false)
+                                        .setPositiveButton(R.string.btn_ok) { dialog: DialogInterface?, which: Int -> c.finish() }
+                                        .create()
+                                        .show()
+                                } catch (ignored: Exception) {
                                 }
-                            });
-                        }
-                    }
-                    break;
-                case OTHER:
-                    LogUtil.e("We shouldn't be here!");
-                    // unless it's a .gif that reddit didn't generate a preview vid for, then we should be here
-                    // e.g. https://www.reddit.com/r/testslideforreddit/comments/hpht5o/stinky/
-                    openWebsite(url);
-                    break;
-            }
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(Uri uri) {
-            if (uri == null) {
-                cancel();
-                return;
-            }
-            progressBar.setIndeterminate(true);
-
-            if (gifSave != null) {
-                gifSave.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        cacheSaveGif(uri, c, subreddit, submissionTitle, true);
-                    }
-                });
-            } else if (doOnClick != null) {
-                MediaView.doOnClick = new Runnable() {
-                    @Override
-                    public void run() {
-                        cacheSaveGif(uri, c, subreddit, submissionTitle, true);
-                    }
-                };
-            }
-
-            ExoVideoView.VideoType type = uri.getHost().equals("v.redd.it")
-                    ? ExoVideoView.VideoType.DASH : ExoVideoView.VideoType.STANDARD;
-            video.setVideoURI(uri, type, new Player.Listener() {
-                @Override
-                public void onPlaybackStateChanged(int playbackState) {
-                    if (playbackState == Player.STATE_READY) {
-                        progressBar.setVisibility(View.GONE);
-                        if (size != null) {
-                            size.setVisibility(View.GONE);
-                        }
-                    } else if (playbackState == Player.STATE_BUFFERING) {
-                        progressBar.setVisibility(View.VISIBLE);
-                        if (size != null) {
-                            size.setVisibility(View.VISIBLE);
+                            }
                         }
                     }
                 }
-            });
+
+                VideoType.OTHER -> {
+                    LogUtil.e("We shouldn't be here!")
+                    // unless it's a .gif that reddit didn't generate a preview vid for, then we should be here
+                    // e.g. https://www.reddit.com/r/testslideforreddit/comments/hpht5o/stinky/
+                    openWebsite(url)
+                }
+            }
+            return null
+        }
+
+        override fun onPostExecute(uri: Uri?) {
+            if (uri == null) {
+                cancel()
+                return
+            }
+            progressBar!!.isIndeterminate = true
+            if (gifSave != null) {
+                gifSave.setOnClickListener(View.OnClickListener {
+                    cacheSaveGif(
+                        uri,
+                        c,
+                        subreddit,
+                        submissionTitle,
+                        true
+                    )
+                })
+            } else if (doOnClick != null) {
+                MediaView.doOnClick =
+                    Runnable { cacheSaveGif(uri, c, subreddit, submissionTitle, true) }
+            }
+            val type =
+                if (uri.host == "v.redd.it") ExoVideoView.VideoType.DASH else ExoVideoView.VideoType.STANDARD
+            video.setVideoURI(uri, type, object : Player.Listener {
+                override fun onPlaybackStateChanged(playbackState: Int) {
+                    if (playbackState == Player.STATE_READY) {
+                        progressBar!!.visibility = View.GONE
+                        if (size != null) {
+                            size!!.visibility = View.GONE
+                        }
+                    } else if (playbackState == Player.STATE_BUFFERING) {
+                        progressBar!!.visibility = View.VISIBLE
+                        if (size != null) {
+                            size!!.visibility = View.VISIBLE
+                        }
+                    }
+                }
+            })
             if (autostart) {
-                video.play();
+                video.play()
             }
         }
 
-        /* Code currently unused, but could be used for future DASH issues
+        private fun openWebsite(url: String) {
+            if (closeIfNull) {
+                val web = Intent(c, Website::class.java)
+                web.putExtra(LinkUtil.EXTRA_URL, url)
+                web.putExtra(LinkUtil.EXTRA_COLOR, Color.BLACK)
+                c.startActivity(web)
+                c.finish()
+            }
+        }
+
+        companion object {
+            /**
+             * Format a video URL correctly and strip unnecessary parts
+             *
+             * @param s URL to format
+             * @return Formatted URL
+             */
+            fun formatUrl(s: String): String {
+                var s = s
+                if (s.endsWith("v") && !s.contains("streamable.com")) {
+                    s = s.substring(0, s.length - 1)
+                } else if (s.contains("gfycat") && !s.contains("mp4") && !s.contains("webm")) {
+                    s = s.replace("-size_restricted", "")
+                    s = s.replace(".gif", "")
+                }
+                if ((s.contains(".webm") || s.contains(".gif")) && !s.contains(".gifv") && s.contains(
+                        "imgur.com"
+                    )
+                ) {
+                    s = s.replace(".gif", ".mp4")
+                    s = s.replace(".webm", ".mp4")
+                }
+                if (s.endsWith("/")) s = s.substring(0, s.length - 1)
+                if (s.endsWith("?r")) s = s.substring(0, s.length - 2)
+                if (s.contains("v.redd.it") && !s.contains("DASHPlaylist")) {
+                    if (s.contains("DASH")) {
+                        s = s.substring(0, s.indexOf("DASH"))
+                    }
+                    if (s.endsWith("/")) {
+                        s = s.substring(0, s.length - 1)
+                    }
+                    s += "/DASHPlaylist.mpd"
+                }
+                return s
+            }
+
+            /**
+             * Identifies the type of a video URL
+             *
+             * @param url URL to identify the type of
+             * @return The type of video
+             */
+            @JvmStatic
+            fun getVideoType(url: String): VideoType {
+                val realURL = url.lowercase()
+                if (realURL.contains("v.redd.it")) {
+                    return VideoType.VREDDIT
+                }
+                if (realURL.contains(".mp4") || realURL.contains("webm") || realURL.contains("redditmedia.com")
+                    || realURL.contains("preview.redd.it")
+                ) {
+                    return VideoType.DIRECT
+                }
+                if (realURL.contains("gfycat") && !realURL.contains("mp4")) return VideoType.GFYCAT
+                if (realURL.contains("redgifs") && !realURL.contains("mp4")) return VideoType.GFYCAT
+                if (realURL.contains("imgur.com")) return VideoType.IMGUR
+                return if (realURL.contains("streamable.com")) VideoType.STREAMABLE else VideoType.OTHER
+            }
+
+            fun makeHeaderMap(domain: String): Map<String, String> {
+                val map: MutableMap<String, String> = HashMap()
+                map["Host"] = domain
+                map["Sec-Fetch-Dest"] = "empty"
+                map["Sec-Fetch-Mode"] = "cors"
+                map["Sec-Fetch-Site"] = "same-origin"
+                map["User-Agent"] =
+                    "Mozilla/5.0 (Windows NT 10.0; rv:107.0) Gecko/20100101 Firefox/107.0"
+                return map
+            }
+            /* Code currently unused, but could be used for future DASH issues
                 public interface VideoSuccessCallback {
             void onVideoFound(Boolean didFindVideo, String videoUrl);
         }
@@ -875,234 +974,130 @@ public class GifUtils {
             }
         }
          */
-
-        /**
-         * Get a remote video's file size
-         *
-         * @param url      URL of video (or v.redd.it DASH manifest) to get
-         * @param client   OkHttpClient
-         * @param sizeText TextView to put size into
-         * @param c        Activity
-         */
-        static void getRemoteFileSize(String url, OkHttpClient client,
-                final TextView sizeText, Activity c) {
-            if (!url.contains("v.redd.it")) {
-                Request request = new Request.Builder().url(url).head().build();
-                Response response;
-                try {
-                    response = client.newCall(request).execute();
-                    final long size = response.body().contentLength();
-                    response.close();
-                    c.runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            sizeText.setText(FileUtil.readableFileSize(size));
-                        }
-                    });
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            } else {
-                DataSource.Factory downloader =
-                        new OkHttpDataSource.Factory(App.client)
-                                .setUserAgent(c.getString(R.string.app_name));
-                DataSource.Factory cacheDataSourceFactory =
-                        new CacheDataSource.Factory()
-                                .setCache(App.videoCache)
-                                .setUpstreamDataSourceFactory(downloader);
-                InputStream dashManifestStream = new DataSourceInputStream(cacheDataSourceFactory.createDataSource(),
-                        new DataSpec(Uri.parse(url)));
-                try {
-                    DashManifest dashManifest = new DashManifestParser().parse(Uri.parse(url), dashManifestStream);
-                    dashManifestStream.close();
-                    long videoSize = 0;
-                    long audioSize = 0;
-
-                    for (int i = 0; i < dashManifest.getPeriodCount(); i++) {
-                        for (AdaptationSet as : dashManifest.getPeriod(i).adaptationSets) {
-                            boolean isAudio = false;
-                            int bitrate = 0;
-                            String hqUri = null;
-                            for (Representation r : as.representations) {
-                                if (r.format.bitrate > bitrate) {
-                                    bitrate = r.format.bitrate;
-                                    hqUri = r.baseUrl;
-                                }
-                                if (MimeTypes.isAudio(r.format.sampleMimeType)) {
-                                    isAudio = true;
-                                }
-                            }
-
-                            Request request = new Request.Builder().url(hqUri).head().build();
-                            Response response = null;
-                            try {
-                                response = client.newCall(request).execute();
-                                if (isAudio) {
-                                    audioSize = response.body().contentLength();
-                                } else {
-                                    videoSize = response.body().contentLength();
-                                }
-                                response.close();
-                            } catch (IOException e) {
-                                if (response != null)
-                                    response.close();
-                            }
-                        }
+            /**
+             * Get a remote video's file size
+             *
+             * @param url      URL of video (or v.redd.it DASH manifest) to get
+             * @param client   OkHttpClient
+             * @param sizeText TextView to put size into
+             * @param c        Activity
+             */
+            fun getRemoteFileSize(
+                url: String, client: OkHttpClient?,
+                sizeText: TextView, c: Activity
+            ) {
+                if (!url.contains("v.redd.it")) {
+                    val request: Request = Request.Builder().url(url).head().build()
+                    val response: Response
+                    try {
+                        response = client!!.newCall(request).execute()
+                        val size = response.body!!.contentLength()
+                        response.close()
+                        c.runOnUiThread { sizeText.text = FileUtil.readableFileSize(size) }
+                    } catch (e: IOException) {
+                        e.printStackTrace()
                     }
-                    final long totalSize = videoSize + audioSize;
-                    c.runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            // We can't know which quality will be selected, so we display <= the highest quality size
-                            if (totalSize > 0)
-                                sizeText.setText("≤ " + FileUtil.readableFileSize(totalSize));
+                } else {
+                    val downloader: DataSource.Factory = OkHttpDataSource.Factory(
+                        App.client!!
+                    )
+                        .setUserAgent(c.getString(R.string.app_name))
+                    val cacheDataSourceFactory: DataSource.Factory = CacheDataSource.Factory()
+                        .setCache(App.videoCache!!)
+                        .setUpstreamDataSourceFactory(downloader)
+                    val dashManifestStream: InputStream = DataSourceInputStream(
+                        cacheDataSourceFactory.createDataSource(),
+                        DataSpec(Uri.parse(url))
+                    )
+                    try {
+                        val dashManifest =
+                            DashManifestParser().parse(Uri.parse(url), dashManifestStream)
+                        dashManifestStream.close()
+                        var videoSize: Long = 0
+                        var audioSize: Long = 0
+                        for (i in 0 until dashManifest.periodCount) {
+                            for (`as` in dashManifest.getPeriod(i).adaptationSets) {
+                                var isAudio = false
+                                var bitrate = 0
+                                var hqUri: String? = null
+                                for (r in `as`.representations) {
+                                    if (r.format.bitrate > bitrate) {
+                                        bitrate = r.format.bitrate
+                                        hqUri = r.baseUrls[0].url
+                                    }
+                                    if (MimeTypes.isAudio(r.format.sampleMimeType)) {
+                                        isAudio = true
+                                    }
+                                }
+                                val request: Request = Request.Builder().url(hqUri!!).head().build()
+                                var response: Response? = null
+                                try {
+                                    response = client!!.newCall(request).execute()
+                                    if (isAudio) {
+                                        audioSize = response.body!!.contentLength()
+                                    } else {
+                                        videoSize = response.body!!.contentLength()
+                                    }
+                                    response.close()
+                                } catch (e: IOException) {
+                                    response?.close()
+                                }
+                            }
                         }
-                    });
-                } catch (IOException ignored) {
+                        val totalSize = videoSize + audioSize
+                        c.runOnUiThread { // We can't know which quality will be selected, so we display <= the highest quality size
+                            if (totalSize > 0) sizeText.text =
+                                "≤ " + FileUtil.readableFileSize(totalSize)
+                        }
+                    } catch (ignored: IOException) {
+                    }
                 }
             }
         }
-
-        private void openWebsite(String url){
-            if (closeIfNull) {
-                Intent web = new Intent(c, Website.class);
-                web.putExtra(LinkUtil.EXTRA_URL, url);
-                web.putExtra(LinkUtil.EXTRA_COLOR, Color.BLACK);
-                c.startActivity(web);
-                c.finish();
-            }
-        }
-
     }
 
-    /**
-     * Shows a ProgressBar in the UI. If this method is called from a non-main thread, it will run
-     * the UI code on the main thread
-     *
-     * @param activity        The activity context to use to display the ProgressBar
-     * @param progressBar     The ProgressBar to display
-     * @param isIndeterminate True to show an indeterminate ProgressBar, false otherwise
-     */
-    private static void showProgressBar(final Activity activity, final ProgressBar progressBar,
-            final boolean isIndeterminate) {
-        if (activity == null) return;
-        if (Looper.myLooper() == Looper.getMainLooper()) {
-            // Current Thread is Main Thread.
-            if (progressBar != null) progressBar.setIndeterminate(isIndeterminate);
-        } else {
-            activity.runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    if (progressBar != null) progressBar.setIndeterminate(isIndeterminate);
-                }
-            });
-        }
-    }
+    private class BufferedWritableFileByteChannel(private val outputStream: OutputStream) :
+        WritableByteChannel {
+        private var isOpen = true
+        private val byteBuffer: ByteBuffer
+        private val rawBuffer = ByteArray(BUFFER_CAPACITY)
 
-    /**
-     * Mux a video and audio file (e.g. from DASH) together into a single video
-     *
-     * @param videoFile  Video file
-     * @param audioFile  Audio file
-     * @param outputFile File to output muxed video to
-     * @return Whether the muxing completed successfully
-     */
-    private static boolean mux(String videoFile, String audioFile, String outputFile) {
-        Movie rawVideo;
-        try {
-            rawVideo = MovieCreator.build(videoFile);
-        } catch (RuntimeException | IOException e) {
-            e.printStackTrace();
-            return false;
+        init {
+            byteBuffer = ByteBuffer.wrap(rawBuffer)
         }
 
-        Movie audio;
-        try {
-            audio = MovieCreator.build(audioFile);
-        } catch (IOException | NullPointerException e) {
-            e.printStackTrace();
-            return false;
-        }
-
-        Track audioTrack = audio.getTracks().get(0);
-        Track videoTrack = rawVideo.getTracks().get(0);
-        Movie video = new Movie();
-
-        ClippedTrack croppedTrackAudio = new ClippedTrack(audioTrack, 0, audioTrack.getSamples().size());
-        video.addTrack(croppedTrackAudio);
-        ClippedTrack croppedTrackVideo = new ClippedTrack(videoTrack, 0, videoTrack.getSamples().size());
-        video.addTrack(croppedTrackVideo);
-
-        Container out = new DefaultMp4Builder().build(video);
-
-        FileOutputStream fos;
-        try {
-            fos = new FileOutputStream(outputFile);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-            return false;
-        }
-        BufferedWritableFileByteChannel byteBufferByteChannel =
-                new BufferedWritableFileByteChannel(fos);
-        try {
-            out.writeContainer(byteBufferByteChannel);
-            byteBufferByteChannel.close();
-            fos.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-            return false;
-        }
-        return true;
-    }
-
-    private static class BufferedWritableFileByteChannel implements WritableByteChannel {
-        private static final int BUFFER_CAPACITY = 1000000;
-
-        private boolean isOpen = true;
-        private final OutputStream outputStream;
-        private final ByteBuffer byteBuffer;
-        private final byte[] rawBuffer = new byte[BUFFER_CAPACITY];
-
-        private BufferedWritableFileByteChannel(OutputStream outputStream) {
-            this.outputStream = outputStream;
-            this.byteBuffer = ByteBuffer.wrap(rawBuffer);
-        }
-
-        @Override
-        public int write(ByteBuffer inputBuffer) {
-            int inputBytes = inputBuffer.remaining();
-
+        override fun write(inputBuffer: ByteBuffer): Int {
+            val inputBytes = inputBuffer.remaining()
             if (inputBytes > byteBuffer.remaining()) {
-                dumpToFile();
-                byteBuffer.clear();
-
+                dumpToFile()
+                byteBuffer.clear()
                 if (inputBytes > byteBuffer.remaining()) {
-                    throw new BufferOverflowException();
+                    throw BufferOverflowException()
                 }
             }
-
-            byteBuffer.put(inputBuffer);
-
-            return inputBytes;
+            byteBuffer.put(inputBuffer)
+            return inputBytes
         }
 
-        @Override
-        public boolean isOpen() {
-            return isOpen;
+        override fun isOpen(): Boolean {
+            return isOpen
         }
 
-        @Override
-        public void close() {
-            dumpToFile();
-            isOpen = false;
+        override fun close() {
+            dumpToFile()
+            isOpen = false
         }
 
-        private void dumpToFile() {
+        private fun dumpToFile() {
             try {
-                outputStream.write(rawBuffer, 0, byteBuffer.position());
-            } catch (IOException e) {
-                throw new RuntimeException(e);
+                outputStream.write(rawBuffer, 0, byteBuffer.position())
+            } catch (e: IOException) {
+                throw RuntimeException(e)
             }
+        }
+
+        companion object {
+            private const val BUFFER_CAPACITY = 1000000
         }
     }
 }

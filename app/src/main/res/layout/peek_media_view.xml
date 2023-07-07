@@ -48,7 +48,7 @@
                 android:layout_centerInParent="true"
                 android:layout_alignParentTop="true"/>
 
-        <me.ccrama.redditslide.views.SubsamplingScaleImageView
+        <com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView
                 android:id="@+id/submission_image"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

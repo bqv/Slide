@@ -1,5 +1,7 @@
 package me.ccrama.redditslide.Activities;
 
+import static me.zhanghai.android.materialprogressbar.R.*;
+
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.MenuItem;
@@ -36,7 +38,7 @@ public class Related extends BaseActivityAnim {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == me.zhanghai.android.materialprogressbar.R.id.home) {
+        if (item.getItemId() == id.home) {
             onBackPressed();
             return true;
         }
@@ -126,12 +128,9 @@ public class Related extends BaseActivityAnim {
         posts.bindAdapter(adapter, mSwipeRefreshLayout);
         //TODO catch errors
         mSwipeRefreshLayout.setOnRefreshListener(
-                new SwipeRefreshLayout.OnRefreshListener() {
-                    @Override
-                    public void onRefresh() {
-                        posts.loadMore(adapter, "", "url:" + url, true);
-                        //TODO catch errors
-                    }
+                () -> {
+                    posts.loadMore(adapter, "", "url:" + url, true);
+                    //TODO catch errors
                 }
         );
     }

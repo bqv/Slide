@@ -13,242 +13,215 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package me.ccrama.redditslide.Activities
 
-package me.ccrama.redditslide.Activities;
-
-import android.content.Context;
-import android.os.AsyncTask;
-import android.os.Bundle;
-import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.EditText;
-import android.widget.TextView;
-import android.widget.Toast;
-
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
-import com.afollestad.materialdialogs.DialogAction;
-import com.afollestad.materialdialogs.MaterialDialog;
-
-import net.dean.jraw.ApiException;
-import net.dean.jraw.http.MultiRedditUpdateRequest;
-import net.dean.jraw.http.NetworkException;
-import net.dean.jraw.managers.MultiRedditManager;
-import net.dean.jraw.models.MultiReddit;
-import net.dean.jraw.models.MultiSubreddit;
-import net.dean.jraw.models.Subreddit;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import ltd.ucode.slide.Authentication;
-import ltd.ucode.slide.R;
-import ltd.ucode.slide.ui.BaseActivityAnim;
-import me.ccrama.redditslide.UserSubscriptions;
-import me.ccrama.redditslide.Visuals.Palette;
-import me.ccrama.redditslide.util.BlendModeUtil;
-import me.ccrama.redditslide.util.LogUtil;
+import android.content.Context
+import android.content.DialogInterface
+import android.os.AsyncTask
+import android.os.Bundle
+import android.util.Log
+import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
+import android.view.View
+import android.view.ViewGroup
+import android.widget.EditText
+import android.widget.TextView
+import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.afollestad.materialdialogs.MaterialDialog
+import com.afollestad.materialdialogs.input.input
+import ltd.ucode.slide.Authentication
+import ltd.ucode.slide.R
+import ltd.ucode.slide.ui.BaseActivityAnim
+import me.ccrama.redditslide.UserSubscriptions
+import me.ccrama.redditslide.Visuals.Palette
+import me.ccrama.redditslide.util.BlendModeUtil
+import me.ccrama.redditslide.util.LogUtil
+import net.dean.jraw.ApiException
+import net.dean.jraw.http.MultiRedditUpdateRequest
+import net.dean.jraw.http.NetworkException
+import net.dean.jraw.managers.MultiRedditManager
+import net.dean.jraw.models.MultiReddit
+import net.dean.jraw.models.Subreddit
+import java.util.Locale
+import java.util.regex.Pattern
 
 /**
  * This class handles creation of Multireddits.
  */
-public class CreateMulti extends BaseActivityAnim {
-
-    private ArrayList<String> subs;
-    private CustomAdapter adapter;
-    private EditText title;
-    private RecyclerView recyclerView;
-    private String input;
-    private String old;
-    public static final String EXTRA_MULTI = "multi";
+class CreateMulti : BaseActivityAnim() {
+    private var subs: ArrayList<String>? = null
+    private var adapter: CustomAdapter? = null
+    private var title: EditText? = null
+    private var recyclerView: RecyclerView? = null
+    private var input: String? = null
+    private var old: String? = null
 
     //Shows a dialog with all Subscribed subreddits and allows the user to select which ones to include in the Multireddit
-    private String[] all;
+    private lateinit var all: Array<String?>
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        overrideSwipeFromAnywhere();
-
-        super.onCreate(savedInstanceState);
-        applyColorTheme();
-        setContentView(R.layout.activity_createmulti);
-        setupAppBar(R.id.toolbar, "", true, true);
-
-        findViewById(R.id.add).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showSelectDialog();
-            }
-        });
-        title = (EditText) findViewById(R.id.name);
-
-        subs = new ArrayList<>();
-        if (getIntent().hasExtra(EXTRA_MULTI)) {
-            final String multi = getIntent().getExtras().getString(EXTRA_MULTI);
-            old = multi;
-            title.setText(multi.replace("%20", " "));
-            UserSubscriptions.getMultireddits(new UserSubscriptions.MultiCallback() {
-                @Override
-                public void onComplete(List<MultiReddit> multis) {
-                    for (MultiReddit multiReddit : multis) {
-                        if (multiReddit.getDisplayName().equals(multi)) {
-                            for (MultiSubreddit sub : multiReddit.getSubreddits()) {
-                                subs.add(sub.getDisplayName().toLowerCase(Locale.ENGLISH));
+    protected override fun onCreate(savedInstanceState: Bundle?) {
+        overrideSwipeFromAnywhere()
+        super.onCreate(savedInstanceState)
+        applyColorTheme()
+        setContentView(R.layout.activity_createmulti)
+        setupAppBar(R.id.toolbar, "", enableUpButton = true, colorToolbar = true)
+        findViewById<View>(R.id.add).setOnClickListener { showSelectDialog() }
+        title = findViewById<View>(R.id.name) as EditText?
+        subs = ArrayList()
+        if (intent.hasExtra(EXTRA_MULTI)) {
+            val multi: String = intent.extras!!.getString(EXTRA_MULTI)!!
+            old = multi
+            title!!.setText(multi.replace("%20", " "))
+            UserSubscriptions.getMultireddits(object : UserSubscriptions.MultiCallback {
+                override fun onComplete(multis: List<MultiReddit?>?) {
+                    for (multiReddit in multis!!) {
+                        if (multiReddit!!.displayName == multi) {
+                            for (sub in multiReddit.subreddits) {
+                                subs!!.add(sub.displayName.lowercase())
                             }
                         }
                     }
                 }
-            });
+            })
         }
-        recyclerView = (RecyclerView) findViewById(R.id.subslist);
-
-        adapter = new CustomAdapter(subs);
+        recyclerView = findViewById<View>(R.id.subslist) as RecyclerView?
+        adapter = CustomAdapter(subs!!)
         //  adapter.setHasStableIds(true);
-
-        recyclerView.setAdapter(adapter);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        recyclerView!!.adapter = adapter
+        recyclerView!!.layoutManager = LinearLayoutManager(this)
     }
 
-    @Override
-    public void onBackPressed() {
-        new AlertDialog.Builder(CreateMulti.this)
-                .setTitle(R.string.general_confirm_exit)
-                .setMessage(R.string.multi_save_option)
-                .setPositiveButton(R.string.btn_yes, (dialog, i) -> {
-                    MultiredditOverview.multiActivity.finish();
-                    new SaveMulti().execute();
-                })
-                .setNegativeButton(R.string.btn_no, (dialog, i) ->
-                        finish())
-                .show();
+    override fun onBackPressed() {
+        AlertDialog.Builder(this@CreateMulti)
+            .setTitle(R.string.general_confirm_exit)
+            .setMessage(R.string.multi_save_option)
+            .setPositiveButton(R.string.btn_yes) { dialog: DialogInterface?, i: Int ->
+                MultiredditOverview.multiActivity!!.finish()
+                SaveMulti().execute()
+            }
+            .setNegativeButton(R.string.btn_no) { dialog: DialogInterface?, i: Int -> finish() }
+            .show()
     }
 
-    public void showSelectDialog() {
+    fun showSelectDialog() {
         //List of all subreddits of the multi
-        List<String> multiSubs = new ArrayList<>(subs);
-        List<String> sorted = new ArrayList<>(subs);
+        val multiSubs: List<String?> = ArrayList(subs)
+        val sorted: MutableList<String?> = ArrayList(subs)
 
         //Add all user subs that aren't already on the list
-        for (String s : UserSubscriptions.sort(UserSubscriptions.getSubscriptions(this))) {
-            if (!sorted.contains(s)) sorted.add(s);
+        for (s in UserSubscriptions.sort(UserSubscriptions.getSubscriptions(this))) {
+            if (!sorted.contains(s)) sorted.add(s)
         }
 
         //Array of all subs
-        all = new String[sorted.size()];
+        all = arrayOfNulls(sorted.size)
         //Contains which subreddits are checked
-        boolean[] checked = new boolean[all.length];
+        val checked = BooleanArray(all.size)
 
 
         //Remove special subreddits from list and store it in "all"
-        int i = 0;
-        for (String s : sorted) {
-            if (!s.equals("all") && !s.equals("frontpage") && !s.contains("+") && !s.contains(".") && !s.contains("/m/")) {
-                all[i] = s;
-                i++;
+        var i = 0
+        for (s in sorted) {
+            if (s != "all" && s != "frontpage" && !s!!.contains("+") && !s.contains(".") && !s.contains(
+                    "/m/"
+                )
+            ) {
+                all[i] = s
+                i++
             }
         }
 
         //Remove empty entries & store which subreddits are checked
-        List<String> list = new ArrayList<>();
-        i = 0;
-        for (String s : all) {
+        val list: MutableList<String?> = ArrayList()
+        i = 0
+        for (s in all) {
             if (s != null && !s.isEmpty()) {
-                list.add(s);
+                list.add(s)
                 if (multiSubs.contains(s)) {
-                    checked[i] = true;
+                    checked[i] = true
                 }
-                i++;
+                i++
             }
         }
 
         //Convert List back to Array
-        all = list.toArray(new String[0]);
-
-        final ArrayList<String> toCheck = new ArrayList<>(subs);
-        new AlertDialog.Builder(this)
-                .setMultiChoiceItems(all, checked, (dialog, which, isChecked) -> {
-                    if (!isChecked) {
-                        toCheck.remove(all[which]);
-                    } else {
-                        toCheck.add(all[which]);
+        all = list.filterNotNull().toTypedArray()
+        val toCheck = ArrayList(subs)
+        AlertDialog.Builder(this)
+            .setMultiChoiceItems(
+                all,
+                checked
+            ) { dialog: DialogInterface?, which: Int, isChecked: Boolean ->
+                if (!isChecked) {
+                    toCheck.remove(all[which])
+                } else {
+                    toCheck.add(all[which])
+                }
+                Log.v(LogUtil.getTag(), "Done with " + all[which])
+            }
+            .setTitle(R.string.multireddit_selector)
+            .setPositiveButton(getString(R.string.btn_add).uppercase(Locale.getDefault())) { dialog: DialogInterface?, which: Int ->
+                subs = toCheck
+                adapter = CustomAdapter(subs!!)
+                recyclerView!!.adapter = adapter
+            }
+            .setNegativeButton(R.string.reorder_add_subreddit) { dialog: DialogInterface?, which: Int ->
+                MaterialDialog(this@CreateMulti)
+                    .title(R.string.reorder_add_subreddit)
+                    .input(
+                        hintRes = R.string.reorder_subreddit_name,
+                        waitForPositiveButton = false
+                    ) { _, raw ->
+                        input = raw.toString()
+                            .replace("\\s".toRegex(), "") //remove whitespace from input
                     }
-                    Log.v(LogUtil.getTag(), "Done with " + all[which]);
-                })
-                .setTitle(R.string.multireddit_selector)
-                .setPositiveButton(getString(R.string.btn_add).toUpperCase(), (dialog, which) -> {
-                    subs = toCheck;
-                    adapter = new CustomAdapter(subs);
-                    recyclerView.setAdapter(adapter);
-                })
-                .setNegativeButton(R.string.reorder_add_subreddit, (dialog, which) ->
-                        new MaterialDialog.Builder(CreateMulti.this)
-                                .title(R.string.reorder_add_subreddit)
-                                .inputRangeRes(2, 21, R.color.md_red_500)
-                                .alwaysCallInputCallback()
-                                .input(getString(R.string.reorder_subreddit_name), null, false,
-                                        new MaterialDialog.InputCallback() {
-                                            @Override
-                                            public void onInput(@NonNull MaterialDialog dialog, CharSequence raw) {
-                                                input = raw.toString().replaceAll("\\s", ""); //remove whitespace from input
-                                            }
-                                        })
-                                .positiveText(R.string.btn_add)
-                                .onPositive(new MaterialDialog.SingleButtonCallback() {
-                                    @Override
-                                    public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
-                                        new AsyncGetSubreddit().execute(input);
-                                    }
-                                })
-                                .negativeText(R.string.btn_cancel)
-                                .show())
-                .show();
+                    .positiveButton(R.string.btn_add) { dialog: MaterialDialog ->
+                        AsyncGetSubreddit().execute(input)
+                    }
+                    .negativeButton(R.string.btn_cancel)
+                    .show()
+            }
+            .show()
     }
 
-    private class AsyncGetSubreddit extends AsyncTask<String, Void, Subreddit> {
-        @Override
-        public void onPostExecute(Subreddit subreddit) {
-            if (subreddit != null || input.equalsIgnoreCase("friends") || input.equalsIgnoreCase("mod")) {
-                subs.add(input);
-                adapter.notifyDataSetChanged();
-                recyclerView.smoothScrollToPosition(subs.size());
+    private inner class AsyncGetSubreddit : AsyncTask<String?, Void?, Subreddit?>() {
+        public override fun onPostExecute(subreddit: Subreddit?) {
+            if (subreddit != null || input.equals(
+                    "friends",
+                    ignoreCase = true
+                ) || input.equals("mod", ignoreCase = true)
+            ) {
+                subs!!.add(input!!)
+                adapter!!.notifyDataSetChanged()
+                recyclerView!!.smoothScrollToPosition(subs!!.size)
             }
         }
 
-        @Override
-        protected Subreddit doInBackground(final String... params) {
-            try {
-                if (subs.contains(params[0])) return null;
-                return Authentication.reddit.getSubreddit(params[0]);
-            } catch (Exception e) {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            new AlertDialog.Builder(CreateMulti.this)
-                                    .setTitle(R.string.subreddit_err)
-                                    .setMessage(getString(R.string.subreddit_err_msg, params[0]))
-                                    .setPositiveButton(R.string.btn_ok, (dialog, which) ->
-                                            dialog.dismiss())
-                                    .setOnDismissListener(null)
-                                    .show();
-                        } catch (Exception ignored) {
-
-                        }
+        override fun doInBackground(vararg params: String?): Subreddit? {
+            return try {
+                if (subs!!.contains(params[0])) null else Authentication.reddit!!.getSubreddit(
+                    params[0]
+                )
+            } catch (e: Exception) {
+                runOnUiThread(Runnable {
+                    try {
+                        AlertDialog.Builder(this@CreateMulti)
+                            .setTitle(R.string.subreddit_err)
+                            .setMessage(getString(R.string.subreddit_err_msg, params[0]))
+                            .setPositiveButton(
+                                R.string.btn_ok,
+                                DialogInterface.OnClickListener { dialog: DialogInterface, which: Int -> dialog.dismiss() })
+                            .setOnDismissListener(null)
+                            .show()
+                    } catch (ignored: Exception) {
                     }
-                });
-
-                return null;
+                })
+                null
             }
         }
     }
@@ -256,60 +229,42 @@ public class CreateMulti extends BaseActivityAnim {
     /**
      * Responsible for showing a list of subreddits which are added to this Multireddit
      */
-    public class CustomAdapter extends RecyclerView.Adapter<CustomAdapter.ViewHolder> {
-        private final ArrayList<String> items;
-
-        public CustomAdapter(ArrayList<String> items) {
-            this.items = items;
+    inner class CustomAdapter(private val items: ArrayList<String>) :
+        RecyclerView.Adapter<CustomAdapter.ViewHolder?>() {
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+            val v =
+                LayoutInflater.from(parent.context).inflate(R.layout.subforsublist, parent, false)
+            return ViewHolder(v)
         }
 
-        @Override
-        public CustomAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.subforsublist, parent, false);
-            return new ViewHolder(v);
+        override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+            val origPos = items[position]
+            holder.text.text = origPos
+            val colorView = holder.itemView.findViewById<View>(R.id.color)
+            colorView.setBackgroundResource(R.drawable.circle)
+            BlendModeUtil.tintDrawableAsModulate(colorView.background, Palette.getColor(origPos))
+            holder.itemView.setOnClickListener {
+                AlertDialog.Builder(this@CreateMulti)
+                    .setTitle(R.string.really_remove_subreddit_title)
+                    .setPositiveButton(R.string.btn_yes) { dialog: DialogInterface?, which: Int ->
+                        subs!!.remove(origPos)
+                        adapter = CustomAdapter(subs!!)
+                        recyclerView!!.adapter = adapter
+                    }
+                    .setNegativeButton(R.string.btn_no, null)
+                    .show()
+            }
         }
 
-        @Override
-        public void onBindViewHolder(final ViewHolder holder, int position) {
-
-            final String origPos = items.get(position);
-            holder.text.setText(origPos);
-
-            final View colorView = holder.itemView.findViewById(R.id.color);
-            colorView.setBackgroundResource(R.drawable.circle);
-            BlendModeUtil.tintDrawableAsModulate(colorView.getBackground(), Palette.getColor(origPos));
-
-            holder.itemView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    new AlertDialog.Builder(CreateMulti.this)
-                            .setTitle(R.string.really_remove_subreddit_title)
-                            .setPositiveButton(R.string.btn_yes, (dialog, which) -> {
-                                subs.remove(origPos);
-                                adapter = new CustomAdapter(subs);
-                                recyclerView.setAdapter(adapter);
-                            })
-                            .setNegativeButton(R.string.btn_no, null)
-                            .show();
-                }
-            });
-
+        override fun getItemCount(): Int {
+            return items.size
         }
 
-        @Override
-        public int getItemCount() {
-            return items.size();
-        }
+        inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+            val text: TextView
 
-        public class ViewHolder extends RecyclerView.ViewHolder {
-            final TextView text;
-
-            public ViewHolder(View itemView) {
-                super(itemView);
-
-                text = itemView.findViewById(R.id.name);
-
-
+            init {
+                text = itemView.findViewById(R.id.name)
             }
         }
     }
@@ -317,170 +272,168 @@ public class CreateMulti extends BaseActivityAnim {
     /**
      * Saves a Multireddit with applicable data in an async task
      */
-    public class SaveMulti extends AsyncTask<Void, Void, Void> {
-        @Override
-        protected Void doInBackground(Void... params) {
+    inner class SaveMulti : AsyncTask<Void?, Void?, Void?>() {
+        override fun doInBackground(vararg params: Void?): Void? {
             try {
-                String multiName = title.getText().toString().replace(" ", "").replace("-", "_");
-                Pattern validName = Pattern.compile("^[A-Za-z0-9][A-Za-z0-9_]{2,20}$");
-                Matcher m = validName.matcher(multiName);
-
+                val multiName = title!!.text.toString().replace(" ", "").replace("-", "_")
+                val validName = Pattern.compile("^[A-Za-z0-9][A-Za-z0-9_]{2,20}$")
+                val m = validName.matcher(multiName)
                 if (!m.matches()) {
-                    Log.v(LogUtil.getTag(), "Invalid multi name");
-                    throw new IllegalArgumentException(multiName);
+                    Log.v(LogUtil.getTag(), "Invalid multi name")
+                    throw IllegalArgumentException(multiName)
                 }
-                if (old != null && !old.isEmpty() && !old.replace(" ", "").equals(multiName)) {
-                    Log.v(LogUtil.getTag(), "Renaming");
-                    new MultiRedditManager(Authentication.reddit).rename(old, multiName);
+                if (old != null && !old!!.isEmpty() && old!!.replace(" ", "") != multiName) {
+                    Log.v(LogUtil.getTag(), "Renaming")
+                    MultiRedditManager(Authentication.reddit).rename(old, multiName)
                 }
-                Log.v(LogUtil.getTag(), "Create or Update, Name: " + multiName);
-                new MultiRedditManager(Authentication.reddit).createOrUpdate(new MultiRedditUpdateRequest.Builder(Authentication.name, multiName).subreddits(subs).build());
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        Log.v(LogUtil.getTag(), "Update Subreddits");
-                        MultiredditOverview.multiActivity.finish();
-                        new UserSubscriptions.SyncMultireddits(CreateMulti.this).execute();
+                Log.v(LogUtil.getTag(), "Create or Update, Name: $multiName")
+                MultiRedditManager(Authentication.reddit).createOrUpdate(
+                    MultiRedditUpdateRequest.Builder(
+                        Authentication.name, multiName
+                    ).subreddits(subs).build()
+                )
+                runOnUiThread(Runnable {
+                    Log.v(LogUtil.getTag(), "Update Subreddits")
+                    MultiredditOverview.multiActivity!!.finish()
+                    UserSubscriptions.SyncMultireddits(this@CreateMulti).execute()
+                })
+                runOnUiThread(Runnable {
+                    val context: Context = applicationContext
+                    val text: CharSequence = getString(R.string.multi_saved_successfully)
+                    val duration = Toast.LENGTH_SHORT
+                    val toast = Toast.makeText(context, text, duration)
+                    toast.show()
+                })
+            } catch (e: NetworkException) {
+                runOnUiThread(Runnable {
+                    var errorMsg: String? = getString(R.string.misc_err)
+                    //Creating correct error message if the multireddit has more than 100 subs or its name already exists
+                    if (e is ApiException) {
+                        errorMsg =
+                            getString(R.string.misc_err) + ": " + (e as ApiException).explanation +
+                                    "\n" + getString(R.string.misc_retry)
+                    } else if (e.response.statusCode == 409) {
+                        //The HTTP status code returned when the name of the multireddit already exists or
+                        //has more than 100 subs is 409
+                        errorMsg = getString(R.string.multireddit_save_err)
                     }
-                });
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        Context context = getApplicationContext();
-                        CharSequence text = getString(R.string.multi_saved_successfully);
-                        int duration = Toast.LENGTH_SHORT;
-                        Toast toast = Toast.makeText(context, text, duration);
-                        toast.show();
+                    AlertDialog.Builder(this@CreateMulti)
+                        .setTitle(R.string.err_title)
+                        .setMessage(errorMsg)
+                        .setNeutralButton(R.string.btn_ok) { dialogInterface: DialogInterface?, i: Int -> finish() }
+                        .create()
+                        .show()
+                })
+                e.printStackTrace()
+            } catch (e: ApiException) {
+                runOnUiThread(Runnable {
+                    var errorMsg: String? = getString(R.string.misc_err)
+                    if (e is ApiException) {
+                        errorMsg = getString(R.string.misc_err) + ": " + e.explanation +
+                                "\n" + getString(R.string.misc_retry)
+                    } else if ((e as NetworkException).response.statusCode == 409) {
+                        errorMsg = getString(R.string.multireddit_save_err)
                     }
-                });
-            } catch (final NetworkException | ApiException e) {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        String errorMsg = getString(R.string.misc_err);
-                        //Creating correct error message if the multireddit has more than 100 subs or its name already exists
-                        if (e instanceof ApiException) {
-                            errorMsg = getString(R.string.misc_err) + ": " + ((ApiException) e).getExplanation() +
-                                    "\n" + getString(R.string.misc_retry);
-
-                        } else if (((NetworkException) e).getResponse().getStatusCode() == 409){
-                            //The HTTP status code returned when the name of the multireddit already exists or
-                            //has more than 100 subs is 409
-                            errorMsg = getString(R.string.multireddit_save_err);
-                        }
-
-                        new AlertDialog.Builder(CreateMulti.this)
-                                .setTitle(R.string.err_title)
-                                .setMessage(errorMsg)
-                                .setNeutralButton(R.string.btn_ok, (dialogInterface, i) ->
-                                        finish())
-                                .create()
-                                .show();
-                    }
-                });
-                e.printStackTrace();
-            } catch (IllegalArgumentException e) {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        new AlertDialog.Builder(CreateMulti.this)
-                                .setTitle(R.string.multireddit_invalid_name)
-                                .setMessage(R.string.multireddit_invalid_name_msg)
-                                .setNeutralButton(R.string.btn_ok, (dialogInterface, i) ->
-                                        finish())
-                                .create()
-                                .show();
-                    }
-                });
+                    AlertDialog.Builder(this@CreateMulti)
+                        .setTitle(R.string.err_title)
+                        .setMessage(errorMsg)
+                        .setNeutralButton(R.string.btn_ok) { dialogInterface: DialogInterface?, i: Int -> finish() }
+                        .create()
+                        .show()
+                })
+                e.printStackTrace()
+            } catch (e: IllegalArgumentException) {
+                runOnUiThread(Runnable {
+                    AlertDialog.Builder(this@CreateMulti)
+                        .setTitle(R.string.multireddit_invalid_name)
+                        .setMessage(R.string.multireddit_invalid_name_msg)
+                        .setNeutralButton(R.string.btn_ok) { dialogInterface: DialogInterface?, i: Int -> finish() }
+                        .create()
+                        .show()
+                })
             }
-            return null;
+            return null
         }
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.menu_create_multi, menu);
-
-        return true;
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        val inflater: MenuInflater = menuInflater
+        inflater.inflate(R.menu.menu_create_multi, menu)
+        return true
     }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.delete:
-                new AlertDialog.Builder(CreateMulti.this)
-                        .setTitle(getString(R.string.delete_multireddit_title, title.getText().toString()))
-                        .setMessage(R.string.cannot_be_undone)
-                        .setPositiveButton(R.string.btn_yes, (dialog, which) -> {
-                            MultiredditOverview.multiActivity.finish();
-                            new MaterialDialog.Builder(CreateMulti.this)
-                                    .title(R.string.deleting)
-                                    .progress(true, 100)
-                                    .content(R.string.misc_please_wait)
-                                    .cancelable(false)
-                                    .show();
-
-                            new AsyncTask<Void, Void, Void>() {
-                                @Override
-                                protected Void doInBackground(Void... params) {
-                                    try {
-                                        new MultiRedditManager(Authentication.reddit).delete(old);
-                                        runOnUiThread(new Runnable() {
-                                            @Override
-                                            public void run() {
-                                                new UserSubscriptions.SyncMultireddits(CreateMulti.this).execute();
-                                            }
-                                        });
-
-                                    } catch (final Exception e) {
-                                        runOnUiThread(new Runnable() {
-                                            @Override
-                                            public void run() {
-                                                new AlertDialog.Builder(CreateMulti.this)
-                                                        .setTitle(R.string.err_title)
-                                                        .setMessage(R.string.misc_err)
-                                                        .setNeutralButton(R.string.btn_ok, (dialogInterface, i) ->
-                                                                finish())
-                                                        .create()
-                                                        .show();
-                                            }
-                                        });
-                                        e.printStackTrace();
-                                    }
-                                    return null;
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.delete -> {
+                AlertDialog.Builder(this@CreateMulti)
+                    .setTitle(getString(R.string.delete_multireddit_title, title!!.text.toString()))
+                    .setMessage(R.string.cannot_be_undone)
+                    .setPositiveButton(R.string.btn_yes) { dialog: DialogInterface?, which: Int ->
+                        MultiredditOverview.multiActivity!!.finish()
+                        MaterialDialog(this@CreateMulti)
+                            .title(R.string.deleting)
+                            //.progress(true, 100)
+                            .message(R.string.misc_please_wait)
+                            .cancelable(false)
+                            .show()
+                        object : AsyncTask<Void?, Void?, Void?>() {
+                            override fun doInBackground(vararg params: Void?): Void? {
+                                try {
+                                    MultiRedditManager(Authentication.reddit).delete(old)
+                                    runOnUiThread(Runnable { UserSubscriptions.SyncMultireddits(this@CreateMulti)
+                                        .execute() })
+                                } catch (e: Exception) {
+                                    runOnUiThread(Runnable {
+                                        AlertDialog.Builder(this@CreateMulti)
+                                            .setTitle(R.string.err_title)
+                                            .setMessage(R.string.misc_err)
+                                            .setNeutralButton(R.string.btn_ok) { dialogInterface: DialogInterface?, i: Int -> finish() }
+                                            .create()
+                                            .show()
+                                    })
+                                    e.printStackTrace()
                                 }
-                            }.execute();
-                        })
-                        .setNegativeButton(R.string.btn_cancel, null)
-                        .show();
-                return true;
-            case R.id.save:
-                if (title.getText().toString().isEmpty()) {
-                    new AlertDialog.Builder(CreateMulti.this)
-                            .setTitle(R.string.multireddit_title_empty)
-                            .setMessage(R.string.multireddit_title_empty_msg)
-                            .setPositiveButton(R.string.btn_ok, (dialog, which) -> {
-                                dialog.dismiss();
-                                title.requestFocus();
-                            })
-                            .show();
-                } else if (subs.isEmpty()) {
-                    new AlertDialog.Builder(CreateMulti.this)
-                            .setTitle(R.string.multireddit_no_subs)
-                            .setMessage(R.string.multireddit_no_subs_msg)
-                            .setPositiveButton(R.string.btn_ok, (dialog, which) ->
-                                    dialog.dismiss())
-                            .show();
+                                return null
+                            }
+                        }.execute()
+                    }
+                    .setNegativeButton(R.string.btn_cancel, null)
+                    .show()
+                true
+            }
+
+            R.id.save -> {
+                if (title!!.text.toString().isEmpty()) {
+                    AlertDialog.Builder(this@CreateMulti)
+                        .setTitle(R.string.multireddit_title_empty)
+                        .setMessage(R.string.multireddit_title_empty_msg)
+                        .setPositiveButton(R.string.btn_ok) { dialog: DialogInterface, which: Int ->
+                            dialog.dismiss()
+                            title!!.requestFocus()
+                        }
+                        .show()
+                } else if (subs!!.isEmpty()) {
+                    AlertDialog.Builder(this@CreateMulti)
+                        .setTitle(R.string.multireddit_no_subs)
+                        .setMessage(R.string.multireddit_no_subs_msg)
+                        .setPositiveButton(R.string.btn_ok) { dialog: DialogInterface, which: Int -> dialog.dismiss() }
+                        .show()
                 } else {
-                    new SaveMulti().execute();
+                    SaveMulti().execute()
                 }
-                return true;
-            case android.R.id.home:
-                onBackPressed();
-                return true;
-            default:
-                return false;
+                true
+            }
+
+            android.R.id.home -> {
+                onBackPressed()
+                true
+            }
+
+            else -> false
         }
+    }
+
+    companion object {
+        const val EXTRA_MULTI = "multi"
     }
 }

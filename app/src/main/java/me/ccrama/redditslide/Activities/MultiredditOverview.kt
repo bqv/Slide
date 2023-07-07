@@ -26,6 +26,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.viewpager.widget.ViewPager
 import androidx.viewpager.widget.ViewPager.SimpleOnPageChangeListener
 import com.afollestad.materialdialogs.MaterialDialog
+import com.afollestad.materialdialogs.input.input
 import com.google.android.material.tabs.TabLayout
 import ltd.ucode.slide.Authentication
 import ltd.ucode.slide.R
@@ -36,14 +37,14 @@ import me.ccrama.redditslide.CaseInsensitiveArrayList
 import me.ccrama.redditslide.Fragments.MultiredditView
 import me.ccrama.redditslide.UserSubscriptions
 import me.ccrama.redditslide.UserSubscriptions.MultiCallback
-import me.ccrama.redditslide.views.CatchStaggeredGridLayoutManager
-import me.ccrama.redditslide.views.PreCachingLayoutManager
 import me.ccrama.redditslide.Visuals.ColorPreferences
 import me.ccrama.redditslide.Visuals.Palette
 import me.ccrama.redditslide.util.BlendModeUtil
 import me.ccrama.redditslide.util.LogUtil
 import me.ccrama.redditslide.util.ProUtil
 import me.ccrama.redditslide.util.SortingUtil
+import me.ccrama.redditslide.views.CatchStaggeredGridLayoutManager
+import me.ccrama.redditslide.views.PreCachingLayoutManager
 import net.dean.jraw.models.MultiReddit
 import net.dean.jraw.paginators.Sorting
 import net.dean.jraw.paginators.TimePeriod
@@ -141,23 +142,16 @@ class MultiredditOverview : BaseActivityAnim() {
                         override fun onComplete(multireddits: List<MultiReddit?>?) {
                             if (!multireddits.isNullOrEmpty()) {
                                 searchMulti = multireddits[pager!!.currentItem]
-                                val builder = MaterialDialog.Builder(this@MultiredditOverview)
-                                    .title(R.string.search_title)
-                                    .alwaysCallInputCallback()
-                                    .input(
-                                        getString(R.string.search_msg), ""
-                                    ) { materialDialog, charSequence ->
+                                MaterialDialog(this@MultiredditOverview).show {
+                                    title(R.string.search_title)
+                                    input(hintRes = R.string.search_msg,
+                                        waitForPositiveButton = false) { _, charSequence ->
                                         term = charSequence.toString()
                                     }
 
-                                //Add "search current sub" if it is not frontpage/all/random
-                                builder.positiveText(
-                                    getString(
-                                        R.string.search_subreddit,
-                                        "/m/" + searchMulti!!.displayName
-                                    )
-                                )
-                                    .onPositive { materialDialog, dialogAction ->
+                                    //Add "search current sub" if it is not frontpage/all/random
+                                    positiveButton(text = getString(R.string.search_subreddit,
+                                        "/m/" + searchMulti!!.displayName)) {
                                         val i = Intent(
                                             this@MultiredditOverview,
                                             Search::class.java
@@ -169,7 +163,7 @@ class MultiredditOverview : BaseActivityAnim() {
                                         )
                                         startActivity(i)
                                     }
-                                builder.show()
+                                }
                             }
                         }
                     }

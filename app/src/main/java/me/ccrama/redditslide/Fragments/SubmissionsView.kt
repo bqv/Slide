@@ -23,7 +23,7 @@ import androidx.interpolator.view.animation.LinearOutSlowInInterpolator
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.afollestad.materialdialogs.MaterialDialog
-import com.afollestad.materialdialogs.MaterialDialog.InputCallback
+import com.afollestad.materialdialogs.input.input
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.snackbar.Snackbar
 import com.mikepenz.itemanimators.AlphaInAnimator
@@ -163,47 +163,42 @@ class SubmissionsView : Fragment(), SubmissionDisplay {
                 fab!!.setOnClickListener(object : View.OnClickListener {
                     var term: String? = null
                     override fun onClick(v: View) {
-                        val builder = MaterialDialog.Builder((activity)!!)
-                            .title(R.string.search_title)
-                            .alwaysCallInputCallback()
-                            .input(getString(R.string.search_msg), "",
-                                InputCallback { materialDialog, charSequence ->
-                                    term = charSequence.toString()
-                                })
+                        val builder = MaterialDialog(activity!!).show {
+                            title(R.string.search_title)
+                            input(hintRes = R.string.search_msg, waitForPositiveButton = false) { _, charSequence ->
+                                term = charSequence.toString()
+                            }
 
-                        //Add "search current sub" if it is not frontpage/all/random
-                        if ((!id.equals("frontpage", ignoreCase = true)
-                                    && !id.equals("all", ignoreCase = true)
-                                    && !id!!.contains(".")
-                                    && !id!!.contains("/m/")
-                                    && !id.equals("friends", ignoreCase = true)
-                                    && !id.equals("random", ignoreCase = true)
-                                    && !id.equals("popular", ignoreCase = true)
-                                    && !id.equals("myrandom", ignoreCase = true)
-                                    && !id.equals("randnsfw", ignoreCase = true))
-                        ) {
-                            builder.positiveText(getString(R.string.search_subreddit, id))
-                                .onPositive { materialDialog, dialogAction ->
+                            //Add "search current sub" if it is not frontpage/all/random
+                            if ((!id.equals("frontpage", ignoreCase = true)
+                                        && !id.equals("all", ignoreCase = true)
+                                        && !id!!.contains(".")
+                                        && !id!!.contains("/m/")
+                                        && !id.equals("friends", ignoreCase = true)
+                                        && !id.equals("random", ignoreCase = true)
+                                        && !id.equals("popular", ignoreCase = true)
+                                        && !id.equals("myrandom", ignoreCase = true)
+                                        && !id.equals("randnsfw", ignoreCase = true))
+                            ) {
+                                positiveButton(text = getString(R.string.search_subreddit, id)) { _ ->
                                     val i = Intent(activity, Search::class.java)
                                     i.putExtra(Search.EXTRA_TERM, term)
                                     i.putExtra(Search.EXTRA_SUBREDDIT, id)
                                     startActivity(i)
                                 }
-                            builder.neutralText(R.string.search_all)
-                                .onNeutral { materialDialog, dialogAction ->
+                                neutralButton(R.string.search_all) { _ ->
                                     val i = Intent(activity, Search::class.java)
                                     i.putExtra(Search.EXTRA_TERM, term)
                                     startActivity(i)
                                 }
-                        } else {
-                            builder.positiveText(R.string.search_all)
-                                .onPositive { materialDialog, dialogAction ->
+                            } else {
+                                positiveButton(R.string.search_all) { _ ->
                                     val i = Intent(activity, Search::class.java)
                                     i.putExtra(Search.EXTRA_TERM, term)
                                     startActivity(i)
                                 }
+                            }
                         }
-                        builder.show()
                     }
                 })
             } else {

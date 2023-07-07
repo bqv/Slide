@@ -32,7 +32,6 @@ import ltd.ucode.slide.SettingValues
 import ltd.ucode.slide.repository.CommentRepository
 import ltd.ucode.slide.repository.PostRepository
 import ltd.ucode.slide.ui.BaseActivity
-import me.ccrama.redditslide.Fragments.FolderChooserDialogCreate
 import me.ccrama.redditslide.Visuals.Palette
 import me.ccrama.redditslide.ui.settings.dragSort.ReorderSubreddits
 import me.ccrama.redditslide.util.NetworkUtil
@@ -45,7 +44,7 @@ import java.util.Locale
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class SettingsActivity : BaseActivity(), FolderChooserDialogCreate.FolderCallback, RestartActivity {
+class SettingsActivity : BaseActivity(), RestartActivity {
     @Inject
     lateinit var postRepository: PostRepository
     @Inject
@@ -53,7 +52,7 @@ class SettingsActivity : BaseActivity(), FolderChooserDialogCreate.FolderCallbac
 
     private var scrollY = 0
     private var prev_text: String? = null
-    private val mSettingsGeneralFragment: SettingsGeneralFragment<*> =
+    private val mSettingsGeneralFragment: SettingsGeneralFragment =
         SettingsGeneralFragment(this)
     private val mManageOfflineContentFragment = ManageOfflineContentFragment(this)
     private val mSettingsThemeFragment: SettingsThemeFragment<*> = SettingsThemeFragment(this)
@@ -522,14 +521,10 @@ class SettingsActivity : BaseActivity(), FolderChooserDialogCreate.FolderCallbac
         }
     }
 
-    override fun onFolderSelection(
-        dialog: FolderChooserDialogCreate,
-        folder: File, isSaveToLocation: Boolean
-    ) {
-        mSettingsGeneralFragment.onFolderSelection(dialog, folder, false)
+    private fun onFolderSelection(folder: File) {
+        mSettingsGeneralFragment.onFolderSelection(folder)
     }
 
-    override fun onFolderChooserDismissed(dialog: FolderChooserDialogCreate) {}
     override fun onDestroy() {
         super.onDestroy()
         SettingValues.clearListener()

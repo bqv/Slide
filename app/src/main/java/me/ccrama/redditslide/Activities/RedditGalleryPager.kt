@@ -1,429 +1,392 @@
-package me.ccrama.redditslide.Activities;
+package me.ccrama.redditslide.Activities
 
-import android.app.Dialog;
-import android.content.DialogInterface;
-import android.content.Intent;
-import android.content.res.TypedArray;
-import android.graphics.Color;
-import android.graphics.drawable.Drawable;
-import android.os.Bundle;
-import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
-import android.view.View;
-import android.view.ViewGroup;
-import android.view.WindowManager;
-import android.widget.AdapterView;
-import android.widget.GridView;
-import android.widget.Toast;
-
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.widget.Toolbar;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentStatePagerAdapter;
-import androidx.viewpager.widget.ViewPager;
-
-import com.cocosw.bottomsheet.BottomSheet;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import me.ccrama.redditslide.Adapters.ImageGridAdapter;
-import me.ccrama.redditslide.Fragments.BlankFragment;
-import me.ccrama.redditslide.Fragments.FolderChooserDialogCreate;
-import me.ccrama.redditslide.Fragments.SubmissionsView;
-import me.ccrama.redditslide.Notifications.ImageDownloadNotificationService;
-import ltd.ucode.slide.R;
-import ltd.ucode.slide.App;
-import ltd.ucode.slide.SettingValues;
-import me.ccrama.redditslide.views.ToolbarColorizeHelper;
-import me.ccrama.redditslide.Visuals.ColorPreferences;
-import me.ccrama.redditslide.util.BlendModeUtil;
-import me.ccrama.redditslide.util.DialogUtil;
-import me.ccrama.redditslide.util.LinkUtil;
-import me.ccrama.redditslide.util.NetworkUtil;
-import me.ccrama.redditslide.util.ShareUtil;
-
-import static me.ccrama.redditslide.Notifications.ImageDownloadNotificationService.EXTRA_SUBMISSION_TITLE;
+import android.R
+import android.app.Dialog
+import android.content.Intent
+import android.graphics.Color
+import android.os.Bundle
+import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuItem
+import android.view.View
+import android.view.ViewGroup
+import android.view.WindowManager
+import android.widget.AdapterView
+import android.widget.GridView
+import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.widget.Toolbar
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentManager
+import androidx.fragment.app.FragmentStatePagerAdapter
+import androidx.viewpager.widget.ViewPager
+import androidx.viewpager.widget.ViewPager.SimpleOnPageChangeListener
+import com.cocosw.bottomsheet.BottomSheet
+import ltd.ucode.slide.App.Companion.defaultShareText
+import ltd.ucode.slide.SettingValues
+import ltd.ucode.slide.SettingValues.albumSwipe
+import ltd.ucode.slide.SettingValues.appRestart
+import ltd.ucode.slide.SettingValues.imageDownloadButton
+import me.ccrama.redditslide.Activities.AlbumPager.Companion.loadImage
+import me.ccrama.redditslide.Adapters.ImageGridAdapter
+import me.ccrama.redditslide.Fragments.BlankFragment
+import me.ccrama.redditslide.Fragments.SubmissionsView.Companion.datachanged
+import me.ccrama.redditslide.Notifications.ImageDownloadNotificationService
+import me.ccrama.redditslide.Visuals.ColorPreferences
+import me.ccrama.redditslide.util.BlendModeUtil
+import me.ccrama.redditslide.util.DialogUtil
+import me.ccrama.redditslide.util.LinkUtil.openExternally
+import me.ccrama.redditslide.util.NetworkUtil
+import me.ccrama.redditslide.util.ShareUtil
+import me.ccrama.redditslide.views.ToolbarColorizeHelper
+import java.io.File
+import java.util.Arrays
 
 /**
- * Created by ccrama on 11/7/2020. <p/> This is an extension of RedditAlbum.java which utilizes a
+ * This is an extension of RedditAlbum.java which utilizes a
  * ViewPager for Reddit Gallery content instead of a RecyclerView (horizontal vs vertical).
  */
-public class RedditGalleryPager extends FullScreenActivity
-        implements FolderChooserDialogCreate.FolderCallback {
-
-    private static int adapterPosition;
-    public static final String SUBREDDIT = "subreddit";
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
-
-        if (id == android.R.id.home) {
-            onBackPressed();
+class RedditGalleryPager : FullScreenActivity() {
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        val id = item.itemId
+        if (id == R.id.home) {
+            onBackPressed()
         }
-        if (id == R.id.vertical) {
-            SettingValues.INSTANCE.setAlbumSwipe(false);
-            Intent i = new Intent(RedditGalleryPager.this, RedditGallery.class);
-            if (getIntent().hasExtra(MediaView.SUBMISSION_URL)) {
-                i.putExtra(MediaView.SUBMISSION_URL,
-                        getIntent().getStringExtra(MediaView.SUBMISSION_URL));
+        if (id == ltd.ucode.slide.R.id.vertical) {
+            albumSwipe = false
+            val i = Intent(this@RedditGalleryPager, RedditGallery::class.java)
+            if (intent.hasExtra(MediaView.SUBMISSION_URL)) {
+                i.putExtra(
+                    MediaView.SUBMISSION_URL,
+                    intent.getStringExtra(MediaView.SUBMISSION_URL)
+                )
             }
-            if(getIntent().hasExtra(SUBREDDIT)){
-                i.putExtra(SUBREDDIT, getIntent().getStringExtra(SUBREDDIT));
+            if (intent.hasExtra(SUBREDDIT)) {
+                i.putExtra(SUBREDDIT, intent.getStringExtra(SUBREDDIT))
             }
-            if (submissionTitle != null) i.putExtra(EXTRA_SUBMISSION_TITLE, submissionTitle);
-            i.putExtras(getIntent());
-            Bundle urlsBundle = new Bundle();
-            urlsBundle.putSerializable(RedditGallery.GALLERY_URLS, new ArrayList<GalleryImage>(images));
-            i.putExtras(urlsBundle);
-
-            startActivity(i);
-            finish();
+            if (submissionTitle != null) i.putExtra(
+                ImageDownloadNotificationService.EXTRA_SUBMISSION_TITLE,
+                submissionTitle
+            )
+            i.putExtras(intent)
+            val urlsBundle = Bundle()
+            urlsBundle.putSerializable(
+                RedditGallery.GALLERY_URLS,
+                ArrayList<GalleryImage>(images)
+            )
+            i.putExtras(urlsBundle)
+            startActivity(i)
+            finish()
         }
-        if (id == R.id.grid) {
-            mToolbar.findViewById(R.id.grid).callOnClick();
+        if (id == ltd.ucode.slide.R.id.grid) {
+            mToolbar!!.findViewById<View>(ltd.ucode.slide.R.id.grid).callOnClick()
         }
-        if (id == R.id.external) {
-            LinkUtil.openExternally(getIntent().getExtras().getString("url", ""));
+        if (id == ltd.ucode.slide.R.id.external) {
+            openExternally(intent.extras!!.getString("url", ""))
         }
-
-        if (id == R.id.comments) {
-            int adapterPosition = getIntent().getIntExtra(MediaView.ADAPTER_POSITION, -1);
-            finish();
-            SubmissionsView.datachanged(adapterPosition);
+        if (id == ltd.ucode.slide.R.id.comments) {
+            val adapterPosition = intent.getIntExtra(MediaView.ADAPTER_POSITION, -1)
+            finish()
+            datachanged(adapterPosition)
             //getIntent().getStringExtra(MediaView.SUBMISSION_SUBREDDIT));
             //SubmissionAdapter.setOpen(this, getIntent().getStringExtra(MediaView.SUBMISSION_URL));
         }
-
-        if (id == R.id.download && images != null) {
-            int index = 0;
-            for (final GalleryImage elem : images) {
-                doImageSave(false, elem.url, index);
-                index++;
+        if (id == ltd.ucode.slide.R.id.download && images != null) {
+            for ((index, elem: GalleryImage) in images!!.withIndex()) {
+                doImageSave(false, elem.url, index)
             }
         }
-
-        return super.onOptionsItemSelected(item);
+        return super.onOptionsItemSelected(item)
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == 3) {
-            SettingValues.INSTANCE.getAppRestart().edit().putBoolean("tutorialSwipe", true).apply();
+            appRestart.edit().putBoolean("tutorialSwipe", true).apply()
         }
     }
 
-    public String subreddit;
-    private String submissionTitle;
-
-    public void onCreate(Bundle savedInstanceState) {
-        overrideSwipeFromAnywhere();
-        super.onCreate(savedInstanceState);
-        getTheme().applyStyle(
-                new ColorPreferences(this).getDarkThemeSubreddit(ColorPreferences.FONT_STYLE),
-                true);
-        setContentView(R.layout.album_pager);
+    var subreddit: String? = null
+    private var submissionTitle: String? = null
+    public override fun onCreate(savedInstanceState: Bundle?) {
+        overrideSwipeFromAnywhere()
+        super.onCreate(savedInstanceState)
+        theme.applyStyle(
+            ColorPreferences(this).getDarkThemeSubreddit(ColorPreferences.FONT_STYLE),
+            true
+        )
+        setContentView(ltd.ucode.slide.R.layout.album_pager)
 
         //Keep the screen on
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-
-        if(getIntent().hasExtra(SUBREDDIT)){
-            this.subreddit = getIntent().getStringExtra(SUBREDDIT);
+        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        if (intent.hasExtra(SUBREDDIT)) {
+            subreddit = intent.getStringExtra(SUBREDDIT)
         }
-        if (getIntent().hasExtra(EXTRA_SUBMISSION_TITLE)) {
-            this.submissionTitle = getIntent().getExtras().getString(EXTRA_SUBMISSION_TITLE);
+        if (intent.hasExtra(ImageDownloadNotificationService.EXTRA_SUBMISSION_TITLE)) {
+            submissionTitle =
+                intent.extras!!.getString(ImageDownloadNotificationService.EXTRA_SUBMISSION_TITLE)
         }
-
-        mToolbar = (Toolbar) findViewById(R.id.toolbar);
-        mToolbar.setTitle(R.string.type_album);
-        ToolbarColorizeHelper.colorizeToolbar(mToolbar, Color.WHITE, this);
-        setSupportActionBar(mToolbar);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-
-        mToolbar.setPopupTheme(
-                new ColorPreferences(this).getDarkThemeSubreddit(ColorPreferences.FONT_STYLE));
-
-        adapterPosition = getIntent().getIntExtra(MediaView.ADAPTER_POSITION, -1);
-
-        String url = getIntent().getExtras().getString("url", "");
-        setShareUrl(url);
-
-        if (!SettingValues.INSTANCE.getAppRestart().contains("tutorialSwipe")) {
-            startActivityForResult(new Intent(this, SwipeTutorial.class), 3);
+        mToolbar = findViewById<View>(ltd.ucode.slide.R.id.toolbar) as Toolbar
+        mToolbar!!.setTitle(ltd.ucode.slide.R.string.type_album)
+        ToolbarColorizeHelper.colorizeToolbar(mToolbar, Color.WHITE, this)
+        setSupportActionBar(mToolbar)
+        supportActionBar!!.setDisplayHomeAsUpEnabled(true)
+        mToolbar!!.popupTheme =
+            ColorPreferences(this).getDarkThemeSubreddit(ColorPreferences.FONT_STYLE)
+        adapterPosition = intent.getIntExtra(MediaView.ADAPTER_POSITION, -1)
+        val url = intent.extras!!.getString("url", "")
+        shareUrl = url
+        if (!appRestart.contains("tutorialSwipe")) {
+            startActivityForResult(Intent(this, SwipeTutorial::class.java), 3)
         }
-
-        findViewById(R.id.progress).setVisibility(View.GONE);
-        images = (ArrayList<GalleryImage>)
-               getIntent().getSerializableExtra(RedditGallery.GALLERY_URLS);
-
-        p = (ViewPager) findViewById(R.id.images_horizontal);
-
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().setSubtitle(1 + "/" + images.size());
+        findViewById<View>(ltd.ucode.slide.R.id.progress).visibility = View.GONE
+        images =
+            intent.getSerializableExtra(RedditGallery.Companion.GALLERY_URLS) as ArrayList<GalleryImage>?
+        p = findViewById<View>(ltd.ucode.slide.R.id.images_horizontal) as ViewPager
+        if (supportActionBar != null) {
+            supportActionBar!!.setSubtitle(1.toString() + "/" + images!!.size)
         }
-
-        GalleryViewPagerAdapter adapter = new GalleryViewPagerAdapter(getSupportFragmentManager());
-        p.setAdapter(adapter);
-        p.setCurrentItem(1);
-        findViewById(R.id.grid).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                LayoutInflater l = getLayoutInflater();
-                View body = l.inflate(R.layout.album_grid_dialog, null, false);
-                GridView gridview = body.findViewById(R.id.images);
-                gridview.setAdapter(new ImageGridAdapter(RedditGalleryPager.this, true, images));
-
-                final AlertDialog.Builder builder = new AlertDialog.Builder(RedditGalleryPager.this)
-                        .setView(body);
-                final Dialog d = builder.create();
-                gridview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                    public void onItemClick(AdapterView<?> parent, View v, int position,
-                            long id) {
-                        p.setCurrentItem(position + 1);
-                        d.dismiss();
-                    }
-                });
-                d.show();
-            }
-        });
-        p.addOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
-            @Override
-            public void onPageScrolled(int position, float positionOffset,
-                    int positionOffsetPixels) {
+        val adapter = GalleryViewPagerAdapter(supportFragmentManager)
+        p!!.adapter = adapter
+        p!!.currentItem = 1
+        findViewById<View>(ltd.ucode.slide.R.id.grid).setOnClickListener {
+            val l = layoutInflater
+            val body = l.inflate(ltd.ucode.slide.R.layout.album_grid_dialog, null, false)
+            val gridview = body.findViewById<GridView>(ltd.ucode.slide.R.id.images)
+            gridview.adapter = ImageGridAdapter(this@RedditGalleryPager, true, images)
+            val builder = AlertDialog.Builder(this@RedditGalleryPager)
+                .setView(body)
+            val d: Dialog = builder.create()
+            gridview.onItemClickListener =
+                AdapterView.OnItemClickListener { parent, v, position, id ->
+                    p!!.currentItem = position + 1
+                    d.dismiss()
+                }
+            d.show()
+        }
+        p!!.addOnPageChangeListener(object : SimpleOnPageChangeListener() {
+            override fun onPageScrolled(
+                position: Int, positionOffset: Float,
+                positionOffsetPixels: Int
+            ) {
                 if (position != 0) {
-                    if (getSupportActionBar() != null) {
-                        getSupportActionBar().setSubtitle((position) + "/" + images.size());
+                    if (supportActionBar != null) {
+                        supportActionBar!!.setSubtitle((position).toString() + "/" + images!!.size)
                     }
                 }
                 if (position == 0 && positionOffset < 0.2) {
-                    finish();
+                    finish()
                 }
             }
-        });
-        adapter.notifyDataSetChanged();
-
+        })
+        adapter.notifyDataSetChanged()
     }
 
-    ViewPager p;
-
-    private List<GalleryImage> images;
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.album_pager, menu);
-        adapterPosition = getIntent().getIntExtra(MediaView.ADAPTER_POSITION, -1);
+    var p: ViewPager? = null
+    private var images: List<GalleryImage>? = null
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        val inflater = menuInflater
+        inflater.inflate(ltd.ucode.slide.R.menu.album_pager, menu)
+        adapterPosition = intent.getIntExtra(MediaView.ADAPTER_POSITION, -1)
         if (adapterPosition < 0) {
-            menu.findItem(R.id.comments).setVisible(false);
+            menu.findItem(ltd.ucode.slide.R.id.comments).isVisible = false
         }
-        return true;
+        return true
     }
 
-    private class GalleryViewPagerAdapter extends FragmentStatePagerAdapter {
-
-        GalleryViewPagerAdapter(FragmentManager m) {
-            super(m, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT);
-        }
-
-        @NonNull
-        @Override
-        public Fragment getItem(int i) {
+    private inner class GalleryViewPagerAdapter(m: FragmentManager?) :
+        FragmentStatePagerAdapter(
+            (m)!!, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT
+        ) {
+        override fun getItem(i: Int): Fragment {
+            var i = i
             if (i == 0) {
-                return new BlankFragment();
+                return BlankFragment()
             }
-            i--;
-
-            Fragment f = new ImageFullNoSubmission();
-            Bundle args = new Bundle();
-            args.putInt("page", i);
-            f.setArguments(args);
-
-            return f;
+            i--
+            val f: Fragment = ImageFullNoSubmission()
+            val args = Bundle()
+            args.putInt("page", i)
+            f.arguments = args
+            return f
         }
 
-        @Override
-        public int getCount() {
-            if (images == null) {
-                return 0;
-            }
-            return images.size() + 1;
+        override fun getCount(): Int {
+            return if (images == null) {
+                0
+            } else images!!.size + 1
         }
     }
 
-    public void showBottomSheetImage(final String contentUrl, final boolean isGif,
-            final int index) {
+    fun showBottomSheetImage(
+        contentUrl: String?, isGif: Boolean,
+        index: Int
+    ) {
+        val attrs = intArrayOf(ltd.ucode.slide.R.attr.tintColor)
+        val ta = obtainStyledAttributes(attrs)
+        val color = ta.getColor(0, Color.WHITE)
+        val external = resources.getDrawable(ltd.ucode.slide.R.drawable.ic_open_in_browser)
+        val share = resources.getDrawable(ltd.ucode.slide.R.drawable.ic_share)
+        val image = resources.getDrawable(ltd.ucode.slide.R.drawable.ic_image)
+        val save = resources.getDrawable(ltd.ucode.slide.R.drawable.ic_download)
+        val drawableSet = Arrays.asList(external, share, image, save)
+        BlendModeUtil.tintDrawablesAsSrcAtop(drawableSet, color)
+        ta.recycle()
+        val b = BottomSheet.Builder(this).title(contentUrl)
+        b.sheet(2, external, getString(ltd.ucode.slide.R.string.open_externally))
+        b.sheet(5, share, getString(ltd.ucode.slide.R.string.submission_link_share))
+        if (!isGif) b.sheet(3, image, getString(ltd.ucode.slide.R.string.share_image))
+        b.sheet(4, save, getString(ltd.ucode.slide.R.string.submission_save_image))
+        b.listener { dialog, which ->
+            when (which) {
+                (2) -> {
+                    openExternally((contentUrl)!!)
+                }
 
-        int[] attrs = new int[]{R.attr.tintColor};
-        TypedArray ta = obtainStyledAttributes(attrs);
+                (3) -> {
+                    ShareUtil.shareImage(contentUrl, this@RedditGalleryPager)
+                }
 
-        int color = ta.getColor(0, Color.WHITE);
-        Drawable external = getResources().getDrawable(R.drawable.ic_open_in_browser);
-        Drawable share = getResources().getDrawable(R.drawable.ic_share);
-        Drawable image = getResources().getDrawable(R.drawable.ic_image);
-        Drawable save = getResources().getDrawable(R.drawable.ic_download);
+                (5) -> {
+                    defaultShareText("", contentUrl, this@RedditGalleryPager)
+                }
 
-        final List<Drawable> drawableSet = Arrays.asList(external, share, image, save);
-        BlendModeUtil.tintDrawablesAsSrcAtop(drawableSet, color);
-
-        ta.recycle();
-        BottomSheet.Builder b = new BottomSheet.Builder(this).title(contentUrl);
-
-        b.sheet(2, external, getString(R.string.open_externally));
-        b.sheet(5, share, getString(R.string.submission_link_share));
-        if (!isGif) b.sheet(3, image, getString(R.string.share_image));
-        b.sheet(4, save, getString(R.string.submission_save_image));
-        b.listener(new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                switch (which) {
-                    case (2): {
-                        LinkUtil.openExternally(contentUrl);
-                    }
-                    break;
-                    case (3): {
-                        ShareUtil.shareImage(contentUrl, RedditGalleryPager.this);
-                    }
-                    break;
-                    case (5): {
-                        App.defaultShareText("", contentUrl, RedditGalleryPager.this);
-                    }
-                    break;
-                    case (4): {
-                        doImageSave(isGif, contentUrl, index);
-                    }
-                    break;
+                (4) -> {
+                    doImageSave(isGif, contentUrl, index)
                 }
             }
-        });
-
-        b.show();
-
+        }
+        b.show()
     }
 
-    public void doImageSave(boolean isGif, String contentUrl, int index) {
+    fun doImageSave(isGif: Boolean, contentUrl: String?, index: Int) {
         if (!isGif) {
-            if (SettingValues.INSTANCE.getAppRestart().getString("imagelocation", "").isEmpty()) {
-                showFirstDialog();
-            } else if (!new File(SettingValues.INSTANCE.getAppRestart().getString("imagelocation", "")).exists()) {
-                showErrorDialog();
+            if (appRestart.getString("imagelocation", "")!!.isEmpty()) {
+                showFirstDialog()
+            } else if (!File(appRestart.getString("imagelocation", "")).exists()) {
+                showErrorDialog()
             } else {
-                Intent i = new Intent(this, ImageDownloadNotificationService.class);
-                i.putExtra("actuallyLoaded", contentUrl);
-                if (subreddit != null && !subreddit.isEmpty()) i.putExtra("subreddit", subreddit);
-                if (submissionTitle != null) i.putExtra(EXTRA_SUBMISSION_TITLE, submissionTitle);
-                i.putExtra("index", index);
-                startService(i);
+                val i = Intent(this, ImageDownloadNotificationService::class.java)
+                i.putExtra("actuallyLoaded", contentUrl)
+                if (subreddit != null && !subreddit!!.isEmpty()) i.putExtra("subreddit", subreddit)
+                if (submissionTitle != null) i.putExtra(
+                    ImageDownloadNotificationService.EXTRA_SUBMISSION_TITLE,
+                    submissionTitle
+                )
+                i.putExtra("index", index)
+                startService(i)
             }
         } else {
-            MediaView.doOnClick.run();
+            MediaView.doOnClick!!.run()
         }
     }
 
-    public static class ImageFullNoSubmission extends Fragment {
-
-        private int i = 0;
-
-        public ImageFullNoSubmission() {
-
-        }
-
-        @Override
-        public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                Bundle savedInstanceState) {
-            final ViewGroup rootView =
-                    (ViewGroup) inflater.inflate(R.layout.album_image_pager, container, false);
-
-            final GalleryImage current = ((RedditGalleryPager) getActivity()).images.get(i);
-            final String url = current.url;
-            boolean lq = false;
-            if (SettingValues.loadImageLq && (SettingValues.lowResAlways || (!NetworkUtil.isConnectedWifi(getActivity())
-                    && SettingValues.lowResMobile))) {
-                String lqurl = url.substring(0, url.lastIndexOf("."))
-                        + (SettingValues.lqLow ? "m" : (SettingValues.lqMid ? "l" : "h"))
-                        + url.substring(url.lastIndexOf("."));
-                AlbumPager.loadImage(rootView, this, lqurl, ((RedditGalleryPager) getActivity()).images.size() == 1);
-                lq = true;
+    class ImageFullNoSubmission : Fragment() {
+        private var i = 0
+        override fun onCreateView(
+            inflater: LayoutInflater, container: ViewGroup?,
+            savedInstanceState: Bundle?
+        ): View {
+            val rootView = inflater.inflate(
+                ltd.ucode.slide.R.layout.album_image_pager,
+                container,
+                false
+            ) as ViewGroup
+            val current = (activity as RedditGalleryPager?)!!.images!![i]
+            val url = current.url
+            var lq = false
+            if (SettingValues.loadImageLq && (SettingValues.lowResAlways || ((!NetworkUtil.isConnectedWifi(
+                    activity
+                )
+                        && SettingValues.lowResMobile)))
+            ) {
+                val lqurl = (url.substring(0, url.lastIndexOf("."))
+                        + (if (SettingValues.lqLow) "m" else (if (SettingValues.lqMid) "l" else "h"))
+                        + url.substring(url.lastIndexOf(".")))
+                loadImage(
+                    rootView,
+                    this,
+                    lqurl,
+                    (activity as RedditGalleryPager?)!!.images!!.size == 1
+                )
+                lq = true
             } else {
-                AlbumPager.loadImage(rootView, this, url, ((RedditGalleryPager) getActivity()).images.size() == 1);
+                loadImage(
+                    rootView,
+                    this,
+                    url,
+                    (activity as RedditGalleryPager?)!!.images!!.size == 1
+                )
             }
-
-            {
-                rootView.findViewById(R.id.more).setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        ((RedditGalleryPager) getActivity()).showBottomSheetImage(url, false, i);
+            run {
+                rootView.findViewById<View>(ltd.ucode.slide.R.id.more)
+                    .setOnClickListener {
+                        (activity as RedditGalleryPager?)!!.showBottomSheetImage(
+                            url,
+                            false,
+                            i
+                        )
                     }
-                });
-                {
-                    rootView.findViewById(R.id.save).setOnClickListener(new View.OnClickListener() {
-
-                        @Override
-                        public void onClick(View v2) {
-                            ((RedditGalleryPager) getActivity()).doImageSave(false, url, i);
+                run {
+                    rootView.findViewById<View>(ltd.ucode.slide.R.id.save)
+                        .setOnClickListener {
+                            (activity as RedditGalleryPager?)!!.doImageSave(
+                                false,
+                                url,
+                                i
+                            )
                         }
-
-                    });
-                    if (!SettingValues.INSTANCE.getImageDownloadButton()) {
-                        rootView.findViewById(R.id.save).setVisibility(View.INVISIBLE);
+                    if (!imageDownloadButton) {
+                        rootView.findViewById<View>(ltd.ucode.slide.R.id.save).visibility = View.INVISIBLE
                     }
                 }
-
-                rootView.findViewById(R.id.panel).setVisibility(View.GONE);
-                (rootView.findViewById(R.id.margin)).setPadding(0, 0, 0, 0);
+                rootView.findViewById<View>(ltd.ucode.slide.R.id.panel).visibility = View.GONE
+                (rootView.findViewById<View>(ltd.ucode.slide.R.id.margin)).setPadding(0, 0, 0, 0)
             }
-
-            rootView.findViewById(R.id.hq).setVisibility(View.GONE);
-
-            if (getActivity().getIntent().hasExtra(MediaView.SUBMISSION_URL)) {
-                rootView.findViewById(R.id.comments).setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        getActivity().finish();
-                        SubmissionsView.datachanged(adapterPosition);
-                    }
-                });
+            rootView.findViewById<View>(ltd.ucode.slide.R.id.hq).visibility = View.GONE
+            if (requireActivity().intent.hasExtra(MediaView.SUBMISSION_URL)) {
+                rootView.findViewById<View>(ltd.ucode.slide.R.id.comments).setOnClickListener {
+                    requireActivity().finish()
+                    datachanged(adapterPosition)
+                }
             } else {
-                rootView.findViewById(R.id.comments).setVisibility(View.GONE);
+                rootView.findViewById<View>(ltd.ucode.slide.R.id.comments).visibility = View.GONE
             }
-            return rootView;
+            return rootView
         }
 
-        @Override
-        public void onCreate(Bundle savedInstanceState) {
-            super.onCreate(savedInstanceState);
-            Bundle bundle = this.getArguments();
-            i = bundle.getInt("page", 0);
+        override fun onCreate(savedInstanceState: Bundle?) {
+            super.onCreate(savedInstanceState)
+            val bundle = this.arguments
+            i = bundle!!.getInt("page", 0)
         }
     }
 
-    private void showFirstDialog() {
-        runOnUiThread(() ->
-                DialogUtil.showFirstDialog(RedditGalleryPager.this));
+    private fun showFirstDialog() {
+        runOnUiThread { DialogUtil.showFirstDialog(this@RedditGalleryPager) { _, folder -> onFolderSelection(folder) } }
     }
 
-    private void showErrorDialog() {
-        runOnUiThread(() ->
-                DialogUtil.showErrorDialog(RedditGalleryPager.this));
+    private fun showErrorDialog() {
+        runOnUiThread { DialogUtil.showErrorDialog(this@RedditGalleryPager) { _, folder -> onFolderSelection(folder) } }
     }
 
-    @Override
-    public void onFolderSelection(@NonNull FolderChooserDialogCreate dialog,
-                                  @NonNull File folder, boolean isSaveToLocation) {
-        SettingValues.INSTANCE.getAppRestart().edit().putString("imagelocation", folder.getAbsolutePath()).apply();
-        Toast.makeText(this,
-                getString(R.string.settings_set_image_location, folder.getAbsolutePath())
-                        + folder.getAbsolutePath(), Toast.LENGTH_LONG).show();
+    private fun onFolderSelection(
+        folder: File
+    ) {
+        appRestart.edit().putString("imagelocation", folder.absolutePath).apply()
+        Toast.makeText(
+            this, (
+                    getString(
+                        ltd.ucode.slide.R.string.settings_set_image_location,
+                        folder.absolutePath
+                    )
+                            + folder.absolutePath), Toast.LENGTH_LONG
+        ).show()
     }
 
-    @Override
-    public void onFolderChooserDismissed(@NonNull FolderChooserDialogCreate dialog) {
+
+    companion object {
+        private var adapterPosition = 0
+        val SUBREDDIT = "subreddit"
     }
 }

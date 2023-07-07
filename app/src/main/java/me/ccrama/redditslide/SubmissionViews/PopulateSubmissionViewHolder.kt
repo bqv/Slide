@@ -30,10 +30,11 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.coroutineScope
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.RecyclerView
-import com.afollestad.materialdialogs.DialogAction
 import com.afollestad.materialdialogs.MaterialDialog
-import com.afollestad.materialdialogs.MaterialDialog.ListCallback
-import com.afollestad.materialdialogs.MaterialDialog.SingleButtonCallback
+import com.afollestad.materialdialogs.customview.customView
+import com.afollestad.materialdialogs.input.getInputField
+import com.afollestad.materialdialogs.input.input
+import com.afollestad.materialdialogs.list.listItems
 import com.cocosw.bottomsheet.BottomSheet
 import com.devspark.robototextview.RobotoTypefaces
 import com.google.android.material.snackbar.Snackbar
@@ -465,17 +466,16 @@ class PopulateSubmissionViewHolder(private val postRepository: PostRepository,
                     )
 
                     12 -> {
-                        val reportDialog = MaterialDialog.Builder(mContext)
-                            .customView(R.layout.report_dialog, true)
-                            .title(R.string.report_post)
-                            .positiveText(R.string.btn_report)
-                            .negativeText(R.string.btn_cancel)
-                            .onPositive { dialog, which ->
-                                val reasonGroup = dialog.customView!!
+                        MaterialDialog(mContext).show {
+                            customView(R.layout.report_dialog, scrollable = true)
+                            title(R.string.report_post)
+                            negativeButton(R.string.btn_cancel)
+                            positiveButton(R.string.btn_report) { dialog ->
+                                val reasonGroup = dialog.view
                                     .findViewById<RadioGroup>(R.id.report_reasons)
                                 val reportReason: String
                                 if (reasonGroup.checkedRadioButtonId == R.id.report_other) {
-                                    reportReason = (dialog.customView!!
+                                    reportReason = (dialog.view
                                         .findViewById<View>(R.id.input_report_reason) as EditText).text.toString()
                                 } else {
                                     reportReason = (reasonGroup
@@ -487,59 +487,57 @@ class PopulateSubmissionViewHolder(private val postRepository: PostRepository,
                                         AsyncTask.THREAD_POOL_EXECUTOR,
                                         reportReason
                                     )
-                            }.build()
-                        val reasonGroup =
-                            reportDialog.customView!!.findViewById<RadioGroup>(R.id.report_reasons)
-                        reasonGroup.setOnCheckedChangeListener { group, checkedId ->
-                            if (checkedId == R.id.report_other) reportDialog.customView!!.findViewById<View>(
-                                R.id.input_report_reason
-                            ).visibility = View.VISIBLE else reportDialog.customView!!
-                                .findViewById<View>(R.id.input_report_reason).visibility =
-                                View.GONE
-                        }
-
-                        // Load sub's report reasons and show the appropriate ones
-                        object : AsyncTask<Void?, Void?, Ruleset>() {
-                            override fun doInBackground(vararg voids: Void?): Ruleset {
-                                return Authentication.reddit!!.getRules(submission.groupName)
+                            }
+                            val reasonGroup =
+                                view.findViewById<RadioGroup>(R.id.report_reasons)
+                            reasonGroup.setOnCheckedChangeListener { group, checkedId ->
+                                view.findViewById<View>(R.id.input_report_reason).visibility =
+                                    if (checkedId == R.id.report_other) View.VISIBLE else View.GONE
                             }
 
-                            override fun onPostExecute(rules: Ruleset) {
-                                reportDialog.customView!!.findViewById<View>(R.id.report_loading).visibility =
-                                    View.GONE
-                                if (rules.subredditRules.size > 0) {
-                                    val subHeader = TextView(mContext)
-                                    subHeader.text = mContext.getString(
-                                        R.string.report_sub_rules,
-                                        submission.groupName
-                                    )
-                                    reasonGroup.addView(subHeader, reasonGroup.childCount - 2)
+                            // Load sub's report reasons and show the appropriate ones
+                            object : AsyncTask<Void?, Void?, Ruleset>() {
+                                override fun doInBackground(vararg voids: Void?): Ruleset {
+                                    return Authentication.reddit!!.getRules(submission.groupName)
                                 }
-                                for (rule: SubredditRule in rules.subredditRules) {
-                                    if ((rule.kind == SubredditRule.RuleKind.LINK
-                                                || rule.kind == SubredditRule.RuleKind.ALL)
-                                    ) {
+
+                                override fun onPostExecute(rules: Ruleset) {
+                                    view.findViewById<View>(R.id.report_loading).visibility =
+                                        View.GONE
+                                    if (rules.subredditRules.size > 0) {
+                                        val subHeader = TextView(mContext)
+                                        subHeader.text = mContext.getString(
+                                            R.string.report_sub_rules,
+                                            submission.groupName
+                                        )
+                                        reasonGroup.addView(subHeader, reasonGroup.childCount - 2)
+                                    }
+                                    for (rule: SubredditRule in rules.subredditRules) {
+                                        if ((rule.kind == SubredditRule.RuleKind.LINK
+                                                    || rule.kind == SubredditRule.RuleKind.ALL)
+                                        ) {
+                                            val btn = RadioButton(mContext)
+                                            btn.text = rule.violationReason
+                                            reasonGroup.addView(btn, reasonGroup.childCount - 2)
+                                            btn.layoutParams.width =
+                                                WindowManager.LayoutParams.MATCH_PARENT
+                                        }
+                                    }
+                                    if (rules.siteRules.size > 0) {
+                                        val siteHeader = TextView(mContext)
+                                        siteHeader.setText(R.string.report_site_rules)
+                                        reasonGroup.addView(siteHeader, reasonGroup.childCount - 2)
+                                    }
+                                    for (rule: String? in rules.siteRules) {
                                         val btn = RadioButton(mContext)
-                                        btn.text = rule.violationReason
+                                        btn.text = rule
                                         reasonGroup.addView(btn, reasonGroup.childCount - 2)
                                         btn.layoutParams.width =
                                             WindowManager.LayoutParams.MATCH_PARENT
                                     }
                                 }
-                                if (rules.siteRules.size > 0) {
-                                    val siteHeader = TextView(mContext)
-                                    siteHeader.setText(R.string.report_site_rules)
-                                    reasonGroup.addView(siteHeader, reasonGroup.childCount - 2)
-                                }
-                                for (rule: String? in rules.siteRules) {
-                                    val btn = RadioButton(mContext)
-                                    btn.text = rule
-                                    reasonGroup.addView(btn, reasonGroup.childCount - 2)
-                                    btn.layoutParams.width = WindowManager.LayoutParams.MATCH_PARENT
-                                }
-                            }
-                        }.execute()
-                        reportDialog.show()
+                            }.execute()
+                        }
                     }
 
                     8 -> if (SettingValues.shareLongLink) {
@@ -704,10 +702,11 @@ class PopulateSubmissionViewHolder(private val postRepository: PostRepository,
         object : AsyncTask<Void?, Void?, List<String?>>() {
             var d: Dialog? = null
             public override fun onPreExecute() {
-                d = MaterialDialog.Builder(mContext).progress(true, 100)
-                    .title(R.string.profile_category_loading)
-                    .content(R.string.misc_please_wait)
-                    .show()
+                d = MaterialDialog(mContext).show {
+                    //progress(true, 100)
+                    title(R.string.profile_category_loading)
+                    message(R.string.misc_please_wait)
+                }
             }
 
             override fun doInBackground(vararg params: Void?): List<String?> {
@@ -730,117 +729,97 @@ class PopulateSubmissionViewHolder(private val postRepository: PostRepository,
 
             public override fun onPostExecute(data: List<String?>) {
                 try {
-                    MaterialDialog.Builder(mContext).items(data)
-                        .title(R.string.sidebar_select_flair)
-                        .itemsCallback(object : ListCallback {
-                            override fun onSelection(
-                                dialog: MaterialDialog, itemView: View,
-                                which: Int, text: CharSequence
-                            ) {
-                                val t = data[which]
-                                if (which == data.size - 1) {
-                                    MaterialDialog.Builder(mContext).title(
-                                        R.string.category_set_name
-                                    )
-                                        .input(mContext.getString(
-                                            R.string.category_set_name_hint
-                                        ),
-                                            null,
-                                            false
-                                        ) { dialog1: MaterialDialog?, input: CharSequence? -> }
-                                        .positiveText(R.string.btn_set)
-                                        .onPositive(
-                                            object : SingleButtonCallback {
-                                                override fun onClick(
-                                                    dialog: MaterialDialog,
-                                                    which: DialogAction
-                                                ) {
-                                                    val flair = dialog.inputEditText!!
-                                                        .text
-                                                        .toString()
-                                                    object : AsyncTask<Void?, Void?, Boolean>() {
-                                                        override fun doInBackground(
-                                                            vararg params: Void?
-                                                        ): Boolean {
-                                                            try {
-                                                                //AccountManager(Authentication.reddit).save(submission, flair)
-                                                                return true
-                                                            } catch (e: ApiException) {
-                                                                e.printStackTrace()
-                                                                return false
-                                                            }
-                                                        }
-
-                                                        override fun onPostExecute(
-                                                            done: Boolean
-                                                        ) {
-                                                            val s: Snackbar
-                                                            if (done) {
-                                                                if (itemView != null) {
-                                                                    s = Snackbar.make(
-                                                                        itemView,
-                                                                        R.string.submission_info_saved,
-                                                                        Snackbar.LENGTH_SHORT
-                                                                    )
-                                                                    LayoutUtils.showSnackbar(s)
-                                                                }
-                                                            } else {
-                                                                if (itemView != null) {
-                                                                    s = Snackbar.make(
-                                                                        itemView,
-                                                                        R.string.category_set_error,
-                                                                        Snackbar.LENGTH_SHORT
-                                                                    )
-                                                                    LayoutUtils.showSnackbar(s)
-                                                                }
-                                                            }
-                                                        }
-                                                    }.executeOnExecutor(
-                                                        THREAD_POOL_EXECUTOR
-                                                    )
-                                                }
-                                            })
-                                        .negativeText(R.string.btn_cancel)
-                                        .show()
-                                } else {
-                                    object : AsyncTask<Void?, Void?, Boolean>() {
-                                        override fun doInBackground(vararg params: Void?): Boolean {
-                                            return try {
-                                                //AccountManager(Authentication.reddit).save(submission, t)
-                                                true
-                                            } catch (e: ApiException) {
-                                                e.printStackTrace()
-                                                false
-                                            }
-                                        }
-
-                                        override fun onPostExecute(done: Boolean) {
-                                            val s: Snackbar
-                                            if (done) {
-                                                if (itemView != null) {
-                                                    s = Snackbar.make(
-                                                        itemView,
-                                                        R.string.submission_info_saved,
-                                                        Snackbar.LENGTH_SHORT
-                                                    )
-                                                    LayoutUtils.showSnackbar(s)
-                                                }
-                                            } else {
-                                                if (itemView != null) {
-                                                    s = Snackbar.make(
-                                                        itemView,
-                                                        R.string.category_set_error,
-                                                        Snackbar.LENGTH_SHORT
-                                                    )
-                                                    LayoutUtils.showSnackbar(s)
+                    MaterialDialog(mContext).show {
+                        title(R.string.sidebar_select_flair)
+                        listItems(items = data.filterNotNull()) { dialog: MaterialDialog, which: Int, text: CharSequence ->
+                            val t = data[which]
+                            if (which == data.size - 1) {
+                                MaterialDialog(mContext).show {
+                                    title(R.string.category_set_name)
+                                    input(hintRes = R.string.category_set_name_hint) { _, _ -> }
+                                    positiveButton(R.string.btn_set) { dialog: MaterialDialog ->
+                                        val flair = dialog.getInputField().text.toString()
+                                        object : AsyncTask<Void?, Void?, Boolean>() {
+                                            override fun doInBackground(
+                                                vararg params: Void?
+                                            ): Boolean {
+                                                try {
+                                                    //AccountManager(Authentication.reddit).save(submission, flair)
+                                                    return true
+                                                } catch (e: ApiException) {
+                                                    e.printStackTrace()
+                                                    return false
                                                 }
                                             }
-                                        }
-                                    }.executeOnExecutor(THREAD_POOL_EXECUTOR)
+
+                                            override fun onPostExecute(
+                                                done: Boolean
+                                            ) {
+                                                val s: Snackbar
+                                                if (done) {
+                                                    if (itemView != null) {
+                                                        s = Snackbar.make(
+                                                            itemView,
+                                                            R.string.submission_info_saved,
+                                                            Snackbar.LENGTH_SHORT
+                                                        )
+                                                        LayoutUtils.showSnackbar(s)
+                                                    }
+                                                } else {
+                                                    if (itemView != null) {
+                                                        s = Snackbar.make(
+                                                            itemView,
+                                                            R.string.category_set_error,
+                                                            Snackbar.LENGTH_SHORT
+                                                        )
+                                                        LayoutUtils.showSnackbar(s)
+                                                    }
+                                                }
+                                            }
+                                        }.executeOnExecutor(
+                                            THREAD_POOL_EXECUTOR
+                                        )
+                                    }
+                                    negativeButton(R.string.btn_cancel)
                                 }
+                            } else {
+                                object : AsyncTask<Void?, Void?, Boolean>() {
+                                    override fun doInBackground(vararg params: Void?): Boolean {
+                                        return try {
+                                            //AccountManager(Authentication.reddit).save(submission, t)
+                                            true
+                                        } catch (e: ApiException) {
+                                            e.printStackTrace()
+                                            false
+                                        }
+                                    }
+
+                                    override fun onPostExecute(done: Boolean) {
+                                        val s: Snackbar
+                                        if (done) {
+                                            if (itemView != null) {
+                                                s = Snackbar.make(
+                                                    itemView,
+                                                    R.string.submission_info_saved,
+                                                    Snackbar.LENGTH_SHORT
+                                                )
+                                                LayoutUtils.showSnackbar(s)
+                                            }
+                                        } else {
+                                            if (itemView != null) {
+                                                s = Snackbar.make(
+                                                    itemView,
+                                                    R.string.category_set_error,
+                                                    Snackbar.LENGTH_SHORT
+                                                )
+                                                LayoutUtils.showSnackbar(s)
+                                            }
+                                        }
+                                    }
+                                }.executeOnExecutor(THREAD_POOL_EXECUTOR)
                             }
-                        })
-                        .show()
+                        }
+                    }
                     if (d != null) {
                         d!!.dismiss()
                     }
@@ -1136,23 +1115,20 @@ class PopulateSubmissionViewHolder(private val postRepository: PostRepository,
         holder: SubmissionViewHolder
     ) {
         reason = ""
-        MaterialDialog.Builder(mContext).title(R.string.mod_remove_title)
-            .positiveText(R.string.btn_remove)
-            .alwaysCallInputCallback()
-            .input(mContext.getString(R.string.mod_remove_hint),
-                mContext.getString(R.string.mod_remove_template), false
-            ) { dialog, input -> reason = input.toString() }
-            .inputType(InputType.TYPE_TEXT_FLAG_CAP_SENTENCES)
-            .neutralText(R.string.mod_remove_insert_draft)
-            .onPositive { dialog, which ->
+        MaterialDialog(mContext).show {
+            title(R.string.mod_remove_title)
+            positiveButton(R.string.btn_remove)
+            input(hintRes = R.string.mod_remove_hint, prefillRes = R.string.mod_remove_template,
+                inputType = InputType.TYPE_TEXT_FLAG_CAP_SENTENCES,
+                waitForPositiveButton = false) { dialog, input -> reason = input.toString() }
+            neutralButton(R.string.mod_remove_insert_draft) { dialog ->
                 removeSubmissionReason(
                     submission, mContext, posts, reason!!, holder,
                     recyclerview
                 )
             }
-            .negativeText(R.string.btn_cancel)
-            .onNegative {_, _ -> }
-            .show()
+            negativeButton(R.string.btn_cancel) { _ -> }
+        }
     }
 
     private fun removeSubmissionReason(
@@ -1309,9 +1285,9 @@ class PopulateSubmissionViewHolder(private val postRepository: PostRepository,
         data: ArrayList<String?>?, flair: ArrayList<FlairTemplate>?,
         holder: SubmissionViewHolder
     ) {
-        MaterialDialog.Builder(mContext).items((data)!!)
-            .title(R.string.sidebar_select_flair)
-            .itemsCallback { dialog, itemView, which, text ->
+        MaterialDialog(mContext).show {
+            title(R.string.sidebar_select_flair)
+            listItems(items = data!!.filterNotNull()) { dialog, which, text ->
                 val t = flair!![which]
                 if (t.isTextEditable) {
                     showFlairEditDialog(mContext, submission, t, holder)
@@ -1319,23 +1295,13 @@ class PopulateSubmissionViewHolder(private val postRepository: PostRepository,
                     setFlair(mContext, null, submission, t, holder)
                 }
             }
-            .show()
+        }
     }
 
     private fun showFlairEditDialog(
         mContext: Activity, submission: IPost,
         t: FlairTemplate, holder: SubmissionViewHolder
     ) {
-        MaterialDialog.Builder(mContext).title(R.string.sidebar_select_flair_text)
-            .input(mContext.getString(R.string.mod_flair_hint), t.text, true
-            ) { dialog: MaterialDialog?, input: CharSequence? -> }
-            .positiveText(R.string.btn_set)
-            .onPositive { dialog, which ->
-                val flair = dialog.inputEditText!!.text.toString()
-                setFlair(mContext, flair, submission, t, holder)
-            }
-            .negativeText(R.string.btn_cancel)
-            .show()
     }
 
     private fun setFlair(
@@ -2200,7 +2166,7 @@ class PopulateSubmissionViewHolder(private val postRepository: PostRepository,
             val text = submission.bodyHtml!!
             val typef = FontPreferences(mContext).fontTypeComment.typeface
             val typeface: Typeface = if (typef >= 0) {
-                RobotoTypefaces.obtainTypeface(mContext, typef)
+                RobotoTypefaces.obtainTypeface(mContext, typef!!)
             } else {
                 Typeface.DEFAULT
             }
@@ -2225,7 +2191,7 @@ class PopulateSubmissionViewHolder(private val postRepository: PostRepository,
             if (submission.body?.isNotEmpty() == true) {
                 val typef = FontPreferences(mContext).fontTypeComment.typeface
                 val typeface = if (typef >= 0) {
-                    RobotoTypefaces.obtainTypeface(mContext, typef)
+                    RobotoTypefaces.obtainTypeface(mContext, typef!!)
                 } else {
                     Typeface.DEFAULT
                 }
@@ -2604,178 +2570,7 @@ class PopulateSubmissionViewHolder(private val postRepository: PostRepository,
                                         }
 
                                         3 -> {
-                                            MaterialDialog.Builder(mContext).items((data)!!)
-                                                .title(R.string.sidebar_select_flair)
-                                                .itemsCallback(
-                                                    object : ListCallback {
-                                                        override fun onSelection(
-                                                            dialog: MaterialDialog,
-                                                            itemView: View, which: Int,
-                                                            text: CharSequence
-                                                        ) {
-                                                            val t = flairlist!![which]
-                                                            if (t.isTextEditable) {
-                                                                MaterialDialog.Builder(
-                                                                    mContext
-                                                                ).title(
-                                                                    R.string.mod_btn_submission_flair_text
-                                                                )
-                                                                    .input(mContext.getString(
-                                                                        R.string.mod_flair_hint
-                                                                    ),
-                                                                        t.text,
-                                                                        true
-                                                                    ) { dialog14: MaterialDialog?, input: CharSequence? -> }
-                                                                    .positiveText(
-                                                                        R.string.btn_set
-                                                                    )
-                                                                    .onPositive(
-                                                                        object :
-                                                                            SingleButtonCallback {
-                                                                            override fun onClick(
-                                                                                dialog: MaterialDialog,
-                                                                                which: DialogAction
-                                                                            ) {
-                                                                                val flair =
-                                                                                    dialog.inputEditText!!
-                                                                                        .text
-                                                                                        .toString()
-                                                                                object :
-                                                                                    AsyncTask<Void?, Void?, Boolean>() {
-                                                                                    override fun doInBackground(
-                                                                                        vararg params: Void?
-                                                                                    ): Boolean {
-                                                                                        try {
-                                                                                            //ModerationManager(Authentication.reddit)
-                                                                                            //    .setFlair(submission.groupName, t, flair, submission)
-                                                                                            return true
-                                                                                        } catch (e: ApiException) {
-                                                                                            e.printStackTrace()
-                                                                                            return false
-                                                                                        }
-                                                                                    }
-
-                                                                                    override fun onPostExecute(
-                                                                                        done: Boolean
-                                                                                    ) {
-                                                                                        var s: Snackbar? =
-                                                                                            null
-                                                                                        if (done) {
-                                                                                            if ((holder.itemView
-                                                                                                        != null)
-                                                                                            ) {
-                                                                                                s =
-                                                                                                    Snackbar.make(
-                                                                                                        holder.itemView,
-                                                                                                        R.string.snackbar_flair_success,
-                                                                                                        Snackbar.LENGTH_SHORT
-                                                                                                    )
-                                                                                                SubmissionCache
-                                                                                                    .updateTitleFlair(
-                                                                                                        submission,
-                                                                                                        flair,
-                                                                                                        mContext
-                                                                                                    )
-                                                                                                holder.title.text =
-                                                                                                    SubmissionCache
-                                                                                                        .getTitleLine(
-                                                                                                            submission,
-                                                                                                            mContext
-                                                                                                        )
-                                                                                            }
-                                                                                        } else {
-                                                                                            if ((holder.itemView
-                                                                                                        != null)
-                                                                                            ) {
-                                                                                                s =
-                                                                                                    Snackbar.make(
-                                                                                                        holder.itemView,
-                                                                                                        R.string.snackbar_flair_error,
-                                                                                                        Snackbar.LENGTH_SHORT
-                                                                                                    )
-                                                                                            }
-                                                                                        }
-                                                                                        if (s != null) {
-                                                                                            LayoutUtils.showSnackbar(
-                                                                                                s
-                                                                                            )
-                                                                                        }
-                                                                                    }
-                                                                                }.executeOnExecutor(
-                                                                                    THREAD_POOL_EXECUTOR
-                                                                                )
-                                                                            }
-                                                                        })
-                                                                    .negativeText(
-                                                                        R.string.btn_cancel
-                                                                    )
-                                                                    .show()
-                                                            } else {
-                                                                object :
-                                                                    AsyncTask<Void?, Void?, Boolean>() {
-                                                                    override fun doInBackground(
-                                                                        vararg params: Void?
-                                                                    ): Boolean {
-                                                                        try {
-                                                                            //ModerationManager(Authentication.reddit)
-                                                                            //    .setFlair(submission.groupName, t, null, submission)
-                                                                            return true
-                                                                        } catch (e: ApiException) {
-                                                                            e.printStackTrace()
-                                                                            return false
-                                                                        }
-                                                                    }
-
-                                                                    override fun onPostExecute(
-                                                                        done: Boolean
-                                                                    ) {
-                                                                        var s: Snackbar? = null
-                                                                        if (done) {
-                                                                            if ((holder.itemView
-                                                                                        != null)
-                                                                            ) {
-                                                                                s = Snackbar.make(
-                                                                                    holder.itemView,
-                                                                                    R.string.snackbar_flair_success,
-                                                                                    Snackbar.LENGTH_SHORT
-                                                                                )
-                                                                                SubmissionCache
-                                                                                    .updateTitleFlair(
-                                                                                        submission,
-                                                                                        t.cssClass,
-                                                                                        mContext
-                                                                                    )
-                                                                                holder.title.text =
-                                                                                    SubmissionCache
-                                                                                        .getTitleLine(
-                                                                                            submission,
-                                                                                            mContext
-                                                                                        )
-                                                                            }
-                                                                        } else {
-                                                                            if ((holder.itemView
-                                                                                        != null)
-                                                                            ) {
-                                                                                s = Snackbar.make(
-                                                                                    holder.itemView,
-                                                                                    R.string.snackbar_flair_error,
-                                                                                    Snackbar.LENGTH_SHORT
-                                                                                )
-                                                                            }
-                                                                        }
-                                                                        if (s != null) {
-                                                                            LayoutUtils.showSnackbar(
-                                                                                s
-                                                                            )
-                                                                        }
-                                                                    }
-                                                                }.executeOnExecutor(
-                                                                    THREAD_POOL_EXECUTOR
-                                                                )
-                                                            }
-                                                        }
-                                                    })
-                                                .show()
+                                            // was flair
                                         }
 
                                         4 -> if (submission.isNsfw) {
@@ -3197,7 +2992,7 @@ class PopulateSubmissionViewHolder(private val postRepository: PostRepository,
                     ImageDownloadNotificationService.EXTRA_SUBMISSION_TITLE,
                     submission.title
                 )
-                val t = AsyncLoadGif.getVideoType(submission.url)
+                val t = AsyncLoadGif.getVideoType(submission.url!!)
                 /*
                 if ((t.shouldLoadPreview()
                             && submission.dataNode.has("preview")

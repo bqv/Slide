@@ -1,49 +1,32 @@
-package me.ccrama.redditslide.ui.settings;
+package me.ccrama.redditslide.ui.settings
 
-import android.os.Bundle;
-import android.view.ViewGroup;
+import android.os.Bundle
+import android.view.View
+import android.view.ViewGroup
+import ltd.ucode.slide.R
+import ltd.ucode.slide.ui.BaseActivityAnim
+import me.ccrama.redditslide.ui.settings.SettingsGeneralFragment.Companion.doNotifText
+import java.io.File
 
-import androidx.annotation.NonNull;
-
-import java.io.File;
-
-import ltd.ucode.slide.ui.BaseActivityAnim;
-import me.ccrama.redditslide.Fragments.FolderChooserDialogCreate;
-import ltd.ucode.slide.R;
-
-/**
- * Created by ccrama on 3/5/2015.
- */
-public class SettingsGeneral extends BaseActivityAnim
-        implements FolderChooserDialogCreate.FolderCallback {
-
-    private SettingsGeneralFragment fragment = new SettingsGeneralFragment(this);
-
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        applyColorTheme();
-        setContentView(R.layout.activity_settings_general);
-        setupAppBar(R.id.toolbar, R.string.settings_title_general, true, true);
-
-        ((ViewGroup) findViewById(R.id.settings_general)).addView(
-                getLayoutInflater().inflate(R.layout.activity_settings_general_child, null));
-
-        fragment.Bind();
+class SettingsGeneral : BaseActivityAnim() {
+    private val fragment: SettingsGeneralFragment = SettingsGeneralFragment(this)
+    public override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        applyColorTheme()
+        setContentView(R.layout.activity_settings_general)
+        setupAppBar(R.id.toolbar, R.string.settings_title_general, true, true)
+        (findViewById<View>(R.id.settings_general) as ViewGroup).addView(
+            layoutInflater.inflate(R.layout.activity_settings_general_child, null)
+        )
+        fragment.Bind()
     }
 
-    @Override
-    public void onFolderSelection(@NonNull FolderChooserDialogCreate dialog,
-                                  @NonNull File folder, boolean isSaveToLocation) {
-        fragment.onFolderSelection(dialog, folder, false);
+    fun onFolderSelection(folder: File) {
+        fragment.onFolderSelection(folder)
     }
 
-    @Override
-    public void onFolderChooserDismissed(@NonNull FolderChooserDialogCreate dialog) {
-    }
-
-    @Override
-    public void onResume(){
-        super.onResume();
-        SettingsGeneralFragment.doNotifText(this);
+    override fun onResume() {
+        super.onResume()
+        doNotifText(this)
     }
 }

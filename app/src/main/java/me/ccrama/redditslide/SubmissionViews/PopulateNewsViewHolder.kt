@@ -19,9 +19,8 @@ import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 import androidx.recyclerview.widget.RecyclerView
-import com.afollestad.materialdialogs.DialogAction
 import com.afollestad.materialdialogs.MaterialDialog
-import com.afollestad.materialdialogs.MaterialDialog.SingleButtonCallback
+import com.afollestad.materialdialogs.customview.customView
 import com.cocosw.bottomsheet.BottomSheet
 import com.google.android.material.snackbar.Snackbar
 import ltd.ucode.reddit.data.RedditSubmission
@@ -424,37 +423,37 @@ class PopulateNewsViewHolder(private val postRepository: PostRepository,
                     )
 
                     12 -> {
-                        val reportDialog = MaterialDialog.Builder(mContext)
-                            .customView(R.layout.report_dialog, true)
-                            .title(R.string.report_post)
-                            .positiveText(R.string.btn_report)
-                            .negativeText(R.string.btn_cancel)
-                            .onPositive(object : SingleButtonCallback {
-                                override fun onClick(dialog: MaterialDialog, which: DialogAction) {
-                                    val reasonGroup = dialog.customView!!
-                                        .findViewById<RadioGroup>(R.id.report_reasons)
-                                    val reportReason: String
-                                    if (reasonGroup.checkedRadioButtonId == R.id.report_other) {
-                                        reportReason = (dialog.customView!!
-                                            .findViewById<View>(R.id.input_report_reason) as EditText).text.toString()
-                                    } else {
-                                        reportReason = (reasonGroup
-                                            .findViewById<View>(reasonGroup.checkedRadioButtonId) as RadioButton)
-                                            .text.toString()
-                                    }
-                                    PopulateBase.AsyncReportTask(RedditSubmission(submission), holder.itemView)
-                                        .executeOnExecutor(
-                                            AsyncTask.THREAD_POOL_EXECUTOR,
-                                            reportReason
-                                        )
+                        val reportDialog = MaterialDialog(mContext).show {
+                            customView(R.layout.report_dialog, scrollable = true)
+                            title(R.string.report_post)
+                            negativeButton(R.string.btn_cancel)
+                            positiveButton(R.string.btn_report) { dialog ->
+                                val reasonGroup =
+                                    dialog.view.findViewById<RadioGroup>(R.id.report_reasons)
+                                val reportReason: String
+                                if (reasonGroup.checkedRadioButtonId == R.id.report_other) {
+                                    reportReason = (dialog.view.findViewById<View>(R.id.input_report_reason) as EditText).text.toString()
+                                } else {
+                                    reportReason = (reasonGroup
+                                        .findViewById<View>(reasonGroup.checkedRadioButtonId) as RadioButton)
+                                        .text.toString()
                                 }
-                            }).build()
+                                PopulateBase.AsyncReportTask(
+                                    RedditSubmission(submission),
+                                    holder.itemView
+                                )
+                                    .executeOnExecutor(
+                                        AsyncTask.THREAD_POOL_EXECUTOR,
+                                        reportReason
+                                    )
+                            }
+                        }
                         val reasonGroup =
-                            reportDialog.customView!!.findViewById<RadioGroup>(R.id.report_reasons)
+                            reportDialog.view.findViewById<RadioGroup>(R.id.report_reasons)
                         reasonGroup.setOnCheckedChangeListener { group, checkedId ->
-                            if (checkedId == R.id.report_other) reportDialog.customView!!.findViewById<View>(
+                            if (checkedId == R.id.report_other) reportDialog.view.findViewById<View>(
                                 R.id.input_report_reason
-                            ).visibility = View.VISIBLE else reportDialog.customView!!
+                            ).visibility = View.VISIBLE else reportDialog.view
                                 .findViewById<View>(R.id.input_report_reason).visibility =
                                 View.GONE
                         }
@@ -466,7 +465,7 @@ class PopulateNewsViewHolder(private val postRepository: PostRepository,
                             }
 
                             override fun onPostExecute(rules: Ruleset) {
-                                reportDialog.customView!!.findViewById<View>(R.id.report_loading).visibility =
+                                reportDialog.view.findViewById<View>(R.id.report_loading).visibility =
                                     View.GONE
                                 if (rules.subredditRules.size > 0) {
                                     val subHeader = TextView(mContext)

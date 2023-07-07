@@ -25,6 +25,6 @@ data class Person (
     @SerialName("local") val isLocal: Boolean,
     @SerialName("matrix_user_id") val matrixUserId: String? = null,
     val name: String,
-    val published: String,
-    val updated: String? = null,
+    val published: LocalDateTime,
+    val updated: LocalDateTime? = null,
 )

@@ -411,6 +411,7 @@ class App : Application(), ActivityLifecycleCallbacks {
         var client: OkHttpClient? = null
         @JvmField
         var canUseNightModeAuto = false
+
         @JvmStatic
         fun forceRestart(context: Context?, forceLoadScreen: Boolean) {
             if (forceLoadScreen) {

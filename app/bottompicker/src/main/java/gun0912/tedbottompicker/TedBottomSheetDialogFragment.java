@@ -1,6 +1,7 @@
 package gun0912.tedbottompicker;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -122,6 +123,7 @@ public class TedBottomSheetDialogFragment extends BottomSheetDialogFragment {
     }
 
 
+    @SuppressLint("RestrictedApi")
     @Override
     public void setupDialog(Dialog dialog, int style) {
         super.setupDialog(dialog, style);

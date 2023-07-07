@@ -1,11 +1,12 @@
 apply plugin: 'com.android.application'
+apply plugin: 'org.jetbrains.kotlin.android'
 
 android {
-    compileSdkVersion 28
+    compileSdkVersion 34
     defaultConfig {
         applicationId "gun0912.tedbottompickerdemo"
         minSdkVersion 16
-        targetSdkVersion 28
+        targetSdkVersion 31
         versionCode 1
         versionName "1.0.0"
     }
@@ -20,8 +21,11 @@ android {
     }
     compileOptions {
         encoding "UTF-8"
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+    kotlinOptions {
+        jvmTarget = "17"
     }
 }
 

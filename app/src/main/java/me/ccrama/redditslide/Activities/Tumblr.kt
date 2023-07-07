@@ -1,288 +1,270 @@
-package me.ccrama.redditslide.Activities;
+package me.ccrama.redditslide.Activities
 
-import android.app.Activity;
-import android.content.Intent;
-import android.graphics.Color;
-import android.os.AsyncTask;
-import android.os.Bundle;
-import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
-import android.view.View;
-import android.view.ViewGroup;
-import android.view.WindowManager;
-import android.widget.Toast;
-
-import androidx.annotation.NonNull;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentStatePagerAdapter;
-import androidx.recyclerview.widget.RecyclerView;
-import androidx.viewpager.widget.ViewPager;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-
-import ltd.ucode.slide.ui.BaseActivity;
-import me.ccrama.redditslide.Adapters.TumblrView;
-import me.ccrama.redditslide.Fragments.BlankFragment;
-import me.ccrama.redditslide.Fragments.FolderChooserDialogCreate;
-import me.ccrama.redditslide.Fragments.SubmissionsView;
-import me.ccrama.redditslide.Notifications.ImageDownloadNotificationService;
-import ltd.ucode.slide.R;
-import ltd.ucode.slide.SettingValues;
-import me.ccrama.redditslide.Tumblr.Photo;
-import me.ccrama.redditslide.Tumblr.TumblrUtils;
-import me.ccrama.redditslide.views.PreCachingLayoutManager;
-import me.ccrama.redditslide.views.ToolbarColorizeHelper;
-import me.ccrama.redditslide.Visuals.ColorPreferences;
-import me.ccrama.redditslide.Visuals.Palette;
-import me.ccrama.redditslide.util.DialogUtil;
-import me.ccrama.redditslide.util.LinkUtil;
+import android.app.Activity
+import android.content.Intent
+import android.graphics.Color
+import android.os.AsyncTask
+import android.os.Bundle
+import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
+import android.view.View
+import android.view.ViewGroup
+import android.view.WindowManager
+import android.widget.Toast
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentManager
+import androidx.fragment.app.FragmentStatePagerAdapter
+import androidx.recyclerview.widget.RecyclerView
+import androidx.viewpager.widget.ViewPager
+import androidx.viewpager.widget.ViewPager.SimpleOnPageChangeListener
+import ltd.ucode.slide.R
+import ltd.ucode.slide.SettingValues.albumSwipe
+import ltd.ucode.slide.SettingValues.appRestart
+import ltd.ucode.slide.ui.BaseActivity
+import me.ccrama.redditslide.Adapters.TumblrView
+import me.ccrama.redditslide.Fragments.BlankFragment
+import me.ccrama.redditslide.Fragments.SubmissionsView.Companion.datachanged
+import me.ccrama.redditslide.Notifications.ImageDownloadNotificationService
+import me.ccrama.redditslide.Tumblr.Photo
+import me.ccrama.redditslide.Tumblr.TumblrUtils.GetTumblrPostWithCallback
+import me.ccrama.redditslide.Visuals.ColorPreferences
+import me.ccrama.redditslide.Visuals.Palette
+import me.ccrama.redditslide.util.DialogUtil
+import me.ccrama.redditslide.util.LinkUtil
+import me.ccrama.redditslide.util.LinkUtil.openExternally
+import me.ccrama.redditslide.views.PreCachingLayoutManager
+import me.ccrama.redditslide.views.ToolbarColorizeHelper
+import java.io.File
 
 /**
- * Created by ccrama on 9/7/2016. <p/> This class is responsible for accessing the Tumblr api to get
+ * This class is responsible for accessing the Tumblr api to get
  * the image-related json data from a URL. It extends FullScreenActivity and supports swipe from
  * anywhere.
  */
-public class Tumblr extends FullScreenActivity implements FolderChooserDialogCreate.FolderCallback {
-    public static final String EXTRA_URL = "url";
-    private List<Photo> images;
-    public static final String SUBREDDIT = "subreddit";
-    private int    adapterPosition;
-    public  String subreddit;
+class Tumblr : FullScreenActivity() {
+    private var images: List<Photo>? = null
+    private var adapterPosition: Int = 0
+    var subreddit: String? = null
 
-    @Override
-    public void onFolderSelection(@NonNull FolderChooserDialogCreate dialog,
-                                  @NonNull File folder, boolean isSaveToLocation) {
-        SettingValues.INSTANCE.getAppRestart().edit().putString("imagelocation", folder.getAbsolutePath()).apply();
-        Toast.makeText(this,
-                getString(R.string.settings_set_image_location, folder.getAbsolutePath()),
-                Toast.LENGTH_LONG).show();
+    private fun onFolderSelection(folder: File) {
+        appRestart.edit().putString("imagelocation", folder.absolutePath).apply()
+        Toast.makeText(
+            this,
+            getString(R.string.settings_set_image_location, folder.absolutePath),
+            Toast.LENGTH_LONG
+        ).show()
     }
 
-    @Override
-    public void onFolderChooserDismissed(@NonNull FolderChooserDialogCreate dialog) {
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
-
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        val id: Int = item.itemId
         if (id == android.R.id.home) {
-            onBackPressed();
+            onBackPressed()
         }
         if (id == R.id.slider) {
-            SettingValues.INSTANCE.setAlbumSwipe(true);
-            Intent i = new Intent(Tumblr.this, TumblrPager.class);
-            int adapterPosition = getIntent().getIntExtra(MediaView.ADAPTER_POSITION, -1);
-            i.putExtra(MediaView.ADAPTER_POSITION, adapterPosition);
-            if (getIntent().hasExtra(MediaView.SUBMISSION_URL)) {
-                i.putExtra(MediaView.SUBMISSION_URL,
-                        getIntent().getStringExtra(MediaView.SUBMISSION_URL));
+            albumSwipe = true
+            val i: Intent = Intent(this@Tumblr, TumblrPager::class.java)
+            val adapterPosition: Int = intent.getIntExtra(MediaView.ADAPTER_POSITION, -1)
+            i.putExtra(MediaView.ADAPTER_POSITION, adapterPosition)
+            if (intent.hasExtra(MediaView.SUBMISSION_URL)) {
+                i.putExtra(
+                    MediaView.SUBMISSION_URL,
+                    intent.getStringExtra(MediaView.SUBMISSION_URL)
+                )
             }
-            if(getIntent().hasExtra(SUBREDDIT)){
-                i.putExtra(SUBREDDIT, getIntent().getStringExtra(SUBREDDIT));
+            if (intent.hasExtra(SUBREDDIT)) {
+                i.putExtra(SUBREDDIT, intent.getStringExtra(SUBREDDIT))
             }
-            i.putExtra("url", url);
-            startActivity(i);
-            finish();
+            i.putExtra("url", url)
+            startActivity(i)
+            finish()
         }
         if (id == R.id.grid) {
-            mToolbar.findViewById(R.id.grid).callOnClick();
+            mToolbar!!.findViewById<View>(R.id.grid).callOnClick()
         }
         if (id == R.id.comments) {
-            SubmissionsView.datachanged(adapterPosition);
-            finish();
+            datachanged(adapterPosition)
+            finish()
         }
         if (id == R.id.external) {
-            LinkUtil.openExternally(url);
+            openExternally((url)!!)
         }
         if (id == R.id.download) {
-            for (final Photo elem : images) {
-                doImageSave(false, elem.getOriginalSize().getUrl());
+            for (elem: Photo in images!!) {
+                doImageSave(false, elem.originalSize.url)
             }
         }
-
-        return super.onOptionsItemSelected(item);
+        return super.onOptionsItemSelected(item)
     }
 
-    public void doImageSave(boolean isGif, String contentUrl) {
+    fun doImageSave(isGif: Boolean, contentUrl: String?) {
         if (!isGif) {
-            if (SettingValues.INSTANCE.getAppRestart().getString("imagelocation", "").isEmpty()) {
-                DialogUtil.showFirstDialog(Tumblr.this);
-            } else if (!new File(SettingValues.INSTANCE.getAppRestart().getString("imagelocation", "")).exists()) {
-                DialogUtil.showErrorDialog(Tumblr.this);
+            if (appRestart.getString("imagelocation", "")!!.isEmpty()) {
+                DialogUtil.showFirstDialog(this@Tumblr) { _, folder -> onFolderSelection(folder) }
+            } else if (!File(appRestart.getString("imagelocation", "")).exists()) {
+                DialogUtil.showErrorDialog(this@Tumblr) { _, folder -> onFolderSelection(folder) }
             } else {
-                Intent i = new Intent(this, ImageDownloadNotificationService.class);
-                i.putExtra("actuallyLoaded", contentUrl);
-                if (subreddit != null && !subreddit.isEmpty()) i.putExtra("subreddit", subreddit);
-                startService(i);
+                val i: Intent = Intent(this, ImageDownloadNotificationService::class.java)
+                i.putExtra("actuallyLoaded", contentUrl)
+                if (subreddit != null && !subreddit!!.isEmpty()) i.putExtra("subreddit", subreddit)
+                startService(i)
             }
         } else {
-            MediaView.doOnClick.run();
+            MediaView.doOnClick!!.run()
         }
     }
 
-    public String url;
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.album_vertical, menu);
-        adapterPosition = getIntent().getIntExtra(MediaView.ADAPTER_POSITION, -1);
+    var url: String? = null
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        val inflater: MenuInflater = menuInflater
+        inflater.inflate(R.menu.album_vertical, menu)
+        adapterPosition = intent.getIntExtra(MediaView.ADAPTER_POSITION, -1)
         if (adapterPosition < 0) {
-            menu.findItem(R.id.comments).setVisible(false);
+            menu.findItem(R.id.comments).isVisible = false
         }
-        return true;
+        return true
     }
 
-    public TumblrPagerAdapter album;
-
-    public void onCreate(Bundle savedInstanceState) {
-        overrideSwipeFromAnywhere();
-        super.onCreate(savedInstanceState);
-        getTheme().applyStyle(
-                new ColorPreferences(this).getDarkThemeSubreddit(ColorPreferences.FONT_STYLE),
-                true);
-        setContentView(R.layout.album);
+    @JvmField
+    var album: TumblrPagerAdapter? = null
+    public override fun onCreate(savedInstanceState: Bundle?) {
+        overrideSwipeFromAnywhere()
+        super.onCreate(savedInstanceState)
+        theme.applyStyle(
+            ColorPreferences(this).getDarkThemeSubreddit(ColorPreferences.FONT_STYLE),
+            true
+        )
+        setContentView(R.layout.album)
 
         //Keep the screen on
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-
-        final ViewPager pager = (ViewPager) findViewById(R.id.images);
-
-        album = new TumblrPagerAdapter(getSupportFragmentManager());
-        pager.setAdapter(album);
-        pager.setCurrentItem(1);
-        if(getIntent().hasExtra(SUBREDDIT)){
-            subreddit = getIntent().getStringExtra(SUBREDDIT);
+        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        val pager: ViewPager = findViewById<View>(R.id.images) as ViewPager
+        album = TumblrPagerAdapter(supportFragmentManager)
+        pager.adapter = album
+        pager.currentItem = 1
+        if (intent.hasExtra(SUBREDDIT)) {
+            subreddit = intent.getStringExtra(SUBREDDIT)
         }
-        pager.addOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
-                                          @Override
-                                          public void onPageScrolled(int position, float positionOffset,
-                                                  int positionOffsetPixels) {
-                                              if (position == 0 && positionOffsetPixels == 0) {
-                                                  finish();
-                                              }
-                                              if (position == 0
-                                                      && ((TumblrPagerAdapter) pager.getAdapter()).blankPage != null) {
-                                                  if (((TumblrPagerAdapter) pager.getAdapter()).blankPage != null) {
-                                                      ((TumblrPagerAdapter) pager.getAdapter()).blankPage.doOffset(
-                                                              positionOffset);
-                                                  }
-                                                  ((TumblrPagerAdapter) pager.getAdapter()).blankPage.realBack.setBackgroundColor(
-                                                          Palette.adjustAlpha(positionOffset * 0.7f));
-                                              }
-                                          }
-                                      }
-
-        );
-
-        if (!SettingValues.INSTANCE.getAppRestart().contains("tutorialSwipe")) {
-            startActivityForResult(new Intent(this, SwipeTutorial.class), 3);
+        pager.addOnPageChangeListener(object : SimpleOnPageChangeListener() {
+            override fun onPageScrolled(
+                position: Int, positionOffset: Float,
+                positionOffsetPixels: Int
+            ) {
+                if (position == 0 && positionOffsetPixels == 0) {
+                    finish()
+                }
+                if ((position == 0
+                            && (pager.adapter as TumblrPagerAdapter?)!!.blankPage != null)
+                ) {
+                    if ((pager.adapter as TumblrPagerAdapter?)!!.blankPage != null) {
+                        (pager.adapter as TumblrPagerAdapter?)!!.blankPage!!.doOffset(
+                            positionOffset
+                        )
+                    }
+                    (pager.adapter as TumblrPagerAdapter?)!!.blankPage!!.realBack.setBackgroundColor(
+                        Palette.adjustAlpha(positionOffset * 0.7f)
+                    )
+                }
+            }
+        }
+        )
+        if (!appRestart.contains("tutorialSwipe")) {
+            startActivityForResult(Intent(this, SwipeTutorial::class.java), 3)
         }
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == 3) {
-            SettingValues.INSTANCE.getAppRestart().edit().putBoolean("tutorialSwipe", true).apply();
-
+            appRestart.edit().putBoolean("tutorialSwipe", true).apply()
         }
     }
 
-    public static class TumblrPagerAdapter extends FragmentStatePagerAdapter {
-        public BlankFragment blankPage;
-        public AlbumFrag     album;
-
-        public TumblrPagerAdapter(FragmentManager fm) {
-            super(fm, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT);
-        }
-
-        @NonNull
-        @Override
-        public Fragment getItem(int i) {
+    class TumblrPagerAdapter constructor(fm: FragmentManager?) : FragmentStatePagerAdapter(
+        (fm)!!, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT
+    ) {
+        var blankPage: BlankFragment? = null
+        @JvmField
+        var album: AlbumFrag? = null
+        override fun getItem(i: Int): Fragment {
             if (i == 0) {
-                blankPage = new BlankFragment();
-                return blankPage;
+                blankPage = BlankFragment()
+                return blankPage!!
             } else {
-                album = new AlbumFrag();
-                return album;
+                album = AlbumFrag()
+                return album!!
             }
         }
 
-        @Override
-        public int getCount() {
-            return 2;
+        override fun getCount(): Int {
+            return 2
         }
     }
 
-    public static class AlbumFrag extends Fragment {
-        View rootView;
-        public RecyclerView recyclerView;
-
-        @Override
-        public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                Bundle savedInstanceState) {
-            rootView = inflater.inflate(R.layout.fragment_verticalalbum, container, false);
-
-            final PreCachingLayoutManager mLayoutManager = new PreCachingLayoutManager(getActivity());
-            recyclerView = rootView.findViewById(R.id.images);
-            recyclerView.setLayoutManager(mLayoutManager);
-            ((Tumblr) getActivity()).url =
-                    getActivity().getIntent().getExtras().getString(EXTRA_URL, "");
-
-            ((BaseActivity) getActivity()).setShareUrl(((Tumblr) getActivity()).url);
-
-            new LoadIntoRecycler(((Tumblr) getActivity()).url, getActivity()).executeOnExecutor(
-                    AsyncTask.THREAD_POOL_EXECUTOR);
-            ((Tumblr) getActivity()).mToolbar = rootView.findViewById(R.id.toolbar);
-            ((Tumblr) getActivity()).mToolbar.setTitle(R.string.type_album);
-            ToolbarColorizeHelper.colorizeToolbar(((Tumblr) getActivity()).mToolbar, Color.WHITE,
-                    (getActivity()));
-            ((Tumblr) getActivity()).setSupportActionBar(((Tumblr) getActivity()).mToolbar);
-            ((Tumblr) getActivity()).getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-
-            ((Tumblr) getActivity()).mToolbar.setPopupTheme(
-                    new ColorPreferences(getActivity()).getDarkThemeSubreddit(
-                            ColorPreferences.FONT_STYLE));
-            return rootView;
+    class AlbumFrag : Fragment() {
+        var rootView: View? = null
+        @JvmField
+        var recyclerView: RecyclerView? = null
+        override fun onCreateView(
+            inflater: LayoutInflater, container: ViewGroup?,
+            savedInstanceState: Bundle?
+        ): View? {
+            rootView = inflater.inflate(R.layout.fragment_verticalalbum, container, false)
+            val mLayoutManager = PreCachingLayoutManager(activity)
+            recyclerView = rootView!!.findViewById(R.id.images)
+            recyclerView!!.layoutManager = mLayoutManager
+            (activity as Tumblr?)!!.url = requireActivity().intent.extras!!
+                .getString(EXTRA_URL, "")
+            (activity as BaseActivity?)!!.shareUrl = (activity as Tumblr?)!!.url
+            LoadIntoRecycler((activity as Tumblr?)!!.url!!, requireActivity()).executeOnExecutor(
+                AsyncTask.THREAD_POOL_EXECUTOR
+            )
+            (activity as Tumblr?)!!.mToolbar = rootView!!.findViewById(R.id.toolbar)
+            (activity as Tumblr?)!!.mToolbar!!.setTitle(R.string.type_album)
+            ToolbarColorizeHelper.colorizeToolbar(
+                (activity as Tumblr?)!!.mToolbar, Color.WHITE,
+                (activity)
+            )
+            (activity as Tumblr?)!!.setSupportActionBar((activity as Tumblr?)!!.mToolbar)
+            (activity as Tumblr?)!!.supportActionBar!!.setDisplayHomeAsUpEnabled(true)
+            (activity as Tumblr?)!!.mToolbar!!.popupTheme = ColorPreferences(activity).getDarkThemeSubreddit(
+                ColorPreferences.FONT_STYLE
+            )
+            return rootView
         }
 
-        public class LoadIntoRecycler extends TumblrUtils.GetTumblrPostWithCallback {
-
-            String url;
-
-            public LoadIntoRecycler(@NonNull String url, @NonNull Activity baseActivity) {
-                super(url, baseActivity);
-                this.url = url;
+        inner class LoadIntoRecycler constructor(var url: String, baseActivity: Activity) :
+            GetTumblrPostWithCallback(
+                url, baseActivity
+            ) {
+            override fun onError() {
+                val i: Intent = Intent(activity, Website::class.java)
+                i.putExtra(LinkUtil.EXTRA_URL, url)
+                startActivity(i)
+                activity!!.finish()
             }
 
-            @Override
-            public void onError() {
-                Intent i = new Intent(getActivity(), Website.class);
-                i.putExtra(LinkUtil.EXTRA_URL, url);
-                startActivity(i);
-                getActivity().finish();
-            }
-
-            @Override
-            public void doWithData(final List<Photo> jsonElements) {
-                super.doWithData(jsonElements);
-                if (getActivity() != null) {
-                    getActivity().findViewById(R.id.progress).setVisibility(View.GONE);
-                    ((Tumblr) getActivity()).images = new ArrayList<>(jsonElements);
-                    TumblrView adapter =
-                            new TumblrView(baseActivity, ((Tumblr) getActivity()).images,
-                                    getActivity().findViewById(R.id.toolbar).getHeight(), ((Tumblr) getActivity()).subreddit);
-                    recyclerView.setAdapter(adapter);
+            override fun doWithData(jsonElements: List<Photo>) {
+                super.doWithData(jsonElements)
+                if (activity != null) {
+                    activity!!.findViewById<View>(R.id.progress).visibility = View.GONE
+                    (activity as Tumblr?)!!.images = ArrayList(jsonElements)
+                    val adapter: TumblrView = TumblrView(
+                        baseActivity,
+                        (activity as Tumblr?)!!.images,
+                        activity!!.findViewById<View>(R.id.toolbar).height,
+                        (activity as Tumblr?)!!.subreddit
+                    )
+                    recyclerView!!.adapter = adapter
                 }
             }
         }
     }
 
+    companion object {
+        val EXTRA_URL: String = "url"
+        @JvmField
+        val SUBREDDIT: String = "subreddit"
+    }
 }

@@ -1,880 +1,768 @@
-package me.ccrama.redditslide.Activities;
+package me.ccrama.redditslide.Activities
 
-import android.animation.Animator;
-import android.animation.AnimatorListenerAdapter;
-import android.app.Dialog;
-import android.content.Intent;
-import android.os.AsyncTask;
-import android.os.Build;
-import android.os.Bundle;
-import android.text.Spannable;
-import android.text.SpannableStringBuilder;
-import android.text.Spanned;
-import android.text.style.RelativeSizeSpan;
-import android.util.Log;
-import android.view.Gravity;
-import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
-import android.view.View;
-import android.view.ViewAnimationUtils;
-import android.view.Window;
-import android.view.WindowManager;
-import android.view.animation.LinearInterpolator;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.TextView;
-import android.widget.Toast;
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
+import android.app.Dialog
+import android.content.DialogInterface
+import android.content.Intent
+import android.os.AsyncTask
+import android.os.Build
+import android.os.Bundle
+import android.text.Spannable
+import android.text.SpannableStringBuilder
+import android.text.Spanned
+import android.text.style.RelativeSizeSpan
+import android.util.Log
+import android.view.Gravity
+import android.view.Menu
+import android.view.MenuItem
+import android.view.View
+import android.view.ViewAnimationUtils
+import android.view.Window
+import android.view.WindowManager
+import android.view.animation.LinearInterpolator
+import android.widget.ImageView
+import android.widget.LinearLayout
+import android.widget.TextView
+import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.widget.PopupMenu
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentManager
+import androidx.fragment.app.FragmentStatePagerAdapter
+import androidx.viewpager.widget.ViewPager
+import androidx.viewpager.widget.ViewPager.SimpleOnPageChangeListener
+import com.afollestad.materialdialogs.MaterialDialog
+import com.afollestad.materialdialogs.input.getInputField
+import com.afollestad.materialdialogs.input.input
+import com.afollestad.materialdialogs.list.listItems
+import com.google.android.material.snackbar.Snackbar
+import com.google.android.material.tabs.TabLayout
+import ltd.ucode.slide.App
+import ltd.ucode.slide.App.Companion.defaultShareText
+import ltd.ucode.slide.Authentication
+import ltd.ucode.slide.R
+import ltd.ucode.slide.ui.BaseActivityAnim
+import me.ccrama.redditslide.Activities.MultiredditOverview
+import me.ccrama.redditslide.Fragments.ContributionsView
+import me.ccrama.redditslide.Fragments.HistoryView
+import me.ccrama.redditslide.UserTags
+import me.ccrama.redditslide.Visuals.ColorPreferences
+import me.ccrama.redditslide.Visuals.Palette
+import me.ccrama.redditslide.util.LayoutUtils
+import me.ccrama.redditslide.util.LinkUtil.formatURL
+import me.ccrama.redditslide.util.LinkUtil.openUrl
+import me.ccrama.redditslide.util.LogUtil
+import me.ccrama.redditslide.util.SortingUtil
+import me.ccrama.redditslide.util.TimeUtils
+import net.dean.jraw.fluent.FluentRedditClient
+import net.dean.jraw.managers.AccountManager
+import net.dean.jraw.models.Account
+import net.dean.jraw.models.Trophy
+import net.dean.jraw.paginators.Sorting
+import net.dean.jraw.paginators.TimePeriod
+import uz.shift.colorpicker.LineColorPicker
+import uz.shift.colorpicker.OnColorChangedListener
+import java.util.Locale
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.widget.PopupMenu;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentStatePagerAdapter;
-import androidx.viewpager.widget.ViewPager;
-
-import com.afollestad.materialdialogs.DialogAction;
-import com.afollestad.materialdialogs.MaterialDialog;
-import com.google.android.material.snackbar.Snackbar;
-import com.google.android.material.tabs.TabLayout;
-
-import net.dean.jraw.fluent.FluentRedditClient;
-import net.dean.jraw.managers.AccountManager;
-import net.dean.jraw.models.Account;
-import net.dean.jraw.models.Trophy;
-import net.dean.jraw.paginators.Sorting;
-import net.dean.jraw.paginators.TimePeriod;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-
-import ltd.ucode.slide.Authentication;
-import ltd.ucode.slide.ui.BaseActivityAnim;
-import me.ccrama.redditslide.Fragments.ContributionsView;
-import me.ccrama.redditslide.Fragments.HistoryView;
-import ltd.ucode.slide.R;
-import ltd.ucode.slide.App;
-import me.ccrama.redditslide.UserTags;
-import me.ccrama.redditslide.Visuals.ColorPreferences;
-import me.ccrama.redditslide.Visuals.Palette;
-import me.ccrama.redditslide.util.LayoutUtils;
-import me.ccrama.redditslide.util.LinkUtil;
-import me.ccrama.redditslide.util.LogUtil;
-import me.ccrama.redditslide.util.SortingUtil;
-import me.ccrama.redditslide.util.TimeUtils;
-import uz.shift.colorpicker.LineColorPicker;
-import uz.shift.colorpicker.OnColorChangedListener;
-
-/**
- * Created by ccrama on 9/17/2015.
- */
-public class Profile extends BaseActivityAnim {
-
-    public static final String EXTRA_PROFILE = "profile";
-    public static final String EXTRA_SAVED = "saved";
-    public static final String EXTRA_COMMENT = "comment";
-    public static final String EXTRA_SUBMIT = "submitted";
-    public static final String EXTRA_UPVOTE = "upvoted";
-    public static final String EXTRA_HISTORY = "history";
-    private String name;
-    private Account account;
-    private List<Trophy> trophyCase;
-    private ViewPager pager;
-    private TabLayout tabs;
-    private String[] usedArray;
-    public boolean isSavedView;
-
-    private static boolean isValidUsername(String user) {
-        /* https://github.com/reddit/reddit/blob/master/r2/r2/lib/validator/validator.py#L261 */
-        return user.matches("^[a-zA-Z0-9_-]{3,20}$");
-    }
-
-    private boolean friend;
-    private MenuItem sortItem;
-    private MenuItem categoryItem;
-    public static Sorting profSort;
-    public static TimePeriod profTime;
-
-    @Override
-    public void onCreate(Bundle savedInstance) {
-        overrideSwipeFromAnywhere();
-
-        super.onCreate(savedInstance);
-
-        name = getIntent().getExtras().getString(EXTRA_PROFILE, "");
-
-        setShareUrl("https://reddit.com/u/" + name);
-
-        applyColorTheme();
-        setContentView(R.layout.activity_profile);
-        setupUserAppBar(R.id.toolbar, name, true, name);
-        mToolbar.setPopupTheme(new ColorPreferences(this).getFontStyle().getBaseId());
-
-        profSort = Sorting.HOT;
-        profTime = TimePeriod.ALL;
-
-        findViewById(R.id.header).setBackgroundColor(Palette.getColorUser(name));
-
-        tabs = (TabLayout) findViewById(R.id.sliding_tabs);
-        tabs.setTabMode(TabLayout.MODE_SCROLLABLE);
-        tabs.setSelectedTabIndicatorColor(new ColorPreferences(Profile.this).getColor("no sub"));
-
-        pager = (ViewPager) findViewById(R.id.content_view);
-        if (name.equals(Authentication.name))
-            setDataSet(new String[]{getString(R.string.profile_overview),
-                    getString(R.string.profile_comments),
-                    getString(R.string.profile_submitted),
-                    getString(R.string.profile_gilded),
-                    getString(R.string.profile_upvoted),
-                    getString(R.string.profile_downvoted),
-                    getString(R.string.profile_saved),
-                    getString(R.string.profile_hidden),
-                    getString(R.string.profile_history)
-            });
-
-        else setDataSet(new String[]{getString(R.string.profile_overview),
+class Profile : BaseActivityAnim() {
+    private var name: String? = null
+    private var account: Account? = null
+    private var trophyCase: List<Trophy>? = null
+    private var pager: ViewPager? = null
+    private var tabs: TabLayout? = null
+    private var usedArray: Array<String>? = null
+    var isSavedView = false
+    private var friend = false
+    private var sortItem: MenuItem? = null
+    private var categoryItem: MenuItem? = null
+    public override fun onCreate(savedInstance: Bundle?) {
+        overrideSwipeFromAnywhere()
+        super.onCreate(savedInstance)
+        name = intent.extras!!
+            .getString(EXTRA_PROFILE, "")
+        shareUrl = "https://reddit.com/u/$name"
+        applyColorTheme()
+        setContentView(R.layout.activity_profile)
+        setupUserAppBar(R.id.toolbar, name, true, name)
+        mToolbar!!.popupTheme = ColorPreferences(this).fontStyle.baseId
+        profSort = Sorting.HOT
+        profTime = TimePeriod.ALL
+        findViewById<View>(R.id.header).setBackgroundColor(Palette.getColorUser(name))
+        tabs = findViewById<View>(R.id.sliding_tabs) as TabLayout
+        tabs!!.tabMode = TabLayout.MODE_SCROLLABLE
+        tabs!!.setSelectedTabIndicatorColor(ColorPreferences(this@Profile).getColor("no sub"))
+        pager = findViewById<View>(R.id.content_view) as ViewPager
+        if ((name == Authentication.name)) setDataSet(
+            arrayOf(
+                getString(R.string.profile_overview),
                 getString(R.string.profile_comments),
                 getString(R.string.profile_submitted),
-                getString(R.string.profile_gilded)});
-
-        new getProfile().execute(name);
-
-        pager.addOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
-            @Override
-            public void onPageSelected(int position) {
-                isSavedView = position == 6;
-                findViewById(R.id.header).animate()
-                        .translationY(0)
-                        .setInterpolator(new LinearInterpolator())
-                        .setDuration(180);
+                getString(R.string.profile_gilded),
+                getString(R.string.profile_upvoted),
+                getString(R.string.profile_downvoted),
+                getString(R.string.profile_saved),
+                getString(R.string.profile_hidden),
+                getString(R.string.profile_history)
+            )
+        ) else setDataSet(
+            arrayOf(
+                getString(R.string.profile_overview),
+                getString(R.string.profile_comments),
+                getString(R.string.profile_submitted),
+                getString(R.string.profile_gilded)
+            )
+        )
+        getProfile().execute(name)
+        pager!!.addOnPageChangeListener(object : SimpleOnPageChangeListener() {
+            override fun onPageSelected(position: Int) {
+                isSavedView = position == 6
+                findViewById<View>(R.id.header).animate()
+                    .translationY(0f)
+                    .setInterpolator(LinearInterpolator()).duration = 180
                 if (sortItem != null) {
-                    sortItem.setVisible(position < 3);
+                    sortItem!!.isVisible = position < 3
                 }
-                if (categoryItem != null && Authentication.me != null && Authentication.me.hasGold()) {
-                    categoryItem.setVisible(position == 6);
+                if ((categoryItem != null) && (Authentication.me != null) && Authentication.me!!.hasGold()) {
+                    categoryItem!!.isVisible = position == 6
                 }
             }
-        });
-
-        if (getIntent().hasExtra(EXTRA_SAVED) && name.equals(Authentication.name)) {
-            pager.setCurrentItem(6);
+        })
+        if (intent.hasExtra(EXTRA_SAVED) && (name == Authentication.name)) {
+            pager!!.currentItem = 6
         }
-        if (getIntent().hasExtra(EXTRA_COMMENT) && name.equals(Authentication.name)) {
-            pager.setCurrentItem(1);
+        if (intent.hasExtra(EXTRA_COMMENT) && (name == Authentication.name)) {
+            pager!!.currentItem = 1
         }
-        if (getIntent().hasExtra(EXTRA_SUBMIT) && name.equals(Authentication.name)) {
-            pager.setCurrentItem(2);
+        if (intent.hasExtra(EXTRA_SUBMIT) && (name == Authentication.name)) {
+            pager!!.currentItem = 2
         }
-        if (getIntent().hasExtra(EXTRA_HISTORY) && name.equals(Authentication.name)) {
-            pager.setCurrentItem(8);
+        if (intent.hasExtra(EXTRA_HISTORY) && (name == Authentication.name)) {
+            pager!!.currentItem = 8
         }
-        if (getIntent().hasExtra(EXTRA_UPVOTE) && name.equals(Authentication.name)) {
-            pager.setCurrentItem(4);
+        if (intent.hasExtra(EXTRA_UPVOTE) && (name == Authentication.name)) {
+            pager!!.currentItem = 4
         }
-        isSavedView = pager.getCurrentItem() == 6;
-        if (pager.getCurrentItem() != 0) {
-            LayoutUtils.scrollToTabAfterLayout(tabs, pager.getCurrentItem());
+        isSavedView = pager!!.currentItem == 6
+        if (pager!!.currentItem != 0) {
+            LayoutUtils.scrollToTabAfterLayout(tabs, pager!!.currentItem)
         }
     }
 
-    private void doClick() {
+    private fun doClick() {
         if (account == null) {
             try {
-                new AlertDialog.Builder(Profile.this)
-                        .setTitle(R.string.profile_err_title)
-                        .setMessage(R.string.profile_err_msg)
-                        .setPositiveButton(R.string.btn_ok, null)
-                        .setCancelable(false)
-                        .setOnDismissListener(dialog ->
-                                onBackPressed())
-                        .show();
-            } catch (WindowManager.BadTokenException e) {
-                Log.w(LogUtil.getTag(), "Activity already in background, dialog not shown " + e);
+                AlertDialog.Builder(this@Profile)
+                    .setTitle(R.string.profile_err_title)
+                    .setMessage(R.string.profile_err_msg)
+                    .setPositiveButton(R.string.btn_ok, null)
+                    .setCancelable(false)
+                    .setOnDismissListener { dialog: DialogInterface? -> onBackPressed() }
+                    .show()
+            } catch (e: WindowManager.BadTokenException) {
+                Log.w(LogUtil.getTag(), "Activity already in background, dialog not shown $e")
             }
-            return;
+            return
         }
-        if (account.getDataNode().has("is_suspended") && account.getDataNode().get("is_suspended").asBoolean()
-                && !name.equalsIgnoreCase(Authentication.name)) {
+        if ((account!!.dataNode.has("is_suspended") && account!!.dataNode["is_suspended"].asBoolean()
+                    && !name.equals(Authentication.name, ignoreCase = true))
+        ) {
             try {
-                new AlertDialog.Builder(Profile.this)
-                        .setTitle(R.string.account_suspended)
-                        .setCancelable(false)
-                        .setPositiveButton(R.string.btn_ok, (dialog, whichButton) ->
-                                finish())
-                        .setOnDismissListener(dialog ->
-                                finish())
-                        .show();
-            } catch (WindowManager.BadTokenException e) {
-                Log.w(LogUtil.getTag(), "Activity already in background, dialog not shown " + e);
+                AlertDialog.Builder(this@Profile)
+                    .setTitle(R.string.account_suspended)
+                    .setCancelable(false)
+                    .setPositiveButton(R.string.btn_ok) { dialog: DialogInterface?, whichButton: Int -> finish() }
+                    .setOnDismissListener { dialog: DialogInterface? -> finish() }
+                    .show()
+            } catch (e: WindowManager.BadTokenException) {
+                Log.w(LogUtil.getTag(), "Activity already in background, dialog not shown $e")
             }
         }
     }
 
-    private void setDataSet(String[] data) {
-        usedArray = data;
-        ProfilePagerAdapter adapter = new ProfilePagerAdapter(getSupportFragmentManager());
-
-        pager.setAdapter(adapter);
-        pager.setOffscreenPageLimit(1);
-        tabs.setupWithViewPager(pager);
-
-
+    private fun setDataSet(data: Array<String>) {
+        usedArray = data
+        val adapter = ProfilePagerAdapter(supportFragmentManager)
+        pager!!.adapter = adapter
+        pager!!.offscreenPageLimit = 1
+        tabs!!.setupWithViewPager(pager)
     }
 
-    private class getProfile extends AsyncTask<String, Void, Void> {
-
-        @Override
-        protected Void doInBackground(String... params) {
+    private inner class getProfile : AsyncTask<String?, Void?, Void?>() {
+        override fun doInBackground(vararg params: String?): Void? {
             try {
-                if (!isValidUsername(params[0])) {
-                    account = null;
-                    return null;
+                if (!isValidUsername(params[0]!!)) {
+                    account = null
+                    return null
                 }
-                account = Authentication.reddit.getUser(params[0]);
-                trophyCase = new FluentRedditClient(Authentication.reddit).user(params[0]).trophyCase();
-            } catch (RuntimeException ignored) {
+                account = Authentication.reddit!!.getUser(params[0])
+                trophyCase = FluentRedditClient(Authentication.reddit).user(params[0]).trophyCase()
+            } catch (ignored: RuntimeException) {
             }
-            return null;
-
+            return null
         }
 
-        @Override
-        public void onPostExecute(Void voidd) {
-
-            doClick();
-
+        public override fun onPostExecute(voidd: Void?) {
+            doClick()
         }
     }
 
-    private class ProfilePagerAdapter extends FragmentStatePagerAdapter {
-
-        ProfilePagerAdapter(FragmentManager fm) {
-            super(fm, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT);
-        }
-
-        @NonNull
-        @Override
-        public Fragment getItem(int i) {
+    private inner class ProfilePagerAdapter(fm: FragmentManager?) :
+        FragmentStatePagerAdapter(
+            (fm)!!, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT
+        ) {
+        override fun getItem(i: Int): Fragment {
             if (i < 8) {
-                Fragment f = new ContributionsView();
-                Bundle args = new Bundle();
-
-                args.putString("id", name);
-                String place;
-                switch (i) {
-                    case 1:
-                        place = "comments";
-                        break;
-                    case 2:
-                        place = "submitted";
-                        break;
-                    case 3:
-                        place = "gilded";
-                        break;
-                    case 4:
-                        place = "liked";
-                        break;
-                    case 5:
-                        place = "disliked";
-                        break;
-                    case 6:
-                        place = "saved";
-                        break;
-                    case 7:
-                        place = "hidden";
-                        break;
-                    case 0:
-                    default:
-                        place = "overview";
+                val f: Fragment = ContributionsView()
+                val args = Bundle()
+                args.putString("id", name)
+                val place: String
+                when (i) {
+                    1 -> place = "comments"
+                    2 -> place = "submitted"
+                    3 -> place = "gilded"
+                    4 -> place = "liked"
+                    5 -> place = "disliked"
+                    6 -> place = "saved"
+                    7 -> place = "hidden"
+                    0 -> place = "overview"
+                    else -> place = "overview"
                 }
-                args.putString("where", place);
-
-                f.setArguments(args);
-                return f;
+                args.putString("where", place)
+                f.arguments = args
+                return f
             } else {
-                return new HistoryView();
+                return HistoryView()
             }
         }
 
-        @Override
-        public int getCount() {
-            if (usedArray == null) {
-                return 1;
+        override fun getCount(): Int {
+            return if (usedArray == null) {
+                1
             } else {
-                return usedArray.length;
+                usedArray!!.size
             }
         }
 
-        @Override
-        public CharSequence getPageTitle(int position) {
-            return usedArray[position];
+        override fun getPageTitle(position: Int): CharSequence {
+            return usedArray!![position]
         }
     }
 
-    public void openPopup() {
-        PopupMenu popup = new PopupMenu(Profile.this, findViewById(R.id.anchor), Gravity.RIGHT);
-        final Spannable[] base = SortingUtil.getSortingSpannables(profSort);
-        for (Spannable s : base) {
-            MenuItem m = popup.getMenu().add(s);
+    fun openPopup() {
+        val popup = PopupMenu(this@Profile, findViewById(R.id.anchor), Gravity.RIGHT)
+        val base = SortingUtil.getSortingSpannables(profSort)
+        for (s: Spannable? in base) {
+            val m = popup.menu.add(s)
         }
-        popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
-            public boolean onMenuItemClick(MenuItem item) {
-                LogUtil.v("Chosen is " + item.getOrder());
-                int i = 0;
-                for (Spannable s : base) {
-                    if (s.equals(item.getTitle())) {
-                        break;
-                    }
-                    i++;
+        popup.setOnMenuItemClickListener(PopupMenu.OnMenuItemClickListener { item ->
+            LogUtil.v("Chosen is " + item.order)
+            var i = 0
+            for (s: Spannable in base) {
+                if ((s == item.title)) {
+                    break
                 }
-                switch (i) {
-                    case 0:
-                        profSort = (Sorting.HOT);
-                        break;
-                    case 1:
-                        profSort = (Sorting.NEW);
-                        break;
-                    case 2:
-                        profSort = (Sorting.RISING);
-                        break;
-                    case 3:
-                        profSort = (Sorting.TOP);
-                        openPopupTime();
-                        return true;
-                    case 4:
-                        profSort = (Sorting.CONTROVERSIAL);
-                        openPopupTime();
-                        return true;
-                }
-
-                SortingUtil.sorting.put(name.toLowerCase(Locale.ENGLISH), profSort);
-
-                int current = pager.getCurrentItem();
-                ProfilePagerAdapter adapter = new ProfilePagerAdapter(getSupportFragmentManager());
-                pager.setAdapter(adapter);
-                pager.setOffscreenPageLimit(1);
-
-                tabs.setupWithViewPager(pager);
-                pager.setCurrentItem(current);
-                return true;
+                i++
             }
-        });
-        popup.show();
-    }
-
-    public void openPopupTime() {
-        PopupMenu popup = new PopupMenu(Profile.this, findViewById(R.id.anchor), Gravity.RIGHT);
-        final Spannable[] base = SortingUtil.getSortingTimesSpannables(profTime);
-        for (Spannable s : base) {
-            MenuItem m = popup.getMenu().add(s);
-        }
-        popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
-            public boolean onMenuItemClick(MenuItem item) {
-                LogUtil.v("Chosen is " + item.getOrder());
-                int i = 0;
-                for (Spannable s : base) {
-                    if (s.equals(item.getTitle())) {
-                        break;
-                    }
-                    i++;
-                }
-                switch (i) {
-                    case 0:
-                        profTime = (TimePeriod.HOUR);
-                        break;
-                    case 1:
-                        profTime = (TimePeriod.DAY);
-                        break;
-                    case 2:
-                        profTime = (TimePeriod.WEEK);
-                        break;
-                    case 3:
-                        profTime = (TimePeriod.MONTH);
-                        break;
-                    case 4:
-                        profTime = (TimePeriod.YEAR);
-                        break;
-                    case 5:
-                        profTime = (TimePeriod.ALL);
-                        break;
+            when (i) {
+                0 -> profSort = (Sorting.HOT)
+                1 -> profSort = (Sorting.NEW)
+                2 -> profSort = (Sorting.RISING)
+                3 -> {
+                    profSort = (Sorting.TOP)
+                    openPopupTime()
+                    return@OnMenuItemClickListener true
                 }
 
-                SortingUtil.sorting.put(name.toLowerCase(Locale.ENGLISH), profSort);
-                SortingUtil.times.put(name.toLowerCase(Locale.ENGLISH), profTime);
-
-                int current = pager.getCurrentItem();
-                ProfilePagerAdapter adapter = new ProfilePagerAdapter(getSupportFragmentManager());
-                pager.setAdapter(adapter);
-                pager.setOffscreenPageLimit(1);
-
-                tabs.setupWithViewPager(pager);
-                pager.setCurrentItem(current);
-                return true;
+                4 -> {
+                    profSort = (Sorting.CONTROVERSIAL)
+                    openPopupTime()
+                    return@OnMenuItemClickListener true
+                }
             }
-        });
-        popup.show();
+            SortingUtil.sorting[name!!.lowercase()] = profSort
+            val current = pager!!.currentItem
+            val adapter = ProfilePagerAdapter(supportFragmentManager)
+            pager!!.adapter = adapter
+            pager!!.offscreenPageLimit = 1
+            tabs!!.setupWithViewPager(pager)
+            pager!!.currentItem = current
+            true
+        })
+        popup.show()
     }
 
-    public String category;
-    public String subreddit;
+    fun openPopupTime() {
+        val popup = PopupMenu(this@Profile, findViewById(R.id.anchor), Gravity.RIGHT)
+        val base = SortingUtil.getSortingTimesSpannables(profTime)
+        for (s: Spannable? in base) {
+            val m = popup.menu.add(s)
+        }
+        popup.setOnMenuItemClickListener { item ->
+            LogUtil.v("Chosen is " + item.order)
+            var i = 0
+            for (s: Spannable in base) {
+                if ((s == item.title)) {
+                    break
+                }
+                i++
+            }
+            when (i) {
+                0 -> profTime = (TimePeriod.HOUR)
+                1 -> profTime = (TimePeriod.DAY)
+                2 -> profTime = (TimePeriod.WEEK)
+                3 -> profTime = (TimePeriod.MONTH)
+                4 -> profTime = (TimePeriod.YEAR)
+                5 -> profTime = (TimePeriod.ALL)
+            }
+            SortingUtil.sorting[name!!.lowercase()] = profSort
+            SortingUtil.times[name!!.lowercase()] = profTime
+            val current = pager!!.currentItem
+            val adapter = ProfilePagerAdapter(supportFragmentManager)
+            pager!!.adapter = adapter
+            pager!!.offscreenPageLimit = 1
+            tabs!!.setupWithViewPager(pager)
+            pager!!.currentItem = current
+            true
+        }
+        popup.show()
+    }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.menu_profile, menu);
+    @JvmField
+    var category: String? = null
+    var subreddit: String? = null
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        val inflater = menuInflater
+        inflater.inflate(R.menu.menu_profile, menu)
         //used to hide the sort item on certain Profile tabs
-        sortItem = menu.findItem(R.id.sort);
-        categoryItem = menu.findItem(R.id.category);
-        categoryItem.setVisible(false);
-        sortItem.setVisible(false);
-
-        int position = pager == null ? 0 : pager.getCurrentItem();
+        sortItem = menu.findItem(R.id.sort)
+        categoryItem = menu.findItem(R.id.category)
+        categoryItem!!.isVisible = false
+        sortItem!!.isVisible = false
+        val position = if (pager == null) 0 else pager!!.currentItem
         if (sortItem != null) {
-            sortItem.setVisible(position < 3);
+            sortItem!!.isVisible = position < 3
         }
-        if (categoryItem != null && Authentication.me != null && Authentication.me.hasGold()) {
-            categoryItem.setVisible(position == 6);
+        if ((categoryItem != null) && (Authentication.me != null) && Authentication.me!!.hasGold()) {
+            categoryItem!!.isVisible = position == 6
         }
-        return true;
+        return true
     }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case (android.R.id.home):
-                onBackPressed();
-                break;
-            case (R.id.category):
-                new AsyncTask<Void, Void, List<String>>() {
-                    Dialog d;
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            (android.R.id.home) -> onBackPressed()
+            (R.id.category) -> object : AsyncTask<Void?, Void?, List<String>>() {
+                var d: Dialog? = null
+                public override fun onPreExecute() {
+                    d = MaterialDialog(this@Profile)
+                        //.progress(true, 100)
+                        .message(R.string.misc_please_wait)
+                        .title(R.string.profile_category_loading)
+                        .also { it.show() }
+                }
 
-                    @Override
-                    public void onPreExecute() {
-                        d = new MaterialDialog.Builder(Profile.this)
-                                .progress(true, 100)
-                                .content(R.string.misc_please_wait)
-                                .title(R.string.profile_category_loading)
-                                .show();
+                override fun doInBackground(vararg params: Void?): List<String> {
+                    return try {
+                        val categories: MutableList<String> =
+                            ArrayList(AccountManager(Authentication.reddit).savedCategories)
+                        categories.add(0, "No category")
+                        categories
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                        //probably has no categories?
+                        listOf("No category")
                     }
+                }
 
-                    @Override
-                    protected List<String> doInBackground(Void... params) {
-                        try {
-                            List<String> categories = new ArrayList<>(new AccountManager(Authentication.reddit).getSavedCategories());
-                            categories.add(0, "No category");
-                            return categories;
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                            //probably has no categories?
-                            return new ArrayList<String>() {{
-                                add(0, "No category");
-                            }};
-                        }
-                    }
-
-                    @Override
-                    public void onPostExecute(final List<String> data) {
-                        try {
-                            new MaterialDialog.Builder(Profile.this).items(data)
-                                    .title(R.string.profile_category_select)
-                                    .itemsCallback(new MaterialDialog.ListCallback() {
-                                        @Override
-                                        public void onSelection(MaterialDialog dialog, final View itemView, int which, CharSequence text) {
-                                            final String t = data.get(which);
-                                            if (which == 0)
-                                                category = null;
-                                            else
-                                                category = t;
-                                            int current = pager.getCurrentItem();
-                                            ProfilePagerAdapter adapter = new ProfilePagerAdapter(getSupportFragmentManager());
-                                            pager.setAdapter(adapter);
-                                            pager.setOffscreenPageLimit(1);
-
-                                            tabs.setupWithViewPager(pager);
-                                            pager.setCurrentItem(current);
-                                        }
-                                    }).show();
-                            if (d != null) {
-                                d.dismiss();
+                public override fun onPostExecute(data: List<String>) {
+                    try {
+                        MaterialDialog(this@Profile)
+                            .title(R.string.profile_category_select)
+                            .listItems(items = data) { dialog: MaterialDialog, which: Int, text: CharSequence ->
+                                val t = data[which]
+                                category = if (which == 0) null else t
+                                val current = pager!!.currentItem
+                                val adapter = ProfilePagerAdapter(supportFragmentManager)
+                                pager!!.adapter = adapter
+                                pager!!.offscreenPageLimit = 1
+                                tabs!!.setupWithViewPager(pager)
+                                pager!!.currentItem = current
                             }
-                        } catch (Exception ignored) {
-
+                            .show()
+                        if (d != null) {
+                            d!!.dismiss()
                         }
+                    } catch (ignored: Exception) {
                     }
-                }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-                break;
-            case (R.id.info):
+                }
+            }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR)
+
+            (R.id.info) -> {
                 if (account != null && trophyCase != null) {
-                    LayoutInflater inflater = getLayoutInflater();
-                    final View dialoglayout = inflater.inflate(R.layout.colorprofile, null);
-                    final TextView title = dialoglayout.findViewById(R.id.title);
-                    title.setText(name);
-
-                    if (account.getDataNode().has("is_employee")
-                            && account.getDataNode().get("is_employee").asBoolean()) {
-                        SpannableStringBuilder admin = new SpannableStringBuilder("[A]");
-                        admin.setSpan(new RelativeSizeSpan(.67f), 0, admin.length(),
-                                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-                        title.append(" ");
-                        title.append(admin);
+                    val inflater = layoutInflater
+                    val dialoglayout = inflater.inflate(R.layout.colorprofile, null)
+                    val title = dialoglayout.findViewById<TextView>(R.id.title)
+                    title.text = name
+                    if ((account!!.dataNode.has("is_employee")
+                                && account!!.dataNode["is_employee"].asBoolean())
+                    ) {
+                        val admin = SpannableStringBuilder("[A]")
+                        admin.setSpan(
+                            RelativeSizeSpan(.67f), 0, admin.length,
+                            Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                        )
+                        title.append(" ")
+                        title.append(admin)
                     }
-
-                    dialoglayout.findViewById(R.id.share).setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            App.defaultShareText(getString(R.string.profile_share, name),
-                                    "https://www.reddit.com/u/" + name, Profile.this);
-                        }
-                    });
-
-                    final int currentColor = Palette.getColorUser(name);
-                    title.setBackgroundColor(currentColor);
-
-                    String info = getString(R.string.profile_age,
-                            TimeUtils.getTimeSince(account.getCreated().getTime(), Profile.this));
-               /*todo better if (account.hasGold() &&account.getDataNode().has("gold_expiration") ) {
+                    dialoglayout.findViewById<View>(R.id.share).setOnClickListener {
+                        defaultShareText(
+                            getString(R.string.profile_share, name),
+                            "https://www.reddit.com/u/$name", this@Profile
+                        )
+                    }
+                    val currentColor = Palette.getColorUser(name)
+                    title.setBackgroundColor(currentColor)
+                    val info = getString(R.string.profile_age,
+                        TimeUtils.getTimeSince(account!!.created.time, this@Profile)
+                    )
+                    /*todo better if (account.hasGold() &&account.getDataNode().has("gold_expiration") ) {
                     Calendar c = Calendar.getInstance();
                     c.setTimeInMillis(account.getDataNode().get("gold_expiration").asLong());
                     info.append("Gold expires on " + new SimpleDateFormat("dd/MM/yy").format(c.getTime()));
-                }*/
-
-                    ((TextView) dialoglayout.findViewById(R.id.moreinfo)).setText(info);
-
-                    String tag = UserTags.getUserTag(name);
-                    if (tag.isEmpty()) {
-                        tag = getString(R.string.profile_tag_user);
+                }*/(dialoglayout.findViewById<View>(R.id.moreinfo) as TextView).text = info
+                    var tag = UserTags.getUserTag(name)
+                    tag = if (tag.isEmpty()) {
+                        getString(R.string.profile_tag_user)
                     } else {
-                        tag = getString(R.string.profile_tag_user_existing, tag);
+                        getString(R.string.profile_tag_user_existing, tag)
                     }
-
-                    ((TextView) dialoglayout.findViewById(R.id.tagged)).setText(tag);
-                    LinearLayout l = dialoglayout.findViewById(R.id.trophies_inner);
-
-                    dialoglayout.findViewById(R.id.tag).setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            MaterialDialog.Builder b = new MaterialDialog.Builder(Profile.this)
-                                    .title(getString(R.string.profile_tag_set, name))
-                                    .input(getString(R.string.profile_tag), UserTags.getUserTag(name), false,
-                                            (dialog, input) -> {})
-                                    .positiveText(R.string.profile_btn_tag)
-                                    .neutralText(R.string.btn_cancel);
-
-                            if (UserTags.isUserTagged(name)) {
-                                b.negativeText(R.string.profile_btn_untag);
+                    (dialoglayout.findViewById<View>(R.id.tagged) as TextView).text = tag
+                    val l = dialoglayout.findViewById<LinearLayout>(R.id.trophies_inner)
+                    dialoglayout.findViewById<View>(R.id.tag).setOnClickListener { v: View? ->
+                        val b: MaterialDialog = MaterialDialog(this@Profile)
+                            .title(text = getString(R.string.profile_tag_set, name))
+                            .input(hintRes = R.string.profile_tag,
+                                prefill = UserTags.getUserTag(name)) { dialog, input -> }
+                        b.positiveButton(R.string.profile_btn_tag) { dialog: MaterialDialog ->
+                            UserTags.setUserTag(
+                                name,
+                                dialog.getInputField().text.toString()
+                            )
+                            var tag1: String = UserTags.getUserTag(name)
+                            tag1 = if (tag1.isEmpty()) {
+                                getString(R.string.profile_tag_user)
+                            } else {
+                                getString(R.string.profile_tag_user_existing, tag1)
                             }
-                            b.onPositive(new MaterialDialog.SingleButtonCallback() {
-                                @Override
-                                public void onClick(MaterialDialog dialog, DialogAction which) {
-                                    UserTags.setUserTag(name, dialog.getInputEditText().getText().toString());
-                                    String tag = UserTags.getUserTag(name);
-                                    if (tag.isEmpty()) {
-                                        tag = getString(R.string.profile_tag_user);
-                                    } else {
-                                        tag = getString(R.string.profile_tag_user_existing, tag);
-                                    }
-                                    ((TextView) dialoglayout.findViewById(R.id.tagged)).setText(tag);
-                                }
-                            }).onNeutral(null).onNegative(new MaterialDialog.SingleButtonCallback() {
-                                @Override
-                                public void onClick(MaterialDialog dialog, DialogAction which) {
-                                    UserTags.removeUserTag(name);
-                                    String tag = UserTags.getUserTag(name);
-                                    if (tag.isEmpty()) {
-                                        tag = getString(R.string.profile_tag_user);
-                                    } else {
-                                        tag = getString(R.string.profile_tag_user_existing, tag);
-                                    }
-                                    ((TextView) dialoglayout.findViewById(R.id.tagged)).setText(tag);
-                                }
-                            }).show();
+                            (dialoglayout.findViewById<View>(R.id.tagged) as TextView).text =
+                                tag1
                         }
-                    });
-
-                    if (trophyCase.isEmpty()) {
-                        dialoglayout.findViewById(R.id.trophies).setVisibility(View.GONE);
-                    } else {
-                        for (final Trophy t : trophyCase) {
-                            View view = getLayoutInflater().inflate(R.layout.trophy, null);
-                            ((App) getApplicationContext()).getImageLoader().displayImage(t.getIcon(), ((ImageView) view.findViewById(R.id.image)));
-                            ((TextView) view.findViewById(R.id.trophyTitle)).setText(t.getFullName());
-                            if (t.getAboutUrl() != null && !t.getAboutUrl().equalsIgnoreCase("null")) {
-                                view.setOnClickListener(new View.OnClickListener() {
-                                    @Override
-                                    public void onClick(View v) {
-                                        LinkUtil.openUrl(LinkUtil.formatURL(t.getAboutUrl()).toString(),
-                                                Palette.getColorUser(account.getFullName()),
-                                                Profile.this);
-                                    }
-                                });
+                        b.neutralButton(R.string.btn_cancel) { _ -> }
+                        if (UserTags.isUserTagged(name)) {
+                            b.negativeButton(R.string.profile_btn_untag) { dialog: MaterialDialog ->
+                                UserTags.removeUserTag(name)
+                                var tag1: String = UserTags.getUserTag(name)
+                                tag1 = if (tag1.isEmpty()) {
+                                    getString(R.string.profile_tag_user)
+                                } else {
+                                    getString(R.string.profile_tag_user_existing, tag1)
+                                }
+                                (dialoglayout.findViewById<View>(R.id.tagged) as TextView).text =
+                                    tag1
                             }
-                            l.addView(view);
+                        }
+                        b.show()
+                    }
+                    if (trophyCase!!.isEmpty()) {
+                        dialoglayout.findViewById<View>(R.id.trophies).visibility = View.GONE
+                    } else {
+                        for (t: Trophy in trophyCase!!) {
+                            val view = layoutInflater.inflate(R.layout.trophy, null)
+                            (applicationContext as App).imageLoader!!.displayImage(
+                                t.icon, (view.findViewById<View>(
+                                    R.id.image
+                                ) as ImageView)
+                            )
+                            (view.findViewById<View>(R.id.trophyTitle) as TextView).text =
+                                t.fullName
+                            if (t.aboutUrl != null && !t.aboutUrl.equals(
+                                    "null",
+                                    ignoreCase = true
+                                )
+                            ) {
+                                view.setOnClickListener {
+                                    openUrl(
+                                        formatURL(t.aboutUrl).toString(),
+                                        Palette.getColorUser(account!!.fullName),
+                                        this@Profile
+                                    )
+                                }
+                            }
+                            l.addView(view)
                         }
                     }
                     if (Authentication.isLoggedIn) {
-                        dialoglayout.findViewById(R.id.pm).setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-                                Intent i = new Intent(Profile.this, SendMessage.class);
-                                i.putExtra(SendMessage.EXTRA_NAME, name);
-                                startActivity(i);
+                        dialoglayout.findViewById<View>(R.id.pm)
+                            .setOnClickListener {
+                                val i = Intent(this@Profile, SendMessage::class.java)
+                                i.putExtra(SendMessage.EXTRA_NAME, name)
+                                startActivity(i)
                             }
-                        });
-
-                        friend = account.isFriend();
+                        friend = account!!.isFriend
                         if (friend) {
-                            ((TextView) dialoglayout.findViewById(R.id.friend)).setText(R.string.profile_remove_friend);
+                            (dialoglayout.findViewById<View>(R.id.friend) as TextView).setText(R.string.profile_remove_friend)
                         } else {
-                            ((TextView) dialoglayout.findViewById(R.id.friend)).setText(R.string.profile_add_friend);
-
+                            (dialoglayout.findViewById<View>(R.id.friend) as TextView).setText(R.string.profile_add_friend)
                         }
-                        dialoglayout.findViewById(R.id.friend_body).setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-                                new AsyncTask<Void, Void, Void>() {
-                                    @Override
-                                    protected Void doInBackground(Void... params) {
-                                        if (friend) {
-                                            try {
-                                                new AccountManager(Authentication.reddit).deleteFriend(name);
-                                            } catch (Exception ignored) {
-                                                //Will throw java.lang.IllegalStateException: No Content-Type header was found, but it still works.
+                        dialoglayout.findViewById<View>(R.id.friend_body)
+                            .setOnClickListener(object : View.OnClickListener {
+                                override fun onClick(v: View) {
+                                    object : AsyncTask<Void?, Void?, Void?>() {
+                                        override fun doInBackground(vararg params: Void?): Void? {
+                                            friend = if (friend) {
+                                                try {
+                                                    AccountManager(Authentication.reddit).deleteFriend(
+                                                        name
+                                                    )
+                                                } catch (ignored: Exception) {
+                                                    //Will throw java.lang.IllegalStateException: No Content-Type header was found, but it still works.
+                                                }
+                                                false
+                                            } else {
+                                                AccountManager(Authentication.reddit).updateFriend(
+                                                    name
+                                                )
+                                                true
                                             }
-                                            friend = false;
-
-                                        } else {
-                                            new AccountManager(Authentication.reddit).updateFriend(name);
-                                            friend = true;
-
-
+                                            return null
                                         }
-                                        return null;
-                                    }
 
-                                    @Override
-                                    public void onPostExecute(Void voids) {
-                                        if (friend) {
-                                            ((TextView) dialoglayout.findViewById(R.id.friend)).setText(R.string.profile_remove_friend);
-                                        } else {
-                                            ((TextView) dialoglayout.findViewById(R.id.friend)).setText(R.string.profile_add_friend);
+                                        public override fun onPostExecute(voids: Void?) {
+                                            if (friend) {
+                                                (dialoglayout.findViewById<View>(R.id.friend) as TextView).setText(
+                                                    R.string.profile_remove_friend
+                                                )
+                                            } else {
+                                                (dialoglayout.findViewById<View>(R.id.friend) as TextView).setText(
+                                                    R.string.profile_add_friend
+                                                )
+                                            }
                                         }
-                                    }
-                                }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-
-                            }
-                        });
-
-                        dialoglayout.findViewById(R.id.block_body).setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-                                new AsyncTask<Void, Void, Boolean>() {
-                                    @Override
-                                    protected Boolean doInBackground(Void... params) {
-                                        Map<String, String> map = new HashMap();
-                                        map.put("account_id", "t2_" + account.getId());
-                                        try {
-                                            Authentication.reddit.execute(Authentication.reddit.request().post(map)
-                                                    .path("/api/block_user")
-                                                    .build());
-                                        } catch (Exception ex) {
-                                            return false;
-                                        }
-                                        return true;
-                                    }
-
-                                    @Override
-                                    public void onPostExecute(Boolean blocked) {
-                                        if (!blocked) {
-                                            Toast.makeText(getBaseContext(), getString(R.string.err_block_user), Toast.LENGTH_LONG).show();
-                                        } else {
-                                            Toast.makeText(getBaseContext(), getString(R.string.success_block_user), Toast.LENGTH_LONG).show();
-                                        }
-                                    }
-                                }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-                            }
-                        });
-                    } else {
-                        dialoglayout.findViewById(R.id.pm).setVisibility(View.GONE);
-                    }
-
-                    dialoglayout.findViewById(R.id.multi_body).setOnClickListener(
-                            new View.OnClickListener() {
-                                @Override
-                                public void onClick(View v) {
-                                    Intent inte = new Intent(Profile.this, MultiredditOverview.class);
-                                    inte.putExtra(EXTRA_PROFILE, name);
-                                    Profile.this.startActivity(inte);
-                                }
-                            }
-                    );
-
-                    final View body = dialoglayout.findViewById(R.id.body2);
-                    body.setVisibility(View.INVISIBLE);
-
-                    final View center = dialoglayout.findViewById(R.id.colorExpandFrom);
-                    dialoglayout.findViewById(R.id.color).setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            int cx = center.getWidth() / 2;
-                            int cy = center.getHeight() / 2;
-
-                            int finalRadius = Math.max(body.getWidth(), body.getHeight());
-
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                                Animator anim =
-                                        ViewAnimationUtils.createCircularReveal(body, cx, cy, 0, finalRadius);
-                                body.setVisibility(View.VISIBLE);
-                                anim.start();
-                            } else {
-                                body.setVisibility(View.VISIBLE);
-                            }
-                        }
-                    });
-
-                    LineColorPicker colorPicker = dialoglayout.findViewById(R.id.picker);
-                    final LineColorPicker colorPicker2 = dialoglayout.findViewById(R.id.picker2);
-
-                    colorPicker.setColors(ColorPreferences.getBaseColors(Profile.this));
-
-                    colorPicker.setOnColorChangedListener(new OnColorChangedListener() {
-                        @Override
-                        public void onColorChanged(int c) {
-
-                            colorPicker2.setColors(ColorPreferences.getColors(getBaseContext(), c));
-                            colorPicker2.setSelectedColor(c);
-                        }
-                    });
-
-                    for (int i : colorPicker.getColors()) {
-                        for (int i2 : ColorPreferences.getColors(getBaseContext(), i)) {
-                            if (i2 == currentColor) {
-                                colorPicker.setSelectedColor(i);
-                                colorPicker2.setColors(ColorPreferences.getColors(getBaseContext(), i));
-                                colorPicker2.setSelectedColor(i2);
-                                break;
-                            }
-                        }
-                    }
-
-                    colorPicker2.setOnColorChangedListener(new OnColorChangedListener() {
-                        @Override
-                        public void onColorChanged(int i) {
-                            findViewById(R.id.header).setBackgroundColor(colorPicker2.getColor());
-                            if (mToolbar != null)
-                                mToolbar.setBackgroundColor(colorPicker2.getColor());
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                                Window window = getWindow();
-                                window.setStatusBarColor(Palette.getDarkerColor(colorPicker2.getColor()));
-                            }
-                            title.setBackgroundColor(colorPicker2.getColor());
-                        }
-                    });
-
-                    {
-                        TextView dialogButton = dialoglayout.findViewById(R.id.ok);
-
-                        // if button is clicked, close the custom dialog
-                        dialogButton.setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-                                Palette.setColorUser(name, colorPicker2.getColor());
-
-                                int cx = center.getWidth() / 2;
-                                int cy = center.getHeight() / 2;
-
-                                int initialRadius = body.getWidth();
-                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-
-                                    Animator anim =
-                                            ViewAnimationUtils.createCircularReveal(body, cx, cy, initialRadius, 0);
-
-                                    anim.addListener(new AnimatorListenerAdapter() {
-                                        @Override
-                                        public void onAnimationEnd(Animator animation) {
-                                            super.onAnimationEnd(animation);
-                                            body.setVisibility(View.GONE);
-                                        }
-                                    });
-                                    anim.start();
-
-                                } else {
-                                    body.setVisibility(View.GONE);
-
-                                }
-
-                            }
-                        });
-
-
-                    }
-                    {
-                        final TextView dialogButton = dialoglayout.findViewById(R.id.reset);
-
-                        // if button is clicked, close the custom dialog
-                        dialogButton.setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-                                Palette.removeUserColor(name);
-
-                                Snackbar.make(dialogButton, "User color removed", Snackbar.LENGTH_SHORT).show();
-
-                                int cx = center.getWidth() / 2;
-                                int cy = center.getHeight() / 2;
-
-                                int initialRadius = body.getWidth();
-                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-
-                                    Animator anim =
-                                            ViewAnimationUtils.createCircularReveal(body, cx, cy, initialRadius, 0);
-
-                                    anim.addListener(new AnimatorListenerAdapter() {
-                                        @Override
-                                        public void onAnimationEnd(Animator animation) {
-                                            super.onAnimationEnd(animation);
-                                            body.setVisibility(View.GONE);
-                                        }
-                                    });
-                                    anim.start();
-
-                                } else {
-                                    body.setVisibility(View.GONE);
-
-                                }
-
-                            }
-                        });
-
-
-                    }
-
-                    ((TextView) dialoglayout.findViewById(R.id.commentkarma)).setText(String.format(Locale.getDefault(), "%d", account.getCommentKarma()));
-                    ((TextView) dialoglayout.findViewById(R.id.linkkarma)).setText(String.format(Locale.getDefault(), "%d", account.getLinkKarma()));
-                    ((TextView) dialoglayout.findViewById(R.id.totalKarma)).setText(String.format(Locale.getDefault(), "%d", account.getCommentKarma() + account.getLinkKarma()));
-
-                    new AlertDialog.Builder(Profile.this)
-                            .setOnDismissListener(dialogInterface -> {
-                                findViewById(R.id.header).setBackgroundColor(currentColor);
-                                if (mToolbar != null)
-                                    mToolbar.setBackgroundColor(currentColor);
-                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                                    Window window = getWindow();
-                                    window.setStatusBarColor(Palette.getDarkerColor(currentColor));
+                                    }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR)
                                 }
                             })
-                            .setView(dialoglayout)
-                            .show();
-                }
-                return true;
+                        dialoglayout.findViewById<View>(R.id.block_body)
+                            .setOnClickListener(object : View.OnClickListener {
+                                override fun onClick(v: View) {
+                                    object : AsyncTask<Void?, Void?, Boolean>() {
+                                        override fun doInBackground(vararg params: Void?): Boolean {
+                                            val map: MutableMap<String?, String?> = mutableMapOf()
+                                            map["account_id"] = "t2_" + account!!.id
+                                            try {
+                                                Authentication.reddit!!.execute(
+                                                    Authentication.reddit.request().post(map)
+                                                        .path("/api/block_user")
+                                                        .build()
+                                                )
+                                            } catch (ex: Exception) {
+                                                return false
+                                            }
+                                            return true
+                                        }
 
-            case (R.id.sort):
-                openPopup();
-                return true;
+                                        public override fun onPostExecute(blocked: Boolean) {
+                                            if (!blocked) {
+                                                Toast.makeText(
+                                                    baseContext,
+                                                    getString(R.string.err_block_user),
+                                                    Toast.LENGTH_LONG
+                                                ).show()
+                                            } else {
+                                                Toast.makeText(
+                                                    baseContext,
+                                                    getString(R.string.success_block_user),
+                                                    Toast.LENGTH_LONG
+                                                ).show()
+                                            }
+                                        }
+                                    }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR)
+                                }
+                            })
+                    } else {
+                        dialoglayout.findViewById<View>(R.id.pm).visibility = View.GONE
+                    }
+                    dialoglayout.findViewById<View>(R.id.multi_body).setOnClickListener {
+                        val inte = Intent(this@Profile, MultiredditOverview::class.java)
+                        inte.putExtra(EXTRA_PROFILE, name)
+                        this@Profile.startActivity(inte)
+                    }
+                    val body = dialoglayout.findViewById<View>(R.id.body2)
+                    body.visibility = View.INVISIBLE
+                    val center = dialoglayout.findViewById<View>(R.id.colorExpandFrom)
+                    dialoglayout.findViewById<View>(R.id.color)
+                        .setOnClickListener {
+                            val cx = center.width / 2
+                            val cy = center.height / 2
+                            val finalRadius = Math.max(body.width, body.height)
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                                val anim = ViewAnimationUtils.createCircularReveal(
+                                    body,
+                                    cx,
+                                    cy,
+                                    0f,
+                                    finalRadius.toFloat()
+                                )
+                                body.visibility = View.VISIBLE
+                                anim.start()
+                            } else {
+                                body.visibility = View.VISIBLE
+                            }
+                        }
+                    val colorPicker = dialoglayout.findViewById<LineColorPicker>(R.id.picker)
+                    val colorPicker2 = dialoglayout.findViewById<LineColorPicker>(R.id.picker2)
+                    colorPicker.colors = ColorPreferences.getBaseColors(this@Profile)
+                    colorPicker.setOnColorChangedListener(object : OnColorChangedListener {
+                        override fun onColorChanged(c: Int) {
+                            colorPicker2.colors = ColorPreferences.getColors(baseContext, c)
+                            colorPicker2.setSelectedColor(c)
+                        }
+                    })
+                    for (i: Int in colorPicker.colors) {
+                        for (i2: Int in ColorPreferences.getColors(baseContext, i)) {
+                            if (i2 == currentColor) {
+                                colorPicker.setSelectedColor(i)
+                                colorPicker2.colors = ColorPreferences.getColors(baseContext, i)
+                                colorPicker2.setSelectedColor(i2)
+                                break
+                            }
+                        }
+                    }
+                    colorPicker2.setOnColorChangedListener(object : OnColorChangedListener {
+                        override fun onColorChanged(i: Int) {
+                            findViewById<View>(R.id.header).setBackgroundColor(colorPicker2.color)
+                            if (mToolbar != null) mToolbar!!.setBackgroundColor(colorPicker2.color)
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                                val window = window
+                                window.statusBarColor = Palette.getDarkerColor(colorPicker2.color)
+                            }
+                            title.setBackgroundColor(colorPicker2.color)
+                        }
+                    })
+                    run {
+                        val dialogButton: TextView = dialoglayout.findViewById(R.id.ok)
+
+                        // if button is clicked, close the custom dialog
+                        dialogButton.setOnClickListener(object : View.OnClickListener {
+                            override fun onClick(v: View) {
+                                Palette.setColorUser(name, colorPicker2.color)
+                                val cx: Int = center.width / 2
+                                val cy: Int = center.height / 2
+                                val initialRadius: Int = body.width
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                                    val anim: Animator = ViewAnimationUtils.createCircularReveal(
+                                        body,
+                                        cx,
+                                        cy,
+                                        initialRadius.toFloat(),
+                                        0f
+                                    )
+                                    anim.addListener(object : AnimatorListenerAdapter() {
+                                        override fun onAnimationEnd(animation: Animator) {
+                                            super.onAnimationEnd(animation)
+                                            body.visibility = View.GONE
+                                        }
+                                    })
+                                    anim.start()
+                                } else {
+                                    body.visibility = View.GONE
+                                }
+                            }
+                        })
+                    }
+                    run {
+                        val dialogButton: TextView = dialoglayout.findViewById(R.id.reset)
+
+                        // if button is clicked, close the custom dialog
+                        dialogButton.setOnClickListener {
+                            Palette.removeUserColor(name)
+                            Snackbar.make(
+                                dialogButton,
+                                "User color removed",
+                                Snackbar.LENGTH_SHORT
+                            ).show()
+                            val cx: Int = center.width / 2
+                            val cy: Int = center.height / 2
+                            val initialRadius: Int = body.width
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                                val anim: Animator = ViewAnimationUtils.createCircularReveal(
+                                    body,
+                                    cx,
+                                    cy,
+                                    initialRadius.toFloat(),
+                                    0f
+                                )
+                                anim.addListener(object : AnimatorListenerAdapter() {
+                                    override fun onAnimationEnd(animation: Animator) {
+                                        super.onAnimationEnd(animation)
+                                        body.visibility = View.GONE
+                                    }
+                                })
+                                anim.start()
+                            } else {
+                                body.visibility = View.GONE
+                            }
+                        }
+                    }
+                    (dialoglayout.findViewById<View>(R.id.commentkarma) as TextView).text =
+                        String.format(
+                            Locale.getDefault(), "%d", account!!.commentKarma
+                        )
+                    (dialoglayout.findViewById<View>(R.id.linkkarma) as TextView).text =
+                        String.format(
+                            Locale.getDefault(), "%d", account!!.linkKarma
+                        )
+                    (dialoglayout.findViewById<View>(R.id.totalKarma) as TextView).text =
+                        String.format(
+                            Locale.getDefault(), "%d", account!!.commentKarma + account!!.linkKarma
+                        )
+                    AlertDialog.Builder(this@Profile)
+                        .setOnDismissListener { dialogInterface: DialogInterface? ->
+                            findViewById<View>(R.id.header).setBackgroundColor(currentColor)
+                            if (mToolbar != null) mToolbar!!.setBackgroundColor(currentColor)
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                                val window: Window = window
+                                window.statusBarColor = Palette.getDarkerColor(currentColor)
+                            }
+                        }
+                        .setView(dialoglayout)
+                        .show()
+                }
+                return true
+            }
+
+            (R.id.sort) -> {
+                openPopup()
+                return true
+            }
         }
-        return false;
+        return false
+    }
+
+    companion object {
+        @JvmField
+        val EXTRA_PROFILE = "profile"
+        val EXTRA_SAVED = "saved"
+        val EXTRA_COMMENT = "comment"
+        val EXTRA_SUBMIT = "submitted"
+        val EXTRA_UPVOTE = "upvoted"
+        val EXTRA_HISTORY = "history"
+        private fun isValidUsername(user: String): Boolean {
+            /* https://github.com/reddit/reddit/blob/master/r2/r2/lib/validator/validator.py#L261 */
+            return user.matches(Regex("^[a-zA-Z0-9_-]{3,20}$"))
+        }
+
+        var profSort: Sorting? = null
+        var profTime: TimePeriod? = null
     }
 }

@@ -17,7 +17,7 @@ import kotlin.concurrent.thread
 
 class GithubSender(context: Context) : ReportSender {
     private val issues: GithubIssueTracker by lazy {
-        GithubIssueTracker(context)
+        GithubIssueTracker()
     }
 
     @Throws(ReportSenderException::class)

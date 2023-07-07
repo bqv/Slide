@@ -14,6 +14,10 @@
     <string name="general_nighttheme_ispro">Automatic Night Mode is a Pro feature</string>
     <string name="general_backup_ispro">Settings backup is a Pro feature</string>
     <string name="general_multicolumn_ispro">Multi-Column Settings are a Pro feature</string>
+    <string name="general_error">Error</string>
+    <string name="general_choose">Choose</string>
+    <string name="general_new_folder">New Folder</string>
+    <string name="general_storage_perm">App has not been the READ_EXTERNAL_STORAGE permission.</string>
 
     <!-- Used when viewing a thread -->
     <string name="submission_info_unsaved">Submission unsaved</string>
@@ -595,7 +599,7 @@
     <string name="settings_mail_check">Check for new messages</string>
     <string name="settings_mail_info">The higher the frequency, the more potential battery Slide will use in the background!</string>
     <string name="settings_main_color_title">Edit main color</string>
-    <string name="settings_notification">Check for new messages every %1$s</string>
+    <string name="settings_notification">Check for new messages every %s</string>
     <string name="settings_notification_newline">Check for new messages every\n%1$s</string>
     <string name="settings_notification_short">Check every %1$s</string>
     <string name="settings_disable_nsfw_photo">Hide all NSFW photos</string>

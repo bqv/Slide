@@ -1,70 +1,58 @@
-package me.ccrama.redditslide.ImgurAlbum;
+package me.ccrama.redditslide.ImgurAlbum
 
-import android.content.Context;
-import android.net.Uri;
-import android.os.AsyncTask;
+import android.content.Context
+import android.net.Uri
+import android.os.AsyncTask
+import com.afollestad.materialdialogs.MaterialDialog
+import ltd.ucode.slide.App
+import me.ccrama.redditslide.util.ImgurUtils
+import me.ccrama.redditslide.util.LogUtil
+import me.ccrama.redditslide.util.ProgressRequestBody
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.MultipartBody
+import okhttp3.Request
+import okhttp3.RequestBody
+import org.json.JSONObject
+import java.io.IOException
 
-import com.afollestad.materialdialogs.MaterialDialog;
+open class UploadImgur : AsyncTask<Uri?, Int?, JSONObject?>() {
+    @JvmField
+    var c: Context? = null
 
-import org.json.JSONObject;
+    @JvmField
+    var dialog: MaterialDialog? = null
 
-import java.io.File;
-import java.io.IOException;
-
-import ltd.ucode.slide.App;
-import me.ccrama.redditslide.util.ImgurUtils;
-import me.ccrama.redditslide.util.LogUtil;
-import me.ccrama.redditslide.util.ProgressRequestBody;
-import okhttp3.MediaType;
-import okhttp3.MultipartBody;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
-
-public class UploadImgur extends AsyncTask<Uri, Integer, JSONObject> {
-    public Context c;
-    public MaterialDialog dialog;
-
-    @Override
-    protected JSONObject doInBackground(Uri... sub) {
-        File bitmap = ImgurUtils.createFile(sub[0], c);
-
-        final OkHttpClient client = App.client;
-
+    override fun doInBackground(vararg sub: Uri?): JSONObject? {
+        val bitmap = ImgurUtils.createFile(sub[0], c!!)
+        val client = App.client
         try {
-            RequestBody formBody = new MultipartBody.Builder().setType(MultipartBody.FORM)
-                    .addFormDataPart("image", bitmap.getName(),
-                            RequestBody.create(MediaType.parse("image/*"), bitmap))
-                    .build();
-
-            ProgressRequestBody body =
-                    new ProgressRequestBody(formBody, this::publishProgress);
-
-
-            Request request = new Request.Builder().header("Authorization",
-                    "Client-ID bef87913eb202e9")
-                    .url("https://api.imgur.com/3/image")
-                    .post(body)
-                    .build();
-
-            Response response = client.newCall(request).execute();
-            if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
-            return new JSONObject(response.body().string());
-        } catch (Exception e) {
-            e.printStackTrace();
+            val formBody: RequestBody = MultipartBody.Builder()
+                .addFormDataPart(
+                    "image", bitmap.name,
+                    RequestBody.create("image/*".toMediaType(), bitmap)
+                )
+                .build()
+            val body = ProgressRequestBody(formBody) { values: Int -> publishProgress(values) }
+            val request: Request = Request.Builder()
+                .header("Authorization", "Client-ID bef87913eb202e9")
+                .url("https://api.imgur.com/3/image")
+                .post(body)
+                .build()
+            val response = client!!.newCall(request).execute()
+            if (!response.isSuccessful) throw IOException("Unexpected code $response")
+            return JSONObject(response.body!!.string())
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
-        return null;
+        return null
     }
 
-    @Override
-    protected void onPreExecute() {
-        super.onPreExecute();
+    override fun onPreExecute() {
+        super.onPreExecute()
     }
 
-    @Override
-    protected void onProgressUpdate(Integer... values) {
-        dialog.setProgress(values[0]);
-        LogUtil.v("Progress:" + values[0]);
+    override fun onProgressUpdate(vararg values: Int?) {
+        //dialog!!.setProgress(values[0])
+        LogUtil.v("Progress:" + values[0])
     }
 }

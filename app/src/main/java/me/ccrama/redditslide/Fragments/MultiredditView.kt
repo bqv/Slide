@@ -16,10 +16,9 @@ import androidx.interpolator.view.animation.LinearOutSlowInInterpolator
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout.OnRefreshListener
-import com.afollestad.materialdialogs.DialogAction
 import com.afollestad.materialdialogs.MaterialDialog
-import com.afollestad.materialdialogs.MaterialDialog.InputCallback
-import com.afollestad.materialdialogs.MaterialDialog.SingleButtonCallback
+import com.afollestad.materialdialogs.input.input
+import com.afollestad.materialdialogs.list.listItems
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.snackbar.Snackbar
 import com.mikepenz.itemanimators.AlphaInAnimator
@@ -92,44 +91,36 @@ class MultiredditView : Fragment(), SubmissionDisplay {
         rv!!.setLayoutManager(mLayoutManager)
         if (SettingValues.fab) {
             fab = v.findViewById(R.id.post_floating_action_button)
-            if (fabType == Constants.FAB_POST) {
-                fab!!.setOnClickListener(View.OnClickListener {
-                    val subs = ArrayList<String?>()
-                    for (s: MultiSubreddit in posts!!.multiReddit!!.subreddits) {
-                        subs.add(s.displayName)
+            when (fabType) {
+                Constants.FAB_POST -> {
+                    fab!!.setOnClickListener {
+                        val subs = ArrayList<String>()
+                        for (s: MultiSubreddit in posts!!.multiReddit!!.subreddits) {
+                            subs.add(s.displayName)
+                        }
+                        MaterialDialog(requireActivity()).show {
+                            title(R.string.multi_submit_which_sub)
+                            listItems(items = subs) { dialog, which, text ->
+                                val i = Intent(activity, Submit::class.java)
+                                i.putExtra(Submit.EXTRA_SUBREDDIT, subs[which])
+                                startActivity(i)
+                            }
+                        }
                     }
-                    MaterialDialog.Builder(requireActivity())
-                        .title(R.string.multi_submit_which_sub)
-                        .items(subs)
-                        .itemsCallback { dialog, itemView, which, text ->
-                            val i = Intent(activity, Submit::class.java)
-                            i.putExtra(Submit.EXTRA_SUBREDDIT, subs[which])
-                            startActivity(i)
-                        }.show()
-                })
-            } else if (fabType == Constants.FAB_SEARCH) {
-                fab!!.setImageResource(R.drawable.ic_search)
-                fab!!.setOnClickListener(object : View.OnClickListener {
-                    var term: String? = null
-                    override fun onClick(v: View) {
-                        val builder = MaterialDialog.Builder((activity)!!)
-                            .title(R.string.search_title)
-                            .alwaysCallInputCallback()
-                            .input(getString(R.string.search_msg), "",
-                                InputCallback { materialDialog, charSequence ->
+                }
+                Constants.FAB_SEARCH -> {
+                    fab!!.setImageResource(R.drawable.ic_search)
+                    fab!!.setOnClickListener(object : View.OnClickListener {
+                        var term: String? = null
+                        override fun onClick(v: View) {
+                            MaterialDialog(activity!!).show {
+                                title(R.string.search_title)
+                                input(hintRes = R.string.search_msg,
+                                    waitForPositiveButton = false) { _, charSequence ->
                                     term = charSequence.toString()
-                                })
-                        builder.positiveText(
-                            getString(
-                                R.string.search_subreddit,
-                                "/m/" + posts!!.multiReddit!!.displayName
-                            )
-                        )
-                            .onPositive(object : SingleButtonCallback {
-                                override fun onClick(
-                                    materialDialog: MaterialDialog,
-                                    dialogAction: DialogAction
-                                ) {
+                                }
+                                positiveButton(text = getString(R.string.search_subreddit,
+                                        "/m/" + posts!!.multiReddit!!.displayName)) { _ ->
                                     val i = Intent(activity, Search::class.java)
                                     i.putExtra(Search.EXTRA_TERM, term)
                                     i.putExtra(
@@ -138,65 +129,66 @@ class MultiredditView : Fragment(), SubmissionDisplay {
                                     )
                                     startActivity(i)
                                 }
-                            })
-                        builder.show()
-                    }
-                })
-            } else {
-                fab!!.setImageResource(R.drawable.ic_visibility_off)
-                fab!!.setOnClickListener(View.OnClickListener {
-                    if (!App.fabClear) {
-                        AlertDialog.Builder(requireActivity())
-                            .setTitle(R.string.settings_fabclear)
-                            .setMessage(R.string.settings_fabclear_msg)
-                            .setPositiveButton(R.string.btn_ok) { dialog: DialogInterface?, which: Int ->
-                                colours.edit()
-                                    .putBoolean(SettingValues.PREF_FAB_CLEAR, true)
-                                    .apply()
-                                App.fabClear = true
-                                clearSeenPosts(false)
                             }
-                            .show()
-                    } else {
-                        clearSeenPosts(false)
-                    }
-                })
-                fab!!.setOnLongClickListener(View.OnLongClickListener {
-                    if (!App.fabClear) {
-                        AlertDialog.Builder(requireActivity())
-                            .setTitle(R.string.settings_fabclear)
-                            .setMessage(R.string.settings_fabclear_msg)
-                            .setPositiveButton(R.string.btn_ok) { dialog: DialogInterface?, which: Int ->
-                                colours.edit()
-                                    .putBoolean(SettingValues.PREF_FAB_CLEAR, true)
-                                    .apply()
-                                App.fabClear = true
-                                clearSeenPosts(true)
-                            }
-                            .show()
-                    } else {
-                        clearSeenPosts(true)
-                    }
-                    /*
-                                    ToDo Make a sncakbar with an undo option of the clear all
-                                    View.OnClickListener undoAction = new View.OnClickListener() {
-                                        @Override
-                                        public void onClick(View v) {
-                                            adapter.dataSet.posts = original;
-                                            for(IPost post : adapter.dataSet.posts){
-                                                if(HasSeen.getSeen(post.getFullName()))
-                                                    Hidden.undoHidden(post);
-                                            }
-                                        }
-                                    };*/
-                    val s = Snackbar.make(
-                        rv!!,
-                        resources.getString(R.string.posts_hidden_forever),
-                        Snackbar.LENGTH_LONG
-                    )
-                    LayoutUtils.showSnackbar(s)
-                    false
-                })
+                        }
+                    })
+                }
+                else -> {
+                    fab!!.setImageResource(R.drawable.ic_visibility_off)
+                    fab!!.setOnClickListener(View.OnClickListener {
+                        if (!App.fabClear) {
+                            AlertDialog.Builder(requireActivity())
+                                .setTitle(R.string.settings_fabclear)
+                                .setMessage(R.string.settings_fabclear_msg)
+                                .setPositiveButton(R.string.btn_ok) { dialog: DialogInterface?, which: Int ->
+                                    colours.edit()
+                                        .putBoolean(SettingValues.PREF_FAB_CLEAR, true)
+                                        .apply()
+                                    App.fabClear = true
+                                    clearSeenPosts(false)
+                                }
+                                .show()
+                        } else {
+                            clearSeenPosts(false)
+                        }
+                    })
+                    fab!!.setOnLongClickListener(View.OnLongClickListener {
+                        if (!App.fabClear) {
+                            AlertDialog.Builder(requireActivity())
+                                .setTitle(R.string.settings_fabclear)
+                                .setMessage(R.string.settings_fabclear_msg)
+                                .setPositiveButton(R.string.btn_ok) { dialog: DialogInterface?, which: Int ->
+                                    colours.edit()
+                                        .putBoolean(SettingValues.PREF_FAB_CLEAR, true)
+                                        .apply()
+                                    App.fabClear = true
+                                    clearSeenPosts(true)
+                                }
+                                .show()
+                        } else {
+                            clearSeenPosts(true)
+                        }
+                        /*
+                                            ToDo Make a sncakbar with an undo option of the clear all
+                                            View.OnClickListener undoAction = new View.OnClickListener() {
+                                                @Override
+                                                public void onClick(View v) {
+                                                    adapter.dataSet.posts = original;
+                                                    for(IPost post : adapter.dataSet.posts){
+                                                        if(HasSeen.getSeen(post.getFullName()))
+                                                            Hidden.undoHidden(post);
+                                                    }
+                                                }
+                                            };*/
+                        val s = Snackbar.make(
+                            rv!!,
+                            resources.getString(R.string.posts_hidden_forever),
+                            Snackbar.LENGTH_LONG
+                        )
+                        LayoutUtils.showSnackbar(s)
+                        false
+                    })
+                }
             }
         } else {
             v.findViewById<View>(R.id.post_floating_action_button).visibility = View.GONE

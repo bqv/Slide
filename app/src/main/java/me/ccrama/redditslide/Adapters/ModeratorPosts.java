@@ -60,7 +60,7 @@ public class ModeratorPosts {
                 }
                 loading = false;
                 refreshLayout.setRefreshing(false);
-                adapter.dataSet = ModeratorPosts.this;
+                adapter.setDataSet(ModeratorPosts.this);
                 adapter.notifyDataSetChanged();
             } else {
                 adapter.setError(true);

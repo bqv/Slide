@@ -14,6 +14,8 @@ import kotlin.io.path.Path
 import kotlin.io.path.extension
 
 abstract class IPost : IVotable {
+
+
     abstract val id: String
     abstract val title: String
     abstract val url: String?
@@ -88,6 +90,14 @@ abstract class IPost : IVotable {
     open val preview: String? // TODO: reddit-specific
         get() = null
 
-    abstract override fun equals(other: Any?): Boolean
-    abstract override fun hashCode(): Int
+    private val uri: String // TODO: delete
+        get() = permalink
+
+    override fun equals(other: Any?): Boolean {
+        if (other == null) return false
+        if (other !is IPost) return false
+        return uri == other.uri
+    }
+
+    override fun hashCode(): Int = uri.hashCode()
 }

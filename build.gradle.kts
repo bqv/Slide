@@ -19,6 +19,11 @@ buildscript {
     }
 }
 
+plugins {
+    alias(libs.plugins.dependencyAnalysis)
+    //alias(libs.plugins.gradleDoctor)
+}
+
 allprojects {
     repositories {
         google()

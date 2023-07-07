@@ -4,7 +4,6 @@ import android.annotation.TargetApi
 import android.app.Dialog
 import android.content.DialogInterface
 import android.graphics.Bitmap
-import android.os.AsyncTask
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -17,29 +16,18 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.core.widget.addTextChangedListener
 import androidx.lifecycle.Observer
-import com.afollestad.materialdialogs.MaterialDialog
 import dagger.hilt.android.AndroidEntryPoint
 import ltd.ucode.slide.App
 import ltd.ucode.slide.App.Companion.forceRestart
-import ltd.ucode.slide.Authentication
 import ltd.ucode.slide.R
-import ltd.ucode.slide.SettingValues.appRestart
-import ltd.ucode.slide.SettingValues.authentication
 import ltd.ucode.slide.databinding.ActivityLoginBinding
 import ltd.ucode.slide.ui.BaseActivityAnim
 import me.ccrama.redditslide.CaseInsensitiveArrayList
 import me.ccrama.redditslide.UserSubscriptions
 import me.ccrama.redditslide.UserSubscriptions.setSubscriptions
 import me.ccrama.redditslide.UserSubscriptions.sort
-import me.ccrama.redditslide.UserSubscriptions.switchAccounts
-import me.ccrama.redditslide.UserSubscriptions.syncSubredditsGetObjectAsync
 import me.ccrama.redditslide.Visuals.GetClosestColor
 import me.ccrama.redditslide.Visuals.Palette
-import net.dean.jraw.http.NetworkException
-import net.dean.jraw.http.oauth.Credentials
-import net.dean.jraw.http.oauth.OAuthData
-import net.dean.jraw.http.oauth.OAuthException
-import net.dean.jraw.http.oauth.OAuthHelper
 import net.dean.jraw.models.Subreddit
 
 @AndroidEntryPoint
@@ -227,103 +215,5 @@ class Login : BaseActivityAnim() {
             .setOnDismissListener { dialog: DialogInterface? -> doSubStrings(subs) }
             .create()
             .show()
-    }
-
-    private inner class UserChallengeTask(oAuthHelper: OAuthHelper, credentials: Credentials) :
-        AsyncTask<String?, Void?, OAuthData?>() {
-        private val mOAuthHelper: OAuthHelper
-        private val mCredentials: Credentials
-        private var mMaterialDialog: MaterialDialog? = null
-
-        init {
-            Log.v(me.ccrama.redditslide.util.LogUtil.getTag(), "UserChallengeTask()")
-            mOAuthHelper = oAuthHelper
-            mCredentials = credentials
-        }
-
-        override fun onPreExecute() {
-            //Show a dialog to indicate progress
-            val builder = MaterialDialog.Builder(this@Login).title(R.string.login_authenticating)
-                .progress(true, 0)
-                .content(R.string.misc_please_wait)
-                .cancelable(false)
-            mMaterialDialog = builder.build()
-            mMaterialDialog!!.show()
-        }
-
-        override fun doInBackground(vararg params: String?): OAuthData? {
-            try {
-                val oAuthData = mOAuthHelper.onUserChallenge(params[0], mCredentials)
-                if (oAuthData != null) {
-                    Authentication.reddit!!.authenticate(oAuthData)
-                    Authentication.isLoggedIn = true
-                    val refreshToken = Authentication.reddit.oAuthData.refreshToken
-                    val editor = authentication.edit()
-                    val accounts = authentication.getStringSet(
-                        "accounts",
-                        HashSet()
-                    )
-                    val me = Authentication.reddit.me()
-                    accounts!!.add(me.fullName + ":" + refreshToken)
-                    Authentication.name = me.fullName
-                    editor.putStringSet("accounts", accounts)
-                    val tokens = authentication.getStringSet(
-                        "tokens",
-                        HashSet()
-                    )
-                    tokens!!.add(refreshToken)
-                    editor.putStringSet("tokens", tokens)
-                    editor.putString("lasttoken", refreshToken)
-                    editor.remove("backedCreds")
-                    appRestart.edit().remove("back").commit()
-                    editor.commit()
-                } else {
-                    Log.e(me.ccrama.redditslide.util.LogUtil.getTag(), "Passed in OAuthData was null")
-                }
-                return oAuthData
-            } catch (e: IllegalStateException) {
-                // Handle me gracefully
-                Log.e(me.ccrama.redditslide.util.LogUtil.getTag(), "OAuth failed")
-                Log.e(me.ccrama.redditslide.util.LogUtil.getTag(), e.message!!)
-            } catch (e: NetworkException) {
-                Log.e(me.ccrama.redditslide.util.LogUtil.getTag(), "OAuth failed")
-                Log.e(me.ccrama.redditslide.util.LogUtil.getTag(), e.message!!)
-            } catch (e: OAuthException) {
-                Log.e(me.ccrama.redditslide.util.LogUtil.getTag(), "OAuth failed")
-                Log.e(me.ccrama.redditslide.util.LogUtil.getTag(), e.message!!)
-            }
-            return null
-        }
-
-        override fun onPostExecute(oAuthData: OAuthData?) {
-            //Dismiss old progress dialog
-            mMaterialDialog!!.dismiss()
-            if (oAuthData != null) {
-                appRestart.edit().putBoolean("firststarting", true).apply()
-                switchAccounts()
-                d = MaterialDialog.Builder(this@Login).cancelable(false)
-                    .title(R.string.login_starting)
-                    .progress(true, 0)
-                    .content(R.string.login_starting_desc)
-                    .build()
-                d!!.show()
-                syncSubredditsGetObjectAsync(this@Login)
-            } else {
-                //Show a dialog if data is null
-                AlertDialog.Builder(this@Login)
-                    .setTitle(R.string.err_authentication)
-                    .setMessage(R.string.login_failed_err_decline)
-                    .setNeutralButton(android.R.string.ok) { dialog: DialogInterface?, which: Int ->
-                        forceRestart(this@Login, true)
-                        finish()
-                    }
-                    .show()
-            }
-        }
-    }
-
-    companion object {
-        private const val CLIENT_ID = ""
-        private const val REDIRECT_URL = "about:blank"
     }
 }

@@ -1,264 +1,287 @@
-package me.ccrama.redditslide;
+package me.ccrama.redditslide
 
-import android.app.Dialog;
-import android.content.Context;
-import android.content.Intent;
-import android.content.SharedPreferences;
-import android.graphics.Bitmap;
-import android.os.AsyncTask;
-import android.os.Environment;
-import android.widget.Toast;
+import android.app.Dialog
+import android.content.Context
+import android.content.DialogInterface
+import android.content.Intent
+import android.content.SharedPreferences
+import android.graphics.Bitmap
+import android.os.AsyncTask
+import android.os.Environment
+import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
+import com.afollestad.materialdialogs.MaterialDialog
+import com.nostra13.universalimageloader.cache.disc.DiskCache
+import com.nostra13.universalimageloader.cache.disc.impl.UnlimitedDiskCache
+import com.nostra13.universalimageloader.cache.disc.impl.ext.LruDiskCache
+import com.nostra13.universalimageloader.cache.disc.naming.Md5FileNameGenerator
+import com.nostra13.universalimageloader.core.DisplayImageOptions
+import com.nostra13.universalimageloader.core.ImageLoader
+import com.nostra13.universalimageloader.core.ImageLoaderConfiguration
+import com.nostra13.universalimageloader.core.assist.ImageScaleType
+import com.nostra13.universalimageloader.core.assist.ImageSize
+import ltd.ucode.slide.Authentication
+import ltd.ucode.slide.R
+import me.ccrama.redditslide.Activities.SendMessage
+import me.ccrama.redditslide.util.LogUtil
+import me.ccrama.redditslide.util.OkHttpImageDownloader
+import net.dean.jraw.http.HttpRequest
+import net.dean.jraw.http.MediaTypes
+import java.io.File
+import java.io.IOException
+import java.util.regex.Matcher
+import java.util.regex.Pattern
 
-import androidx.appcompat.app.AlertDialog;
-
-import com.afollestad.materialdialogs.MaterialDialog;
-import com.nostra13.universalimageloader.cache.disc.DiskCache;
-import com.nostra13.universalimageloader.cache.disc.impl.UnlimitedDiskCache;
-import com.nostra13.universalimageloader.cache.disc.impl.ext.LruDiskCache;
-import com.nostra13.universalimageloader.cache.disc.naming.Md5FileNameGenerator;
-import com.nostra13.universalimageloader.core.DisplayImageOptions;
-import com.nostra13.universalimageloader.core.ImageLoader;
-import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
-import com.nostra13.universalimageloader.core.assist.ImageScaleType;
-import com.nostra13.universalimageloader.core.assist.ImageSize;
-
-import net.dean.jraw.http.HttpRequest;
-import net.dean.jraw.http.MediaTypes;
-import net.dean.jraw.http.RestResponse;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Locale;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import ltd.ucode.slide.Authentication;
-import ltd.ucode.slide.R;
-import me.ccrama.redditslide.Activities.SendMessage;
-import me.ccrama.redditslide.util.LogUtil;
-import me.ccrama.redditslide.util.OkHttpImageDownloader;
-
-/**
- * Created by Carlos on 4/15/2017.
- */
-
-public class ImageFlairs {
-    public static void syncFlairs(final Context context, final String subreddit) {
-        new StylesheetFetchTask(subreddit, context) {
-            @Override
-            protected void onPostExecute(FlairStylesheet flairStylesheet) {
-                super.onPostExecute(flairStylesheet);
-                d.dismiss();
-                if (flairStylesheet != null) {
-                    flairs.edit().putBoolean(subreddit.toLowerCase(Locale.ENGLISH), true).commit();
-                    d = new AlertDialog.Builder(context)
-                            .setTitle("Subreddit flairs synced")
-                            .setMessage("Slide found and synced " + flairStylesheet.count + " image flairs")
-                            .setPositiveButton(R.string.btn_ok, null)
-                            .show();
+object ImageFlairs {
+    fun syncFlairs(context: Context, subreddit: String) {
+        object : StylesheetFetchTask(subreddit, context) {
+            override fun onPostExecute(flairStylesheet: FlairStylesheet?) {
+                super.onPostExecute(flairStylesheet)
+                d!!.dismiss()
+                d = if (flairStylesheet != null) {
+                    flairs!!.edit().putBoolean(subreddit.lowercase(), true).commit()
+                    AlertDialog.Builder(context)
+                        .setTitle("Subreddit flairs synced")
+                        .setMessage("Slide found and synced " + flairStylesheet.count + " image flairs")
+                        .setPositiveButton(R.string.btn_ok, null)
+                        .show()
                 } else {
-                    final AlertDialog.Builder b = new AlertDialog.Builder(context)
-                            .setTitle("Error syncing subreddit flairs")
-                            .setMessage("Slide could not find any subreddit flairs to sync from /c/"
+                    val b = AlertDialog.Builder(context)
+                        .setTitle("Error syncing subreddit flairs")
+                        .setMessage(
+                            "Slide could not find any subreddit flairs to sync from /c/"
                                     + subreddit
-                                    + "'s stylesheet.")
-                            .setPositiveButton(R.string.btn_ok, null);
-                    if(Authentication.isLoggedIn){
-                        b.setNeutralButton("Report no flairs", (dialog, which) -> {
-                            Toast.makeText(context, "Not all subreddits can be parsed, but send a message to SlideBot and hopefully we can add support for this subreddit :)\n\nPlease, only send one report.", Toast.LENGTH_LONG);
-                            Intent i = new Intent(context, SendMessage.class);
-                            i.putExtra(SendMessage.EXTRA_NAME, "slidebot");
-                            i.putExtra(SendMessage.EXTRA_MESSAGE, "/c/" + subreddit);
-                            i.putExtra(SendMessage.EXTRA_REPLY, "Subreddit flair");
-                            context.startActivity(i);
-                        });
+                                    + "'s stylesheet."
+                        )
+                        .setPositiveButton(R.string.btn_ok, null)
+                    if (Authentication.isLoggedIn) {
+                        b.setNeutralButton("Report no flairs") { dialog: DialogInterface?, which: Int ->
+                            Toast.makeText(
+                                context,
+                                "Not all subreddits can be parsed, but send a message to SlideBot and hopefully we can add support for this subreddit :)\n\nPlease, only send one report.",
+                                Toast.LENGTH_LONG
+                            )
+                            val i = Intent(context, SendMessage::class.java)
+                            i.putExtra(SendMessage.EXTRA_NAME, "slidebot")
+                            i.putExtra(SendMessage.EXTRA_MESSAGE, "/c/$subreddit")
+                            i.putExtra(SendMessage.EXTRA_REPLY, "Subreddit flair")
+                            context.startActivity(i)
+                        }
                     }
-
-                    d = b.show();
+                    b.show()
                 }
             }
 
-
-            @Override
-            protected void onPreExecute() {
-                d = new MaterialDialog.Builder(context).progress(true, 100)
-                        .content(R.string.misc_please_wait)
-                        .title("Syncing flairs...")
-                        .cancelable(false)
-                        .show();
+            override fun onPreExecute() {
+                d = MaterialDialog(context)
+                    //.progress(true, 100)
+                    .message(R.string.misc_please_wait)
+                    .title(text = "Syncing flairs...")
+                    .cancelable(false)
+                    .also { it.show() }
             }
-        }.execute();
+        }.execute()
     }
 
-    static class StylesheetFetchTask extends AsyncTask<Void, Void, FlairStylesheet> {
-        String  subreddit;
-        Context context;
-        Dialog  d;
+    var flairs: SharedPreferences? = null
+    fun isSynced(subreddit: String): Boolean {
+        return flairs!!.contains(subreddit.lowercase())
+    }
 
-        StylesheetFetchTask(String subreddit, Context context) {
-            super();
-            this.context = context;
-            this.subreddit = subreddit;
+    fun getFlairImageLoader(context: Context): FlairImageLoader? {
+        return if (imageLoader == null) {
+            initFlairImageLoader(context)
+        } else {
+            imageLoader
         }
+    }
 
-        @Override
-        protected FlairStylesheet doInBackground(Void... params) {
+    var imageLoader: FlairImageLoader? = null
+    fun getCacheDirectory(context: Context): File {
+        return if (Environment.getExternalStorageState() == Environment.MEDIA_MOUNTED && context.externalCacheDir != null) {
+            File(context.externalCacheDir, "flairs")
+        } else File(context.cacheDir, "flairs")
+    }
+
+    fun initFlairImageLoader(context: Context): FlairImageLoader? {
+        var discCacheSize = (1024 * 1024 * 100).toLong() //100 MB limit
+        val discCache: DiskCache
+        val dir = getCacheDirectory(context)
+        discCacheSize *= 100
+        val threadPoolSize = 7
+        discCache = if (discCacheSize > 0) {
             try {
-                HttpRequest r = new HttpRequest.Builder().host("old.reddit.com")
-                        .path("/c/" + subreddit + "/stylesheet")
-                        .expected(MediaTypes.CSS.type())
-                        .build();
+                dir.mkdir()
+                LruDiskCache(dir, Md5FileNameGenerator(), discCacheSize)
+            } catch (e: IOException) {
+                UnlimitedDiskCache(dir)
+            }
+        } else {
+            UnlimitedDiskCache(dir)
+        }
+        options = DisplayImageOptions.Builder().cacheOnDisk(true)
+            .imageScaleType(ImageScaleType.NONE)
+            .cacheInMemory(false)
+            .resetViewBeforeLoading(false)
+            .build()
+        val config = ImageLoaderConfiguration.Builder(context).threadPoolSize(threadPoolSize)
+            .denyCacheImageMultipleSizesInMemory()
+            .diskCache(discCache)
+            .threadPoolSize(4)
+            .imageDownloader(OkHttpImageDownloader(context))
+            .defaultDisplayImageOptions(options)
+            .build()
+        if (FlairImageLoader.instance!!.isInited) {
+            FlairImageLoader.instance!!.destroy()
+        }
+        imageLoader = FlairImageLoader.instance
+        imageLoader!!.init(config)
+        return imageLoader
+    }
 
+    var options: DisplayImageOptions? = null
 
-                RestResponse response = Authentication.reddit.execute(r);
-
-                String stylesheet = response.getRaw();
-                ArrayList<String> allImages = new ArrayList<>();
-                FlairStylesheet flairStylesheet = new FlairStylesheet(stylesheet);
-                for (String s : flairStylesheet.getListOfFlairIds()) {
-                    String classDef = flairStylesheet.getClass(flairStylesheet.stylesheetString,
-                            "flair-" + s);
+    internal open class StylesheetFetchTask(var subreddit: String, var context: Context) :
+        AsyncTask<Void?, Void?, FlairStylesheet?>() {
+        var d: Dialog? = null
+        override fun doInBackground(vararg params: Void?): FlairStylesheet? {
+            return try {
+                val r = HttpRequest.Builder().host("old.reddit.com")
+                    .path("/c/$subreddit/stylesheet")
+                    .expected(MediaTypes.CSS.type())
+                    .build()
+                val response = Authentication.reddit!!.execute(r)
+                val stylesheet = response.raw
+                val allImages = ArrayList<String?>()
+                val flairStylesheet = FlairStylesheet(stylesheet)
+                for (s in flairStylesheet.listOfFlairIds) {
+                    val classDef = flairStylesheet.getClass(
+                        flairStylesheet.stylesheetString,
+                        "flair-$s"
+                    )
                     try {
-                        String backgroundURL = flairStylesheet.getBackgroundURL(classDef);
-                        if (backgroundURL == null) backgroundURL = flairStylesheet.defaultURL;
-                        if (!allImages.contains(backgroundURL)) allImages.add(backgroundURL);
-                    } catch (Exception e) {
+                        var backgroundURL = flairStylesheet.getBackgroundURL(classDef)
+                        if (backgroundURL == null) backgroundURL = flairStylesheet.defaultURL
+                        if (!allImages.contains(backgroundURL)) allImages.add(backgroundURL)
+                    } catch (e: Exception) {
                         //  e.printStackTrace();
                     }
                 }
                 if (flairStylesheet.defaultURL != null) {
-                    LogUtil.v("Default url is " + flairStylesheet.defaultURL);
-                    allImages.add(flairStylesheet.defaultURL);
+                    LogUtil.v("Default url is " + flairStylesheet.defaultURL)
+                    allImages.add(flairStylesheet.defaultURL)
                 }
-                for (String backgroundURL : allImages) {
-                    flairStylesheet.cacheFlairsByFile(subreddit, backgroundURL, context);
+                for (backgroundURL in allImages) {
+                    flairStylesheet.cacheFlairsByFile(subreddit, backgroundURL, context)
                 }
-                return flairStylesheet;
-            } catch (Exception e) {
-                e.printStackTrace();
-                return null;
+                flairStylesheet
+            } catch (e: Exception) {
+                e.printStackTrace()
+                null
             }
         }
     }
 
-    public static SharedPreferences flairs;
-
-    public static boolean isSynced(String subreddit) {
-        return flairs.contains(subreddit.toLowerCase(Locale.ENGLISH));
-    }
-
-    public static class CropTransformation {
-        private int width, height, x, y;
-        private String id;
-
-        public CropTransformation(String id, int width, int height, int x, int y) {
-            super();
-            this.id = id;
-            this.width = width;
-            this.height = height;
-            this.x = x;
-            this.y = y;
-        }
-
-        public Bitmap transform(Bitmap bitmap, boolean isPercentage) throws Exception {
-            int nX, nY;
-
+    class CropTransformation(
+        private val id: String,
+        private val width: Int,
+        private val height: Int,
+        private val x: Int,
+        private val y: Int
+    ) {
+        @Throws(Exception::class)
+        fun transform(bitmap: Bitmap, isPercentage: Boolean): Bitmap {
+            val nX: Int
+            val nY: Int
             if (isPercentage) {
-                nX = Math.max(0, Math.min(bitmap.getWidth() - 1, bitmap.getWidth() * x / 100));
-                nY = Math.max(0, Math.min(bitmap.getHeight() - 1, bitmap.getHeight() * y / 100));
+                nX = Math.max(0, Math.min(bitmap.width - 1, bitmap.width * x / 100))
+                nY = Math.max(0, Math.min(bitmap.height - 1, bitmap.height * y / 100))
             } else {
-                nX = Math.max(0, Math.min(bitmap.getWidth() - 1, x));
-                nY = Math.max(0, Math.min(bitmap.getHeight() - 1, y));
+                nX = Math.max(0, Math.min(bitmap.width - 1, x))
+                nY = Math.max(0, Math.min(bitmap.height - 1, y))
             }
-
-            int nWidth = Math.max(1, Math.min(bitmap.getWidth() - nX - 1, width)), nHeight =
-                    Math.max(1, Math.min(bitmap.getHeight() - nY - 1, height));
-
-            LogUtil.v("Flair loaded: "
-                    + id
-                    + " size: "
-                    + nWidth
-                    + "x"
-                    + nHeight
-                    + " location: "
-                    + nX
-                    + ":"
-                    + nY + " and bit is " + bitmap.getWidth() + ":" + bitmap.getHeight());
-
-            return Bitmap.createBitmap(bitmap, nX, nY, nWidth, nHeight);
+            val nWidth = Math.max(1, Math.min(bitmap.width - nX - 1, width))
+            val nHeight = Math.max(1, Math.min(bitmap.height - nY - 1, height))
+            LogUtil.v(
+                "Flair loaded: "
+                        + id
+                        + " size: "
+                        + nWidth
+                        + "x"
+                        + nHeight
+                        + " location: "
+                        + nX
+                        + ":"
+                        + nY + " and bit is " + bitmap.width + ":" + bitmap.height
+            )
+            return Bitmap.createBitmap(bitmap, nX, nY, nWidth, nHeight)
         }
-
     }
 
+    internal class FlairStylesheet(stylesheetString: String) {
+        var stylesheetString: String
+        var defaultDimension = Dimensions()
+        var defaultLocation = Location()
+        var defaultURL: String? = ""
+        var count: Int = 0
+        var prevDimension: Dimensions? = null
 
-    static class FlairStylesheet {
-        String stylesheetString;
-        Dimensions defaultDimension = new Dimensions();
-        Location   defaultLocation  = new Location();
-        String     defaultURL       = "";
-        int count;
+        internal class Dimensions {
+            var width = 0
+            var height = 0
+            var scale = false
+            var missing = true
 
-        Dimensions prevDimension = null;
-
-        static class Dimensions {
-            int width, height;
-            Boolean scale   = false;
-            Boolean missing = true;
-
-            Dimensions(int width, int height) {
-                this.width = width;
-                this.height = height;
+            constructor(width: Int, height: Int) {
+                this.width = width
+                this.height = height
                 if (height == -1) {
-                    scale = true;
+                    scale = true
                 }
-                missing = false;
+                missing = false
             }
 
-            Dimensions() {
-            }
+            constructor() {}
         }
 
-        static class Location {
-            int x, y;
-            Boolean isPercentage = false;
-            Boolean missing      = true;
+        internal class Location {
+            var x = 0
+            var y = 0
+            var isPercentage = false
+            var missing = true
 
-            Location(int x, int y) {
-                this.x = x;
-                this.y = y;
-                missing = false;
+            constructor(x: Int, y: Int) {
+                this.x = x
+                this.y = y
+                missing = false
             }
 
-            Location(int x, int y, boolean isPercentage) {
-                this.x = x;
-                this.y = y;
-                this.isPercentage = isPercentage;
-                missing = false;
+            constructor(x: Int, y: Int, isPercentage: Boolean) {
+                this.x = x
+                this.y = y
+                this.isPercentage = isPercentage
+                missing = false
             }
 
-            Location() {
-            }
+            constructor() {}
         }
 
-        FlairStylesheet(String stylesheetString) {
+        init {
+            var stylesheetString = stylesheetString
             stylesheetString =
-                    stylesheetString.replaceAll("@media[^{]+\\{([\\s\\S]+?\\})\\s*\\}", "");
-            stylesheetString = stylesheetString.replaceAll("~.", " .");
-            this.stylesheetString = stylesheetString;
-
-            String baseFlairDef = getClass(stylesheetString, "flair");
-            if (baseFlairDef == null) return;
-
-            LogUtil.v("Base is " + baseFlairDef);
-            // Attempts to find default dimension, offset and image URL
-            defaultDimension = getBackgroundSize(baseFlairDef);
-            LogUtil.v("Default dimens are " + defaultDimension.width + ":" + defaultDimension.height);
-            defaultLocation = getBackgroundPosition(baseFlairDef);
-            defaultURL = getBackgroundURL(baseFlairDef);
-            count = 0;
+                stylesheetString.replace("@media[^{]+\\{([\\s\\S]+?\\})\\s*\\}".toRegex(), "")
+            stylesheetString = stylesheetString.replace("~.".toRegex(), " .")
+            this.stylesheetString = stylesheetString
+            val baseFlairDef = getClass(stylesheetString, "flair")
+            if (baseFlairDef != null) {
+                LogUtil.v("Base is $baseFlairDef")
+                // Attempts to find default dimension, offset and image URL
+                defaultDimension = getBackgroundSize(baseFlairDef)
+                LogUtil.v("Default dimens are " + defaultDimension.width + ":" + defaultDimension.height)
+                defaultLocation = getBackgroundPosition(baseFlairDef)
+                defaultURL = getBackgroundURL(baseFlairDef)
+                count = 0
+            }
         }
 
         /**
@@ -268,20 +291,20 @@ public class ImageFlairs {
          * @param className
          * @return
          */
-        String getClass(String cssDefinitionString, String className) {
-            Pattern propertyDefinition = Pattern.compile(
-                    "(?<! )\\." + className + "(?!-|\\[|[A-Za-z0-9_.])([^\\{]*)*\\{(.+?)\\}");
-            Matcher matches = propertyDefinition.matcher(cssDefinitionString);
-
-            StringBuilder properties = null;
-
+        fun getClass(cssDefinitionString: String?, className: String): String? {
+            val propertyDefinition = Pattern.compile(
+                "(?<! )\\.$className(?!-|\\[|[A-Za-z0-9_.])([^\\{]*)*\\{(.+?)\\}"
+            )
+            val matches = propertyDefinition.matcher(cssDefinitionString)
+            var properties: StringBuilder? = null
             while (matches.find()) {
-                if (properties == null) properties = new StringBuilder();
-                properties.insert(0, matches.group(2)
-                        + ";");   // append properties to simulate property overriding
+                if (properties == null) properties = StringBuilder()
+                properties.insert(
+                    0, matches.group(2)
+                            + ";"
+                ) // append properties to simulate property overriding
             }
-
-            return properties == null ? null : properties.toString();
+            return properties?.toString()
         }
 
         /**
@@ -291,45 +314,44 @@ public class ImageFlairs {
          * @param property
          * @return
          */
-        String getProperty(String classDefinitionsString, String property) {
-            Pattern propertyDefinition = Pattern.compile("(?<!-)" + property + "\\s*:\\s*(.+?)(;|$)");
-            Matcher matches = propertyDefinition.matcher(classDefinitionsString);
-
-            if (matches.find()) {
-                return matches.group(1);
+        fun getProperty(classDefinitionsString: String?, property: String): String? {
+            val propertyDefinition = Pattern.compile("(?<!-)$property\\s*:\\s*(.+?)(;|$)")
+            val matches = propertyDefinition.matcher(classDefinitionsString)
+            return if (matches.find()) {
+                matches.group(1)
             } else {
-                return null;
+                null
             }
         }
 
         //Attempts to get a real integer value instead of "auto", if possible
-        String getPropertyTryNoAuto(String classDefinitionsString, String property) {
-            Pattern propertyDefinition = Pattern.compile("(?<!-)" + property + "\\s*:\\s*(.+?)(;|$)");
-            Matcher matches = propertyDefinition.matcher(classDefinitionsString);
-
-            String defaultString;
-            if (matches.find()) {
-                defaultString = matches.group(1);
+        fun getPropertyTryNoAuto(classDefinitionsString: String?, property: String): String? {
+            val propertyDefinition = Pattern.compile("(?<!-)$property\\s*:\\s*(.+?)(;|$)")
+            val matches = propertyDefinition.matcher(classDefinitionsString)
+            var defaultString: String
+            defaultString = if (matches.find()) {
+                matches.group(1)
             } else {
-                return null;
+                return null
             }
-            LogUtil.v("Has auto");
-            while((defaultString.contains("auto")||(!defaultString.contains("%") || !defaultString.contains("px"))) && matches.find()){
-                defaultString = matches.group(1);
+            LogUtil.v("Has auto")
+            while ((defaultString.contains("auto") || !defaultString.contains("%") || !defaultString.contains(
+                    "px"
+                )) && matches.find()
+            ) {
+                defaultString = matches.group(1)
             }
-            LogUtil.v("Returning " + defaultString);
-            return defaultString;
+            LogUtil.v("Returning $defaultString")
+            return defaultString
         }
 
-
-        String getPropertyBackgroundUrl(String classDefinitionsString) {
-            Pattern propertyDefinition = Pattern.compile("background:url\\([\"'](.+?)[\"']\\)");
-            Matcher matches = propertyDefinition.matcher(classDefinitionsString);
-
-            if (matches.find()) {
-                return matches.group(1);
+        fun getPropertyBackgroundUrl(classDefinitionsString: String?): String? {
+            val propertyDefinition = Pattern.compile("background:url\\([\"'](.+?)[\"']\\)")
+            val matches = propertyDefinition.matcher(classDefinitionsString)
+            return if (matches.find()) {
+                matches.group(1)
             } else {
-                return null;
+                null
             }
         }
 
@@ -339,28 +361,28 @@ public class ImageFlairs {
          * @param classDefinitionString
          * @return
          */
-        String getBackgroundURL(String classDefinitionString) {
-            Pattern urlDefinition = Pattern.compile("url\\([\"\'](.+?)[\"\']\\)");
-            String backgroundProperty = getPropertyBackgroundUrl(classDefinitionString);
+        fun getBackgroundURL(classDefinitionString: String?): String? {
+            val urlDefinition = Pattern.compile("url\\([\"\'](.+?)[\"\']\\)")
+            val backgroundProperty = getPropertyBackgroundUrl(classDefinitionString)
             if (backgroundProperty != null) {
                 // check "background"
-                    String url = backgroundProperty;
-                    if (url.startsWith("//")) url = "https:" + url;
-                    return url;
+                var url: String = backgroundProperty
+                if (url.startsWith("//")) url = "https:$url"
+                return url
             }
             // either backgroundProperty is null or url cannot be found
-            String backgroundImageProperty = getProperty(classDefinitionString, "background-image");
+            val backgroundImageProperty = getProperty(classDefinitionString, "background-image")
             if (backgroundImageProperty != null) {
                 // check "background-image"
-                Matcher matches = urlDefinition.matcher(backgroundImageProperty);
+                val matches = urlDefinition.matcher(backgroundImageProperty)
                 if (matches.find()) {
-                    String url = matches.group(1);
-                    if (url.startsWith("//")) url = "https:" + url;
-                    return url;
+                    var url = matches.group(1)
+                    if (url.startsWith("//")) url = "https:$url"
+                    return url
                 }
             }
             // could not find any background url
-            return null;
+            return null
         }
 
         /**
@@ -369,59 +391,56 @@ public class ImageFlairs {
          * @param classDefinitionString
          * @return
          */
-        Dimensions getBackgroundSize(String classDefinitionString) {
-            Pattern numberDefinition = Pattern.compile("(\\d+)\\s*px");
-
-            boolean autoWidth = false, autoHeight = false;
+        fun getBackgroundSize(classDefinitionString: String?): Dimensions {
+            val numberDefinition = Pattern.compile("(\\d+)\\s*px")
+            var autoWidth = false
+            var autoHeight = false
             // check common properties used to define width
-            String widthProperty = getPropertyTryNoAuto(classDefinitionString, "width");
+            var widthProperty = getPropertyTryNoAuto(classDefinitionString, "width")
             if (widthProperty == null) {
-                widthProperty = getPropertyTryNoAuto(classDefinitionString, "min-width");
-            } else if (widthProperty.equals("auto")) {
-                autoWidth = true;
+                widthProperty = getPropertyTryNoAuto(classDefinitionString, "min-width")
+            } else if (widthProperty == "auto") {
+                autoWidth = true
             }
             if (widthProperty == null) {
-                widthProperty = getProperty(classDefinitionString, "text-indent");
+                widthProperty = getProperty(classDefinitionString, "text-indent")
             }
-            if (widthProperty == null) return new Dimensions();
+            if (widthProperty == null) return Dimensions()
 
             // check common properties used to define height
-            String heightProperty = getPropertyTryNoAuto(classDefinitionString, "height");
+            var heightProperty = getPropertyTryNoAuto(classDefinitionString, "height")
             if (heightProperty == null) {
-                heightProperty = getPropertyTryNoAuto(classDefinitionString, "min-height");
-            } else if (heightProperty.equals("auto")) {
-                autoHeight = true;
+                heightProperty = getPropertyTryNoAuto(classDefinitionString, "min-height")
+            } else if (heightProperty == "auto") {
+                autoHeight = true
             }
-            if (heightProperty == null) return new Dimensions();
-
-            int width = 0, height = 0;
-            Matcher matches;
-
+            if (heightProperty == null) return Dimensions()
+            var width = 0
+            var height = 0
+            var matches: Matcher
             if (!autoWidth) {
-                matches = numberDefinition.matcher(widthProperty);
-                if (matches.find()) {
-                    width = Integer.parseInt(matches.group(1));
+                matches = numberDefinition.matcher(widthProperty)
+                width = if (matches.find()) {
+                    matches.group(1).toInt()
                 } else {
-                    return new Dimensions();
+                    return Dimensions()
                 }
             }
-
             if (!autoHeight) {
-                matches = numberDefinition.matcher(heightProperty);
-                if (matches.find()) {
-                    height = Integer.parseInt(matches.group(1));
+                matches = numberDefinition.matcher(heightProperty)
+                height = if (matches.find()) {
+                    matches.group(1).toInt()
                 } else {
-                    return new Dimensions();
+                    return Dimensions()
                 }
             }
-
             if (autoWidth) {
-                width = height;
+                width = height
             }
             if (autoHeight) {
-                height = width;
+                height = width
             }
-            return new Dimensions(width, height);
+            return Dimensions(width, height)
         }
 
         /**
@@ -430,29 +449,29 @@ public class ImageFlairs {
          * @param classDefinitionString
          * @return
          */
-        Dimensions getBackgroundScaling(String classDefinitionString) {
-            Pattern positionDefinitionPx =
-                    Pattern.compile("([+-]?\\d+|0)(px\\s|\\s)+(|([+-]?\\d+|0)(px|))");
-            String backgroundPositionProperty =
-                    getProperty(classDefinitionString, "background-size");
-            String backgroundPositionPropertySecondary =
-                    getProperty(classDefinitionString, "background-size");
-
+        fun getBackgroundScaling(classDefinitionString: String?): Dimensions {
+            val positionDefinitionPx =
+                Pattern.compile("([+-]?\\d+|0)(px\\s|\\s)+(|([+-]?\\d+|0)(px|))")
+            val backgroundPositionProperty = getProperty(classDefinitionString, "background-size")
+            val backgroundPositionPropertySecondary =
+                getProperty(classDefinitionString, "background-size")
             if (backgroundPositionProperty == null && backgroundPositionPropertySecondary == null
-                    || backgroundPositionProperty == null
-                    && !backgroundPositionPropertySecondary.contains("px ")
-                    && !backgroundPositionPropertySecondary.contains("px;")) {
-                return new Dimensions();
+                || (backgroundPositionProperty == null && !backgroundPositionPropertySecondary!!.contains(
+                    "px "
+                )
+                        && !backgroundPositionPropertySecondary.contains("px;"))
+            ) {
+                return Dimensions()
             }
-
-            Matcher matches = positionDefinitionPx.matcher(backgroundPositionProperty);
-            if (matches.find()) {
-                return new Dimensions(Integer.parseInt(matches.group(1)),
-                        matches.groupCount() < 2 ? Integer.parseInt(matches.group(3)) : -1);
+            val matches = positionDefinitionPx.matcher(backgroundPositionProperty)
+            return if (matches.find()) {
+                Dimensions(
+                    matches.group(1).toInt(),
+                    if (matches.groupCount() < 2) matches.group(3).toInt() else -1
+                )
             } else {
-                return new Dimensions();
+                Dimensions()
             }
-
         }
 
         /**
@@ -461,61 +480,50 @@ public class ImageFlairs {
          * @param classDefinitionString
          * @return
          */
-        Location getBackgroundPosition(String classDefinitionString) {
-            Pattern positionDefinitionPx =
-                    Pattern.compile("([+-]?\\d+|0)(px\\s|\\s)+([+-]?\\d+|0)(px|)"),
-                    positionDefinitionPercentage =
-                            Pattern.compile("([+-]?\\d+|0)(%\\s|\\s)+([+-]?\\d+|0)(%|)");
-
-            String backgroundPositionProperty =
-                    getProperty(classDefinitionString, "background-position");
+        fun getBackgroundPosition(classDefinitionString: String?): Location {
+            val positionDefinitionPx =
+                Pattern.compile("([+-]?\\d+|0)(px\\s|\\s)+([+-]?\\d+|0)(px|)")
+            val positionDefinitionPercentage =
+                Pattern.compile("([+-]?\\d+|0)(%\\s|\\s)+([+-]?\\d+|0)(%|)")
+            var backgroundPositionProperty =
+                getProperty(classDefinitionString, "background-position")
             if (backgroundPositionProperty == null) {
-                backgroundPositionProperty = getProperty(classDefinitionString, "background");
+                backgroundPositionProperty = getProperty(classDefinitionString, "background")
                 if (backgroundPositionProperty == null) {
-                    return new Location();
+                    return Location()
                 }
             }
-
-            Matcher matches = positionDefinitionPx.matcher(backgroundPositionProperty);
+            var matches = positionDefinitionPx.matcher(backgroundPositionProperty)
             try {
                 if (matches.find()) {
-                    return new Location(-Integer.parseInt(matches.group(1)),
-                            -Integer.parseInt(matches.group(3)));
+                    return Location(
+                        -matches.group(1).toInt(),
+                        -matches.group(3).toInt()
+                    )
                 } else {
-                    matches = positionDefinitionPercentage.matcher(backgroundPositionProperty);
+                    matches = positionDefinitionPercentage.matcher(backgroundPositionProperty)
                     if (matches.find()) {
-                        return new Location(
-                                Integer.parseInt(matches.group(1)),
-                                Integer.parseInt(matches.group(3)), true);
+                        return Location(matches.group(1).toInt(), matches.group(3).toInt(), true)
                     }
                 }
-            } catch (NumberFormatException ignored) {
-
+            } catch (ignored: NumberFormatException) {
             }
-            return new Location();
+            return Location()
         }
 
-        Dimensions getBackgroundOffset(String classDefinitionString) {
-            Pattern positionDefinitionPx =
-                    Pattern.compile("([+-]?\\d+|0)\\/+([+-]?\\d+|0)(px|)");
-           String backgroundPositionProperty = getProperty(classDefinitionString, "background");
-            if (backgroundPositionProperty == null) {
-                return new Dimensions();
-            }
-
-
-            Matcher matches = positionDefinitionPx.matcher(backgroundPositionProperty);
+        fun getBackgroundOffset(classDefinitionString: String?): Dimensions {
+            val positionDefinitionPx = Pattern.compile("([+-]?\\d+|0)\\/+([+-]?\\d+|0)(px|)")
+            val backgroundPositionProperty = getProperty(classDefinitionString, "background")
+                ?: return Dimensions()
+            val matches = positionDefinitionPx.matcher(backgroundPositionProperty)
             try {
                 if (matches.find()) {
-                    return new Dimensions(Integer.parseInt(matches.group(2)),
-                            Integer.parseInt(matches.group(2)));
+                    return Dimensions(matches.group(2).toInt(), matches.group(2).toInt())
                 }
-            } catch (NumberFormatException ignored) {
-
+            } catch (ignored: NumberFormatException) {
             }
-            return new Dimensions();
+            return Dimensions()
         }
-
 
         /**
          * Request a flair by flair id. `.into` can be chained onto this method call.
@@ -524,111 +532,123 @@ public class ImageFlairs {
          * @param context
          * @return
          */
-        void cacheFlairsByFile(final String sub, final String filename, final Context context) {
-            final ArrayList<String> flairsToGet = new ArrayList<>();
-            LogUtil.v("Doing sheet " + filename);
-            for (String s : getListOfFlairIds()) {
-                String classDef = getClass(stylesheetString, "flair-" + s);
+        fun cacheFlairsByFile(sub: String, filename: String?, context: Context) {
+            val flairsToGet = ArrayList<String>()
+            LogUtil.v("Doing sheet $filename")
+            for (s in listOfFlairIds) {
+                val classDef = getClass(stylesheetString, "flair-$s")
                 if (classDef != null && !classDef.isEmpty()) {
-                    String backgroundURL = getBackgroundURL(classDef);
-                    if (backgroundURL == null) backgroundURL = defaultURL;
-                    if (backgroundURL != null && backgroundURL.equalsIgnoreCase(filename)) {
-                        flairsToGet.add(s);
+                    var backgroundURL = getBackgroundURL(classDef)
+                    if (backgroundURL == null) backgroundURL = defaultURL
+                    if (backgroundURL != null && backgroundURL.equals(
+                            filename,
+                            ignoreCase = true
+                        )
+                    ) {
+                        flairsToGet.add(s)
                     }
                 }
             }
-
-            String scaling = getClass(stylesheetString, "flair");
-            final Dimensions backScaling;
-            final Dimensions offset;
+            val scaling = getClass(stylesheetString, "flair")
+            val backScaling: Dimensions
+            val offset: Dimensions
             if (scaling != null) {
-                backScaling = getBackgroundScaling(scaling);
-                offset = getBackgroundOffset(scaling);
-                LogUtil.v("Offset is " + offset.width);
+                backScaling = getBackgroundScaling(scaling)
+                offset = getBackgroundOffset(scaling)
+                LogUtil.v("Offset is " + offset.width)
             } else {
-                backScaling = new Dimensions();
-                offset = new Dimensions();
+                backScaling = Dimensions()
+                offset = Dimensions()
             }
-            if ((!backScaling.missing && !backScaling.scale) || (!offset.missing && !offset.scale)) {
-                Bitmap loaded = getFlairImageLoader(context).loadImageSync(filename,
-                        new ImageSize(backScaling.width, backScaling.height));
+            if (!backScaling.missing && !backScaling.scale || !offset.missing && !offset.scale) {
+                val loaded = getFlairImageLoader(context)!!.loadImageSync(
+                    filename,
+                    ImageSize(backScaling.width, backScaling.height)
+                )
                 if (loaded != null) {
-                    Bitmap b;
-                    if(backScaling.missing || backScaling.width < offset.width) {
-                        b = Bitmap.createScaledBitmap(loaded, offset.width, offset.height,
-                                false);
+                    val b: Bitmap
+                    b = if (backScaling.missing || backScaling.width < offset.width) {
+                        Bitmap.createScaledBitmap(
+                            loaded, offset.width, offset.height,
+                            false
+                        )
                     } else {
-                        b = Bitmap.createScaledBitmap(loaded, backScaling.width, backScaling.height,
-                                false);
+                        Bitmap.createScaledBitmap(
+                            loaded, backScaling.width, backScaling.height,
+                            false
+                        )
                     }
-                    loadingComplete(b, sub, context, filename, flairsToGet);
-                    loaded.recycle();
+                    loadingComplete(b, sub, context, filename, flairsToGet)
+                    loaded.recycle()
                 }
             } else {
-                Bitmap loadedB = getFlairImageLoader(context).loadImageSync(filename);
+                val loadedB = getFlairImageLoader(context)!!
+                    .loadImageSync(filename)
                 if (loadedB != null) {
                     if (backScaling.scale) {
-                        int width = backScaling.width;
-                        int height = loadedB.getHeight();
-                        int scaledHeight = (height * width) / loadedB.getWidth();
+                        val width = backScaling.width
+                        val height = loadedB.height
+                        val scaledHeight = height * width / loadedB.width
                         loadingComplete(
-                                Bitmap.createScaledBitmap(loadedB, width, scaledHeight, false), sub,
-                                context, filename, flairsToGet);
-                        loadedB.recycle();
+                            Bitmap.createScaledBitmap(loadedB, width, scaledHeight, false), sub,
+                            context, filename, flairsToGet
+                        )
+                        loadedB.recycle()
                     } else {
-                        loadingComplete(loadedB, sub, context, filename, flairsToGet);
+                        loadingComplete(loadedB, sub, context, filename, flairsToGet)
                     }
                 }
             }
         }
 
-        private void loadingComplete(Bitmap loadedImage, String sub, Context context,
-                String filename, ArrayList<String> flairsToGet) {
+        private fun loadingComplete(
+            loadedImage: Bitmap?, sub: String, context: Context,
+            filename: String?, flairsToGet: ArrayList<String>
+        ) {
             if (loadedImage != null) {
-                for (String id : flairsToGet) {
-                    Bitmap newBit = null;
-                    String classDef =
-                            FlairStylesheet.this.getClass(stylesheetString, "flair-" + id);
-                    if (classDef == null) break;
-
-                    Dimensions flairDimensions = getBackgroundSize(classDef);
+                for (id in flairsToGet) {
+                    var newBit: Bitmap? = null
+                    val classDef = getClass(stylesheetString, "flair-$id") ?: break
+                    var flairDimensions = getBackgroundSize(classDef)
                     if (flairDimensions.missing) {
-                        flairDimensions = defaultDimension;
+                        flairDimensions = defaultDimension
                     }
-
-                    prevDimension = flairDimensions;
-
-                    Location flairLocation = getBackgroundPosition(classDef);
-                    if (flairLocation.missing) flairLocation = defaultLocation;
-
-                    LogUtil.v("Flair: "
-                            + id
-                            + " size: "
-                            + flairDimensions.width
-                            + "x"
-                            + flairDimensions.height
-                            + " location: "
-                            + flairLocation.x
-                            + ":"
-                            + flairLocation.y);
+                    prevDimension = flairDimensions
+                    var flairLocation = getBackgroundPosition(classDef)
+                    if (flairLocation.missing) flairLocation = defaultLocation
+                    LogUtil.v(
+                        "Flair: "
+                                + id
+                                + " size: "
+                                + flairDimensions.width
+                                + "x"
+                                + flairDimensions.height
+                                + " location: "
+                                + flairLocation.x
+                                + ":"
+                                + flairLocation.y
+                    )
                     try {
-                        newBit = new CropTransformation(id, flairDimensions.width,
-                                flairDimensions.height, flairLocation.x, flairLocation.y).transform(
-                                loadedImage, flairLocation.isPercentage);
-                    } catch (Exception e) {
-                        e.printStackTrace();
+                        newBit = CropTransformation(
+                            id, flairDimensions.width,
+                            flairDimensions.height, flairLocation.x, flairLocation.y
+                        ).transform(
+                            loadedImage, flairLocation.isPercentage
+                        )
+                    } catch (e: Exception) {
+                        e.printStackTrace()
                     }
                     try {
-                        getFlairImageLoader(context).getDiskCache()
-                                .save(sub.toLowerCase(Locale.ENGLISH) + ":" + id.toLowerCase(Locale.ENGLISH), newBit);
-                        count += 1;
-                    } catch (Exception e) {
-                        e.printStackTrace();
+                        getFlairImageLoader(context)!!.diskCache
+                            .save(sub.lowercase() + ":" + id.lowercase(), newBit)
+                        count += 1
+                    } catch (e: Exception) {
+                        e.printStackTrace()
                     }
                 }
-                loadedImage.recycle();
+                loadedImage.recycle()
             } else {
-                LogUtil.v("Loaded image is null for " + filename);
+                LogUtil.v("Loaded image is null for $filename")
             }
         }
 
@@ -637,96 +657,33 @@ public class ImageFlairs {
          *
          * @return
          */
-        List<String> getListOfFlairIds() {
-            Pattern flairId = Pattern.compile("\\.flair-(\\w+)\\s*(\\{|\\,|\\:|)");
-            Matcher matches = flairId.matcher(stylesheetString);
-
-            List<String> flairIds = new ArrayList<>();
-            while (matches.find()) {
-                if (!flairIds.contains(matches.group(1))) flairIds.add(matches.group(1));
+        val listOfFlairIds: List<String>
+            get() {
+                val flairId = Pattern.compile("\\.flair-(\\w+)\\s*(\\{|\\,|\\:|)")
+                val matches = flairId.matcher(stylesheetString)
+                val flairIds: MutableList<String> = ArrayList()
+                while (matches.find()) {
+                    if (!flairIds.contains(matches.group(1))) flairIds.add(matches.group(1))
+                }
+                flairIds.sort()
+                return flairIds
             }
-
-            Collections.sort(flairIds);
-            return flairIds;
-        }
     }
 
-    public static class FlairImageLoader extends ImageLoader {
-
-        private volatile static FlairImageLoader instance;
-
-        /** Returns singleton class instance */
-        public static FlairImageLoader getInstance() {
-            if (instance == null) {
-                synchronized (ImageLoader.class) {
-                    if (instance == null) {
-                        instance = new FlairImageLoader();
+    object FlairImageLoader : ImageLoader() {
+        /** Returns singleton class instance  */
+        @Volatile
+        var instance: FlairImageLoader? = null
+            get() {
+                if (field == null) {
+                    synchronized(ImageLoader::class.java) {
+                        if (field == null) {
+                            field = FlairImageLoader
+                        }
                     }
                 }
+                return field
             }
-            return instance;
-        }
+            private set
     }
-
-    public static FlairImageLoader getFlairImageLoader(Context context) {
-        if (imageLoader == null) {
-            return initFlairImageLoader(context);
-        } else {
-            return imageLoader;
-        }
-    }
-
-    public static FlairImageLoader imageLoader;
-
-
-    public static File getCacheDirectory(Context context) {
-        if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)
-                && context.getExternalCacheDir() != null) {
-            return new File(context.getExternalCacheDir(), "flairs");
-        }
-        return new File(context.getCacheDir(), "flairs");
-    }
-
-    public static FlairImageLoader initFlairImageLoader(Context context) {
-        long discCacheSize = 1024 * 1024 * 100; //100 MB limit
-        DiskCache discCache;
-        File dir = getCacheDirectory(context);
-        discCacheSize *= 100;
-        int threadPoolSize = 7;
-        if (discCacheSize > 0) {
-            try {
-                dir.mkdir();
-                discCache = new LruDiskCache(dir, new Md5FileNameGenerator(), discCacheSize);
-            } catch (IOException e) {
-                discCache = new UnlimitedDiskCache(dir);
-            }
-        } else {
-            discCache = new UnlimitedDiskCache(dir);
-        }
-
-        options = new DisplayImageOptions.Builder().cacheOnDisk(true)
-                .imageScaleType(ImageScaleType.NONE)
-                .cacheInMemory(false)
-                .resetViewBeforeLoading(false)
-                .build();
-        ImageLoaderConfiguration config =
-                new ImageLoaderConfiguration.Builder(context).threadPoolSize(threadPoolSize)
-                        .denyCacheImageMultipleSizesInMemory()
-                        .diskCache(discCache)
-                        .threadPoolSize(4)
-                        .imageDownloader(new OkHttpImageDownloader(context))
-                        .defaultDisplayImageOptions(options)
-                        .build();
-
-        if (FlairImageLoader.getInstance().isInited()) {
-            FlairImageLoader.getInstance().destroy();
-        }
-
-        imageLoader = FlairImageLoader.getInstance();
-        imageLoader.init(config);
-        return imageLoader;
-
-    }
-
-    public static DisplayImageOptions options;
 }

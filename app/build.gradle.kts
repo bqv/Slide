@@ -58,10 +58,15 @@ android {
 
     compileOptions {
         encoding = "UTF-8"
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
     kotlin {
         jvmToolchain(17)
+    }
+    kotlinOptions {
+        jvmTarget = "17"
     }
 
     kapt {
@@ -159,6 +164,7 @@ dependencies {
     implementation("androidx.work:work-runtime-ktx:2.8.1")
     implementation("androidx.security:security-crypto-ktx:1.1.0-alpha03")
     implementation("androidx.paging:paging-common-ktx:3.1.1")
+    implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
 
     // Application level media player
     implementation(libs.bundles.exoplayer)
@@ -168,22 +174,24 @@ dependencies {
     implementation(libs.bundles.slf4j)
 
     // Custom dialogs
-    implementation("com.afollestad.material-dialogs:commons:0.9.6.0")
+    implementation(libs.bundles.materialDialogs)
+    implementation(libs.materialProgressBar)
 
     // Snackbar engagement for rating
     implementation("com.github.ligi.snackengage:snackengage-core:0.29")
     implementation("com.github.ligi.snackengage:snackengage-playrate:0.29")
 
     // Material design components for pre-Lollipop APIs
-    //  NOTE: Replace rey5137:material with AndroidX versions?
+    //  TODO: Replace rey5137:material with AndroidX versions?
     implementation("com.github.rey5137:material:1.3.1")
 
     // Image loading, caching, and displaying
-    //  NOTE: Replace with Glide/Picasso
+    //  TODO: Replace with Glide/Picasso
     implementation("com.github.nostra13:android-universal-image-loader:458df4da2e23ba9ad76c79241a948cdfcccf72ae")
 
     // Custom image view for photo galleries and large images
-    implementation("com.github.davemorrissey:subsampling-scale-image-view:173e421")
+    //implementation("com.github.davemorrissey:subsampling-scale-image-view:173e421")
+    implementation("com.github.KotatsuApp:subsampling-scale-image-view:1b19231b2f")
 
     // Image cropping
     implementation("com.github.CanHub:Android-Image-Cropper:3.2.2")
@@ -202,7 +210,8 @@ dependencies {
     implementation("com.nambimobile.widgets:expandable-fab:1.2.1")
 
     // Draggable sliding up panel
-    implementation("com.sothree.slidinguppanel:library:3.4.0")
+    //implementation("com.sothree.slidinguppanel:library:3.4.0")
+    implementation("com.github.hannesa2:AndroidSlidingUpPanel:4.5.0")
 
     // ViewAnimationUtils.createCircularReveal for pre-Lollipop APIs
     implementation("com.github.ozodrukh:CircularReveal:2.0.1@aar")
@@ -236,7 +245,8 @@ dependencies {
     implementation("commons-io:commons-io:2.11.0")
 
     // Simplified bitmap decoding and scaling
-    implementation("com.github.suckgamony.RapidDecoder:library:7cdfca47fa")
+    //implementation("com.github.suckgamony.RapidDecoder:library:7cdfca47fa")
+    implementation("com.github.raulhaag.RapidDecoder:library:0.3.1Ax")
 
     // HTTP client
     implementation(libs.okhttp)
