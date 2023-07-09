@@ -7,15 +7,15 @@ object ReadLater {
     fun setReadLater(s: IPost, readLater: Boolean) {
         if (readLater) {
             KVStore.getInstance()
-                .insert("readLater" + s.permalink, System.currentTimeMillis().toString())
+                .insert("readLater" + s.uri, System.currentTimeMillis().toString())
         } else {
             if (isToBeReadLater(s)) {
-                KVStore.getInstance().delete("readLater" + s.permalink)
+                KVStore.getInstance().delete("readLater" + s.uri)
             }
         }
     }
 
     fun isToBeReadLater(s: IPost): Boolean {
-        return KVStore.getInstance().getByContains("readLater" + s.permalink).isNotEmpty()
+        return KVStore.getInstance().getByContains("readLater" + s.uri).isNotEmpty()
     }
 }

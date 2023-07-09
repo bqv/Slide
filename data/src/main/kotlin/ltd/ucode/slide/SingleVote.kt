@@ -1,4 +1,4 @@
-package ltd.ucode.lemmy.data.value
+package ltd.ucode.slide
 
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
@@ -22,6 +22,12 @@ import kotlin.math.sign
         val UPVOTE get() = SingleVote(+1)
         val NOVOTE get() = SingleVote(0)
         val DOWNVOTE get() = SingleVote(-1)
+
+        fun of(maybeScore: Int?) = when (maybeScore?.let { it > 0 }) {
+            null -> { SingleVote.NOVOTE }
+            true -> { SingleVote.UPVOTE }
+            false -> { SingleVote.DOWNVOTE }
+        }
     }
 
     class Serializer : KSerializer<SingleVote> {

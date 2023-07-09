@@ -28,6 +28,7 @@ dependencyResolutionManagement {
 
             plugin("androidGitVersion", "com.gladed.androidgitversion").version("0.4.14")
             plugin("hilt", "dagger.hilt.android.plugin").versionRef(hilt)
+            plugin("ksp", "com.google.devtools.ksp").version("1.8.22-1.0.11")
 
             plugin("androidCacheFix", "org.gradle.android.cache-fix").version("2.7.2")
             plugin("gradleDoctor", "com.osacky.doctor").version("0.8.1")
@@ -55,6 +56,7 @@ dependencyResolutionManagement {
             library("androidx-annotation", "androidx.annotation:annotation:1.3.0")
             library("androidx-appcompat", "androidx.appcompat:appcompat:1.3.1")
             library("androidx-recyclerview", "androidx.recyclerview:recyclerview:1.2.1")
+            library("androidx-media", "androidx.media:media:1.6.0")
             library("androidx-test-core", "androidx.test:core:1.5.0")
             library("androidx-test-core-ktx", "androidx.test:core-ktx:1.5.0")
             library("androidx-test-junit", "androidx.test.ext:junit:1.1.5")
@@ -92,9 +94,10 @@ dependencyResolutionManagement {
 
             library("github", "org.kohsuke:github-api:1.315")
 
-            val glide = version("glide", "4.12.0")
+            val glide = version("glide", "4.15.1")
             library("glide", "com.github.bumptech.glide", "glide").versionRef(glide)
             library("glide-compiler", "com.github.bumptech.glide", "compiler").versionRef(glide)
+            library("glide-ksp", "com.github.bumptech.glide", "ksp").versionRef(glide)
 
             library("graphql-base", "graphql", "graphql").version {
                 strictly("[2.3.0, 2.3.2[")
@@ -106,6 +109,9 @@ dependencyResolutionManagement {
             bundle("graphql", listOf("graphql-ktor", "ktor-okhttp", "ktor-logging"))
 
             library("gson", "com.google.code.gson:gson:2.8.9") // TODO: switch to kotlinx-serialization
+
+            library("guava", "com.google.guava:guava:32.0.1-jre")
+            // https://github.com/google/guava/wiki/ReleasePolicy#flavors
 
             val hiltAndroidX = version("hilt-androidx", "1.0.0-alpha03")
             library("hilt-android", "com.google.dagger", "hilt-android").versionRef(hilt)
@@ -162,7 +168,7 @@ dependencyResolutionManagement {
             library("retrofit-kotlinx", "com.jakewharton.retrofit:retrofit2-kotlinx-serialization-converter:1.0.0")
             bundle("retrofit", listOf("retrofit", "retrofit-logging", "retrofit-kotlinx"))
 
-            library("roboelectric", "org.robolectric:robolectric:4.10.3")
+            library("robolectric", "org.robolectric:robolectric:4.10.3")
 
             library("rxjava", "io.reactivex.rxjava2", "rxjava").version("2.2.21")
 

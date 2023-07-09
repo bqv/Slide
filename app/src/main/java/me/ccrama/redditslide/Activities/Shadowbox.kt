@@ -75,7 +75,7 @@ class Shadowbox : FullScreenActivity(), SubmissionDisplay {
                 if (SettingValues.storeHistory) {
                     if (subredditPosts!!.posts[position].isNsfw && !SettingValues.storeNSFWHistory) {
                     } else HasSeen.addSeen(
-                        subredditPosts!!.posts[position].permalink
+                        subredditPosts!!.posts[position].uri
                     )
                 }
             }

@@ -1,4 +1,4 @@
-package ltd.ucode
+package ltd.ucode.slide
 
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
@@ -8,7 +8,6 @@ object Serializers {
     @OptIn(ExperimentalSerializationApi::class)
     val snakeCase = Json {
         encodeDefaults = true
-        prettyPrint = true
         isLenient = true
         ignoreUnknownKeys = true
         namingStrategy = JsonNamingStrategy.SnakeCase

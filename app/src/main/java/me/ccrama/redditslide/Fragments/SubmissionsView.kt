@@ -337,7 +337,7 @@ class SubmissionsView : Fragment(), SubmissionDisplay {
             val o = OfflineSubreddit.getSubreddit(id!!.lowercase(), false, activity)
             for (i in adapter!!.dataSet.posts.size downTo -1 + 1) {
                 try {
-                    if (HasSeen.getSeen(adapter!!.dataSet.posts[i].submission)) {
+                    if (HasSeen.getSeen(adapter!!.dataSet.posts[i].submission!!)) {
                         if (forever) {
                             Hidden.setHidden(adapter!!.dataSet.posts[i])
                         }
@@ -464,7 +464,7 @@ class SubmissionsView : Fragment(), SubmissionDisplay {
         if (adapter!!.dataSet.posts != null) {
             for (i in adapter!!.dataSet.posts.size downTo -1 + 1) {
                 try {
-                    if (HasSeen.getSeen(adapter!!.dataSet.posts[i].submission)) {
+                    if (HasSeen.getSeen(adapter!!.dataSet.posts[i].submission!!)) {
                         adapter!!.notifyItemChanged(i + 1)
                     }
                 } catch (e: IndexOutOfBoundsException) {
@@ -499,7 +499,7 @@ class SubmissionsView : Fragment(), SubmissionDisplay {
                                                 ) && SettingValues.storeHistory)
                                     ) {
                                         HasSeen.addSeenScrolling(
-                                            posts!!.posts[pastVisiblesItems - 1].permalink
+                                            posts!!.posts[pastVisiblesItems - 1].uri
                                         )
                                     }
                                 }

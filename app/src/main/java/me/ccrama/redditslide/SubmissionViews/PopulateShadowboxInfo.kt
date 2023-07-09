@@ -34,12 +34,12 @@ import kotlinx.coroutines.withContext
 import ltd.ucode.lemmy.data.LemmyPost
 import ltd.ucode.lemmy.data.id.CommentId
 import ltd.ucode.lemmy.data.id.PostId
-import ltd.ucode.lemmy.data.value.SingleVote
 import ltd.ucode.slide.App.Companion.defaultShareText
 import ltd.ucode.slide.Authentication
 import ltd.ucode.slide.R
 import ltd.ucode.slide.SettingValues
 import ltd.ucode.slide.SettingValues.actionbarVisible
+import ltd.ucode.slide.SingleVote
 import ltd.ucode.slide.data.IPost
 import ltd.ucode.slide.repository.AccountRepository
 import ltd.ucode.slide.repository.CommentRepository
@@ -116,10 +116,10 @@ object PopulateShadowboxInfo {
             titleString.append(subreddit)
             titleString.append(distingush)
             titleString.append(spacer)
-            titleString.append(TimeUtils.getTimeAgo(s.published.toEpochMilliseconds(), c))
+            titleString.append(TimeUtils.getTimeAgo(s.discovered.toEpochMilliseconds(), c))
             desc.text = titleString
             (rootView.findViewById<View>(R.id.comments) as TextView).text =
-                String.format(Locale.getDefault(), "%d", s.commentCount)
+                String.format(Locale.getDefault(), "%d", s.comments)
             (rootView.findViewById<View>(R.id.score) as TextView).text =
                 String.format(Locale.getDefault(), "%d", s.score)
             if (extras) {
@@ -150,7 +150,7 @@ object PopulateShadowboxInfo {
                                 String.format(
                                     Locale.getDefault(),
                                     "%d",
-                                    (s.score + (if (((s.creator.name == Authentication.name))) 0 else 1))
+                                    (s.score + (if (((s.user.name == Authentication.name))) 0 else 1))
                                 )
                             BlendModeUtil.tintImageViewAsSrcAtop(downvotebutton, Color.WHITE)
                         }
@@ -171,7 +171,7 @@ object PopulateShadowboxInfo {
                                 String.format(
                                     Locale.getDefault(),
                                     "%d",
-                                    (s.score + (if (((s.creator.name == Authentication.name))) 0 else -1))
+                                    (s.score + (if (((s.user.name == Authentication.name))) 0 else -1))
                                 )
                             BlendModeUtil.tintImageViewAsSrcAtop(upvotebutton, Color.WHITE)
                         }
@@ -256,7 +256,7 @@ object PopulateShadowboxInfo {
                                 )
                                 if (SettingValues.storeHistory) {
                                     if (!s.isNsfw || SettingValues.storeNSFWHistory) {
-                                        HasSeen.addSeen(s.permalink)
+                                        HasSeen.addSeen(s.uri)
                                     }
                                 }
                                 if (getVoteDirection(s) != VoteDirection.DOWNVOTE) { //has not been downvoted
@@ -319,7 +319,7 @@ object PopulateShadowboxInfo {
                                 )
                                 if (SettingValues.storeHistory) {
                                     if (!s.isNsfw || SettingValues.storeNSFWHistory) {
-                                        HasSeen.addSeen(s.permalink)
+                                        HasSeen.addSeen(s.uri)
                                     }
                                 }
                                 if (getVoteDirection(s) != VoteDirection.UPVOTE) { //has not been upvoted
@@ -738,7 +738,7 @@ object PopulateShadowboxInfo {
         val b = BottomSheet.Builder(mContext)
             .title(CompatUtil.fromHtml(submission.title))
         if (Authentication.didOnline) {
-            b.sheet(1, profile, "/u/" + submission.creator.name)
+            b.sheet(1, profile, "/u/" + submission.user.name)
                 .sheet(2, sub, "/c/" + submission.groupName)
             if (Authentication.isLoggedIn) {
                 b.sheet(12, report, mContext.getString(R.string.btn_report))
@@ -752,7 +752,7 @@ object PopulateShadowboxInfo {
                     when (which) {
                         1 -> {
                             val i = Intent(mContext, Profile::class.java)
-                            i.putExtra(Profile.EXTRA_PROFILE, submission.creator.name)
+                            i.putExtra(Profile.EXTRA_PROFILE, submission.user.name)
                             mContext.startActivity(i)
                         }
 
@@ -762,8 +762,8 @@ object PopulateShadowboxInfo {
                             mContext.startActivityForResult(i, 14)
                         }
 
-                        7 -> openExternally(submission.url!!)
-                        4 -> defaultShareText(submission.title, submission.url, mContext)
+                        7 -> openExternally(submission.link!!)
+                        4 -> defaultShareText(submission.title, submission.link, mContext)
                         12 -> {
                             val reportDialog = MaterialDialog(mContext).show {
                                 customView(R.layout.report_dialog, scrollable = true)
@@ -843,19 +843,19 @@ object PopulateShadowboxInfo {
                         8 -> if (SettingValues.shareLongLink) {
                             defaultShareText(
                                 submission.title,
-                                submission.permalink,
+                                submission.uri,
                                 mContext
                             )
                         } else {
                             defaultShareText(
                                 submission.title,
-                                "https://redd.it/" + submission.id,
+                                "https://redd.it/" + submission.postId,
                                 mContext
                             )
                         }
 
                         6 -> {
-                            ClipboardUtil.copyToClipboard(mContext, "Link", submission.url)
+                            ClipboardUtil.copyToClipboard(mContext, "Link", submission.link)
                             Toast.makeText(
                                 mContext,
                                 R.string.submission_link_copied,
@@ -875,7 +875,7 @@ object PopulateShadowboxInfo {
             withContext(Dispatchers.IO) {
                 postRepository.likePost(
                     (submission as LemmyPost).instance,
-                    PostId(submission.postId.id),
+                    PostId(submission.id),
                     direction
                 )
             }

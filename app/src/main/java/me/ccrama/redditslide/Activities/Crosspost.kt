@@ -48,7 +48,7 @@ class Crosspost : BaseActivity() {
             (toCrosspost!!.title
                     + getString(R.string.submission_properties_seperator)
                     + "/u/"
-                    + toCrosspost!!.creator.name)
+                    + toCrosspost!!.user.name)
         )
         findViewById<View>(R.id.crossposttext).isEnabled = false
         val adapter = ArrayAdapter(

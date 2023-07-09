@@ -42,8 +42,8 @@ object SubmissionCache {
 
     fun getCrosspostLine(s: IPost, mContext: Context): SpannableStringBuilder? {
         if (crosspost == null) crosspost = WeakHashMap()
-        return if (crosspost!!.containsKey(s.permalink)) {
-            crosspost!![s.permalink]
+        return if (crosspost!!.containsKey(s.uri)) {
+            crosspost!![s.uri]
         } else {
             getCrosspostSpannable(s, mContext)
         }
@@ -54,25 +54,25 @@ object SubmissionCache {
         if (info == null) info = WeakHashMap()
         if (crosspost == null) crosspost = WeakHashMap()
         for (submission in submissions) {
-            titles!![submission.permalink] = getTitleSpannable(submission, mContext)
-            info!![submission.permalink] = getInfoSpannable(submission, mContext, baseSub)
-            crosspost!![submission.permalink] = getCrosspostLine(submission, mContext)
+            titles!![submission.uri] = getTitleSpannable(submission, mContext)
+            info!![submission.uri] = getInfoSpannable(submission, mContext, baseSub)
+            crosspost!![submission.uri] = getCrosspostLine(submission, mContext)
         }
     }
 
     fun updateInfoSpannable(changed: IPost, mContext: Context, baseSub: String) {
-        info!![changed.permalink] =
+        info!![changed.uri] =
             getInfoSpannable(changed, mContext, baseSub)
     }
 
     fun updateTitleFlair(s: IPost, flair: String?, c: Context) {
-        titles!![s.permalink] = getTitleSpannable(s, flair, c)
+        titles!![s.uri] = getTitleSpannable(s, flair, c)
     }
 
     fun getTitleLine(s: IPost, mContext: Context): SpannableStringBuilder? {
         if (titles == null) titles = WeakHashMap()
-        return if (titles!!.containsKey(s.permalink)) {
-            titles!![s.permalink]
+        return if (titles!!.containsKey(s.uri)) {
+            titles!![s.uri]
         } else {
             getTitleSpannable(s, mContext)
         }
@@ -83,8 +83,8 @@ object SubmissionCache {
         baseSub: String
     ): SpannableStringBuilder? {
         if (info == null) info = WeakHashMap()
-        return if (info!!.containsKey(s.permalink)) {
-            info!![s.permalink]
+        return if (info!!.containsKey(s.uri)) {
+            info!![s.uri]
         } else {
             getInfoSpannable(s, mContext, baseSub)
         }
@@ -93,7 +93,7 @@ object SubmissionCache {
     private fun getCrosspostSpannable(s: IPost, mContext: Context): SpannableStringBuilder? {
         val spacer = mContext.getString(R.string.submission_properties_seperator)
         val titleString = SpannableStringBuilder("/kbin$spacer")
-        if (!URL(s.permalink).path.startsWith("/m/")) { //is not a crosspost
+        if (!URL(s.uri).path.startsWith("/m/")) { //is not a crosspost
             return null
         }
         s.groupName.let {
@@ -116,8 +116,8 @@ object SubmissionCache {
             }
             titleString.append(subreddit)
         }
-        val author = SpannableStringBuilder(s.creator.name + " ")
-        val authorcolor = Palette.getFontColorUser(s.creator.name)
+        val author = SpannableStringBuilder(s.user.name + " ")
+        val authorcolor = Palette.getFontColorUser(s.user.name)
         if (authorcolor != 0) {
             author.setSpan(
                 ForegroundColorSpan(authorcolor), 0, author.length,
@@ -125,9 +125,9 @@ object SubmissionCache {
             )
         }
         titleString.append(author)
-        if (UserTags.isUserTagged(s.creator.name)) {
+        if (UserTags.isUserTagged(s.user.name)) {
             val pinned = SpannableStringBuilder(
-                " " + UserTags.getUserTag(s.creator.name) + " "
+                " " + UserTags.getUserTag(s.user.name) + " "
             )
             pinned.setSpan(
                 RoundedBackgroundSpan(mContext, android.R.color.white, R.color.md_blue_500, false),
@@ -135,7 +135,7 @@ object SubmissionCache {
             )
             titleString.append(pinned)
         }
-        if (UserSubscriptions.friends!!.contains(s.creator.name)) {
+        if (UserSubscriptions.friends!!.contains(s.user.name)) {
             val pinned = SpannableStringBuilder(
                 " " + mContext.getString(R.string.profile_friend) + " "
             )
@@ -192,7 +192,7 @@ object SubmissionCache {
         titleString.append(subreddit)
         titleString.append(spacer)
         try {
-            val time = TimeUtils.getTimeAgo(submission.published.toEpochMilliseconds(), mContext)
+            val time = TimeUtils.getTimeAgo(submission.discovered.toEpochMilliseconds(), mContext)
             titleString.append(time)
         } catch (e: Exception) {
             titleString.append("just now")
@@ -203,10 +203,10 @@ object SubmissionCache {
             ) + ")" else ""
         )
         titleString.append(spacer)
-        val author = SpannableStringBuilder(" " + submission.creator.name + " ")
-        val authorcolor = Palette.getFontColorUser(submission.creator.name)
-        if (submission.creator.name != null) {
-            if (Authentication.name != null && (submission.creator.name
+        val author = SpannableStringBuilder(" " + submission.user.name + " ")
+        val authorcolor = Palette.getFontColorUser(submission.user.name)
+        if (submission.user.name != null) {
+            if (Authentication.name != null && (submission.user.name
                     .lowercase()
                         == Authentication.name!!.lowercase())
             ) {
@@ -249,9 +249,9 @@ object SubmissionCache {
 
 
         /*todo maybe?  titleString.append(((comment.hasBeenEdited() && comment.getEditDate() != null) ? " *" + TimeUtils.getTimeAgo(comment.getEditDate().getTime(), mContext) : ""));
-        titleString.append("  ");*/if (UserTags.isUserTagged(submission.creator.name)) {
+        titleString.append("  ");*/if (UserTags.isUserTagged(submission.user.name)) {
             val pinned = SpannableStringBuilder(
-                " " + UserTags.getUserTag(submission.creator.name) + " "
+                " " + UserTags.getUserTag(submission.user.name) + " "
             )
             pinned.setSpan(
                 RoundedBackgroundSpan(mContext, android.R.color.white, R.color.md_blue_500, false),
@@ -260,7 +260,7 @@ object SubmissionCache {
             titleString.append(" ")
             titleString.append(pinned)
         }
-        if (UserSubscriptions.friends!!.contains(submission.creator.name)) {
+        if (UserSubscriptions.friends!!.contains(submission.user.name)) {
             val pinned = SpannableStringBuilder(
                 " " + mContext.getString(R.string.profile_friend) + " "
             )
@@ -273,7 +273,7 @@ object SubmissionCache {
             titleString.append(" ")
             titleString.append(pinned)
         }
-        appendToolboxNote(mContext, titleString, submission.groupName, submission.creator.name)
+        appendToolboxNote(mContext, titleString, submission.groupName, submission.user.name)
 
         /* too big, might add later todo
         if (submission.getAuthorFlair() != null && submission.getAuthorFlair().getText() != null && !submission.getAuthorFlair().getText().isEmpty()) {
@@ -393,10 +393,10 @@ object SubmissionCache {
                     Locale.getDefault(), " %s", mContext.resources
                         .getQuantityString(R.plurals.points, submission.score)
                 ) + spacer
-                        + submission.commentCount
+                        + submission.comments
                         + String.format(
                     Locale.getDefault(), " %s", mContext.resources
-                        .getQuantityString(R.plurals.comments, submission.commentCount)
+                        .getQuantityString(R.plurals.comments, submission.comments)
                 )
             )
             s.setSpan(
@@ -409,8 +409,8 @@ object SubmissionCache {
             }
             titleString.append(s)
         }
-        if (removed.contains(submission.permalink) || (submission.bannedBy != null
-                    && !approved.contains(submission.permalink))
+        if (removed.contains(submission.uri) || (submission.bannedBy != null
+                    && !approved.contains(submission.uri))
         ) {
             titleString.append(
                 CommentAdapterHelper.createRemovedLine(
@@ -418,8 +418,8 @@ object SubmissionCache {
                     mContext
                 )
             )
-        } else if (approved.contains(submission.permalink) || (submission.approvedBy
-                    != null && !removed.contains(submission.permalink))
+        } else if (approved.contains(submission.uri) || (submission.approvedBy
+                    != null && !removed.contains(submission.uri))
         ) {
             titleString.append(
                 CommentAdapterHelper.createApprovedLine(

@@ -123,7 +123,7 @@ class HeaderImageLinkView : RelativeLayout {
                 ((RoundImageTriangleView)(thumbImage2)).setFlagColor(Color.TRANSPARENT);
                 break;
         }*/if (type == ContentType.Type.SELF && SettingValues.hideSelftextLeadImage
-            || SettingValues.noImages && submission.url == null
+            || SettingValues.noImages && submission.link == null
         ) {
             visibility = GONE
             if (wrapArea != null) wrapArea!!.visibility = GONE
@@ -190,8 +190,8 @@ class HeaderImageLinkView : RelativeLayout {
                     forceThumb = true
                 }
             }
-            val thumbnail = submission.thumbnail
-            val thumbnailType: ThumbnailType = if (submission.thumbnail != null) {
+            val thumbnail = submission.thumbnailUrl
+            val thumbnailType: ThumbnailType = if (submission.thumbnailUrl != null) {
                 submission.thumbnailType
             } else {
                 ThumbnailType.NONE
@@ -207,10 +207,10 @@ class HeaderImageLinkView : RelativeLayout {
              */
             if (SettingValues.noImages && loadLq) {
                 visibility = GONE
-                if (!full && submission.url != null) {
+                if (!full && submission.link != null) {
                     thumbImage2!!.visibility = VISIBLE
                 } else {
-                    if (full && submission.url != null) wrapArea!!.visibility = VISIBLE
+                    if (full && submission.link != null) wrapArea!!.visibility = VISIBLE
                 }
                 thumbImage2!!.setImageDrawable(
                     ContextCompat.getDrawable(context, R.drawable.web)
@@ -226,7 +226,7 @@ class HeaderImageLinkView : RelativeLayout {
                 } else {
                     wrapArea!!.visibility = VISIBLE
                 }
-                if (submission.url == null && full) {
+                if (submission.link == null && full) {
                     wrapArea!!.visibility = GONE
                 } else {
                     thumbImage2!!.setImageDrawable(
@@ -234,7 +234,7 @@ class HeaderImageLinkView : RelativeLayout {
                     )
                     thumbUsed = true
                 }
-                loadedUrl = submission.url
+                loadedUrl = submission.link
             } else if (submission.isSpoiler) {
                 visibility = GONE
                 if (!full || forceThumb) {
@@ -242,7 +242,7 @@ class HeaderImageLinkView : RelativeLayout {
                 } else {
                     wrapArea!!.visibility = VISIBLE
                 }
-                if (submission.url == null && full) {
+                if (submission.link == null && full) {
                     wrapArea!!.visibility = GONE
                 } else {
                     thumbImage2!!.setImageDrawable(
@@ -250,9 +250,9 @@ class HeaderImageLinkView : RelativeLayout {
                     )
                     thumbUsed = true
                 }
-                loadedUrl = submission.url
+                loadedUrl = submission.link
             } else if (type != ContentType.Type.IMAGE && type != ContentType.Type.SELF && thumbnail != null && thumbnailType != ThumbnailType.URL
-                || thumbnail.isNullOrEmpty() && submission.url != null
+                || thumbnail.isNullOrEmpty() && submission.link != null
             ) {
                 visibility = GONE
                 if (!full) {
@@ -264,11 +264,11 @@ class HeaderImageLinkView : RelativeLayout {
                     ContextCompat.getDrawable(context, R.drawable.web)
                 )
                 thumbUsed = true
-                loadedUrl = submission.url
+                loadedUrl = submission.link
             } else if (type == ContentType.Type.IMAGE && thumbnail?.isNotEmpty() == true) {
                 if (loadLq && submission.thumbnails != null && submission.thumbnails!!.variations != null && submission.thumbnails!!.variations.isNotEmpty()) {
-                    if (ContentType.isImgurImage(submission.url)) {
-                        url = submission.url!!
+                    if (ContentType.isImgurImage(submission.link)) {
+                        url = submission.link!!
                         url = url.substring(
                             0,
                             url.lastIndexOf(".")
@@ -303,11 +303,11 @@ class HeaderImageLinkView : RelativeLayout {
                         if (submission.hasPreview) { //Load the preview image which has probably already been cached in memory instead of the direct link
                             submission.preview!!
                         } else {
-                            submission.url!!
+                            submission.link!!
                         }
                 }
                 if (!full && !isPicsEnabled(baseSub) || forceThumb) {
-                    if (submission.url != null || full) {
+                    if (submission.link != null || full) {
                         if (!full) {
                             thumbImage2!!.visibility = VISIBLE
                         } else {
@@ -343,8 +343,8 @@ class HeaderImageLinkView : RelativeLayout {
                 }
             } else if (submission.thumbnails != null) {
                 if (loadLq && submission.thumbnails!!.variations.isNotEmpty()) {
-                    if (ContentType.isImgurImage(submission.url)) {
-                        url = submission.url!!
+                    if (ContentType.isImgurImage(submission.link)) {
+                        url = submission.link!!
                         url = url.substring(
                             0,
                             url.lastIndexOf(".")
@@ -376,7 +376,7 @@ class HeaderImageLinkView : RelativeLayout {
                     lq = true
                 } else {
                     url =
-                        (if (submission.thumbnails!!.source.url.isEmpty()) submission.thumbnail else submission.thumbnails!!.source.url)?.let {
+                        (if (submission.thumbnails!!.source.url.isEmpty()) submission.thumbnailUrl else submission.thumbnails!!.source.url)?.let {
                             CompatUtil.fromHtml(it)
                                 .toString()
                         }!! //unescape url characters
@@ -407,8 +407,8 @@ class HeaderImageLinkView : RelativeLayout {
                         wrapArea!!.visibility = GONE
                     }
                 }
-            } else if (thumbnail != null && submission.thumbnail != null && (submission.thumbnailType == ThumbnailType.URL || thumbnail != null) && submission.isNsfw && isNSFWEnabled) {
-                url = submission.thumbnail!!
+            } else if (thumbnail != null && submission.thumbnailUrl != null && (submission.thumbnailType == ThumbnailType.URL || thumbnail != null) && submission.isNsfw && isNSFWEnabled) {
+                url = submission.thumbnailUrl!!
                 if (!full) {
                     thumbImage2!!.visibility = VISIBLE
                 } else {
@@ -436,7 +436,7 @@ class HeaderImageLinkView : RelativeLayout {
                     info = findViewById(R.id.subtextimage)
                     if ((forceThumb || (submission.isNsfw && submission.thumbnailType == ThumbnailType.NSFW)
                                 || type != ContentType.Type.IMAGE&& type != ContentType.Type.SELF
-                                && submission.thumbnail != null
+                                && submission.thumbnailUrl != null
                                 && submission.thumbnailType != ThumbnailType.URL)
                     ) {
                         setBottomSheet(thumbImage2, submission, full)
@@ -617,12 +617,12 @@ class HeaderImageLinkView : RelativeLayout {
             handler!!.removeCallbacksAndMessages(null)
             if (SettingValues.storeHistory && !full) {
                 if (!submission.isNsfw || SettingValues.storeNSFWHistory) {
-                    HasSeen.addSeen(submission.permalink)
+                    HasSeen.addSeen(submission.uri)
                     (parent as View).findViewById<View>(R.id.title).alpha = 0.54f
                     (parent as View).findViewById<View>(R.id.body).alpha = 0.54f
                 }
             }
-            onLinkLongClick(submission.url, event)
+            onLinkLongClick(submission.link, event)
         }
     }
 
@@ -631,9 +631,9 @@ class HeaderImageLinkView : RelativeLayout {
         type: ContentType.Type?
     ) {
         this.type = type
-        if (lastDone != submission.permalink) {
+        if (lastDone != submission.uri) {
             lq = false
-            lastDone = submission.permalink
+            lastDone = submission.uri
             backdrop!!.setImageResource(
                 android.R.color.transparent
             ) //reset the image view in case the placeholder is still visible
@@ -647,9 +647,9 @@ class HeaderImageLinkView : RelativeLayout {
         type: ContentType.Type?
     ) {
         this.type = type
-        if (lastDone != submission.permalink) {
+        if (lastDone != submission.uri) {
             lq = false
-            lastDone = submission.permalink
+            lastDone = submission.uri
             backdrop!!.setImageResource(
                 android.R.color.transparent
             ) //reset the image view in case the placeholder is still visible

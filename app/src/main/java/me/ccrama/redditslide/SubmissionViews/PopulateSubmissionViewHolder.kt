@@ -27,7 +27,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.coroutineScope
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.RecyclerView
 import com.afollestad.materialdialogs.MaterialDialog
@@ -43,7 +42,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import ltd.ucode.lemmy.data.LemmyPost
 import ltd.ucode.lemmy.data.id.PostId
-import ltd.ucode.lemmy.data.value.SingleVote
+import ltd.ucode.slide.SingleVote
 import ltd.ucode.slide.App.Companion.defaultShareText
 import ltd.ucode.slide.Authentication
 import ltd.ucode.slide.R
@@ -91,7 +90,6 @@ import me.ccrama.redditslide.views.CreateCardView
 import me.ccrama.redditslide.views.DoEditorActions
 import me.ccrama.redditslide.Visuals.FontPreferences
 import me.ccrama.redditslide.Visuals.Palette
-import me.ccrama.redditslide.Vote
 import me.ccrama.redditslide.util.AnimatorUtil
 import me.ccrama.redditslide.util.BlendModeUtil
 import me.ccrama.redditslide.util.ClipboardUtil
@@ -168,7 +166,7 @@ class PopulateSubmissionViewHolder(private val postRepository: PostRepository,
         val isReadLater = mContext is PostReadLater
         val isAddedToReadLaterList = false//ReadLater.isToBeReadLater(submission)
         if (Authentication.didOnline) {
-            b.sheet(1, (profile)!!, "/u/" + submission.creator.name)
+            b.sheet(1, (profile)!!, "/u/" + submission.user.name)
                 .sheet(2, (sub)!!, "/c/" + submission.groupName)
             var save: String = mContext.getString(R.string.btn_save)
             if (false /*ActionStates.isSaved(submission)*/) {
@@ -211,7 +209,7 @@ class PopulateSubmissionViewHolder(private val postRepository: PostRepository,
                 when (which) {
                     1 -> {
                         val i = Intent(mContext, Profile::class.java)
-                        i.putExtra(Profile.EXTRA_PROFILE, submission.creator.name)
+                        i.putExtra(Profile.EXTRA_PROFILE, submission.user.name)
                         mContext.startActivity(i)
                     }
 
@@ -233,7 +231,7 @@ class PopulateSubmissionViewHolder(private val postRepository: PostRepository,
                                 ),
                                 mContext.getString(
                                     R.string.filter_posts_user,
-                                    submission.creator.name
+                                    submission.user.name
                                 ),
                                 mContext.getString(
                                     R.string.filter_posts_urls,
@@ -249,7 +247,7 @@ class PopulateSubmissionViewHolder(private val postRepository: PostRepository,
                                     submission.groupName.lowercase()
                                 ),
                                 SettingValues.userFilters.contains(
-                                    submission.creator.name.lowercase()
+                                    submission.user.name.lowercase()
                                 ),
                                 SettingValues.domainFilters.contains(
                                     submission.domain!!.lowercase()
@@ -267,7 +265,7 @@ class PopulateSubmissionViewHolder(private val postRepository: PostRepository,
                                 ),
                                 mContext.getString(
                                     R.string.filter_posts_user,
-                                    submission.creator.name
+                                    submission.user.name
                                 ),
                                 mContext.getString(
                                     R.string.filter_posts_urls,
@@ -285,7 +283,7 @@ class PopulateSubmissionViewHolder(private val postRepository: PostRepository,
                                 submission.groupName.lowercase()
                             ),
                             SettingValues.userFilters.contains(
-                                submission.creator.name.lowercase()
+                                submission.user.name.lowercase()
                             ),
                             SettingValues.domainFilters.contains(
                                 submission.domain!!.lowercase()
@@ -319,11 +317,11 @@ class PopulateSubmissionViewHolder(private val postRepository: PostRepository,
                                     filtered = false
                                 }
                                 if (chosen[1] && chosen[1] != oldChosen[1]) {
-                                    SettingValues.userFilters += submission.creator.name
+                                    SettingValues.userFilters += submission.user.name
                                         .lowercase().trim { it <= ' ' }
                                     filtered = true
                                 } else if (!chosen[1] && chosen[1] != oldChosen[1]) {
-                                    SettingValues.userFilters -= submission.creator.name
+                                    SettingValues.userFilters -= submission.user.name
                                         .lowercase().trim { it <= ' ' }
                                     filtered = false
                                 }
@@ -386,11 +384,11 @@ class PopulateSubmissionViewHolder(private val postRepository: PostRepository,
                     }
 
                     7 -> {
-                        LinkUtil.openExternally(submission.url!!)
+                        LinkUtil.openExternally(submission.link!!)
                         if (submission.isNsfw && !SettingValues.storeNSFWHistory) {
                             //Do nothing if the post is NSFW and storeNSFWHistory is not enabled
                         } else if (SettingValues.storeHistory) {
-                            HasSeen.addSeen(submission.permalink)
+                            HasSeen.addSeen(submission.uri)
                         }
                     }
 
@@ -457,12 +455,12 @@ class PopulateSubmissionViewHolder(private val postRepository: PostRepository,
                             s2.show()
                         }
                         OfflineSubreddit.newSubreddit(CommentCacheAsync.SAVED_SUBMISSIONS)
-                            .deleteFromMemory(submission.permalink)
+                            .deleteFromMemory(submission.uri)
                     }
 
                     4 -> defaultShareText(
                         CompatUtil.fromHtml(submission.title).toString(),
-                        StringEscapeUtils.escapeHtml4(submission.url), mContext
+                        StringEscapeUtils.escapeHtml4(submission.link), mContext
                     )
 
                     12 -> {
@@ -543,19 +541,19 @@ class PopulateSubmissionViewHolder(private val postRepository: PostRepository,
                     8 -> if (SettingValues.shareLongLink) {
                         defaultShareText(
                             submission.title,
-                            submission.permalink,
+                            submission.uri,
                             mContext
                         )
                     } else {
                         defaultShareText(
                             submission.title,
-                            submission.permalink,
+                            submission.uri,
                             mContext
                         )
                     }
 
                     6 -> {
-                        ClipboardUtil.copyToClipboard(mContext, "Link", submission.url)
+                        ClipboardUtil.copyToClipboard(mContext, "Link", submission.link)
                         Toast.makeText(
                             mContext, R.string.submission_link_copied,
                             Toast.LENGTH_SHORT
@@ -959,7 +957,7 @@ class PopulateSubmissionViewHolder(private val postRepository: PostRepository,
             b.sheet(9, (lock)!!, res.getString(R.string.mod_btn_lock_thread))
         }
         val stickied = submission.isFeatured
-        if (!SubmissionCache.removed.contains(submission.permalink)) {
+        if (!SubmissionCache.removed.contains(submission.uri)) {
             if (stickied) {
                 b.sheet(4, (pin)!!, res.getString(R.string.mod_btn_unpin))
             } else {
@@ -968,7 +966,7 @@ class PopulateSubmissionViewHolder(private val postRepository: PostRepository,
         }
         val distinguished = (submission.regalia == DistinguishedStatus.MODERATOR
                 || submission.regalia == DistinguishedStatus.ADMIN)
-        if (submission.creator.name.equals(Authentication.name, ignoreCase = true)) {
+        if (submission.user.name.equals(Authentication.name, ignoreCase = true)) {
             if (distinguished) {
                 b.sheet(5, (distinguish)!!, "Undistingiush")
             } else {
@@ -1054,8 +1052,8 @@ class PopulateSubmissionViewHolder(private val postRepository: PostRepository,
                             object : CompletedRemovalCallback {
                                 override fun onComplete(success: Boolean) {
                                     if (success) {
-                                        SubmissionCache.removed.add(submission.permalink)
-                                        SubmissionCache.approved.remove(submission.permalink)
+                                        SubmissionCache.removed.add(submission.uri)
+                                        SubmissionCache.approved.remove(submission.uri)
                                         SubmissionCache.updateInfoSpannable(
                                             submission, mContext,
                                             submission.groupName
@@ -1091,7 +1089,7 @@ class PopulateSubmissionViewHolder(private val postRepository: PostRepository,
                     30 -> removeSubmission(mContext, submission, posts, recyclerview, holder, true)
                     8 -> {
                         val i = Intent(mContext, Profile::class.java)
-                        i.putExtra(Profile.EXTRA_PROFILE, submission.creator.name)
+                        i.putExtra(Profile.EXTRA_PROFILE, submission.user.name)
                         mContext.startActivity(i)
                     }
 
@@ -1100,8 +1098,8 @@ class PopulateSubmissionViewHolder(private val postRepository: PostRepository,
                         showBan(mContext, holder.itemView, submission, "", "", "", "")
 
                     24 -> ToolboxUI.showUsernotes(
-                        mContext, submission.creator.name, submission.groupName,
-                        "l," + submission.id
+                        mContext, submission.user.name, submission.groupName,
+                        "l," + submission.postId
                     )
                 }
             }
@@ -1139,8 +1137,8 @@ class PopulateSubmissionViewHolder(private val postRepository: PostRepository,
         object : AsyncTask<Void?, Void?, Boolean>() {
             public override fun onPostExecute(b: Boolean) {
                 if (b) {
-                    SubmissionCache.removed.add(submission.permalink)
-                    SubmissionCache.approved.remove(submission.permalink)
+                    SubmissionCache.removed.add(submission.uri)
+                    SubmissionCache.approved.remove(submission.uri)
                     SubmissionCache.updateInfoSpannable(
                         submission, mContext,
                         submission.groupName
@@ -1194,8 +1192,8 @@ class PopulateSubmissionViewHolder(private val postRepository: PostRepository,
     ) {
         object : AsyncTask<Void?, Void?, Boolean>() {
             public override fun onPostExecute(b: Boolean) {
-                SubmissionCache.removed.add(submission.permalink)
-                SubmissionCache.approved.remove(submission.permalink)
+                SubmissionCache.removed.add(submission.uri)
+                SubmissionCache.approved.remove(submission.uri)
                 SubmissionCache.updateInfoSpannable(
                     submission, mContext,
                     submission.groupName
@@ -1713,8 +1711,8 @@ class PopulateSubmissionViewHolder(private val postRepository: PostRepository,
         object : AsyncTask<Void?, Void?, Boolean>() {
             public override fun onPostExecute(b: Boolean) {
                 if (b) {
-                    SubmissionCache.approved.add(submission.permalink)
-                    SubmissionCache.removed.remove(submission.permalink)
+                    SubmissionCache.approved.add(submission.uri)
+                    SubmissionCache.removed.remove(submission.uri)
                     SubmissionCache.updateInfoSpannable(
                         submission, mContext,
                         submission.groupName
@@ -1788,7 +1786,7 @@ class PopulateSubmissionViewHolder(private val postRepository: PostRepository,
         l.addView(time)
         AlertDialog.Builder(mContext)
             .setView(l)
-            .setTitle(mContext.getString(R.string.mod_ban_title, submission.creator.name))
+            .setTitle(mContext.getString(R.string.mod_ban_title, submission.user.name))
             .setCancelable(true)
             .setPositiveButton(R.string.mod_btn_ban
             ) { dialog: DialogInterface?, which: Int ->
@@ -1954,7 +1952,7 @@ class PopulateSubmissionViewHolder(private val postRepository: PostRepository,
 
         //Use this to offset the submission score
         var submissionScore = submission.score
-        val commentCount = submission.commentCount
+        val commentCount = submission.comments
         val more = LastComments.commentsSince(submission)
         holder.comments.text = String.format(
             Locale.getDefault(), "%d %s", commentCount,
@@ -2012,8 +2010,8 @@ class PopulateSubmissionViewHolder(private val postRepository: PostRepository,
                 ) Palette.getCurrentTintColor(mContext) else Palette.getWhiteTintColor()
                 BlendModeUtil.tintImageViewAsSrcAtop(downvotebutton, getTintColor)
                 downvotebutton.contentDescription = mContext.getString(R.string.btn_downvote)
-                if (submission.myVote != VoteDirection.UPVOTE) {
-                    if (submission.myVote == VoteDirection.DOWNVOTE) ++submissionScore
+                if (submission.myVote != SingleVote.UPVOTE) {
+                    if (submission.myVote == SingleVote.DOWNVOTE) ++submissionScore
                     ++submissionScore //offset the score by +1
                 }
             }
@@ -2032,8 +2030,8 @@ class PopulateSubmissionViewHolder(private val postRepository: PostRepository,
                 ) Palette.getCurrentTintColor(mContext) else Palette.getWhiteTintColor()
                 BlendModeUtil.tintImageViewAsSrcAtop(upvotebutton, getTintColor)
                 upvotebutton.contentDescription = mContext.getString(R.string.btn_upvote)
-                if (submission.myVote != VoteDirection.DOWNVOTE) {
-                    if (submission.myVote == VoteDirection.UPVOTE) --submissionScore
+                if (submission.myVote != SingleVote.DOWNVOTE) {
+                    if (submission.myVote == SingleVote.UPVOTE) --submissionScore
                     --submissionScore //offset the score by +1
                 }
             }
@@ -2157,7 +2155,7 @@ class PopulateSubmissionViewHolder(private val postRepository: PostRepository,
         doText(holder, submission, mContext, baseSub, full)
         if ((!full
                     && isSelftextEnabled(baseSub)
-                    && submission.url == null
+                    && submission.link == null
                     && !submission.body.isNullOrEmpty()
                     && !submission.isNsfw
                     && !submission.isSpoiler)
@@ -2214,7 +2212,7 @@ class PopulateSubmissionViewHolder(private val postRepository: PostRepository,
                     downvotebutton.setOnClickListener {
                         if (SettingValues.storeHistory && !full) {
                             if (!submission.isNsfw || SettingValues.storeNSFWHistory) {
-                                HasSeen.addSeen(submission.permalink)
+                                HasSeen.addSeen(submission.uri)
                                 if (mContext is MainActivity) {
                                     holder.title.setAlpha(0.54f)
                                     holder.body.setAlpha(0.54f)
@@ -2274,7 +2272,7 @@ class PopulateSubmissionViewHolder(private val postRepository: PostRepository,
                     upvotebutton.setOnClickListener {
                         if (SettingValues.storeHistory && !full) {
                             if (!submission.isNsfw || SettingValues.storeNSFWHistory) {
-                                HasSeen.addSeen(submission.permalink)
+                                HasSeen.addSeen(submission.uri)
                                 if (mContext is MainActivity) {
                                     holder.title.setAlpha(0.54f)
                                     holder.body.setAlpha(0.54f)
@@ -2337,7 +2335,7 @@ class PopulateSubmissionViewHolder(private val postRepository: PostRepository,
         val edit = holder.edit
         if (((Authentication.name != null
                     ) && (Authentication.name!!.lowercase()
-                    == submission.creator.name.lowercase()) && Authentication.didOnline)
+                    == submission.user.name.lowercase()) && Authentication.didOnline)
         ) {
             edit.visibility = View.VISIBLE
             edit.setOnClickListener(object : OnSingleClickListener() {
@@ -2383,7 +2381,7 @@ class PopulateSubmissionViewHolder(private val postRepository: PostRepository,
                             val b = BottomSheet.Builder(mContext).title(
                                 CompatUtil.fromHtml(submission.title)
                             )
-                            if (submission.url == null) {
+                            if (submission.link == null) {
                                 b.sheet(
                                     1, edit_drawable,
                                     mContext.getString(R.string.edit_selftext)
@@ -2609,20 +2607,20 @@ class PopulateSubmissionViewHolder(private val postRepository: PostRepository,
         var submissionScore = submission.score
         when (ActionStates.getVoteDirection(submission)) {
             VoteDirection.UPVOTE -> {
-                if (submission.myVote != VoteDirection.UPVOTE) {
-                    if (submission.myVote == VoteDirection.DOWNVOTE) ++submissionScore
+                if (submission.myVote != SingleVote.UPVOTE) {
+                    if (submission.myVote == SingleVote.DOWNVOTE) ++submissionScore
                     ++submissionScore //offset the score by +1
                 }
             }
 
             VoteDirection.DOWNVOTE -> {
-                if (submission.myVote != VoteDirection.DOWNVOTE) {
-                    if (submission.myVote == VoteDirection.UPVOTE) --submissionScore
+                if (submission.myVote != SingleVote.DOWNVOTE) {
+                    if (submission.myVote == SingleVote.UPVOTE) --submissionScore
                     --submissionScore //offset the score by +1
                 }
             }
 
-            VoteDirection.NO_VOTE -> if (submission.myVote == VoteDirection.UPVOTE && submission.creator.name
+            VoteDirection.NO_VOTE -> if (submission.myVote == SingleVote.UPVOTE && submission.user.name
                     .equals(Authentication.name, ignoreCase = true)
             ) {
                 submissionScore--
@@ -2701,7 +2699,7 @@ class PopulateSubmissionViewHolder(private val postRepository: PostRepository,
                     ) {
                         if (SettingValues.storeHistory && !full) {
                             if (!submission.isNsfw || SettingValues.storeNSFWHistory) {
-                                HasSeen.addSeen(submission.permalink)
+                                HasSeen.addSeen(submission.uri)
                                 if ((contextActivity is MainActivity
                                             || contextActivity is MultiredditOverview
                                             || contextActivity is SubredditView
@@ -2718,7 +2716,7 @@ class PopulateSubmissionViewHolder(private val postRepository: PostRepository,
                                     || ((base is HeaderImageLinkView
                                     && base.popped)))
                         ) {
-                            if ((!PostMatch.openExternal(submission.url!!)
+                            if ((!PostMatch.openExternal(submission.link!!)
                                         || type == ContentType.Type.VIDEO)
                             ) {
                                 when (type) {
@@ -2729,7 +2727,7 @@ class PopulateSubmissionViewHolder(private val postRepository: PostRepository,
                                             MediaView.SUBREDDIT,
                                             submission.groupName
                                         )
-                                        myIntent.putExtra(MediaView.EXTRA_URL, submission.url)
+                                        myIntent.putExtra(MediaView.EXTRA_URL, submission.link)
                                         myIntent.putExtra(
                                             ImageDownloadNotificationService.EXTRA_SUBMISSION_TITLE,
                                             submission.title
@@ -2740,7 +2738,7 @@ class PopulateSubmissionViewHolder(private val postRepository: PostRepository,
                                         )
                                         contextActivity.startActivity(myIntent)
                                     } else {
-                                        LinkUtil.openExternally(submission.url!!)
+                                        LinkUtil.openExternally(submission.link!!)
                                     }
 
                                     ContentType.Type.IMGUR, ContentType.Type.DEVIANTART, ContentType.Type.XKCD, ContentType.Type.IMAGE -> openImage(
@@ -2750,7 +2748,7 @@ class PopulateSubmissionViewHolder(private val postRepository: PostRepository,
 
                                     ContentType.Type.EMBEDDED -> if (SettingValues.video) {
                                         val data = CompatUtil.fromHtml(
-                                            submission.url!!
+                                            submission.link!!
                                         ).toString()
                                         run {
                                             val i: Intent = Intent(
@@ -2761,11 +2759,11 @@ class PopulateSubmissionViewHolder(private val postRepository: PostRepository,
                                             contextActivity.startActivity(i)
                                         }
                                     } else {
-                                        LinkUtil.openExternally(submission.url!!)
+                                        LinkUtil.openExternally(submission.link!!)
                                     }
 
                                     ContentType.Type.REDDIT -> openRedditContent(
-                                        submission.url,
+                                        submission.link,
                                         contextActivity
                                     )
 
@@ -2821,11 +2819,11 @@ class PopulateSubmissionViewHolder(private val postRepository: PostRepository,
                                             R.anim.fade_out
                                         )
                                     } else {
-                                        LinkUtil.openExternally(submission.url!!)
+                                        LinkUtil.openExternally(submission.link!!)
                                     }
 
                                     ContentType.Type.LINK -> LinkUtil.openUrl(
-                                        submission.url!!,
+                                        submission.link!!,
                                         Palette.getColor(submission.groupName),
                                         contextActivity, holder!!.bindingAdapterPosition,
                                         submission
@@ -2855,7 +2853,7 @@ class PopulateSubmissionViewHolder(private val postRepository: PostRepository,
                                             ImageDownloadNotificationService.EXTRA_SUBMISSION_TITLE,
                                             submission.title
                                         )
-                                        i.putExtra(Album.EXTRA_URL, submission.url)
+                                        i.putExtra(Album.EXTRA_URL, submission.link)
                                         PopulateBase.addAdaptorPosition(
                                             i, submission,
                                             holder!!.bindingAdapterPosition
@@ -2866,7 +2864,7 @@ class PopulateSubmissionViewHolder(private val postRepository: PostRepository,
                                             R.anim.fade_out
                                         )
                                     } else {
-                                        LinkUtil.openExternally(submission.url!!)
+                                        LinkUtil.openExternally(submission.link!!)
                                     }
 
                                     ContentType.Type.TUMBLR -> if (SettingValues.album) {
@@ -2884,7 +2882,7 @@ class PopulateSubmissionViewHolder(private val postRepository: PostRepository,
                                                 submission.groupName
                                             )
                                         }
-                                        i.putExtra(Album.EXTRA_URL, submission.url)
+                                        i.putExtra(Album.EXTRA_URL, submission.link)
                                         PopulateBase.addAdaptorPosition(
                                             i, submission,
                                             holder!!.bindingAdapterPosition
@@ -2895,7 +2893,7 @@ class PopulateSubmissionViewHolder(private val postRepository: PostRepository,
                                             R.anim.fade_out
                                         )
                                     } else {
-                                        LinkUtil.openExternally(submission.url!!)
+                                        LinkUtil.openExternally(submission.link!!)
                                     }
 
                                     ContentType.Type.VREDDIT_REDIRECT, ContentType.Type.GIF, ContentType.Type.VREDDIT_DIRECT -> openGif(
@@ -2905,11 +2903,11 @@ class PopulateSubmissionViewHolder(private val postRepository: PostRepository,
 
                                     ContentType.Type.NONE -> holder?.itemView?.performClick()
                                     ContentType.Type.VIDEO -> if (!LinkUtil.tryOpenWithVideoPlugin(
-                                            submission.url!!
+                                            submission.link!!
                                         )
                                     ) {
                                         LinkUtil.openUrl(
-                                            submission.url!!,
+                                            submission.link!!,
                                             Palette.getStatusBarColor(), contextActivity
                                         )
                                     }
@@ -2917,7 +2915,7 @@ class PopulateSubmissionViewHolder(private val postRepository: PostRepository,
                                     else -> {}
                                 }
                             } else {
-                                LinkUtil.openExternally(submission.url!!)
+                                LinkUtil.openExternally(submission.link!!)
                             }
                         }
                     } else {
@@ -2953,7 +2951,7 @@ class PopulateSubmissionViewHolder(private val postRepository: PostRepository,
                     submission.title
                 )
                 val previewUrl: String
-                val url = submission.url
+                val url = submission.link
                 if (((baseView != null
                             ) && baseView.lq
                             && SettingValues.loadImageLq
@@ -2972,10 +2970,10 @@ class PopulateSubmissionViewHolder(private val postRepository: PostRepository,
                 }
                 myIntent.putExtra(MediaView.EXTRA_URL, url)
                 PopulateBase.addAdaptorPosition(myIntent, submission, adapterPosition)
-                myIntent.putExtra(MediaView.EXTRA_SHARE_URL, submission.url)
+                myIntent.putExtra(MediaView.EXTRA_SHARE_URL, submission.link)
                 contextActivity.startActivity(myIntent)
             } else {
-                LinkUtil.openExternally(submission.url!!)
+                LinkUtil.openExternally(submission.link!!)
             }
         }
 
@@ -2992,7 +2990,7 @@ class PopulateSubmissionViewHolder(private val postRepository: PostRepository,
                     ImageDownloadNotificationService.EXTRA_SUBMISSION_TITLE,
                     submission.title
                 )
-                val t = AsyncLoadGif.getVideoType(submission.url!!)
+                val t = AsyncLoadGif.getVideoType(submission.link!!)
                 /*
                 if ((t.shouldLoadPreview()
                             && submission.dataNode.has("preview")
@@ -3046,7 +3044,7 @@ class PopulateSubmissionViewHolder(private val postRepository: PostRepository,
                 PopulateBase.addAdaptorPosition(myIntent, submission, adapterPosition)
                 contextActivity.startActivity(myIntent)
             } else {
-                LinkUtil.openExternally(submission.url!!)
+                LinkUtil.openExternally(submission.link!!)
             }
         }
     }
@@ -3058,7 +3056,7 @@ class PopulateSubmissionViewHolder(private val postRepository: PostRepository,
             withContext(Dispatchers.IO) {
                 postRepository.likePost(
                     (submission as LemmyPost).instance,
-                    PostId(submission.postId.id),
+                    PostId(submission.id),
                     direction
                 )
             }

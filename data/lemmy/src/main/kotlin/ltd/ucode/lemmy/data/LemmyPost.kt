@@ -6,26 +6,24 @@ import kotlinx.datetime.toInstant
 import ltd.ucode.lemmy.Markdown
 import ltd.ucode.lemmy.data.type.PostView
 import ltd.ucode.slide.ContentType
-import ltd.ucode.slide.data.IGroup
-import ltd.ucode.slide.data.IIdentifier
+import ltd.ucode.slide.SingleVote
 import ltd.ucode.slide.data.IPost
 import ltd.ucode.slide.data.IUser
 import net.dean.jraw.models.Submission.ThumbnailType
-import net.dean.jraw.models.VoteDirection
 import java.net.URL
 
 open class LemmyPost(val instance: String, val data: PostView) : IPost() {
-    override val id: String
-        get() = data.post.id.toString() // TODO: drop string repr
+    override val postId: Int
+        get() = data.post.id.id
 
-    override val postId: IIdentifier<IPost>
-        get() = data.post.id
+    override val id: Int
+        get() = data.post.id.id
 
     override val title: String
         get() = data.post.name
 
-    override val url: String?
-        get() = data.post.url
+    override val link: String
+        get() = data.post.url.orEmpty()
 
     override val body: String?
         get() = data.post.body
@@ -42,16 +40,13 @@ open class LemmyPost(val instance: String, val data: PostView) : IPost() {
 
     override val groupName: String
         get() = data.community.name
-    override val groupId: IIdentifier<IGroup>?
-        get() = data.community.id
+    override val groupId: Int
+        get() = data.community.id.id
 
-    override val link: String
-        get() = "https://${instance}/post/${data.post.id}"
-
-    override val permalink: String
+    override val uri: String
         get() = data.post.apId
 
-    override val thumbnail: String?
+    override val thumbnailUrl: String?
         get() = data.post.thumbnailUrl
 
     override val thumbnailType: ThumbnailType
@@ -59,7 +54,7 @@ open class LemmyPost(val instance: String, val data: PostView) : IPost() {
 
     override val contentType: ContentType.Type?
         get() = when { // ContentType.getContentType(String)?
-            url == null -> {
+            this.link == null -> {
                 if (body.isNullOrBlank()) ContentType.Type.NONE
                 else ContentType.Type.SELF
             }
@@ -96,7 +91,7 @@ open class LemmyPost(val instance: String, val data: PostView) : IPost() {
             }
         }
 
-    override val published: Instant
+    override val discovered: Instant
         get() = data.post.published.toInstant(TimeZone.UTC)
 
     override val updated: Instant?
@@ -111,23 +106,24 @@ open class LemmyPost(val instance: String, val data: PostView) : IPost() {
   //    }
   //    LemmyUser(instance, user.personView)
   //}
-    override val creator: IUser
+    override val user: IUser
       get() = LemmyUser(instance, data.creator)
 
     override val score: Int
         get() = data.counts.score
 
-    override val myVote: VoteDirection
-        get() = when (data.myVote?.let { it > 0 }) {
-            null -> { VoteDirection.NO_VOTE }
-            true -> { VoteDirection.UPVOTE }
-            false -> { VoteDirection.DOWNVOTE }
-        }
+    override val myVote: SingleVote
+        get() = SingleVote.of(data.myVote)
 
     override val upvoteRatio: Double
         get() = data.counts.run { upvotes.toDouble() / (upvotes + downvotes) }
 
-    override val commentCount: Int
+    override val upvotes: Int
+        get() = TODO("Not yet implemented")
+    override val downvotes: Int
+        get() = TODO("Not yet implemented")
+
+    override val comments: Int
         get() = data.counts.comments
 
     companion object {
@@ -137,8 +133,8 @@ open class LemmyPost(val instance: String, val data: PostView) : IPost() {
         if (other == null) return false
         if (other !is IPost) return false
         if (other !is LemmyPost) return false
-        return permalink == other.permalink
+        return uri == other.uri
     }
 
-    override fun hashCode(): Int = permalink.hashCode()
+    override fun hashCode(): Int = uri.hashCode()
 }

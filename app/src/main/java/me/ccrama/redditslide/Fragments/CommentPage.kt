@@ -41,7 +41,6 @@ import com.google.android.material.snackbar.Snackbar
 import com.rey.material.widget.Slider
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.datetime.TimeZone
-import kotlinx.datetime.UtcOffset
 import kotlinx.datetime.toInstant
 import ltd.ucode.reddit.data.RedditSubmission
 import ltd.ucode.slide.App
@@ -353,9 +352,9 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
                     replyView,
                     requireActivity().supportFragmentManager,
                     requireActivity(),
-                    if (adapter!!.submission!!.url == null) adapter!!.submission!!.body else null,
+                    if (adapter!!.submission!!.link == null) adapter!!.submission!!.body else null,
                     arrayOf(
-                        adapter!!.submission!!.creator.name
+                        adapter!!.submission!!.user.name
                     )
                 )
                 replyDialog.window!!
@@ -441,7 +440,7 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
                     var opCount = 0
                     var linkCount = 0
                     var awardCount = 0
-                    val op = adapter!!.submission!!.creator.name
+                    val op = adapter!!.submission!!.user.name
                     for (o in adapter!!.currentComments!!) {
                         if (o!!.comment != null && o !is MoreChildItem) {
                             if (o!!.comment!!.comment.isTopLevel) parentCount++
@@ -623,7 +622,7 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
                 run {
                     if (comments!!.comments != null && comments!!.submission != null) {
                         //DataShare.sharedComments = comments!!.comments!!
-                        DataShare.subAuthor = comments!!.submission!!.creator.name
+                        DataShare.subAuthor = comments!!.submission!!.user.name
                         val i = Intent(activity, CommentSearch::class.java)
                         if (activity is MainActivity) {
                             requireActivity().startActivityForResult(i, 423)
@@ -641,14 +640,14 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
             }
 
             R.id.related -> {
-                if (adapter!!.submission!!.url == null) {
+                if (adapter!!.submission!!.link == null) {
                     AlertDialog.Builder(requireActivity())
                         .setTitle("Selftext posts have no related submissions")
                         .setPositiveButton(R.string.btn_ok, null)
                         .show()
                 } else {
                     val i = Intent(activity, Related::class.java)
-                    i.putExtra(Related.EXTRA_URL, adapter!!.submission!!.url)
+                    i.putExtra(Related.EXTRA_URL, adapter!!.submission!!.link)
                     startActivity(i)
                 }
                 return true
@@ -731,7 +730,7 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
             R.id.content -> {
                 run {
                     if (adapter != null && adapter!!.submission != null) {
-                        if (!openExternal(adapter!!.submission!!.url!!)) {
+                        if (!openExternal(adapter!!.submission!!.link!!)) {
                             val type = adapter!!.submission!!.contentType
                             when (type) {
                                 ContentType.Type.STREAMABLE -> if (SettingValues.video) {
@@ -739,7 +738,7 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
                                     myIntent.putExtra(MediaView.SUBREDDIT, subreddit)
                                     myIntent.putExtra(
                                         MediaView.EXTRA_URL,
-                                        adapter!!.submission!!.url
+                                        adapter!!.submission!!.link
                                     )
                                     myIntent.putExtra(
                                         ImageDownloadNotificationService.EXTRA_SUBMISSION_TITLE,
@@ -747,7 +746,7 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
                                     )
                                     requireActivity().startActivity(myIntent)
                                 } else {
-                                    openExternally(adapter!!.submission!!.url!!)
+                                    openExternally(adapter!!.submission!!.link!!)
                                 }
 
                                 ContentType.Type.IMGUR, ContentType.Type.XKCD -> {
@@ -764,7 +763,7 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
                                     }
                                     i2.putExtra(
                                         MediaView.EXTRA_URL,
-                                        adapter!!.submission!!.url
+                                        adapter!!.submission!!.link
                                     )
                                     requireActivity().startActivity(i2)
                                 }
@@ -788,11 +787,11 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
                                  */
 
                                 ContentType.Type.REDDIT -> openRedditContent(
-                                    adapter!!.submission!!.url, activity
+                                    adapter!!.submission!!.link, activity
                                 )
 
                                 ContentType.Type.LINK -> openUrl(
-                                    adapter!!.submission!!.url!!,
+                                    adapter!!.submission!!.link!!,
                                     Palette.getColor(
                                         adapter!!.submission!!.groupName
                                     ),
@@ -832,14 +831,14 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
                                         i = Intent(activity, AlbumPager::class.java)
                                         i.putExtra(
                                             Album.EXTRA_URL,
-                                            adapter!!.submission!!.url
+                                            adapter!!.submission!!.link
                                         )
                                         i.putExtra(AlbumPager.SUBREDDIT, subreddit)
                                     } else {
                                         i = Intent(activity, Album::class.java)
                                         i.putExtra(
                                             Album.EXTRA_URL,
-                                            adapter!!.submission!!.url
+                                            adapter!!.submission!!.link
                                         )
                                         i.putExtra(Album.SUBREDDIT, subreddit)
                                     }
@@ -852,7 +851,7 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
                                         R.anim.slideright, R.anim.fade_out
                                     )
                                 } else {
-                                    openExternally(adapter!!.submission!!.url!!)
+                                    openExternally(adapter!!.submission!!.link!!)
                                 }
 
                                 ContentType.Type.TUMBLR -> if (SettingValues.image) {
@@ -864,7 +863,7 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
                                         )
                                         i.putExtra(
                                             Album.EXTRA_URL,
-                                            adapter!!.submission!!.url
+                                            adapter!!.submission!!.link
                                         )
                                         i.putExtra(TumblrPager.SUBREDDIT, subreddit)
                                     } else {
@@ -872,7 +871,7 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
                                         i.putExtra(Tumblr.SUBREDDIT, subreddit)
                                         i.putExtra(
                                             Album.EXTRA_URL,
-                                            adapter!!.submission!!.url
+                                            adapter!!.submission!!.link
                                         )
                                     }
                                     requireActivity().startActivity(i)
@@ -880,7 +879,7 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
                                         R.anim.slideright, R.anim.fade_out
                                     )
                                 } else {
-                                    openExternally(adapter!!.submission!!.url!!)
+                                    openExternally(adapter!!.submission!!.link!!)
                                 }
 
                                 ContentType.Type.IMAGE -> openImage(
@@ -894,11 +893,11 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
                                 )
 
                                 ContentType.Type.VIDEO -> if (!tryOpenWithVideoPlugin(
-                                        adapter!!.submission!!.url!!
+                                        adapter!!.submission!!.link!!
                                     )
                                 ) {
                                     openUrl(
-                                        adapter!!.submission!!.url!!,
+                                        adapter!!.submission!!.link!!,
                                         Palette.getStatusBarColor(), requireActivity()
                                     )
                                 }
@@ -906,7 +905,7 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
                                 else -> {}
                             }
                         } else {
-                            openExternally(adapter!!.submission!!.url!!)
+                            openExternally(adapter!!.submission!!.link!!)
                         }
                     }
                 }
@@ -1550,7 +1549,7 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
             } catch (e: IOException) {
                 e.printStackTrace()
             }
-            if (s?.comments != null) {
+            if (s?.commentNodes != null) {
                 doRefresh(false)
                 comments = SubmissionComments(fullname!!, this, mSwipeRefreshLayout!!, s)
                 if (adapter == null) {
@@ -1807,7 +1806,7 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
                          */
                         CommentNavType.OP -> matches =
                             adapter!!.submission != null && (o.comment!!.creator.name
-                                    == adapter!!.submission!!.creator.name)
+                                    == adapter!!.submission!!.user.name)
 
                         CommentNavType.YOU -> matches =
                             adapter!!.submission != null && (o.comment!!.creator.name
@@ -1899,7 +1898,7 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
 
                             CommentNavType.OP -> matches =
                                 adapter!!.submission != null && (o.comment!!.creator.name
-                                        == adapter!!.submission!!.creator.name)
+                                        == adapter!!.submission!!.user.name)
 
                             CommentNavType.YOU -> matches =
                                 adapter!!.submission != null && (o.comment!!.creator.name

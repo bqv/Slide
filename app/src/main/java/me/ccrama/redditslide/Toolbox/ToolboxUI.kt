@@ -249,16 +249,16 @@ object ToolboxUI {
         } else if (parameter is IPost) {
             val thing = parameter
             return reason.replace("{subreddit}", thing.groupName)
-                .replace("{author}", thing.creator.name)
+                .replace("{author}", thing.user.name)
                 .replace("{kind}", "submission")
                 .replace("{mod}", (Authentication.name)!!)
                 .replace("{title}", thing.title)
                 .replace(
                     "{url}", ("https://www.reddit.com"
-                            + thing.permalink)
+                            + thing.uri)
                 )
                 .replace("{domain}", thing.domain.orEmpty())
-                .replace("{link}", thing.url.orEmpty())
+                .replace("{link}", thing.link.orEmpty())
         } else {
             throw IllegalArgumentException("Must be passed a submission or comment!")
         }
@@ -521,10 +521,10 @@ object ToolboxUI {
                 // Log the removal
                 val s = logRemoval(
                     logSub, logTitle, ("https://www.reddit.com"
-                            + thing.permalink)
+                            + thing.uri)
                 )
                 if (s != null) {
-                    logResult = s.permalink
+                    logResult = s.uri
                 } else {
                     success = false
                 }
@@ -546,7 +546,7 @@ object ToolboxUI {
                 } else {
                     success = success and sendRemovalPM(
                         if (modmail) (thing as IPost).groupName else "",
-                        (thing as IPost).creator.name,
+                        (thing as IPost).user.name,
                         pmSubject.replace("{loglink}", (logResult)),
                         removalString
                     )
@@ -568,7 +568,7 @@ object ToolboxUI {
                     } else {
                         success = success and sendRemovalPM(
                             if (modmail) (thing as IPost).groupName else "",
-                            (thing as IPost).creator.name,
+                            (thing as IPost).user.name,
                             pmSubject.replace("{loglink}", (logResult)),
                             removalString
                         )

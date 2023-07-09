@@ -1,9 +1,9 @@
 package ltd.ucode.reddit.data
 
 import kotlinx.datetime.Instant
+import ltd.ucode.reddit.VoteDirectionExtensions.asSingleVote
 import ltd.ucode.slide.ContentType
-import ltd.ucode.slide.data.IGroup
-import ltd.ucode.slide.data.IIdentifier
+import ltd.ucode.slide.SingleVote
 import ltd.ucode.slide.data.IPost
 import ltd.ucode.slide.data.IUser
 import net.dean.jraw.models.CommentNode
@@ -11,16 +11,15 @@ import net.dean.jraw.models.Flair
 import net.dean.jraw.models.Submission
 import net.dean.jraw.models.Submission.ThumbnailType
 import net.dean.jraw.models.Thumbnails
-import net.dean.jraw.models.VoteDirection
 
 class RedditSubmission(val data: Submission) : IPost() {
-    override val id: String
-        get() = data.id
+    override val postId: Int
+        get() = data.id.hashCode() // lol
 
     override val title: String
         get() = data.title
 
-    override val url: String?
+    override val link: String
         get() = data.url
 
     override val body: String?
@@ -34,13 +33,10 @@ class RedditSubmission(val data: Submission) : IPost() {
 
     override val groupName: String
         get() = data.subredditName
-    override val groupId: IIdentifier<IGroup>?
+    override val groupId: Int
         get() = TODO("Not yet implemented")
 
-    override val link: String
-        get() = data.fullName // on reddit: Kind + UniqueId
-
-    override val permalink: String
+    override val uri: String
         get() = data.fullName // on reddit: Kind + UniqueId
 
     override val isArchived: Boolean
@@ -55,13 +51,13 @@ class RedditSubmission(val data: Submission) : IPost() {
     override val isNsfw: Boolean
         get() = data.isNsfw
 
-    override val published: Instant
+    override val discovered: Instant
         get() = data.created.time.let(Instant::fromEpochMilliseconds)
 
     override val updated: Instant?
         get() = data.edited?.time?.let(Instant::fromEpochMilliseconds)
 
-    override val comments: Iterable<CommentNode>
+    override val commentNodes: Iterable<CommentNode>
         get() = data.comments
 
     override val thumbnails: Thumbnails?
@@ -76,14 +72,14 @@ class RedditSubmission(val data: Submission) : IPost() {
     override val flair: Flair
         get() = data.submissionFlair
 
-    override val creator: IUser
+    override val user: IUser
         get() = RedditUser(data.author)
 
     override val score: Int
         get() = data.score
 
-    override val myVote: VoteDirection
-        get() = data.vote
+    override val myVote: SingleVote
+        get() = data.vote.asSingleVote()
 
     override val hasPreview: Boolean
         get() = data.dataNode.has("preview") &&
@@ -95,7 +91,13 @@ class RedditSubmission(val data: Submission) : IPost() {
     override val upvoteRatio: Double
         get() = data.upvoteRatio
 
-    override val commentCount: Int
+    override val upvotes: Int
+        get() = TODO("Not yet implemented")
+
+    override val downvotes: Int
+        get() = TODO("Not yet implemented")
+
+    override val comments: Int
         get() = data.commentCount
 
     companion object {

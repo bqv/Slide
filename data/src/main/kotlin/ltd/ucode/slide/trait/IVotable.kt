@@ -1,17 +1,38 @@
 package ltd.ucode.slide.trait
 
 import kotlinx.datetime.Instant
+import ltd.ucode.slide.SingleVote
 import ltd.ucode.slide.data.IUser
-import net.dean.jraw.models.VoteDirection
 
 interface IVotable {
     val link: String
-    val permalink: String
-    val published: Instant
+    val uri: String
+    val discovered: Instant
     val updated: Instant?
-    val creator: IUser
+    val user: IUser
     val score: Int
-    val myVote: VoteDirection
+        get() = upvotes - downvotes
+    val myVote: SingleVote
     val upvoteRatio: Double
+        get() = (100.0 * upvotes) / downvotes
+    val upvotes: Int
+    val downvotes: Int
     val isSaved: Boolean
 }
+
+/*
+ up votes = u
+ down votes = d
+
+ score = s = u - d
+ ratio = r = u / d
+
+ u = s + d = r * d
+ d = u - s = u / r
+
+ u = s + (u / r) =
+ u = r * (u - s) =
+
+ d = (r * d) - s =
+ d = (s + d) / r =
+*/

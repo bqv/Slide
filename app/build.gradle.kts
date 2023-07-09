@@ -5,6 +5,7 @@ plugins {
     id(libs.plugins.kotlin.serialization.get().pluginId)
     id(libs.plugins.kotlin.parcelize.get().pluginId)
     id(libs.plugins.hilt.get().pluginId)
+    alias(libs.plugins.ksp)
     alias(libs.plugins.androidGitVersion)
 }
 
@@ -141,7 +142,7 @@ dependencies {
     implementation("androidx.cardview:cardview:1.0.0")
     implementation(libs.androidx.core)
     implementation("androidx.fragment:fragment:1.6.0")
-    implementation("androidx.media:media:1.3.1")
+    implementation(libs.androidx.media)
     implementation(libs.androidx.recyclerview)
     implementation("androidx.webkit:webkit:1.4.0")
     implementation(libs.material)
@@ -159,6 +160,7 @@ dependencies {
     implementation("androidx.palette:palette-ktx:1.0.0")
     implementation("androidx.lifecycle:lifecycle-reactivestreams-ktx:2.6.1")
     implementation("androidx.room:room-ktx:2.5.1")
+    //ksp("androidx.room:room-compiler:2.5.1")
     kapt("androidx.room:room-compiler:2.5.1")
     implementation("androidx.sqlite:sqlite-ktx:2.3.1")
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.1")
@@ -189,6 +191,8 @@ dependencies {
     // Image loading, caching, and displaying
     //  TODO: Replace with Glide/Picasso
     implementation("com.github.nostra13:android-universal-image-loader:458df4da2e23ba9ad76c79241a948cdfcccf72ae")
+    implementation(libs.glide)
+    ksp(libs.glide.ksp)
 
     // Custom image view for photo galleries and large images
     //implementation("com.github.davemorrissey:subsampling-scale-image-view:173e421")
@@ -225,9 +229,6 @@ dependencies {
 
     // Library information
     implementation("com.mikepenz:aboutlibraries:6.2.3")
-
-    // Core Java libraries from Google
-    implementation("com.google.guava:guava:31.0.1-android")
 
     // Application restarting
     implementation("com.jakewharton:process-phoenix:2.1.2")
@@ -286,10 +287,14 @@ dependencies {
     androidTestImplementation(libs.kotlin.test)
     testImplementation(libs.kotlin.test)
 
+    testImplementation("org.hamcrest:hamcrest:2.2")
+    testImplementation("org.mockito:mockito-core:3.12.4")
+    testImplementation("org.powermock:powermock-module-junit4:2.0.9")
+
     androidTestImplementation(libs.junit)
     testImplementation(libs.junit)
 
-    androidTestImplementation(libs.roboelectric)
+    androidTestImplementation(libs.robolectric)
 
     // To use the androidx.test.core APIs
     androidTestImplementation(libs.androidx.test.core)

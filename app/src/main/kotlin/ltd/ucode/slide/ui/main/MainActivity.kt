@@ -164,7 +164,6 @@ import net.dean.jraw.ApiException
 import net.dean.jraw.http.MultiRedditUpdateRequest
 import net.dean.jraw.http.NetworkException
 import net.dean.jraw.managers.AccountManager
-import net.dean.jraw.managers.ModerationManager
 import net.dean.jraw.managers.MultiRedditManager
 import net.dean.jraw.models.FlairTemplate
 import net.dean.jraw.models.LoggedInAccount
@@ -174,7 +173,6 @@ import net.dean.jraw.models.UserRecord
 import net.dean.jraw.paginators.Sorting
 import net.dean.jraw.paginators.TimePeriod
 import net.dean.jraw.paginators.UserRecordPaginator
-import okhttp3.internal.wait
 import org.ligi.snackengage.SnackEngage
 import org.ligi.snackengage.conditions.AfterNumberOfOpportunities
 import org.ligi.snackengage.conditions.NeverAgainWhenClickedOnce
@@ -862,27 +860,27 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                                         version = version.substring(0, version.lastIndexOf("."))
                                     }
                                     if (s.isFeatured && !SettingValues.appRestart.contains(
-                                            "announcement" + s.permalink
+                                            "announcement" + s.uri
                                         )
                                         && s.title.contains(version)
                                     ) {
                                         SettingValues.appRestart.edit()
                                             .putBoolean(
-                                                "announcement" + s.permalink,
+                                                "announcement" + s.uri,
                                                 true
                                             )
                                             .apply()
                                         return s
                                     } else if ((BuildConfig.VERSION_NAME.contains("alpha")
                                                 && s.isFeatured) && !SettingValues.appRestart.contains(
-                                            "announcement" + s.permalink
+                                            "announcement" + s.uri
                                         )
                                         && s.title
                                             .contains(BuildConfig.VERSION_NAME)
                                     ) {
                                         SettingValues.appRestart.edit()
                                             .putBoolean(
-                                                "announcement" + s.permalink,
+                                                "announcement" + s.uri,
                                                 true
                                             )
                                             .apply()
@@ -907,7 +905,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                                 SettingValues.appRestart.edit()
                                     .putString("title", s.title)
                                     .apply()
-                                SettingValues.appRestart.edit().putString("url", s.url).apply()
+                                SettingValues.appRestart.edit().putString("url", s.link).apply()
                                 val title: String = if (s.title.lowercase().contains("release")) {
                                     getString(R.string.btn_changelog)
                                 } else {
@@ -4119,8 +4117,8 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             } else {
                 val f: Fragment = CommentPage()
                 val args = Bundle()
-                val name = openingComments!!.permalink
-                args.putString("id", openingComments!!.postId.id.toString())
+                val name = openingComments!!.uri
+                args.putString("id", openingComments!!.id.toString())
                 args.putBoolean("archived", openingComments!!.isArchived)
                 args.putBoolean("contest", openingComments!!.isContest)
                 args.putBoolean("locked", openingComments!!.isLocked)

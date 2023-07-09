@@ -157,7 +157,7 @@ class CommentsScreen : BaseActivityAnim(), SubmissionDisplay {
         if (intent.hasExtra(EXTRA_FULLNAME)) {
             val fullname = intent.getStringExtra(EXTRA_FULLNAME)
             for (i in currentPosts!!.indices) {
-                if (currentPosts!![i]!!.permalink == fullname) {
+                if (currentPosts!![i]!!.uri == fullname) {
                     if (i != firstPage) firstPage = i
                     break
                 }
@@ -226,8 +226,8 @@ class CommentsScreen : BaseActivityAnim(), SubmissionDisplay {
     }
 
     private fun updateSubredditAndSubmission(post: IPost?) {
-        subreddit = post!!.permalink
-        if (post.permalink == null) {
+        subreddit = post!!.uri
+        if (post.uri == null) {
             subreddit = "Promoted"
         }
         themeSystemBars(subreddit)
@@ -288,7 +288,7 @@ class CommentsScreen : BaseActivityAnim(), SubmissionDisplay {
                 i -= 1
                 val f: Fragment = CommentPage()
                 val args = Bundle()
-                val name = currentPosts!![i]!!.permalink
+                val name = currentPosts!![i]!!.uri
                 args.putString("id", name.substring(3))
                 args.putBoolean("archived", currentPosts!![i]!!.isArchived)
                 args.putBoolean("contest", currentPosts!![i]!!.isContest)

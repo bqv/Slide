@@ -90,15 +90,15 @@ object PostMatch {
     var filters: SharedPreferences? = null
     fun doesMatch(s: IPost, baseSubreddit: String?, ignore18: Boolean): Boolean {
         var baseSubreddit = baseSubreddit
-        if (Hidden.id.contains(s.permalink)) return true // if it's hidden we're not going to show it regardless
+        if (Hidden.id.contains(s.uri)) return true // if it's hidden we're not going to show it regardless
         val title = s.title
         val body = s.body
-        val domain = s.url
+        val domain = s.link
         val subreddit = s.groupName
         val flair = if (s.flair.text != null) s.flair.text else ""
         if (contains(title, titleFilters, false)) return true
         if (contains(body.orEmpty(), textFilters, false)) return true
-        if (contains(s.creator.name, userFilters, false)) return true
+        if (contains(s.user.name, userFilters, false)) return true
         try {
             if (isDomain(domain.orEmpty().lowercase(), domainFilters)) return true
         } catch (ignored: MalformedURLException) {
@@ -180,7 +180,7 @@ object PostMatch {
     fun doesMatch(s: IPost): Boolean {
         val title = s.title
         val body = s.body
-        val domain = s.url
+        val domain = s.link
         val subreddit = s.groupName
         var domainc = false
         val titlec = contains(title, titleFilters, false)

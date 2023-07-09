@@ -5,6 +5,9 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import ltd.ucode.slide.data.dao.SiteDao
 import ltd.ucode.slide.data.dao.UserDao
+import ltd.ucode.slide.data.entity.Account
+import ltd.ucode.slide.data.entity.CommentVote
+import ltd.ucode.slide.data.entity.PostVote
 import ltd.ucode.slide.data.entity.Site
 import ltd.ucode.slide.data.entity.Tagline
 import ltd.ucode.slide.data.entity.User
@@ -16,6 +19,11 @@ import ltd.ucode.slide.data.entity.User
         Tagline::class,
         User::class,
         User.Image::class,
+        Account::class,
+        PostVote::class,
+        CommentVote::class,
+        //Group::class,
+        //Group.Image::class,
         //Post::class,
         //Post.Image::class,
     ],

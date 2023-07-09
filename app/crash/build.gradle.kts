@@ -50,7 +50,7 @@ dependencies {
     implementation(libs.jwt)
 
     testImplementation(libs.junit)
-    testImplementation(libs.roboelectric)
+    testImplementation(libs.robolectric)
 
     androidTestImplementation(libs.androidx.test.junit)
     androidTestImplementation(libs.androidx.test.espresso)

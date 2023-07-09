@@ -13,7 +13,7 @@ import ltd.ucode.lemmy.data.id.PostId
 import ltd.ucode.lemmy.data.type.CommentListingType
 import ltd.ucode.lemmy.data.type.CommentSortType
 import ltd.ucode.lemmy.data.type.CommentView
-import ltd.ucode.lemmy.data.value.SingleVote
+import ltd.ucode.slide.SingleVote
 import javax.inject.Inject
 
 class CommentRepository @Inject constructor(

@@ -146,7 +146,7 @@ class SubredditPostsRealm : PostLoader {
                 val ids = arrayOfNulls<String>(submissions.size)
                 var i = 0
                 for (s in submissions) {
-                    ids[i] = s!!.id
+                    ids[i] = s!!.id.toString()
                     i++
                 }
 

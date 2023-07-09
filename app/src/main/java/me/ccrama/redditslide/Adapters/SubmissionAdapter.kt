@@ -87,7 +87,7 @@ class SubmissionAdapter(
         } else if (position == dataSet.posts.size && (dataSet.offline || dataSet.nomore)) {
             return NO_MORE.toLong()
         }
-        return dataSet.posts[position].published.toEpochMilliseconds()
+        return dataSet.posts[position].discovered.toEpochMilliseconds()
     }
 
     override fun undoSetError() {
@@ -191,7 +191,7 @@ class SubmissionAdapter(
             )
             holder.itemView.setOnClickListener(object : OnSingleClickListener() {
                 override fun onSingleClick(v: View) {
-                    if (Authentication.didOnline || submission.comments != null) {
+                    if (Authentication.didOnline || submission.commentNodes != null) {
                         holder.title.alpha = 0.54f
                         holder.body.alpha = 0.54f
                         if (context is MainActivity) {
@@ -227,8 +227,8 @@ class SubmissionAdapter(
                                     holder.getBindingAdapterPosition() - 1
                                 )
                                 i2.putExtra(CommentsScreen.EXTRA_SUBREDDIT, subreddit)
-                                i2.putExtra(CommentsScreen.EXTRA_FULLNAME, submission.permalink)
-                                i2.putExtra(CommentsScreen.EXTRA_POSTID, submission.postId.id)
+                                i2.putExtra(CommentsScreen.EXTRA_FULLNAME, submission.uri)
+                                i2.putExtra(CommentsScreen.EXTRA_POSTID, submission.id)
                                 context.startActivityForResult(i2, 940)
                                 clicked = holder.getBindingAdapterPosition()
                             }
@@ -257,8 +257,8 @@ class SubmissionAdapter(
                                     holder.getBindingAdapterPosition() - 1
                                 )
                                 i2.putExtra(CommentsScreen.EXTRA_SUBREDDIT, subreddit)
-                                i2.putExtra(CommentsScreen.EXTRA_FULLNAME, submission.permalink)
-                                i2.putExtra(CommentsScreen.EXTRA_POSTID, submission.postId.id)
+                                i2.putExtra(CommentsScreen.EXTRA_FULLNAME, submission.uri)
+                                i2.putExtra(CommentsScreen.EXTRA_POSTID, submission.id)
                                 i2.putParcelableArrayListExtra(
                                     CommentsScreen.EXTRA_POSTS,
                                     ArrayList(dataSet.posts.mapNotNull { it as Parcelable }))

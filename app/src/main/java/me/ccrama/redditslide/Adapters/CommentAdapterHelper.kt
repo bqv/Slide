@@ -1189,7 +1189,7 @@ object CommentAdapterHelper {
             )
         } else if ((submission != null) && (comment.creator.name
                 .lowercase()
-                    == submission.creator.name.lowercase()) && comment.creator.name != "[deleted]"
+                    == submission.user.name.lowercase()) && comment.creator.name != "[deleted]"
         ) {
             author.replace(0, author.length, " " + comment.creator.name + " ")
             author.setSpan(

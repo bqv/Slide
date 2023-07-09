@@ -24,6 +24,7 @@ import java.util.List;
 
 import gun0912.tedbottompicker.TedBottomPicker;
 import gun0912.tedbottompicker.TedRxBottomPicker;
+import gun0912.tedbottompicker.R;
 import io.reactivex.disposables.Disposable;
 
 public class MainActivity extends AppCompatActivity {

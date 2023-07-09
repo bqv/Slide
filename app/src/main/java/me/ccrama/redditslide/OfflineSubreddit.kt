@@ -4,7 +4,6 @@ import android.content.Context
 import android.os.Environment
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.ObjectReader
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import ltd.ucode.lemmy.data.LemmyPost
@@ -39,8 +38,8 @@ class OfflineSubreddit {
             val permalinks = StringBuilder()
             cache!![title] = this
             for (sub in ArrayList<IPost>(submissions)) {
-                permalinks.append(sub.permalink).append(",")
-                if (!isStored(sub.permalink, c)) {
+                permalinks.append(sub.uri).append(",")
+                if (!isStored(sub.uri, c)) {
                     //writeSubmissionToStorage(sub, Json.encodeToJsonElement(sub), c)
                 }
             }
@@ -59,7 +58,7 @@ class OfflineSubreddit {
             val title = subreddit!!.lowercase() + "," + if (base) 0 else time
             val permalinks = StringBuilder()
             for (sub in submissions!!) {
-                permalinks.append(sub.permalink).append(",")
+                permalinks.append(sub.uri).append(",")
             }
             if (permalinks.isNotEmpty()) {
                 App.cachedData!!.edit()
@@ -133,7 +132,7 @@ class OfflineSubreddit {
         if (submissions != null) {
             var toRemove: IPost? = null
             for (s2 in submissions!!) {
-                if (s.permalink == s2.permalink) {
+                if (s.uri == s2.uri) {
                     toRemove = s2
                 }
             }
@@ -198,7 +197,7 @@ class OfflineSubreddit {
         }
 
         fun writeSubmissionToStorage(s: IPost, comments: CommentStore, c: Context?) {
-            val toStore = File(getCacheDirectory(c).toString() + File.separator + s.permalink)
+            val toStore = File(getCacheDirectory(c).toString() + File.separator + s.uri)
             try {
                 val writer = FileWriter(toStore)
                 writer.append(Json.encodeToString(s))

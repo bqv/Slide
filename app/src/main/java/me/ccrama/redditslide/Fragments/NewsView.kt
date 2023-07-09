@@ -35,11 +35,11 @@ import ltd.ucode.slide.SettingValues.defaultCardView
 import ltd.ucode.slide.SettingValues.fabType
 import ltd.ucode.slide.SettingValues.single
 import ltd.ucode.slide.SettingValues.subredditSearchMethod
-import ltd.ucode.slide.ui.main.MainActivity
 import ltd.ucode.slide.data.IPost
 import ltd.ucode.slide.repository.CommentRepository
 import ltd.ucode.slide.repository.PostRepository
 import ltd.ucode.slide.ui.BaseActivity
+import ltd.ucode.slide.ui.main.MainActivity
 import me.ccrama.redditslide.Activities.Submit
 import me.ccrama.redditslide.Activities.SubredditView
 import me.ccrama.redditslide.Adapters.SubmissionDisplay
@@ -49,13 +49,13 @@ import me.ccrama.redditslide.Constants
 import me.ccrama.redditslide.HasSeen
 import me.ccrama.redditslide.Hidden
 import me.ccrama.redditslide.OfflineSubreddit
-import me.ccrama.redditslide.views.CatchStaggeredGridLayoutManager
-import me.ccrama.redditslide.views.CreateCardView
 import me.ccrama.redditslide.Visuals.ColorPreferences
 import me.ccrama.redditslide.Visuals.Palette
 import me.ccrama.redditslide.handler.ToolbarScrollHideHandler
 import me.ccrama.redditslide.submission
 import me.ccrama.redditslide.util.LayoutUtils
+import me.ccrama.redditslide.views.CatchStaggeredGridLayoutManager
+import me.ccrama.redditslide.views.CreateCardView
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -291,7 +291,7 @@ class NewsView : Fragment(), SubmissionDisplay {
             )
             for (i in adapter!!.dataSet.posts.size downTo -1 + 1) {
                 try {
-                    if (HasSeen.getSeen(adapter!!.dataSet.posts[i].submission)) {
+                    if (HasSeen.getSeen(adapter!!.dataSet.posts[i].submission!!)) {
                         if (forever) {
                             Hidden.setHidden(adapter!!.dataSet.posts[i])
                         }
@@ -409,7 +409,7 @@ class NewsView : Fragment(), SubmissionDisplay {
         if (adapter!!.dataSet.posts != null) {
             for (i in adapter!!.dataSet.posts.size downTo -1 + 1) {
                 try {
-                    if (HasSeen.getSeen(adapter!!.dataSet.posts[i].submission)) {
+                    if (HasSeen.getSeen(adapter!!.dataSet.posts[i].submission!!)) {
                         adapter!!.notifyItemChanged(i + 1)
                     }
                 } catch (e: IndexOutOfBoundsException) {
@@ -445,7 +445,7 @@ class NewsView : Fragment(), SubmissionDisplay {
                                     pastVisiblesItems = firstVisibleItem
                                     if (SettingValues.scrollSeen && pastVisiblesItems > 0 && SettingValues.storeHistory) {
                                         HasSeen.addSeenScrolling(
-                                            posts!!.posts[pastVisiblesItems - 1]!!.permalink
+                                            posts!!.posts[pastVisiblesItems - 1]!!.uri
                                         )
                                     }
                                 }

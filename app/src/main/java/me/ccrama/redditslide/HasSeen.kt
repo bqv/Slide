@@ -1,222 +1,190 @@
-package me.ccrama.redditslide;
+package me.ccrama.redditslide
 
-import android.database.Cursor;
-import android.net.Uri;
+import com.lusfold.androidkeyvaluestore.KVStore
+import com.lusfold.androidkeyvaluestore.core.KVManagerImpl
+import com.lusfold.androidkeyvaluestore.core.KVManger
+import com.lusfold.androidkeyvaluestore.utils.CursorUtils
+import ltd.ucode.slide.SingleVote
+import ltd.ucode.slide.data.IPost
+import me.ccrama.redditslide.OpenRedditLink.RedditLinkType
+import me.ccrama.redditslide.Synccit.SynccitRead
+import net.dean.jraw.models.Contribution
+import net.dean.jraw.models.Submission
+import net.dean.jraw.models.VoteDirection
 
-import com.lusfold.androidkeyvaluestore.KVStore;
-import com.lusfold.androidkeyvaluestore.core.KVManger;
-import com.lusfold.androidkeyvaluestore.utils.CursorUtils;
+object HasSeen {
+    var hasSeen: HashSet<String>? = null
+    var seenTimes: HashMap<String, Long>? = null
 
-import net.dean.jraw.models.Contribution;
-import net.dean.jraw.models.Submission;
-import net.dean.jraw.models.VoteDirection;
-
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-
-import ltd.ucode.slide.data.IPost;
-import me.ccrama.redditslide.Synccit.SynccitRead;
-
-import static com.lusfold.androidkeyvaluestore.core.KVManagerImpl.COLUMN_KEY;
-import static com.lusfold.androidkeyvaluestore.core.KVManagerImpl.TABLE_NAME;
-import static me.ccrama.redditslide.OpenRedditLink.formatRedditUrl;
-import static me.ccrama.redditslide.OpenRedditLink.getRedditLinkType;
-
-/**
- * Created by ccrama on 7/19/2015.
- */
-public class HasSeen {
-
-    public static HashSet<String> hasSeen;
-    public static HashMap<String, Long> seenTimes;
-
-    public static void setHasSeenContrib(List<Contribution> submissions) {
+    @JvmStatic fun setHasSeenContrib(submissions: List<Contribution?>) {
         if (hasSeen == null) {
-            hasSeen = new HashSet<>();
-            seenTimes = new HashMap<>();
+            hasSeen = HashSet()
+            seenTimes = HashMap()
         }
-        KVManger m = KVStore.getInstance();
-        for (Contribution s : submissions) {
-            if (s instanceof Submission) {
-                historyContains(s, m);
+        val m = KVStore.getInstance()
+        for (s in submissions) {
+            if (s is Submission) {
+                historyContains(s, m)
             }
         }
     }
 
-    public static void setHasSeenSubmission(List<Submission> submissions) {
+    @JvmStatic fun setHasSeenSubmission(submissions: List<Submission>) {
         if (hasSeen == null) {
-            hasSeen = new HashSet<>();
-            seenTimes = new HashMap<>();
+            hasSeen = HashSet()
+            seenTimes = HashMap()
         }
-        KVManger m = KVStore.getInstance();
-        for (Contribution s : submissions) {
-            historyContains(s, m);
+        val m = KVStore.getInstance()
+        for (s in submissions) {
+            historyContains(s, m)
         }
     }
 
-    private static void historyContains(Contribution s, KVManger m) {
-        String fullname = s.getFullName();
+    @JvmStatic private fun historyContains(s: Contribution, m: KVManger) {
+        var fullname = s.fullName
         if (fullname.contains("t3_")) {
-            fullname = fullname.substring(3);
+            fullname = fullname.substring(3)
         }
 
         // Check if KVStore has a key containing the fullname
         // This is necessary because the KVStore library is limited and Carlos didn't realize the performance impact
-        Cursor cur = m.execQuery("SELECT * FROM ? WHERE ? LIKE '%?%' LIMIT 1",
-                new String[]{TABLE_NAME, COLUMN_KEY, fullname});
-        boolean contains = cur != null && cur.getCount() > 0;
-        CursorUtils.closeCursorQuietly(cur);
-
+        val cur = m.execQuery("SELECT * FROM ? WHERE ? LIKE '%?%' LIMIT 1", arrayOf(KVManagerImpl.TABLE_NAME, KVManagerImpl.COLUMN_KEY, fullname))
+        val contains = cur != null && cur.count > 0
+        CursorUtils.closeCursorQuietly(cur)
         if (contains) {
-            hasSeen.add(fullname);
-            String value = m.get(fullname);
+            hasSeen!!.add(fullname)
+            val value = m[fullname]
             try {
-                if (value != null) seenTimes.put(fullname, Long.valueOf(value));
-            } catch (Exception ignored) {
+                if (value != null) seenTimes!![fullname] = java.lang.Long.valueOf(value)
+            } catch (ignored: Exception) {
             }
         }
     }
 
-    public static boolean getSeen(IPost s) {
+    @JvmStatic fun getSeen(s: IPost): Boolean {
         if (hasSeen == null) {
-            hasSeen = new HashSet<>();
-            seenTimes = new HashMap<>();
+            hasSeen = HashSet()
+            seenTimes = HashMap()
         }
-
-        String fullname = s.getPermalink();
+        var fullname = s.uri
         if (fullname.contains("t3_")) {
-            fullname = fullname.substring(3);
+            fullname = fullname.substring(3)
         }
-        return (hasSeen.contains(fullname)
-                || s.getMyVote() != VoteDirection.NO_VOTE);
+        return (hasSeen!!.contains(fullname)
+                || s.myVote != SingleVote.NOVOTE)
     }
 
-    public static boolean getSeen(Submission s) {
+    @JvmStatic fun getSeen(s: Submission): Boolean {
         if (hasSeen == null) {
-            hasSeen = new HashSet<>();
-            seenTimes = new HashMap<>();
+            hasSeen = HashSet()
+            seenTimes = HashMap()
         }
-
-        String fullname = s.getFullName();
+        var fullname = s.fullName
         if (fullname.contains("t3_")) {
-            fullname = fullname.substring(3);
+            fullname = fullname.substring(3)
         }
-        return (hasSeen.contains(fullname)
-                || SynccitRead.visitedIds.contains(fullname)
-                || s.getDataNode().has("visited") && s.getDataNode().get("visited").asBoolean()
-                || s.getVote() != VoteDirection.NO_VOTE);
+        return (hasSeen!!.contains(fullname)
+                || SynccitRead.visitedIds.contains(fullname)) || s.dataNode.has("visited")
+                && s.dataNode["visited"].asBoolean() || s.vote != VoteDirection.NO_VOTE
     }
 
-    public static boolean getSeen(String s) {
+    @JvmStatic fun getSeen(s: String): Boolean {
         if (hasSeen == null) {
-            hasSeen = new HashSet<>();
-            seenTimes = new HashMap<>();
+            hasSeen = HashSet()
+            seenTimes = HashMap()
         }
-
-        Uri uri = formatRedditUrl(s);
-        String fullname = s;
+        var uri = OpenRedditLink.formatRedditUrl(s)
+        var fullname = s
         if (uri != null) {
-            String host = uri.getHost();
-
-            if (host.startsWith("np")) {
-                uri = uri.buildUpon().authority(host.substring(2)).build();
+            val host = uri.host
+            if (host!!.startsWith("np")) {
+                uri = uri.buildUpon().authority(host.substring(2)).build()
             }
+            val type = OpenRedditLink.getRedditLinkType(uri!!)
+            val parts = uri.pathSegments
+            when (type) {
+                RedditLinkType.SHORTENED -> {
+                    fullname = parts[0]
+                }
 
-            OpenRedditLink.RedditLinkType type = getRedditLinkType(uri);
-            List<String> parts = uri.getPathSegments();
+                RedditLinkType.COMMENT_PERMALINK, RedditLinkType.SUBMISSION -> {
+                    fullname = parts[3]
+                }
 
-            switch (type) {
-                case SHORTENED: {
-                    fullname = parts.get(0);
-                    break;
+                RedditLinkType.SUBMISSION_WITHOUT_SUB -> {
+                    fullname = parts[1]
                 }
-                case COMMENT_PERMALINK:
-                case SUBMISSION: {
-                    fullname = parts.get(3);
-                    break;
-                }
-                case SUBMISSION_WITHOUT_SUB: {
-                    fullname = parts.get(1);
-                    break;
-                }
+
+                else -> {}
             }
         }
-
         if (fullname.contains("t3_")) {
-            fullname = fullname.substring(3);
+            fullname = fullname.substring(3)
         }
-        hasSeen.add(fullname);
-        return (hasSeen.contains(fullname) || SynccitRead.visitedIds.contains(fullname));
+        hasSeen!!.add(fullname)
+        return hasSeen!!.contains(fullname) || SynccitRead.visitedIds.contains(fullname)
     }
 
-    public static long getSeenTime(Submission s) {
+    @JvmStatic fun getSeenTime(s: Submission): Long {
         if (hasSeen == null) {
-            hasSeen = new HashSet<>();
-            seenTimes = new HashMap<>();
+            hasSeen = HashSet()
+            seenTimes = HashMap()
         }
-        String fullname = s.getFullName();
+        var fullname = s.fullName
         if (fullname.contains("t3_")) {
-            fullname = fullname.substring(3);
+            fullname = fullname.substring(3)
         }
-        if (seenTimes.containsKey(fullname)) {
-            return seenTimes.get(fullname);
+        return if (seenTimes!!.containsKey(fullname)) {
+            seenTimes!![fullname]!!
         } else {
             try {
-                return Long.parseLong(KVStore.getInstance().get(fullname));
-            } catch (NumberFormatException e) {
-                return 0;
+                KVStore.getInstance()[fullname].toLong()
+            } catch (e: NumberFormatException) {
+                0
             }
         }
     }
 
-    public static void addSeen(String fullname) {
+    @JvmStatic fun addSeen(fullname: String) {
+        var fullname = fullname
         if (hasSeen == null) {
-            hasSeen = new HashSet<>();
+            hasSeen = HashSet()
         }
         if (seenTimes == null) {
-            seenTimes = new HashMap<>();
+            seenTimes = HashMap()
         }
-
         if (fullname.contains("t3_")) {
-            fullname = fullname.substring(3);
+            fullname = fullname.substring(3)
         }
-
-        hasSeen.add(fullname);
-        seenTimes.put(fullname, System.currentTimeMillis());
-
-        long result =
-                KVStore.getInstance().insert(fullname, String.valueOf(System.currentTimeMillis()));
-        if (result == -1) {
-            KVStore.getInstance().update(fullname, String.valueOf(System.currentTimeMillis()));
+        hasSeen!!.add(fullname)
+        seenTimes!![fullname] = System.currentTimeMillis()
+        val result = KVStore.getInstance().insert(fullname, System.currentTimeMillis().toString())
+        if (result == -1L) {
+            KVStore.getInstance().update(fullname, System.currentTimeMillis().toString())
         }
-
         if (!fullname.contains("t1_")) {
-            SynccitRead.newVisited.add(fullname);
-            SynccitRead.visitedIds.add(fullname);
+            SynccitRead.newVisited.add(fullname)
+            SynccitRead.visitedIds.add(fullname)
         }
     }
 
-    public static void addSeenScrolling(String fullname) {
+    @JvmStatic fun addSeenScrolling(fullname: String) {
+        var fullname = fullname
         if (hasSeen == null) {
-            hasSeen = new HashSet<>();
+            hasSeen = HashSet()
         }
         if (seenTimes == null) {
-            seenTimes = new HashMap<>();
+            seenTimes = HashMap()
         }
-
         if (fullname.contains("t3_")) {
-            fullname = fullname.substring(3);
+            fullname = fullname.substring(3)
         }
-
-        hasSeen.add(fullname);
-        seenTimes.put(fullname, System.currentTimeMillis());
-
-        KVStore.getInstance().insert(fullname, String.valueOf(System.currentTimeMillis()));
-
+        hasSeen!!.add(fullname)
+        seenTimes!![fullname] = System.currentTimeMillis()
+        KVStore.getInstance().insert(fullname, System.currentTimeMillis().toString())
         if (!fullname.contains("t1_")) {
-            SynccitRead.newVisited.add(fullname);
-            SynccitRead.visitedIds.add(fullname);
+            SynccitRead.newVisited.add(fullname)
+            SynccitRead.visitedIds.add(fullname)
         }
     }
 }

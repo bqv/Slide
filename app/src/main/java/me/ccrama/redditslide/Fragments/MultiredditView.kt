@@ -262,7 +262,7 @@ class MultiredditView : Fragment(), SubmissionDisplay {
                         for (firstVisibleItem in firstVisibleItems) {
                             pastVisiblesItems = firstVisibleItem
                             if (SettingValues.scrollSeen && pastVisiblesItems > 0 && SettingValues.storeHistory) {
-                                HasSeen.addSeenScrolling(posts!!.posts[pastVisiblesItems - 1].permalink)
+                                HasSeen.addSeenScrolling(posts!!.posts[pastVisiblesItems - 1].uri)
                             }
                         }
                     }
@@ -300,7 +300,7 @@ class MultiredditView : Fragment(), SubmissionDisplay {
             )
             for (i in posts!!.posts.size downTo -1 + 1) {
                 try {
-                    if (HasSeen.getSeen(posts!!.posts[i].submission)) {
+                    if (HasSeen.getSeen(posts!!.posts[i].submission!!)) {
                         if (forever) {
                             Hidden.setHidden(posts!!.posts[i])
                         }

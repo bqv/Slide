@@ -3,9 +3,6 @@ package ltd.ucode.lemmy.api
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.github.oshai.kotlinlogging.Marker
-import io.github.oshai.kotlinlogging.coroutines.withLoggingContextAsync
-import io.github.oshai.kotlinlogging.withLoggingContext
 import kotlin.reflect.KFunction1
 import kotlinx.coroutines.delay
 import kotlinx.serialization.json.Json
@@ -17,7 +14,7 @@ import kotlinx.serialization.json.encodeToJsonElement
 import kotlinx.serialization.json.int
 import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonObject
-import ltd.ucode.Serializers
+import ltd.ucode.slide.Serializers
 import ltd.ucode.lemmy.api.request.CreateCommentLikeRequest
 import ltd.ucode.lemmy.api.request.CreatePostLikeRequest
 import ltd.ucode.lemmy.api.request.GetCommentsRequest

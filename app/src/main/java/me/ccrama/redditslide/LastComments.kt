@@ -14,7 +14,7 @@ object LastComments {
         val m = KVStore.getInstance()
         try {
             for (s in submissions) {
-                val fullname = s.permalink
+                val fullname = s.uri
 
                 // Check if KVStore has a key containing comments + the fullname
                 // This is necessary because the KVStore library is limited and Carlos didn't realize the performance impact
@@ -33,7 +33,7 @@ object LastComments {
     }
 
     fun commentsSince(s: IPost): Int {
-        return if (commentsSince != null && commentsSince!!.containsKey(s.permalink)) s.commentCount - commentsSince!![s.permalink]!! else 0
+        return if (commentsSince != null && commentsSince!!.containsKey(s.uri)) s.comments - commentsSince!![s.uri]!! else 0
     }
 
     @JvmStatic
@@ -41,7 +41,7 @@ object LastComments {
         if (commentsSince == null) {
             commentsSince = HashMap()
         }
-        KVStore.getInstance().insertOrUpdate("comments" + s.permalink, s.commentCount.toString())
-        commentsSince!![s.permalink] = s.commentCount
+        KVStore.getInstance().insertOrUpdate("comments" + s.uri, s.comments.toString())
+        commentsSince!![s.uri] = s.comments
     }
 }

@@ -2,45 +2,45 @@ package ltd.ucode.slide.data
 
 import kotlinx.datetime.Instant
 import ltd.ucode.slide.ContentType
+import ltd.ucode.slide.SingleVote
 import ltd.ucode.slide.trait.IVotable
 import net.dean.jraw.models.CommentNode
 import net.dean.jraw.models.DistinguishedStatus
 import net.dean.jraw.models.Flair
 import net.dean.jraw.models.Submission.ThumbnailType
 import net.dean.jraw.models.Thumbnails
-import net.dean.jraw.models.VoteDirection
 import java.net.URL
 import kotlin.io.path.Path
 import kotlin.io.path.extension
 
 abstract class IPost : IVotable {
 
-
-    abstract val id: String
+    abstract val postId: Int
     abstract val title: String
-    abstract val url: String?
+    abstract override val link: String
     abstract val body: String?
     abstract val bodyHtml: String?
     abstract val isLocked: Boolean
     abstract val isNsfw: Boolean
     abstract val groupName: String
-    abstract val groupId: IIdentifier<IGroup>?
-    abstract override val link: String
-    abstract override val permalink: String
-    abstract override val published: Instant
+    abstract val groupId: Int
+    abstract override val uri: String
+    abstract override val discovered: Instant
     abstract override val updated: Instant?
-    abstract override val creator: IUser
+    abstract override val user: IUser
     abstract override val score: Int
-    abstract override val myVote: VoteDirection
+    abstract override val myVote: SingleVote
     abstract override val upvoteRatio: Double
-    abstract val commentCount: Int
+    abstract override val upvotes: Int
+    abstract override val downvotes: Int
+    abstract val comments: Int
 
     val domain: String?
-        get() = url?.let { URL(it).host }
-    val extension: String?
-        get() = url?.let { Path(URL(it).path).extension }
-    open val postId: IIdentifier<IPost>
-        get() = TODO()
+        get() = link.let { URL(it).host }
+    val extension: String
+        get() = link.let { Path(URL(it).path).extension }
+    open val id: Int
+        get() = postId
     open val isArchived: Boolean
         get() = false // reddit-specific
     open val isContest: Boolean
@@ -71,16 +71,16 @@ abstract class IPost : IVotable {
         get() = emptyMap() // TODO: reddit-specific
     open val regalia: DistinguishedStatus
         get() = DistinguishedStatus.NORMAL // TODO: reddit-specific
-    open val comments: Iterable<CommentNode> // TODO: reddit-specific
+    open val commentNodes: Iterable<CommentNode> // TODO: reddit-specific
         get() = emptyList()
-    open val thumbnail: String? // TODO: reddit-specific
+    open val thumbnailUrl: String? // TODO: reddit-specific
         get() = null
     open val thumbnails: Thumbnails? // TODO: reddit-specific
         get() = null
     open val thumbnailType: ThumbnailType // TODO: reddit-specific
         get() = ThumbnailType.NONE
     open val contentType: ContentType.Type? // TODO: reddit-specific
-        get() = if (url != null) ContentType.Type.LINK else ContentType.Type.SELF
+        get() = if (link.isNotBlank()) ContentType.Type.LINK else ContentType.Type.SELF
     open val contentDescription: String // TODO: reddit-specific
         get() = ""
     open val flair: Flair // TODO: reddit-specific
@@ -89,9 +89,6 @@ abstract class IPost : IVotable {
         get() = false
     open val preview: String? // TODO: reddit-specific
         get() = null
-
-    private val uri: String // TODO: delete
-        get() = permalink
 
     override fun equals(other: Any?): Boolean {
         if (other == null) return false

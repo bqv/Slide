@@ -35,6 +35,7 @@ dependencies {
     // Third-party
     implementation(libs.glide)
     annotationProcessor(libs.glide.compiler)
+    //kapt(libs.glide.compiler)
     implementation(libs.tedonactivityresult)
     implementation(libs.rxjava)
 }

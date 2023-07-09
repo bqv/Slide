@@ -1,6 +1,7 @@
 plugins {
     id(libs.plugins.java.library.get().pluginId)
     id(libs.plugins.kotlin.jvm.get().pluginId)
+    id(libs.plugins.kotlin.serialization.get().pluginId)
 }
 
 java {

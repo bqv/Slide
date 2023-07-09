@@ -58,6 +58,8 @@ data class User(
         @ColumnInfo(name = "instance_rowid") val instanceRowId: Int, // imaged instance
         @ColumnInfo(name = "person_id") val personId: Int,
 
+        @ColumnInfo(name = "uri") val uri: String,
+
         @ColumnInfo(name = "is_admin") val isAdmin: Boolean = false,
         @ColumnInfo(name = "is_banned") val isBanned: Boolean = false,
         @ColumnInfo(name = "ban_expires") val banExpires: Instant? = null,

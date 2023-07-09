@@ -1,8 +1,9 @@
 package me.ccrama.redditslide
 
 import ltd.ucode.lemmy.data.type.CommentView
-import ltd.ucode.slide.trait.IVotable
+import ltd.ucode.reddit.VoteDirectionExtensions.asVoteDirection
 import ltd.ucode.slide.data.IPost
+import ltd.ucode.slide.trait.IVotable
 import net.dean.jraw.models.Comment
 import net.dean.jraw.models.PublicContribution
 import net.dean.jraw.models.VoteDirection
@@ -29,14 +30,14 @@ object ActionStates {
 
     @JvmStatic
     fun getVoteDirection(s: IVotable): VoteDirection {
-        return if (upVotedFullnames.contains(s.permalink)) {
+        return if (upVotedFullnames.contains(s.uri)) {
             VoteDirection.UPVOTE
-        } else if (downVotedFullnames.contains(s.permalink)) {
+        } else if (downVotedFullnames.contains(s.uri)) {
             VoteDirection.DOWNVOTE
-        } else if (unvotedFullnames.contains(s.permalink)) {
+        } else if (unvotedFullnames.contains(s.uri)) {
             VoteDirection.NO_VOTE
         } else {
-            s.myVote
+            s.myVote.asVoteDirection()
         }
     }
 
@@ -72,7 +73,7 @@ object ActionStates {
 
     @JvmStatic
     fun setVoteDirection(s: IVotable, direction: VoteDirection) {
-        val fullname = s.permalink
+        val fullname = s.uri
         upVotedFullnames.remove(fullname)
         downVotedFullnames.remove(fullname)
         unvotedFullnames.remove(fullname)
@@ -98,9 +99,9 @@ object ActionStates {
 
     @JvmStatic
     fun isSaved(s: IVotable): Boolean {
-        return if (savedFullnames.contains(s.permalink)) {
+        return if (savedFullnames.contains(s.uri)) {
             true
-        } else if (unSavedFullnames.contains(s.permalink)) {
+        } else if (unSavedFullnames.contains(s.uri)) {
             false
         } else {
             s.isSaved
@@ -130,7 +131,7 @@ object ActionStates {
     }
 
     fun setSaved(s: IPost, b: Boolean) {
-        val fullname: String = s.permalink
+        val fullname: String = s.uri
         savedFullnames.remove(fullname)
         if (b) {
             savedFullnames.add(fullname)

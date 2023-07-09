@@ -156,20 +156,20 @@ class CommentCacheAsync : AsyncTask<Any?, Any?, Any?> {
                 for (s in submissions) {
                     try {
                         val commentStore = getSubmission(
-                            id = s.postId as PostId,
+                            id = s.id as PostId,
                             limit = commentCount,
                             depth = commentDepth,
                             sort = CommentSortType.from(sortType)
                         )
                         OfflineSubreddit.writeSubmission(commentStore, s, context)
-                        newFullnames.add(s.permalink)
+                        newFullnames.add(s.uri)
                         if (!SettingValues.noImages) PhotoLoader.loadPhoto(context, s)
                         when (s.contentType) {
                             ContentType.Type.VREDDIT_DIRECT, ContentType.Type.VREDDIT_REDIRECT, ContentType.Type.GIF -> if (otherChoices[0]) {
                                 if (context is Activity) {
                                     (context as Activity).runOnUiThread {
                                         GifUtils.cacheSaveGif(
-                                            Uri.parse(GifUtils.AsyncLoadGif.formatUrl(s.url!!)),
+                                            Uri.parse(GifUtils.AsyncLoadGif.formatUrl(s.link!!)),
                                             context as Activity,
                                             s.groupName,
                                             null,

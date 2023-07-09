@@ -41,10 +41,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.TimeZone
-import kotlinx.datetime.UtcOffset
 import kotlinx.datetime.toInstant
 import ltd.ucode.lemmy.data.type.CommentView
-import ltd.ucode.lemmy.data.value.SingleVote
+import ltd.ucode.slide.SingleVote
 import ltd.ucode.slide.App
 import ltd.ucode.slide.Authentication
 import ltd.ucode.slide.Authentication.Companion.doVerify
@@ -173,7 +172,7 @@ class CommentAdapter(
             mPage.resetScroll(true)
         }
         if (mContext is BaseActivity) {
-            mContext.shareUrl = "https://reddit.com" + submission.permalink
+            mContext.shareUrl = "https://reddit.com" + submission.uri
         }
     }
 
@@ -245,18 +244,18 @@ class CommentAdapter(
                     && (!submission!!.isNsfw || SettingValues.storeNSFWHistory))
         ) {
             //lastSeen = HasSeen.getSeenTime(submission!!)
-            var fullname = submission!!.permalink
+            var fullname = submission!!.uri
             if (fullname.contains("t3_")) {
                 fullname = fullname.substring(3)
             }
-            HasSeen.seenTimes[fullname] = System.currentTimeMillis()
+            HasSeen.seenTimes!![fullname] = System.currentTimeMillis()
             KVStore.getInstance().insert(fullname, System.currentTimeMillis().toString())
         }
         if (submission != null) {
             if (SettingValues.storeHistory) {
                 if (submission!!.isNsfw && !SettingValues.storeNSFWHistory) {
                 } else {
-                    HasSeen.addSeen(submission!!.permalink)
+                    HasSeen.addSeen(submission!!.uri)
                 }
                 setComments(submission!!)
             }
@@ -575,7 +574,7 @@ class CommentAdapter(
                 override fun onSingleClick(v: View) {
                     if (baseNode.children.childrenIds.isEmpty()) {
                         val toGoTo = ("https://reddit.com"
-                                + submission!!.permalink
+                                + submission!!.uri
                                 + baseNode.comment!!.comment.id
                                 + "?context=0")
                         OpenRedditLink.openUrl(mContext, toGoTo, true)
@@ -618,9 +617,9 @@ class CommentAdapter(
                 submissionViewHolder.itemView,
                 fm,
                 mPage.requireActivity(),
-                if (submission!!.url.isNullOrBlank()) submission!!.body else null,
+                if (submission!!.link.isNullOrBlank()) submission!!.body else null,
                 arrayOf(
-                    submission!!.creator.name
+                    submission!!.user.name
                 )
             )
             currentlyEditing = submissionViewHolder.itemView.findViewById(R.id.replyLine)
@@ -927,7 +926,7 @@ class CommentAdapter(
         }
         if (mContext is BaseActivity) {
             (mContext as BaseActivity).shareUrl = ("https://reddit.com"
-                    + submission!!.permalink
+                    + submission!!.uri
                     + n!!.comment.id.id
                     + "?context=3")
         }
@@ -1540,7 +1539,7 @@ class CommentAdapter(
                     }
                     if (mContext is BaseActivity) {
                         (mContext as BaseActivity).shareUrl =
-                            "https://reddit.com" + submission!!.permalink
+                            "https://reddit.com" + submission!!.uri
                     }
                     setCommentStateUnhighlighted(holder, comment, baseNode, true)
                 }
@@ -1548,7 +1547,7 @@ class CommentAdapter(
                 .show()
         } else {
             if (mContext is BaseActivity) {
-                (mContext as BaseActivity).shareUrl = "https://freddit.com" + submission!!.permalink
+                (mContext as BaseActivity).shareUrl = "https://freddit.com" + submission!!.uri
             }
             currentlySelected = null
             currentSelectedItem = 0

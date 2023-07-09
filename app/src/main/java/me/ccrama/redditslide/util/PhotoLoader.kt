@@ -34,7 +34,7 @@ object PhotoLoader {
                         if (submission.hasPreview) { //Load the preview image which has probably already been cached in memory instead of the direct link
                             submission.preview!!
                         } else {
-                            submission.url!!
+                            submission.link!!
                         }
                     }
                 } else {

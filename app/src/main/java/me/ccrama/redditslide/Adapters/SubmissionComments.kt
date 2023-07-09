@@ -45,7 +45,7 @@ class SubmissionComments {
         page = commentPage
         online = NetworkUtil.isConnected(page.activity)
         refreshLayout = layout
-        if (s.comments != null) {
+        if (s.commentNodes != null) {
             submission = s
             /*
             val baseComment = s.comments
@@ -166,7 +166,7 @@ class SubmissionComments {
 
             val paginator = commentRepository.getComments(
                 AccountRepository.currentAccount,
-                communityId = submission?.groupId as CommunityId?,
+                communityId = submission?.groupId?.let(::CommunityId),
                 communityName = null,
                 parentId = context?.toInt()?.let(::CommentId),
                 postId = PostId(fullName.split("/").last().toInt()),

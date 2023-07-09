@@ -15,7 +15,7 @@ import ltd.ucode.lemmy.data.type.PersonAggregates
 import ltd.ucode.lemmy.data.type.PersonView
 import ltd.ucode.slide.data.IUser
 
-@Entity(tableName = "users", indices = [
+@Entity(tableName = "groups", indices = [
     Index(value = ["name"], unique = true)
 ], foreignKeys = [
     ForeignKey(entity = Site::class,
@@ -51,7 +51,7 @@ data class Group(
 ) : IUser() {
     @Ignore override lateinit var instance: Site
 
-    @Entity(tableName = "user_images")
+    @Entity(tableName = "group_images")
     data class Image(
         @PrimaryKey(autoGenerate = true) @ColumnInfo(name = "rowid") val id: Int = -1,
         @ColumnInfo(name = "user_rowid") val userRowId: Int,

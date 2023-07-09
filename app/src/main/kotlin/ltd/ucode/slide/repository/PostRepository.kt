@@ -15,7 +15,7 @@ import ltd.ucode.lemmy.data.id.PostId
 import ltd.ucode.lemmy.data.type.PostListingType
 import ltd.ucode.lemmy.data.type.PostSortType
 import ltd.ucode.lemmy.data.type.PostView
-import ltd.ucode.lemmy.data.value.SingleVote
+import ltd.ucode.slide.SingleVote
 import javax.inject.Inject
 
 class PostRepository @Inject constructor(

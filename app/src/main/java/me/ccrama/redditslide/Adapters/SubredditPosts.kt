@@ -151,7 +151,7 @@ class SubredditPosts @JvmOverloads constructor(
                 }
                 val ids = arrayOfNulls<String>(submissions.size)
                 for ((i, s) in submissions.withIndex()) {
-                    ids[i] = s!!.id
+                    ids[i] = s!!.id.toString()
                 }
 
                 // update online

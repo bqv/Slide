@@ -10,7 +10,7 @@ object Hidden {
         object : AsyncTask<Void?, Void?, Void?>() {
             override fun doInBackground(params: Array<Void?>): Void? {
                 try {
-                    id.add(s.permalink)
+                    id.add(s.uri)
                     //AccountManager(Authentication.reddit).hide(true, s as IPost)
                 } catch (e: Exception) {
                     e.printStackTrace()
@@ -25,7 +25,7 @@ object Hidden {
         object : AsyncTask<Void?, Void?, Void?>() {
             override fun doInBackground(params: Array<Void?>): Void? {
                 try {
-                    id.remove(s.permalink)
+                    id.remove(s.uri)
                     //AccountManager(Authentication.reddit).hide(false, s as IPost)
                 } catch (e: Exception) {
                     e.printStackTrace()

@@ -17,9 +17,9 @@ import net.dean.jraw.managers.AccountManager
 
 object PopulateBase {
     fun addAdaptorPosition(myIntent: Intent, submission: IPost, adapterPosition: Int) {
-        if (submission.comments == null && adapterPosition != -1) {
+        if (submission.commentNodes == null && adapterPosition != -1) {
             myIntent.putExtra(MediaView.ADAPTER_POSITION, adapterPosition)
-            myIntent.putExtra(MediaView.SUBMISSION_URL, submission.permalink)
+            myIntent.putExtra(MediaView.SUBMISSION_URL, submission.uri)
         }
         currentPosition(adapterPosition)
         currentSubmission(submission)
