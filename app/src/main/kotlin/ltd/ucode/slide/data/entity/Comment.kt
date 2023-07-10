@@ -10,110 +10,115 @@ import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toInstant
-import ltd.ucode.lemmy.data.type.PostAggregates
-import ltd.ucode.lemmy.data.type.PostView
+import ltd.ucode.lemmy.data.type.CommentAggregates
+import ltd.ucode.lemmy.data.type.CommentView
 import ltd.ucode.slide.SingleVote
-import ltd.ucode.slide.data.IPost
-import ltd.ucode.lemmy.data.type.Post as LemmyPost
+import ltd.ucode.slide.data.IComment
+import ltd.ucode.lemmy.data.type.Comment as LemmyComment
 
-@Entity(tableName = "posts", indices = [
+@Entity(tableName = "comment", indices = [
     Index(value = ["uri"], unique = true)
 ], foreignKeys = [
     ForeignKey(entity = Site::class,
         parentColumns = ["rowid"],
         childColumns = ["instance_rowid"])
 ])
-data class Post(
+data class Comment(
         @PrimaryKey(autoGenerate = true) @ColumnInfo(name = "rowid") override val rowId: Int = -1,
         @ColumnInfo(name = "instance_rowid") val instanceRowId: Int, // home instance
-        @ColumnInfo(name = "group_rowid") override val groupRowId: Int,
+        @ColumnInfo(name = "group_rowid") val groupRowId: Int,
+        @ColumnInfo(name = "post_rowid") val postRowId: Int,
         @ColumnInfo(name = "user_rowid") val userRowId: Int,
         @ColumnInfo(name = "language_rowid") val languageRowId: Int,
-        @ColumnInfo(name = "post_id") override val postId: Int, // home instance
+        @ColumnInfo(name = "comment_id") override val commentId: Int, // home instance
 
         @ColumnInfo(name = "uri") override val uri: String,
 
-        @ColumnInfo(name = "title") override val title: String = "",
-        @ColumnInfo(name = "link") override val link: String = "",
-        @ColumnInfo(name = "body") override val body: String = "",
-        @ColumnInfo(name = "thumbnail_url") override val thumbnailUrl: String = "",
+        @ColumnInfo(name = "content") override val content: String = "",
+        @ColumnInfo(name = "parent_id") override val parentId: Int? = null,
+        @ColumnInfo(name = "parent_rowid") override val parentRowId: Int? = null,
 
-        @ColumnInfo(name = "is_nsfw") override val isNsfw: Boolean = false,
-        @ColumnInfo(name = "is_locked") override val isLocked: Boolean = false,
-        @ColumnInfo(name = "is_deleted") val isDeleted: Boolean = false,
+        @ColumnInfo(name = "is_removed") override val isRemoved: Boolean = false,
+        @ColumnInfo(name = "is_deleted") override val isDeleted: Boolean = false,
+        @ColumnInfo(name = "is_distinguished") override val isDistinguished: Boolean = false,
 
         @ColumnInfo(name = "upvotes") override val upvotes: Int = 0, //     Isomorphic to (score,
         @ColumnInfo(name = "downvotes") override val downvotes: Int = 0, //  upvoteRatio) combo.
-        @ColumnInfo(name = "comments") override val comments: Int = 0,
+        @ColumnInfo(name = "child_count") val childCount: Int = 0,
 
         @ColumnInfo(name = "discovered") override val discovered: Instant = Clock.System.now(),
         @ColumnInfo(name = "updated") override val updated: Instant? = null,
-) : IPost() {
+) : IComment() {
     @Ignore lateinit var instance: Site
     @Ignore lateinit var group: Group
+    @Ignore lateinit var post: Post
     @Ignore override lateinit var user: User
     @Ignore lateinit var language: Language
 
+    @Ignore lateinit var parent: Comment
     @Ignore lateinit var votes: Map<out Account, out PostVote>
+    @Ignore lateinit var children: List<out Comment>
 
-    @Entity(tableName = "post_images")
+    @Entity(tableName = "comment_images")
     data class Image(
         @PrimaryKey(autoGenerate = true) @ColumnInfo(name = "rowid") val id: Int = -1,
         @ColumnInfo(name = "post_rowid") val postRowId: Int, // imaged post
         @ColumnInfo(name = "instance_rowid") val instanceRowId: Int,
         @ColumnInfo(name = "post_id") val postId: Int,
 
+        @ColumnInfo(name = "parent_id") val parentId: Int? = null,
+
         @ColumnInfo(name = "is_nsfw") val isNsfw: Boolean = false,
         @ColumnInfo(name = "is_locked") val isLocked: Boolean = false,
 
         @ColumnInfo(name = "upvotes") val upvotes: Int = 0, //     Isomorphic to (score,
         @ColumnInfo(name = "downvotes") val downvotes: Int = 0, //  upvoteRatio) combo.
-        @ColumnInfo(name = "comments") val comments: Int = 0,
+        @ColumnInfo(name = "child_count") val childCount: Int = 0,
 
         val discovered: Instant = Clock.System.now(),
         val updated: Instant? = null, // imaged instance
     )
 
     companion object {
-        fun from(other: PostView,
-                 instance: Site, group: Group, user: User, language: Language): Post {
-            return Post(
+        fun from(other: CommentView,
+                 instance: Site, group: Group, post: Post, user: User, language: Language): Comment {
+            return Comment(
                 instanceRowId = instance.rowId,
                 groupRowId = group.rowId,
+                postRowId = post.rowId,
                 userRowId = user.rowId,
                 languageRowId = language.rowId,
-                postId = other.post.id.id,
-                uri = other.post.apId)
-                .copy(other.post)
+                commentId = other.comment.id.id,
+                uri = other.comment.apId)
+                .copy(other.comment)
                 .copy(other.counts)
-                // TODO: also, a PostVote
+                // TODO: also, a CommentVote
         }
     }
 
-    fun copy(other: LemmyPost): Post {
+    fun copy(other: LemmyComment): Comment {
         return copy(
-            postId = other.id.id,
+            commentId = other.id.id,
 
             uri = other.apId,
 
-            title = other.name,
-            link = other.url.orEmpty(),
-            body = other.body.orEmpty(),
-            thumbnailUrl = other.thumbnailUrl.orEmpty(),
+            content = other.content,
+            parentId = other.pathIds.dropLast(1).last().id,
+            parentRowId = parentRowId ?: null,
 
-            isNsfw = other.isNsfw,
-            isLocked = other.isLocked,
+            isRemoved = other.isRemoved,
             isDeleted = other.isDeleted,
+            isDistinguished = other.isDistinguished,
 
             updated = other.updated?.toInstant(TimeZone.UTC),
         )
     }
 
-    fun copy(other: PostAggregates): Post {
+    fun copy(other: CommentAggregates): Comment {
         return copy(
             upvotes = other.upvotes,
             downvotes = other.downvotes,
-            comments = other.comments,
+            childCount = other.childCount,
         )
     }
 

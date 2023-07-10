@@ -1,6 +1,7 @@
 package ltd.ucode.slide.data
 
 import kotlinx.datetime.Instant
+import ltd.ucode.Markdown
 import ltd.ucode.slide.ContentType
 import ltd.ucode.slide.SingleVote
 import ltd.ucode.slide.trait.IVotable
@@ -17,13 +18,12 @@ abstract class IPost : IVotable {
 
     abstract val postId: Int
     abstract val title: String
-    abstract override val link: String
-    abstract val body: String?
-    abstract val bodyHtml: String?
+    abstract val link: String
+    abstract val body: String
     abstract val isLocked: Boolean
     abstract val isNsfw: Boolean
     abstract val groupName: String
-    abstract val groupId: Int
+    abstract val groupRowId: Int
     abstract override val uri: String
     abstract override val discovered: Instant
     abstract override val updated: Instant?
@@ -39,15 +39,19 @@ abstract class IPost : IVotable {
         get() = link.let { URL(it).host }
     val extension: String
         get() = link.let { Path(URL(it).path).extension }
-    open val id: Int
+    open val rowId: Int
         get() = postId
+    @delegate:Transient
+    open val bodyHtml: String by lazy {
+        Markdown.parseToHtml(body)
+    }
     open val isArchived: Boolean
         get() = false // reddit-specific
     open val isContest: Boolean
         get() = false // reddit-specific
     open val isHidden: Boolean
         get() = false // reddit-specific
-    override val isSaved: Boolean
+    open val isSaved: Boolean
         get() = false // reddit-specific
     open val isSpoiler: Boolean
         get() = false // TODO: hook up

@@ -156,7 +156,7 @@ class CommentCacheAsync : AsyncTask<Any?, Any?, Any?> {
                 for (s in submissions) {
                     try {
                         val commentStore = getSubmission(
-                            id = s.id as PostId,
+                            id = s.rowId as PostId,
                             limit = commentCount,
                             depth = commentDepth,
                             sort = CommentSortType.from(sortType)

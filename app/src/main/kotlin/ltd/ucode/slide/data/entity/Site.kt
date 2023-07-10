@@ -33,6 +33,7 @@ data class Site(
     val updated: Instant? = null,
 ) : ISite {
     @Ignore lateinit var _taglines: MutableList<Tagline>
+    @Ignore lateinit var admins: MutableList<out User>
     @Ignore var inaccessibleSince: Instant? = null
 
     override val taglines: List<String>

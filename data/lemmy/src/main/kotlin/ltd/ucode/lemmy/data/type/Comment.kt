@@ -3,7 +3,7 @@ package ltd.ucode.lemmy.data.type
 import kotlinx.datetime.LocalDateTime
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import ltd.ucode.lemmy.Markdown
+import ltd.ucode.Markdown
 import ltd.ucode.lemmy.data.id.CommentId
 import ltd.ucode.lemmy.data.id.LanguageId
 import ltd.ucode.lemmy.data.id.PersonId

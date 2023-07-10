@@ -5,7 +5,6 @@ import ltd.ucode.slide.SingleVote
 import ltd.ucode.slide.data.IUser
 
 interface IVotable {
-    val link: String
     val uri: String
     val discovered: Instant
     val updated: Instant?
@@ -17,7 +16,6 @@ interface IVotable {
         get() = (100.0 * upvotes) / downvotes
     val upvotes: Int
     val downvotes: Int
-    val isSaved: Boolean
 }
 
 /*

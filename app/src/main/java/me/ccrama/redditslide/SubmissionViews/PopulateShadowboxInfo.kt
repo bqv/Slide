@@ -875,7 +875,7 @@ object PopulateShadowboxInfo {
             withContext(Dispatchers.IO) {
                 postRepository.likePost(
                     (submission as LemmyPost).instance,
-                    PostId(submission.id),
+                    PostId(submission.rowId),
                     direction
                 )
             }

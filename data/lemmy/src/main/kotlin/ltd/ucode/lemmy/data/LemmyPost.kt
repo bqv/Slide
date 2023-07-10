@@ -3,7 +3,7 @@ package ltd.ucode.lemmy.data
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toInstant
-import ltd.ucode.lemmy.Markdown
+import ltd.ucode.Markdown
 import ltd.ucode.lemmy.data.type.PostView
 import ltd.ucode.slide.ContentType
 import ltd.ucode.slide.SingleVote
@@ -16,7 +16,7 @@ open class LemmyPost(val instance: String, val data: PostView) : IPost() {
     override val postId: Int
         get() = data.post.id.id
 
-    override val id: Int
+    override val rowId: Int
         get() = data.post.id.id
 
     override val title: String
@@ -25,10 +25,10 @@ open class LemmyPost(val instance: String, val data: PostView) : IPost() {
     override val link: String
         get() = data.post.url.orEmpty()
 
-    override val body: String?
-        get() = data.post.body
+    override val body: String
+        get() = data.post.body.orEmpty()
 
-    override val bodyHtml: String? by lazy {
+    override val bodyHtml: String by lazy {
         Markdown.parseToHtml(data.post.body)
     }
 
@@ -40,7 +40,7 @@ open class LemmyPost(val instance: String, val data: PostView) : IPost() {
 
     override val groupName: String
         get() = data.community.name
-    override val groupId: Int
+    override val groupRowId: Int
         get() = data.community.id.id
 
     override val uri: String

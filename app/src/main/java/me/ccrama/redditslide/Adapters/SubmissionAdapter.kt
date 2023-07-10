@@ -228,7 +228,7 @@ class SubmissionAdapter(
                                 )
                                 i2.putExtra(CommentsScreen.EXTRA_SUBREDDIT, subreddit)
                                 i2.putExtra(CommentsScreen.EXTRA_FULLNAME, submission.uri)
-                                i2.putExtra(CommentsScreen.EXTRA_POSTID, submission.id)
+                                i2.putExtra(CommentsScreen.EXTRA_POSTID, submission.rowId)
                                 context.startActivityForResult(i2, 940)
                                 clicked = holder.getBindingAdapterPosition()
                             }
@@ -258,7 +258,7 @@ class SubmissionAdapter(
                                 )
                                 i2.putExtra(CommentsScreen.EXTRA_SUBREDDIT, subreddit)
                                 i2.putExtra(CommentsScreen.EXTRA_FULLNAME, submission.uri)
-                                i2.putExtra(CommentsScreen.EXTRA_POSTID, submission.id)
+                                i2.putExtra(CommentsScreen.EXTRA_POSTID, submission.rowId)
                                 i2.putParcelableArrayListExtra(
                                     CommentsScreen.EXTRA_POSTS,
                                     ArrayList(dataSet.posts.mapNotNull { it as Parcelable }))

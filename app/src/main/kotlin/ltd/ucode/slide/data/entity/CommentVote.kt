@@ -16,7 +16,7 @@ import ltd.ucode.lemmy.data.type.PersonView
 import ltd.ucode.slide.data.IUser
 
 @Entity(tableName = "comment_votes", indices = [
-    Index(value = ["comment_rowid"], unique = true)
+    Index(value = ["comment_rowid"])
 ], foreignKeys = [
     ForeignKey(entity = Account::class,
         parentColumns = ["rowid"],

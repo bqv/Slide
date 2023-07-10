@@ -22,18 +22,18 @@ class RedditSubmission(val data: Submission) : IPost() {
     override val link: String
         get() = data.url
 
-    override val body: String?
+    override val body: String
         get() = data.selftext
 
-    override val bodyHtml: String?
-        get() = data.dataNode["body_html"]?.asText()
+    override val bodyHtml: String
+        get() = data.dataNode["body_html"]?.asText().orEmpty()
 
     override val isLocked: Boolean
         get() = data.isLocked
 
     override val groupName: String
         get() = data.subredditName
-    override val groupId: Int
+    override val groupRowId: Int
         get() = TODO("Not yet implemented")
 
     override val uri: String

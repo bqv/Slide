@@ -98,7 +98,7 @@ object ActionStates {
     }
 
     @JvmStatic
-    fun isSaved(s: IVotable): Boolean {
+    fun isSaved(s: IPost): Boolean {
         return if (savedFullnames.contains(s.uri)) {
             true
         } else if (unSavedFullnames.contains(s.uri)) {

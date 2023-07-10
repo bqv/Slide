@@ -110,7 +110,7 @@ class MultiredditPosts(multireddit: String, profile: String) : PostLoader {
                 )!!.overwriteSubmissions(posts).writeToMemory(c)
                 val ids = arrayOfNulls<String>(submissions.size)
                 for ((i, s) in submissions.withIndex()) {
-                    ids[i] = s!!.id.toString()
+                    ids[i] = s!!.rowId.toString()
                 }
                 if (!SettingValues.synccitName!!.isEmpty() && !offline) {
                     MySynccitReadTask().execute(*ids)

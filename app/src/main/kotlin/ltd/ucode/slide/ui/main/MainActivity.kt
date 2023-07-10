@@ -859,9 +859,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                                     if (version.length > 5 && version.contains(".")) {
                                         version = version.substring(0, version.lastIndexOf("."))
                                     }
-                                    if (s.isFeatured && !SettingValues.appRestart.contains(
-                                            "announcement" + s.uri
-                                        )
+                                    if (s.isFeatured && !SettingValues.appRestart.contains("announcement" + s.uri)
                                         && s.title.contains(version)
                                     ) {
                                         SettingValues.appRestart.edit()
@@ -872,9 +870,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                                             .apply()
                                         return s
                                     } else if ((BuildConfig.VERSION_NAME.contains("alpha")
-                                                && s.isFeatured) && !SettingValues.appRestart.contains(
-                                            "announcement" + s.uri
-                                        )
+                                                && s.isFeatured) && !SettingValues.appRestart.contains("announcement" + s.uri)
                                         && s.title
                                             .contains(BuildConfig.VERSION_NAME)
                                     ) {
@@ -4118,7 +4114,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                 val f: Fragment = CommentPage()
                 val args = Bundle()
                 val name = openingComments!!.uri
-                args.putString("id", openingComments!!.id.toString())
+                args.putString("id", openingComments!!.rowId.toString())
                 args.putBoolean("archived", openingComments!!.isArchived)
                 args.putBoolean("contest", openingComments!!.isContest)
                 args.putBoolean("locked", openingComments!!.isLocked)
