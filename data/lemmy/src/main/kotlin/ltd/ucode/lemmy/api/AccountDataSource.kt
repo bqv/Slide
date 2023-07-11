@@ -5,12 +5,14 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import ltd.ucode.lemmy.api.request.Authenticated
 import ltd.ucode.lemmy.api.request.CreateCommentLikeRequest
 import ltd.ucode.lemmy.api.request.CreatePostLikeRequest
+import ltd.ucode.lemmy.api.request.GetCommunityRequest
 import ltd.ucode.lemmy.api.request.GetPostsRequest
 import ltd.ucode.lemmy.api.request.GetSiteRequest
 import ltd.ucode.lemmy.api.request.GetUnreadCountRequest
 import ltd.ucode.lemmy.api.request.LoginRequest
 import ltd.ucode.lemmy.api.request.UploadImageRequest
 import ltd.ucode.lemmy.api.response.CommentResponse
+import ltd.ucode.lemmy.api.response.GetCommunityResponse
 import ltd.ucode.lemmy.api.response.GetPostsResponse
 import ltd.ucode.lemmy.api.response.GetSiteResponse
 import ltd.ucode.lemmy.api.response.GetUnreadCountResponse
@@ -56,6 +58,9 @@ class AccountDataSource : InstanceDataSource {
     }
 
     private lateinit var jwt: Token
+
+    override suspend fun getCommunity(request: GetCommunityRequest): ApiResult<GetCommunityResponse> =
+        super.getCommunity(authenticated(request))
 
     override suspend fun getPosts(request: GetPostsRequest): ApiResult<GetPostsResponse> =
         super.getPosts(authenticated(request))

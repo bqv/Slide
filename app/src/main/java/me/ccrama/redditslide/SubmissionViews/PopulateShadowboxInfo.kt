@@ -116,7 +116,7 @@ object PopulateShadowboxInfo {
             titleString.append(subreddit)
             titleString.append(distingush)
             titleString.append(spacer)
-            titleString.append(TimeUtils.getTimeAgo(s.discovered.toEpochMilliseconds(), c))
+            titleString.append(TimeUtils.getTimeAgo(s.created.toEpochMilliseconds(), c))
             desc.text = titleString
             (rootView.findViewById<View>(R.id.comments) as TextView).text =
                 String.format(Locale.getDefault(), "%d", s.comments)

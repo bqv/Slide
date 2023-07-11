@@ -21,7 +21,7 @@ import javax.inject.Named
 private typealias Domain = String
 private typealias Username = String
 
-class InstanceRepository @Inject constructor(
+class NetworkRepository @Inject constructor(
     @ApplicationContext val context: Context,
     val okHttpClient: OkHttpClient,
     @Named("userAgent") val userAgent: String,
@@ -72,7 +72,7 @@ class InstanceRepository @Inject constructor(
                     ?: HashMap<Username?, InstanceDataSource>()
                         .also { store[domain] = it }
                 return instanceStore[username] as AccountDataSource?
-                    ?: this@InstanceRepository.connect(key)
+                    ?: this@NetworkRepository.connect(key)
                         .also { instanceStore[username] = it }
             }
         }

@@ -88,7 +88,7 @@ class SubmissionNewsAdapter(
         } else if (position == dataSet.posts.size && (dataSet.offline || dataSet.nomore)) {
             return NO_MORE.toLong()
         }
-        return dataSet.posts[position].discovered.toEpochMilliseconds()
+        return dataSet.posts[position].created.toEpochMilliseconds()
     }
 
     override fun undoSetError() {

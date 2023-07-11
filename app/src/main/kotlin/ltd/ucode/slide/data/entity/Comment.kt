@@ -16,7 +16,7 @@ import ltd.ucode.slide.SingleVote
 import ltd.ucode.slide.data.IComment
 import ltd.ucode.lemmy.data.type.Comment as LemmyComment
 
-@Entity(tableName = "comment", indices = [
+@Entity(tableName = "comments", indices = [
     Index(value = ["uri"], unique = true)
 ], foreignKeys = [
     ForeignKey(entity = Site::class,
@@ -47,9 +47,10 @@ data class Comment(
         @ColumnInfo(name = "child_count") val childCount: Int = 0,
 
         @ColumnInfo(name = "discovered") override val discovered: Instant = Clock.System.now(),
+        @ColumnInfo(name = "created") override val created: Instant = Instant.DISTANT_PAST,
         @ColumnInfo(name = "updated") override val updated: Instant? = null,
 ) : IComment() {
-    @Ignore lateinit var instance: Site
+    @Ignore lateinit var site: Site
     @Ignore lateinit var group: Group
     @Ignore lateinit var post: Post
     @Ignore override lateinit var user: User
@@ -81,9 +82,9 @@ data class Comment(
 
     companion object {
         fun from(other: CommentView,
-                 instance: Site, group: Group, post: Post, user: User, language: Language): Comment {
+                 site: Site, group: Group, post: Post, user: User, language: Language): Comment {
             return Comment(
-                instanceRowId = instance.rowId,
+                instanceRowId = site.rowId,
                 groupRowId = group.rowId,
                 postRowId = post.rowId,
                 userRowId = user.rowId,

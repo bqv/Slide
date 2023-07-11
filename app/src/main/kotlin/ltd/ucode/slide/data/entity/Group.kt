@@ -52,9 +52,10 @@ data class Group(
     @ColumnInfo(name = "activity_semiannual") override val activitySemiannual: Int = 0,
 
     val discovered: Instant = Clock.System.now(),
+    val created: Instant = Instant.DISTANT_PAST,
     val updated: Instant? = null, // home instance
 ) : IGroup() {
-    @Ignore override lateinit var instance: Site
+    @Ignore override lateinit var site: Site
     @Ignore override lateinit var mods: MutableList<out User>
     @Ignore lateinit var subscriptions: MutableList<out GroupSubscription>
 
@@ -83,14 +84,21 @@ data class Group(
     )
 
     companion object {
-        fun from(other: CommunityView, instance: Site): Group {
+        fun from(other: CommunityView, site: Site): Group {
             return Group(name = other.community.name,
-                instanceRowId = instance.rowId,
+                instanceRowId = site.rowId,
                 groupId = other.community.id.id,
                 uri = other.community.actorId)
-                .copy(other.community)
-                .copy(other.counts)
+                .copy(other)
         }
+    }
+
+    fun copy(other: CommunityView): Group {
+        return copy(
+            name = other.community.name,
+            groupId = other.community.id.id,
+            uri = other.community.actorId
+        )
     }
 
     fun copy(other: Community): Group {
@@ -110,6 +118,7 @@ data class Group(
             isDeleted = other.isDeleted,
             isRemoved = other.isRemoved,
 
+            created = other.published.toInstant(TimeZone.UTC),
             updated = other.updated?.toInstant(TimeZone.UTC),
         )
     }

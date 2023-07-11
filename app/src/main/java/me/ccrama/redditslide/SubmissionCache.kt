@@ -192,7 +192,7 @@ object SubmissionCache {
         titleString.append(subreddit)
         titleString.append(spacer)
         try {
-            val time = TimeUtils.getTimeAgo(submission.discovered.toEpochMilliseconds(), mContext)
+            val time = TimeUtils.getTimeAgo(submission.created.toEpochMilliseconds(), mContext)
             titleString.append(time)
         } catch (e: Exception) {
             titleString.append("just now")

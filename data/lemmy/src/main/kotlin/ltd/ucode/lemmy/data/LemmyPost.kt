@@ -92,6 +92,9 @@ open class LemmyPost(val instance: String, val data: PostView) : IPost() {
         }
 
     override val discovered: Instant
+        get() = TODO("Not yet implemented")
+
+    override val created: Instant
         get() = data.post.published.toInstant(TimeZone.UTC)
 
     override val updated: Instant?

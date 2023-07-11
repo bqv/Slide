@@ -22,10 +22,10 @@ abstract class IUser {
     abstract val postCount: Int
     abstract val postScore: Int
 
-    abstract val instance: ISite
+    abstract val site: ISite
 
     val fullName: String
         get() = "$name@$domain"
     val domain: String
-        get() = instance.name
+        get() = site.name
 }

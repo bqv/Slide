@@ -7,6 +7,7 @@ import ltd.ucode.slide.data.IUser
 interface IVotable {
     val uri: String
     val discovered: Instant
+    val created: Instant
     val updated: Instant?
     val user: IUser
     val score: Int

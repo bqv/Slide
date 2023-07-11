@@ -26,6 +26,7 @@ abstract class IPost : IVotable {
     abstract val groupRowId: Int
     abstract override val uri: String
     abstract override val discovered: Instant
+    abstract override val created: Instant
     abstract override val updated: Instant?
     abstract override val user: IUser
     abstract override val score: Int
@@ -41,8 +42,7 @@ abstract class IPost : IVotable {
         get() = link.let { Path(URL(it).path).extension }
     open val rowId: Int
         get() = postId
-    @delegate:Transient
-    open val bodyHtml: String by lazy {
+    @delegate:Transient open val bodyHtml: String by lazy {
         Markdown.parseToHtml(body)
     }
     open val isArchived: Boolean

@@ -47,9 +47,10 @@ data class Post(
         @ColumnInfo(name = "comments") override val comments: Int = 0,
 
         @ColumnInfo(name = "discovered") override val discovered: Instant = Clock.System.now(),
+        @ColumnInfo(name = "created") override val created: Instant = Instant.DISTANT_PAST,
         @ColumnInfo(name = "updated") override val updated: Instant? = null,
 ) : IPost() {
-    @Ignore lateinit var instance: Site
+    @Ignore lateinit var site: Site
     @Ignore lateinit var group: Group
     @Ignore override lateinit var user: User
     @Ignore lateinit var language: Language
@@ -76,9 +77,9 @@ data class Post(
 
     companion object {
         fun from(other: PostView,
-                 instance: Site, group: Group, user: User, language: Language): Post {
+                 site: Site, group: Group, user: User, language: Language): Post {
             return Post(
-                instanceRowId = instance.rowId,
+                instanceRowId = site.rowId,
                 groupRowId = group.rowId,
                 userRowId = user.rowId,
                 languageRowId = language.rowId,
@@ -105,6 +106,7 @@ data class Post(
             isLocked = other.isLocked,
             isDeleted = other.isDeleted,
 
+            created = other.published.toInstant(TimeZone.UTC),
             updated = other.updated?.toInstant(TimeZone.UTC),
         )
     }

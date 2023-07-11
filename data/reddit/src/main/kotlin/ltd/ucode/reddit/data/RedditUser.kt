@@ -33,6 +33,6 @@ class RedditUser(override val name: String) : IUser() {
         get() = TODO("Not yet implemented")
     override val postScore: Int
         get() = TODO("Not yet implemented")
-    override val instance: ISite
+    override val site: ISite
         get() = TODO("Not yet implemented")
 }

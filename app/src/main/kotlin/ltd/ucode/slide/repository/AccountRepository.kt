@@ -7,10 +7,12 @@ import androidx.security.crypto.MasterKey
 import dagger.hilt.android.qualifiers.ApplicationContext
 import ltd.ucode.lemmy.data.type.jwt.Token
 import ltd.ucode.slide.Authentication
+import ltd.ucode.slide.data.ContentDatabase
 import javax.inject.Inject
 
 class AccountRepository @Inject constructor(
-    @ApplicationContext val context: Context,
+        @ApplicationContext val context: Context,
+        private val contentDatabase: ContentDatabase,
 ) {
     private val tokenStore: SharedPreferences by lazy {
         val mainKey = MasterKey.Builder(context)

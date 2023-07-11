@@ -9,5 +9,5 @@ data class UserJoin(
     @Embedded val user: User,
 ) {
     @Relation(parentColumn = "instance_rowid", entityColumn = "rowid")
-    lateinit var instance: Site
+    lateinit var site: Site
 }

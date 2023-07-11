@@ -2,17 +2,25 @@ package ltd.ucode.slide.repository
 
 import android.content.Context
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.runBlocking
 import ltd.ucode.lemmy.api.ApiResult
 import ltd.ucode.lemmy.api.request.GetPersonDetailsRequest
 import ltd.ucode.lemmy.api.response.GetPersonDetailsResponse
 import ltd.ucode.lemmy.data.id.CommunityId
 import ltd.ucode.lemmy.data.id.PersonId
 import ltd.ucode.lemmy.data.type.PostSortType
+import ltd.ucode.slide.data.ContentDatabase
+import ltd.ucode.slide.data.entity.Site
+import ltd.ucode.slide.data.entity.User
 import javax.inject.Inject
+import kotlin.concurrent.thread
 
 class UserRepository @Inject constructor(
     @ApplicationContext private val context: Context,
-    private val instanceRepository: InstanceRepository,
+    private val contentDatabase: ContentDatabase,
+    private val networkRepository: NetworkRepository,
 ) {
     suspend fun getPersonDetails(instance: String?,
                                  communityId: CommunityId? = null,
@@ -23,7 +31,7 @@ class UserRepository @Inject constructor(
                                  sort: PostSortType? = null,
                                  username: String? = null
     ): ApiResult<GetPersonDetailsResponse> {
-        return instanceRepository[instance].getPersonDetails(
+        return networkRepository[instance].getPersonDetails(
             GetPersonDetailsRequest(
                 communityId = communityId,
                 limit = limit,
@@ -34,5 +42,28 @@ class UserRepository @Inject constructor(
                 username = username
             )
         )
+    }
+
+    fun getUserBySiteId(personId: PersonId, site: Site): Flow<User> {
+        thread {
+            runBlocking(Dispatchers.IO) {
+                val response = networkRepository[site.name]
+                        .getPersonDetails(GetPersonDetailsRequest())
+                response.onSuccess {
+                    val user = when (val user = contentDatabase.users.get(personId.id, site.rowId).singleOrNull()) {
+                        null -> {
+                            User.from(it.personView, site).also { contentDatabase.users.add(it) }
+                        }
+                        else -> {
+                            user.copy(it.personView).also { contentDatabase.users.update(it) }
+                        }
+                    }
+
+                    user
+                }.success
+            }
+        }
+
+        return contentDatabase.users.flow(personId.id, site.rowId)
     }
 }

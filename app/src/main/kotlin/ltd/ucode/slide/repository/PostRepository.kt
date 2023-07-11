@@ -16,11 +16,13 @@ import ltd.ucode.lemmy.data.type.PostListingType
 import ltd.ucode.lemmy.data.type.PostSortType
 import ltd.ucode.lemmy.data.type.PostView
 import ltd.ucode.slide.SingleVote
+import ltd.ucode.slide.data.ContentDatabase
 import javax.inject.Inject
 
 class PostRepository @Inject constructor(
     @ApplicationContext private val context: Context,
-    private val instanceRepository: InstanceRepository,
+    private val contentDatabase: ContentDatabase,
+    private val networkRepository: NetworkRepository,
 ) {
     fun getPosts(instance: String?,
                  communityId: CommunityId? = null,
@@ -32,7 +34,7 @@ class PostRepository @Inject constructor(
                  type: PostListingType? = null
     ): PagedData<PostView> {
         return PagedData(fromPage ?: 1) { page: Int -> {
-            instanceRepository[instance].getPosts(
+            networkRepository[instance].getPosts(
                 GetPostsRequest(
                     communityId = communityId,
                     communityName = communityName,
@@ -50,9 +52,9 @@ class PostRepository @Inject constructor(
 
     suspend fun getPost(instance: String?,
                         id: PostId? = null,
-                        commentId: CommentId? = null
+                        commentId: CommentId? = null,
     ): ApiResult<GetPostResponse> {
-        return instanceRepository[instance].getPost(
+        return networkRepository[instance].getPost(
             GetPostRequest(
                 id = id,
                 commentId = commentId
@@ -64,7 +66,7 @@ class PostRepository @Inject constructor(
                          id: PostId,
                          score: SingleVote,
     ): ApiResult<PostResponse> {
-        return instanceRepository[instance].likePost(
+        return networkRepository[instance].likePost(
             CreatePostLikeRequest(
                 postId = id,
                 score = score

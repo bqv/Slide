@@ -8,6 +8,8 @@ sealed interface ApiResult<T> {
         fun <R> cast(): Failed<R> = Failed(instance, exception)
     }
 
+    // Monads?!
+
     val successOrNull: T?
         get() {
             return when (this) {
@@ -62,7 +64,14 @@ sealed interface ApiResult<T> {
         return this
     }
 
-    suspend fun or(block: suspend ApiResult<T>.() -> ApiResult<T>): ApiResult<T> {
+    fun coalesce(block: Failed<T>.() -> T): T {
+        return when (this) {
+            is Failed -> { block(this) }
+            is Success -> { this.data }
+        }
+    }
+
+    suspend fun or(block: suspend Failed<T>.() -> ApiResult<T>): ApiResult<T> {
         return when (this) {
             is Failed -> { block(this) }
             is Success -> { this }

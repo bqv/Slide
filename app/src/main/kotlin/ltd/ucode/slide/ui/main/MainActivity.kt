@@ -99,7 +99,7 @@ import ltd.ucode.slide.SettingValues
 import ltd.ucode.slide.data.IPost
 import ltd.ucode.slide.repository.AccountRepository
 import ltd.ucode.slide.repository.CommentRepository
-import ltd.ucode.slide.repository.InstanceRepository
+import ltd.ucode.slide.repository.NetworkRepository
 import ltd.ucode.slide.repository.PostRepository
 import ltd.ucode.slide.ui.BaseActivity
 import ltd.ucode.slide.ui.Slide
@@ -198,7 +198,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
     @Inject
     lateinit var accountRepository: AccountRepository
     @Inject
-    lateinit var instanceRepository: InstanceRepository
+    lateinit var networkRepository: NetworkRepository
 
     val ANIMATE_DURATION: Long = 250 //duration of animations
     private val ANIMATE_DURATION_OFFSET: Long = 45 //offset for smoothing out the exit animations
@@ -1045,7 +1045,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                     .cancelable(false)
                     .also { it.show() }
             }, {
-                instanceRepository.connect(Authentication.name!!)
+                networkRepository.connect(Authentication.name!!)
             }, { _ ->
                 dismissProgressDialog()
             })

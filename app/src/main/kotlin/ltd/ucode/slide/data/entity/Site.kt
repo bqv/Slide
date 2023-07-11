@@ -9,7 +9,14 @@ import info.the_federation.graphql.generated.getlemmyserversquery.thefederation_
 import info.the_federation.graphql.generated.getlemmyserversquery.thefederation_stat
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toInstant
+import ltd.ucode.lemmy.api.response.GetSiteResponse
+import ltd.ucode.lemmy.data.type.LocalSite
+import ltd.ucode.lemmy.data.type.SiteAggregates
+import ltd.ucode.lemmy.data.type.SiteView
 import ltd.ucode.slide.data.ISite
+import ltd.ucode.lemmy.data.type.Site as LemmySite
 
 @Entity(tableName = "sites", indices = [
     Index(value = ["name"], unique = true)
@@ -20,6 +27,7 @@ data class Site(
     @ColumnInfo(collate = ColumnInfo.NOCASE) override val software: String? = null,
     override val version: String? = null,
 
+    @ColumnInfo(name = "instance_id") val instanceId: Int? = null,
     @ColumnInfo(name = "country_code",
         collate = ColumnInfo.NOCASE) override val countryCode: String? = null,
     @ColumnInfo(name = "local_posts") override val localPosts: Int? = 0,
@@ -28,9 +36,12 @@ data class Site(
     @ColumnInfo(name = "users_semiannual") override val usersHalfYear: Int? = 0,
     @ColumnInfo(name = "users_monthly") override val usersMonthly: Int? = 0,
     @ColumnInfo(name = "users_weekly") override val usersWeekly: Int? = 0,
+    @ColumnInfo(name = "users_daily") val usersDaily: Int? = 0,
 
     val discovered: Instant = Clock.System.now(),
+    val created: Instant = Instant.DISTANT_PAST,
     val updated: Instant? = null,
+    val refreshed: Instant = Instant.DISTANT_PAST,
 ) : ISite {
     @Ignore lateinit var _taglines: MutableList<Tagline>
     @Ignore lateinit var admins: MutableList<out User>
@@ -53,10 +64,63 @@ data class Site(
     )
 
     companion object {
+        fun from(other: GetSiteResponse): Site {
+            return Site(name = other.domain)
+                .copy(other)
+        }
+
         fun from(other: thefederation_node): Site {
             return Site(name = other.name)
                 .copy(other)
         }
+    }
+
+    fun copy(other: GetSiteResponse): Site {
+        return copy(version = other.version)
+            .copy(other.siteView)
+    }
+
+    fun copy(other: SiteView): Site {
+        return copy(
+        )
+            .copy(other.site)
+            .copy(other.localSite)
+            .copy(other.counts)
+    }
+
+    fun copy(other: LemmySite): Site {
+        return copy(
+            instanceId = other.instanceId.id,
+            created = other.published.toInstant(TimeZone.UTC)
+                .coerceAtLeast(created),
+            updated = other.updated?.toInstant(TimeZone.UTC)
+                ?.let { (updated ?: Instant.DISTANT_PAST).coerceAtLeast(it) }
+                ?: updated,
+            refreshed = other.lastRefreshedAt.toInstant(TimeZone.UTC)
+                .coerceAtLeast(refreshed),
+        )
+    }
+
+    fun copy(other: LocalSite): Site {
+        return copy(
+            created = other.published.toInstant(TimeZone.UTC)
+                .coerceAtLeast(created),
+            updated = other.updated?.toInstant(TimeZone.UTC)
+                ?.let { (updated ?: Instant.DISTANT_PAST).coerceAtLeast(it) }
+                ?: updated,
+        )
+    }
+
+    fun copy(other: SiteAggregates): Site {
+        return copy(
+            localPosts = other.posts,
+            localComments = other.comments,
+            usersTotal = other.users,
+            usersDaily = other.usersActiveDay,
+            usersWeekly = other.usersActiveWeek,
+            usersMonthly = other.usersActiveMonth,
+            usersHalfYear = other.usersActiveHalfYear,
+        )
     }
 
     fun copy(other: thefederation_node): Site {

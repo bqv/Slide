@@ -162,6 +162,7 @@ dependencies {
     implementation("androidx.room:room-ktx:2.5.1")
     //ksp("androidx.room:room-compiler:2.5.1")
     kapt("androidx.room:room-compiler:2.5.1")
+    implementation("androidx.room:room-paging:2.5.1")
     implementation("androidx.sqlite:sqlite-ktx:2.3.1")
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.1")
     implementation("androidx.work:work-runtime-ktx:2.8.1")

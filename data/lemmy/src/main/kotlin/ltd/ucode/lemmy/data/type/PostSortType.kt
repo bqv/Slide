@@ -12,11 +12,18 @@ enum class PostSortType {
     New,
     NewComments,
     Old,
-    TopAll,
+    TopHour,
+    TopSixHour,
+    TopTwelveHour,
     TopDay,
-    TopMonth,
     TopWeek,
-    TopYear;
+    TopMonth,
+    TopThreeMonths,
+    TopSixMonths,
+    TopNineMonths,
+    TopYear,
+    TopAll,
+    ;
 
     companion object {
         fun from(

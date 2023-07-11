@@ -18,6 +18,7 @@ import ltd.ucode.slide.Serializers
 import ltd.ucode.lemmy.api.request.CreateCommentLikeRequest
 import ltd.ucode.lemmy.api.request.CreatePostLikeRequest
 import ltd.ucode.lemmy.api.request.GetCommentsRequest
+import ltd.ucode.lemmy.api.request.GetCommunityRequest
 import ltd.ucode.lemmy.api.request.GetFederatedInstancesRequest
 import ltd.ucode.lemmy.api.request.GetPersonDetailsRequest
 import ltd.ucode.lemmy.api.request.GetPostRequest
@@ -29,6 +30,7 @@ import ltd.ucode.lemmy.api.request.LoginRequest
 import ltd.ucode.lemmy.api.request.UploadImageRequest
 import ltd.ucode.lemmy.api.response.CommentResponse
 import ltd.ucode.lemmy.api.response.GetCommentsResponse
+import ltd.ucode.lemmy.api.response.GetCommunityResponse
 import ltd.ucode.lemmy.api.response.GetFederatedInstancesResponse
 import ltd.ucode.lemmy.api.response.GetPersonDetailsResponse
 import ltd.ucode.lemmy.api.response.GetPostResponse
@@ -201,8 +203,8 @@ open class InstanceDataSource (
     open suspend fun getComments(request: GetCommentsRequest): ApiResult<GetCommentsResponse> =
         retryOnError { api.getComments(request.toForm()) }
 
-    //open suspend fun getCommunity(request: GetCommunityRequest): ApiResult<GetCommunityResponse> =
-    //    retryOnError { api.getCommunity(request.toForm()) }
+    open suspend fun getCommunity(request: GetCommunityRequest): ApiResult<GetCommunityResponse> =
+        retryOnError { api.getCommunity(request.toForm()) }
 
     open suspend fun getFederatedInstances(request: GetFederatedInstancesRequest = GetFederatedInstancesRequest()): ApiResult<GetFederatedInstancesResponse> =
         retryOnError { api.getFederatedInstances(request.toForm()) }

@@ -19,5 +19,5 @@ data class PostAggregates (
     val score: Int,
     val upvotes: Int,
     @SerialName("hot_rank") val hotRank: Int = Int.MAX_VALUE, // ADDED in 0.17.4
-    @SerialName("hot_rank_active") val hotRankActive: Int = Int.MAX_VALUE, // ADDED in 0.17.4
+    @SerialName("hot_rank_active") val activeRank: Int = Int.MAX_VALUE, // ADDED in 0.17.4
 )

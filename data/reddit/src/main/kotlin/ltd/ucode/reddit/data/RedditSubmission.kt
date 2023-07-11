@@ -52,6 +52,9 @@ class RedditSubmission(val data: Submission) : IPost() {
         get() = data.isNsfw
 
     override val discovered: Instant
+        get() = TODO("Not yet implemented")
+
+    override val created: Instant
         get() = data.created.time.let(Instant::fromEpochMilliseconds)
 
     override val updated: Instant?

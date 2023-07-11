@@ -14,11 +14,13 @@ import ltd.ucode.lemmy.data.type.CommentListingType
 import ltd.ucode.lemmy.data.type.CommentSortType
 import ltd.ucode.lemmy.data.type.CommentView
 import ltd.ucode.slide.SingleVote
+import ltd.ucode.slide.data.ContentDatabase
 import javax.inject.Inject
 
 class CommentRepository @Inject constructor(
     @ApplicationContext private val context: Context,
-    private val instanceRepository: InstanceRepository,
+    private val contentDatabase: ContentDatabase,
+    private val networkRepository: NetworkRepository,
 ) {
     fun getComments(instance: String?,
                     communityId: CommunityId? = null,
@@ -33,7 +35,7 @@ class CommentRepository @Inject constructor(
                     type: CommentListingType? = null
     ): PagedData<CommentView> {
         return PagedData(fromPage ?: 1) { page: Int -> {
-            instanceRepository[instance].getComments(
+            networkRepository[instance].getComments(
                 GetCommentsRequest(
                     communityId = communityId,
                     communityName = communityName,
@@ -56,7 +58,7 @@ class CommentRepository @Inject constructor(
                             id: CommentId,
                             score: SingleVote,
     ): ApiResult<CommentResponse> {
-        return instanceRepository[instance].likeComment(
+        return networkRepository[instance].likeComment(
             CreateCommentLikeRequest(
                 commentId = id,
                 score = score

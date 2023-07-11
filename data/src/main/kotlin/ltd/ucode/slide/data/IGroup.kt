@@ -25,6 +25,6 @@ abstract class IGroup {
     abstract val activityMonthly: Int
     abstract val activitySemiannual: Int
 
-    abstract val instance: ISite
+    abstract val site: ISite
     abstract val mods: List<IUser>
 }

@@ -10,7 +10,7 @@ import ltd.ucode.crash.GithubSender
 import ltd.ucode.lemmy.api.AccountDataSource
 import ltd.ucode.lemmy.api.InstanceDataSource
 import ltd.ucode.lemmy.api.request.LoginRequest
-import ltd.ucode.slide.repository.InstanceRepository
+import ltd.ucode.slide.repository.NetworkRepository
 import okhttp3.OkHttpClient
 import org.junit.Before
 import org.junit.Test
@@ -61,9 +61,9 @@ class Experiment {
 
     @Test
     fun testFed() {
-        val instanceRepository = InstanceRepository(context, OkHttpClient(), "test")
+        val networkRepository = NetworkRepository(context, OkHttpClient(), "test")
 
-        runBlocking { instanceRepository.fetchInstanceList() }
+        runBlocking { networkRepository.fetchInstanceList() }
             .also { println("${it.size}") }
     }
 

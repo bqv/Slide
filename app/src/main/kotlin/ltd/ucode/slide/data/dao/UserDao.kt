@@ -6,6 +6,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
+import kotlinx.coroutines.flow.Flow
 import ltd.ucode.slide.data.entity.User
 
 @Dao
@@ -26,10 +27,17 @@ interface UserDao {
             "WHERE name LIKE :name ")
     suspend fun query(name: String): List<User>
 
-    @Query("SELECT * FROM users AS u " +
-            "INNER JOIN sites AS s ON s.rowid = u.instance_rowid " +
-            "WHERE u.name LIKE :name AND s.name LIKE :instanceName ")
-    fun get(name: String, instanceName: String): List<User>
+    @Query("SELECT * FROM user_images AS ui " +
+            "INNER JOIN users AS u ON u.rowid = ui.user_rowid " +
+            "INNER JOIN sites AS s ON s.rowid = ui.instance_rowid " +
+            "WHERE ui.person_id = :userId AND s.rowid LIKE :siteId ")
+    fun flow(userId: Int, siteId: Int): Flow<User>
+
+    @Query("SELECT * FROM user_images AS ui " +
+            "INNER JOIN users AS u ON u.rowid = ui.user_rowid " +
+            "INNER JOIN sites AS s ON s.rowid = ui.instance_rowid " +
+            "WHERE ui.person_id = :userId AND s.rowid LIKE :siteId ")
+    fun get(userId: Int, siteId: Int): List<User>
 
     @Query("SELECT * FROM users AS u " +
             "INNER JOIN sites AS s ON s.rowid = u.instance_rowid " +
@@ -37,17 +45,17 @@ interface UserDao {
     suspend fun query(name: String, instanceName: String): List<User>
 
     @Insert(onConflict = OnConflictStrategy.ABORT)
-    suspend fun add(instance: User)
+    suspend fun add(user: User)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun replace(instance: User)
+    suspend fun replace(user: User)
 
     @Insert
     suspend fun addAll(users: List<User>)
 
     @Update
-    suspend fun update(instance: User)
+    suspend fun update(user: User)
 
     @Delete
-    suspend fun delete(instance: User)
+    suspend fun delete(user: User)
 }

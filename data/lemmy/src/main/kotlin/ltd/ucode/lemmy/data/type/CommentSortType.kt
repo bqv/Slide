@@ -8,7 +8,8 @@ enum class CommentSortType {
     Hot,
     New,
     Old,
-    Top;
+    Top,
+    ;
 
     companion object {
         fun from(
