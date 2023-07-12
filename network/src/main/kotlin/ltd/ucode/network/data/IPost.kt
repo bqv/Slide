@@ -1,10 +1,10 @@
 package ltd.ucode.network.data
 
 import kotlinx.datetime.Instant
-import ltd.ucode.util.text.Markdown
 import ltd.ucode.network.ContentType
 import ltd.ucode.network.SingleVote
 import ltd.ucode.network.trait.IVotable
+import ltd.ucode.util.text.Markdown
 import net.dean.jraw.models.CommentNode
 import net.dean.jraw.models.DistinguishedStatus
 import net.dean.jraw.models.Flair
@@ -37,9 +37,9 @@ abstract class IPost : IVotable {
     abstract val comments: Int
 
     val domain: String?
-        get() = link.let { URL(it).host }
-    val extension: String
-        get() = link.let { Path(URL(it).path).extension }
+        get() = link.ifBlank{null}?.let { URL(it).host }
+    val extension: String?
+        get() = link.ifBlank{null}?.let { Path(URL(it).path).extension }
     open val rowId: Int
         get() = postId
     @delegate:Transient open val bodyHtml: String by lazy {

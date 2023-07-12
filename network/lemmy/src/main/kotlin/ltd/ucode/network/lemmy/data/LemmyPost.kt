@@ -3,12 +3,12 @@ package ltd.ucode.network.lemmy.data
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toInstant
-import ltd.ucode.util.text.Markdown
-import ltd.ucode.network.lemmy.data.type.PostView
 import ltd.ucode.network.ContentType
 import ltd.ucode.network.SingleVote
 import ltd.ucode.network.data.IPost
 import ltd.ucode.network.data.IUser
+import ltd.ucode.network.lemmy.data.type.PostView
+import ltd.ucode.util.text.Markdown
 import net.dean.jraw.models.Submission.ThumbnailType
 import java.net.URL
 
@@ -63,7 +63,7 @@ open class LemmyPost(val instance: String, val data: PostView) : IPost() {
                 .contains(extension?.lowercase()) -> { ContentType.Type.GIF }
             listOf("mp4", "webm")
                 .contains(extension?.lowercase()) -> { ContentType.Type.VIDEO }
-            else -> domain!!.lowercase().run {
+            else -> domain.orEmpty().lowercase().run {
                 when {
                     listOf("v.redd.it")
                         .any(::endsWith) -> { ContentType.Type.VREDDIT_DIRECT }
