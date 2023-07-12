@@ -5,8 +5,8 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
-import ltd.ucode.lemmy.api.response.GetSiteResponse
-import ltd.ucode.lemmy.data.type.Language as LemmyLanguage
+import ltd.ucode.network.lemmy.api.response.GetSiteResponse
+import ltd.ucode.network.lemmy.data.type.Language as LemmyLanguage
 
 @Entity(tableName = "languages", indices = [
     Index(value = ["name"], unique = true)

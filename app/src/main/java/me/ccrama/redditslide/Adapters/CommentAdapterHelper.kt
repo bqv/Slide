@@ -38,13 +38,13 @@ import com.cocosw.bottomsheet.BottomSheet
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toInstant
-import ltd.ucode.lemmy.data.type.CommentView
+import ltd.ucode.network.lemmy.data.type.CommentView
 import ltd.ucode.slide.App.Companion.defaultShareText
 import ltd.ucode.slide.Authentication
 import ltd.ucode.slide.R
 import ltd.ucode.slide.SettingValues
 import ltd.ucode.slide.SettingValues.commentLastVisit
-import ltd.ucode.slide.data.IPost
+import ltd.ucode.network.data.IPost
 import me.ccrama.redditslide.ActionStates.getVoteDirection
 import me.ccrama.redditslide.ActionStates.isSaved
 import me.ccrama.redditslide.ActionStates.setSaved

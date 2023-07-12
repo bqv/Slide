@@ -35,7 +35,7 @@ import ltd.ucode.slide.SettingValues.defaultCardView
 import ltd.ucode.slide.SettingValues.fabType
 import ltd.ucode.slide.SettingValues.single
 import ltd.ucode.slide.SettingValues.subredditSearchMethod
-import ltd.ucode.slide.data.IPost
+import ltd.ucode.network.data.IPost
 import ltd.ucode.slide.repository.CommentRepository
 import ltd.ucode.slide.repository.PostRepository
 import ltd.ucode.slide.ui.BaseActivity

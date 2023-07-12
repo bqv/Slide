@@ -15,7 +15,7 @@ import java.util.HashMap;
 /**
  * Created by ccrama on 5/26/2015.
  */
-public class ContentType extends ltd.ucode.slide.ContentType {
+public class ContentType extends ltd.ucode.network.ContentType {
     /**
      * Returns a string identifier for a submission e.g. Link, GIF, NSFW Image
      *

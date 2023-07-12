@@ -10,11 +10,11 @@ import androidx.room.withTransaction
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.runBlocking
-import ltd.ucode.lemmy.api.ApiResult
-import ltd.ucode.lemmy.api.InstanceDataSource
-import ltd.ucode.lemmy.api.request.GetPostsRequest
-import ltd.ucode.lemmy.data.type.PostListingType
-import ltd.ucode.lemmy.data.type.PostSortType
+import ltd.ucode.network.lemmy.api.ApiResult
+import ltd.ucode.network.lemmy.api.InstanceDataSource
+import ltd.ucode.network.lemmy.api.request.GetPostsRequest
+import ltd.ucode.network.lemmy.data.type.PostListingType
+import ltd.ucode.network.lemmy.data.type.PostSortType
 import ltd.ucode.slide.data.ContentDatabase
 import ltd.ucode.slide.data.entity.Post
 import ltd.ucode.slide.repository.GroupRepository

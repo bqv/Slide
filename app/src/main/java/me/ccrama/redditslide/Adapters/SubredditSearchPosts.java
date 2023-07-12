@@ -17,7 +17,7 @@ import net.dean.jraw.paginators.TimePeriod;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 
-import ltd.ucode.reddit.data.RedditSubmission;
+import ltd.ucode.network.reddit.data.RedditSubmission;
 import me.ccrama.redditslide.Activities.MultiredditOverview;
 import ltd.ucode.slide.Authentication;
 import me.ccrama.redditslide.PostMatch;

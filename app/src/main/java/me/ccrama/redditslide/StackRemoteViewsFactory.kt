@@ -7,7 +7,7 @@ import android.os.Bundle
 import android.util.Log
 import android.widget.RemoteViews
 import android.widget.RemoteViewsService.RemoteViewsFactory
-import ltd.ucode.slide.ContentType
+import ltd.ucode.network.ContentType
 import ltd.ucode.slide.R
 import me.ccrama.redditslide.Adapters.SubredditPosts
 import me.ccrama.redditslide.util.CompatUtil

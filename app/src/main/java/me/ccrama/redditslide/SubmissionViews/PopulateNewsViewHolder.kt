@@ -23,7 +23,7 @@ import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.customview.customView
 import com.cocosw.bottomsheet.BottomSheet
 import com.google.android.material.snackbar.Snackbar
-import ltd.ucode.reddit.data.RedditSubmission
+import ltd.ucode.network.reddit.data.RedditSubmission
 import ltd.ucode.slide.App.Companion.defaultShareText
 import ltd.ucode.slide.Authentication
 import ltd.ucode.slide.R
@@ -44,7 +44,7 @@ import me.ccrama.redditslide.Activities.TumblrPager
 import me.ccrama.redditslide.Adapters.CommentAdapter
 import me.ccrama.redditslide.Adapters.NewsViewHolder
 import me.ccrama.redditslide.CommentCacheAsync
-import ltd.ucode.slide.ContentType
+import ltd.ucode.network.ContentType
 import ltd.ucode.slide.repository.CommentRepository
 import ltd.ucode.slide.repository.PostRepository
 import me.ccrama.redditslide.DataShare

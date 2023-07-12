@@ -5,7 +5,7 @@ import android.content.SharedPreferences
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import dagger.hilt.android.qualifiers.ApplicationContext
-import ltd.ucode.lemmy.data.type.jwt.Token
+import ltd.ucode.network.lemmy.data.type.jwt.Token
 import ltd.ucode.slide.Authentication
 import ltd.ucode.slide.data.ContentDatabase
 import javax.inject.Inject

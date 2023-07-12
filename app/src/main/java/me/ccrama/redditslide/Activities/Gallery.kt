@@ -6,9 +6,9 @@ import android.view.View
 import androidx.recyclerview.widget.RecyclerView
 import dagger.hilt.android.AndroidEntryPoint
 import ltd.ucode.slide.Authentication
-import ltd.ucode.slide.ContentType
+import ltd.ucode.network.ContentType
 import ltd.ucode.slide.R
-import ltd.ucode.slide.data.IPost
+import ltd.ucode.network.data.IPost
 import ltd.ucode.slide.repository.PostRepository
 import me.ccrama.redditslide.Adapters.GalleryView
 import me.ccrama.redditslide.Adapters.MultiredditPosts

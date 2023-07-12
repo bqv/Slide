@@ -11,11 +11,11 @@ import android.widget.ImageView
 import android.widget.RelativeLayout
 import androidx.recyclerview.widget.RecyclerView
 import com.cocosw.bottomsheet.BottomSheet
-import ltd.ucode.reddit.data.RedditSubmission
+import ltd.ucode.network.reddit.data.RedditSubmission
 import ltd.ucode.slide.App
 import ltd.ucode.slide.App.Companion.defaultShareText
-import ltd.ucode.slide.ContentType
-import ltd.ucode.slide.ContentType.Companion.getContentType
+import ltd.ucode.network.ContentType
+import ltd.ucode.network.ContentType.Companion.getContentType
 import ltd.ucode.slide.R
 import ltd.ucode.slide.SettingValues
 import ltd.ucode.slide.SettingValues.albumSwipe

@@ -2,6 +2,7 @@ package ltd.ucode.slide.module
 
 import android.content.Context
 import androidx.room.Room
+import androidx.room.RoomDatabase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -14,6 +15,7 @@ import ltd.ucode.slide.data.ContentDatabase
 import okhttp3.HttpUrl
 import okhttp3.OkHttpClient
 import okio.Buffer
+import java.util.concurrent.Executors
 import javax.inject.Named
 import javax.inject.Singleton
 
@@ -32,6 +34,13 @@ object ApplicationModule {
         Room.databaseBuilder(context,
             ContentDatabase::class.java, ContentDatabase.filename)
             .fallbackToDestructiveMigration()
+            .setQueryCallback(object : RoomDatabase.QueryCallback {
+                override fun onQuery(sqlQuery: String, bindArgs: List<Any?>) {
+                    logger.debug { "SQL Query: $sqlQuery" }
+                    if (bindArgs.isNotEmpty())
+                        logger.debug { "Query Arg: $bindArgs" }
+                }
+            }, Executors.newSingleThreadExecutor())
             .build()
 
     @Provides

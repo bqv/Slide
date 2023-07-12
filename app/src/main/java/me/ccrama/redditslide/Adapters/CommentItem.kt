@@ -1,6 +1,6 @@
 package me.ccrama.redditslide.Adapters
 
-import ltd.ucode.lemmy.data.type.CommentView
+import ltd.ucode.network.lemmy.data.type.CommentView
 
 class CommentItem(node: CommentView) : CommentObject() {
     init {

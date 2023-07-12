@@ -7,9 +7,9 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromStream
 import ltd.ucode.crash.GithubSender
-import ltd.ucode.lemmy.api.AccountDataSource
-import ltd.ucode.lemmy.api.InstanceDataSource
-import ltd.ucode.lemmy.api.request.LoginRequest
+import ltd.ucode.network.lemmy.api.AccountDataSource
+import ltd.ucode.network.lemmy.api.InstanceDataSource
+import ltd.ucode.network.lemmy.api.request.LoginRequest
 import ltd.ucode.slide.repository.NetworkRepository
 import okhttp3.OkHttpClient
 import org.junit.Before

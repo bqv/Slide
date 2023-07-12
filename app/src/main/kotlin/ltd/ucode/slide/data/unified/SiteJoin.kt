@@ -2,7 +2,7 @@ package ltd.ucode.slide.data.unified
 
 import androidx.room.Embedded
 import androidx.room.Relation
-import ltd.ucode.slide.data.ISite
+import ltd.ucode.network.data.ISite
 import ltd.ucode.slide.data.entity.Site
 import ltd.ucode.slide.data.entity.Tagline
 

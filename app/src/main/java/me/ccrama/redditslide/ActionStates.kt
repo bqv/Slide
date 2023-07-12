@@ -1,9 +1,9 @@
 package me.ccrama.redditslide
 
-import ltd.ucode.lemmy.data.type.CommentView
-import ltd.ucode.reddit.VoteDirectionExtensions.asVoteDirection
-import ltd.ucode.slide.data.IPost
-import ltd.ucode.slide.trait.IVotable
+import ltd.ucode.network.lemmy.data.type.CommentView
+import ltd.ucode.network.reddit.VoteDirectionExtensions.asVoteDirection
+import ltd.ucode.network.data.IPost
+import ltd.ucode.network.trait.IVotable
 import net.dean.jraw.models.Comment
 import net.dean.jraw.models.PublicContribution
 import net.dean.jraw.models.VoteDirection

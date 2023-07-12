@@ -10,11 +10,11 @@ import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toInstant
-import ltd.ucode.lemmy.data.type.CommentAggregates
-import ltd.ucode.lemmy.data.type.CommentView
-import ltd.ucode.slide.SingleVote
-import ltd.ucode.slide.data.IComment
-import ltd.ucode.lemmy.data.type.Comment as LemmyComment
+import ltd.ucode.network.lemmy.data.type.CommentAggregates
+import ltd.ucode.network.lemmy.data.type.CommentView
+import ltd.ucode.network.SingleVote
+import ltd.ucode.network.data.IComment
+import ltd.ucode.network.lemmy.data.type.Comment as LemmyComment
 
 @Entity(tableName = "comments", indices = [
     Index(value = ["uri"], unique = true)

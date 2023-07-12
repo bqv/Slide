@@ -5,13 +5,13 @@ import android.os.AsyncTask
 import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.ActionBar
-import ltd.ucode.reddit.data.RedditSubmission
+import ltd.ucode.network.reddit.data.RedditSubmission
 import ltd.ucode.slide.App
 import ltd.ucode.slide.Authentication
 import ltd.ucode.slide.BuildConfig
 import ltd.ucode.slide.R
 import ltd.ucode.slide.SettingValues
-import ltd.ucode.slide.data.IPost
+import ltd.ucode.network.data.IPost
 import ltd.ucode.slide.ui.BaseActivity
 import me.ccrama.redditslide.Activities.NewsActivity
 import me.ccrama.redditslide.Activities.SubredditView

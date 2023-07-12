@@ -2,20 +2,20 @@ package ltd.ucode.slide.repository
 
 import android.content.Context
 import dagger.hilt.android.qualifiers.ApplicationContext
-import ltd.ucode.lemmy.api.ApiResult
-import ltd.ucode.lemmy.api.PagedData
-import ltd.ucode.lemmy.api.request.CreatePostLikeRequest
-import ltd.ucode.lemmy.api.request.GetPostRequest
-import ltd.ucode.lemmy.api.request.GetPostsRequest
-import ltd.ucode.lemmy.api.response.GetPostResponse
-import ltd.ucode.lemmy.api.response.PostResponse
-import ltd.ucode.lemmy.data.id.CommentId
-import ltd.ucode.lemmy.data.id.CommunityId
-import ltd.ucode.lemmy.data.id.PostId
-import ltd.ucode.lemmy.data.type.PostListingType
-import ltd.ucode.lemmy.data.type.PostSortType
-import ltd.ucode.lemmy.data.type.PostView
-import ltd.ucode.slide.SingleVote
+import ltd.ucode.network.lemmy.api.ApiResult
+import ltd.ucode.network.lemmy.api.PagedData
+import ltd.ucode.network.lemmy.api.request.CreatePostLikeRequest
+import ltd.ucode.network.lemmy.api.request.GetPostRequest
+import ltd.ucode.network.lemmy.api.request.GetPostsRequest
+import ltd.ucode.network.lemmy.api.response.GetPostResponse
+import ltd.ucode.network.lemmy.api.response.PostResponse
+import ltd.ucode.network.lemmy.data.id.CommentId
+import ltd.ucode.network.lemmy.data.id.CommunityId
+import ltd.ucode.network.lemmy.data.id.PostId
+import ltd.ucode.network.lemmy.data.type.PostListingType
+import ltd.ucode.network.lemmy.data.type.PostSortType
+import ltd.ucode.network.lemmy.data.type.PostView
+import ltd.ucode.network.SingleVote
 import ltd.ucode.slide.data.ContentDatabase
 import javax.inject.Inject
 

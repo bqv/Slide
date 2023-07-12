@@ -6,7 +6,7 @@ import net.dean.jraw.paginators.UserSavedPaginator;
 
 import java.util.ArrayList;
 
-import ltd.ucode.reddit.data.RedditSubmission;
+import ltd.ucode.network.reddit.data.RedditSubmission;
 import ltd.ucode.slide.Authentication;
 import me.ccrama.redditslide.HasSeen;
 import me.ccrama.redditslide.PostMatch;

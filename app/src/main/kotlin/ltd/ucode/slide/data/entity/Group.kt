@@ -10,10 +10,10 @@ import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toInstant
-import ltd.ucode.lemmy.data.type.Community
-import ltd.ucode.lemmy.data.type.CommunityAggregates
-import ltd.ucode.lemmy.data.type.CommunityView
-import ltd.ucode.slide.data.IGroup
+import ltd.ucode.network.lemmy.data.type.Community
+import ltd.ucode.network.lemmy.data.type.CommunityAggregates
+import ltd.ucode.network.lemmy.data.type.CommunityView
+import ltd.ucode.network.data.IGroup
 
 @Entity(tableName = "groups", indices = [
     Index(value = ["name"], unique = true)

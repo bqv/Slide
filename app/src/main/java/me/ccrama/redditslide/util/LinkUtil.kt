@@ -27,7 +27,7 @@ import ltd.ucode.slide.SettingValues.isNight
 import ltd.ucode.slide.SettingValues.linkHandlingMode
 import ltd.ucode.slide.SettingValues.readerMode
 import ltd.ucode.slide.SettingValues.selectedBrowser
-import ltd.ucode.slide.data.IPost
+import ltd.ucode.network.data.IPost
 import me.ccrama.redditslide.Activities.Crosspost
 import me.ccrama.redditslide.Activities.MakeExternal
 import me.ccrama.redditslide.Activities.ReaderMode

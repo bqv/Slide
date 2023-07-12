@@ -33,11 +33,11 @@ import com.nostra13.universalimageloader.core.listener.ImageLoadingProgressListe
 import com.sothree.slidinguppanel.PanelSlideListener
 import com.sothree.slidinguppanel.PanelState
 import com.sothree.slidinguppanel.SlidingUpPanelLayout
-import ltd.ucode.reddit.data.RedditSubmission
+import ltd.ucode.network.reddit.data.RedditSubmission
 import ltd.ucode.slide.App
-import ltd.ucode.slide.ContentType
-import ltd.ucode.slide.ContentType.Companion.getContentType
-import ltd.ucode.slide.ContentType.Companion.isImgurLink
+import ltd.ucode.network.ContentType
+import ltd.ucode.network.ContentType.Companion.getContentType
+import ltd.ucode.network.ContentType.Companion.isImgurLink
 import ltd.ucode.slide.R
 import ltd.ucode.slide.SettingValues
 import ltd.ucode.slide.SettingValues.albumSwipe

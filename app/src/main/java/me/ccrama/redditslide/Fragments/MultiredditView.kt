@@ -30,7 +30,7 @@ import ltd.ucode.slide.SettingValues
 import ltd.ucode.slide.SettingValues.colours
 import ltd.ucode.slide.SettingValues.defaultCardView
 import ltd.ucode.slide.SettingValues.fabType
-import ltd.ucode.slide.data.IPost
+import ltd.ucode.network.data.IPost
 import ltd.ucode.slide.repository.CommentRepository
 import ltd.ucode.slide.repository.PostRepository
 import me.ccrama.redditslide.Activities.Search

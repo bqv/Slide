@@ -7,7 +7,7 @@ import android.view.View;
 import android.view.Window;
 import android.widget.ImageView;
 
-import ltd.ucode.slide.ContentType;
+import ltd.ucode.network.ContentType;
 import ltd.ucode.slide.R;
 import ltd.ucode.slide.App;
 import ltd.ucode.slide.ui.BaseActivityAnim;

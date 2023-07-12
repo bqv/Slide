@@ -1,6 +1,6 @@
 package me.ccrama.redditslide
 
-import ltd.ucode.slide.data.IPost
+import ltd.ucode.network.data.IPost
 import me.ccrama.redditslide.Adapters.CommentObject
 import net.dean.jraw.models.PrivateMessage
 

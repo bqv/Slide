@@ -1,7 +1,7 @@
 package me.ccrama.redditslide.SubmissionViews
 
 import com.lusfold.androidkeyvaluestore.KVStore
-import ltd.ucode.slide.data.IPost
+import ltd.ucode.network.data.IPost
 
 object ReadLater {
     fun setReadLater(s: IPost, readLater: Boolean) {

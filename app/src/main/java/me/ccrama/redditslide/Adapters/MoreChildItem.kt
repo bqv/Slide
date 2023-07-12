@@ -1,6 +1,6 @@
 package me.ccrama.redditslide.Adapters
 
-import ltd.ucode.lemmy.data.type.CommentView
+import ltd.ucode.network.lemmy.data.type.CommentView
 import net.dean.jraw.models.MoreChildren
 
 class MoreChildItem(node: CommentView, children: MoreChildren) : CommentObject() {

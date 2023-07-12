@@ -1,7 +1,7 @@
 package ltd.ucode
 
-import ltd.ucode.lemmy.data.type.jwt.Token
-import ltd.ucode.util.InstantExtensions.ago
+import ltd.ucode.network.lemmy.data.type.jwt.Token
+import ltd.ucode.util.extensions.InstantExtensions.ago
 import org.junit.Before
 import kotlin.test.Test
 

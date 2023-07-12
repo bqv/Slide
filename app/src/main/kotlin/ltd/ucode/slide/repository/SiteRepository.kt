@@ -5,8 +5,8 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.runBlocking
-import ltd.ucode.lemmy.api.request.GetSiteRequest
-import ltd.ucode.lemmy.data.id.LanguageId
+import ltd.ucode.network.lemmy.api.request.GetSiteRequest
+import ltd.ucode.network.lemmy.data.id.LanguageId
 import ltd.ucode.slide.data.ContentDatabase
 import ltd.ucode.slide.data.entity.Language
 import ltd.ucode.slide.data.entity.Site

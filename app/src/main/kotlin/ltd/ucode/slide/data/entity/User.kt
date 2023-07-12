@@ -10,10 +10,10 @@ import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toInstant
-import ltd.ucode.lemmy.data.type.Person
-import ltd.ucode.lemmy.data.type.PersonAggregates
-import ltd.ucode.lemmy.data.type.PersonView
-import ltd.ucode.slide.data.IUser
+import ltd.ucode.network.lemmy.data.type.Person
+import ltd.ucode.network.lemmy.data.type.PersonAggregates
+import ltd.ucode.network.lemmy.data.type.PersonView
+import ltd.ucode.network.data.IUser
 
 @Entity(tableName = "users", indices = [
     Index(value = ["name"], unique = true)

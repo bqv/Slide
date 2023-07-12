@@ -11,4 +11,7 @@ java {
 dependencies {
     implementation(libs.kotlinx.coroutines)
     implementation(libs.kotlinx.datetime)
+
+    implementation(libs.markdown)
+    implementation(libs.jsoup)
 }

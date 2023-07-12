@@ -10,11 +10,11 @@ import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toInstant
-import ltd.ucode.lemmy.data.type.PostAggregates
-import ltd.ucode.lemmy.data.type.PostView
-import ltd.ucode.slide.SingleVote
-import ltd.ucode.slide.data.IPost
-import ltd.ucode.lemmy.data.type.Post as LemmyPost
+import ltd.ucode.network.lemmy.data.type.PostAggregates
+import ltd.ucode.network.lemmy.data.type.PostView
+import ltd.ucode.network.SingleVote
+import ltd.ucode.network.data.IPost
+import ltd.ucode.network.lemmy.data.type.Post as LemmyPost
 
 @Entity(tableName = "posts", indices = [
     Index(value = ["uri"], unique = true)

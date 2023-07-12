@@ -13,7 +13,7 @@ import net.dean.jraw.models.Comment;
 import java.util.ArrayList;
 
 import me.ccrama.redditslide.Adapters.CommentUrlObject;
-import ltd.ucode.slide.ContentType;
+import ltd.ucode.network.ContentType;
 import me.ccrama.redditslide.Fragments.AlbumFullComments;
 import me.ccrama.redditslide.Fragments.MediaFragmentComment;
 import ltd.ucode.slide.R;

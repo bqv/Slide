@@ -1,7 +1,7 @@
 package me.ccrama.redditslide
 
 import android.os.AsyncTask
-import ltd.ucode.slide.data.IPost
+import ltd.ucode.network.data.IPost
 
 object Hidden {
     val id: MutableSet<String> = HashSet()

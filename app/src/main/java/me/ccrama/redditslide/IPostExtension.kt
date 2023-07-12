@@ -1,7 +1,7 @@
 package me.ccrama.redditslide
 
-import ltd.ucode.reddit.data.RedditSubmission
-import ltd.ucode.slide.data.IPost
+import ltd.ucode.network.reddit.data.RedditSubmission
+import ltd.ucode.network.data.IPost
 import net.dean.jraw.models.Submission
 
 val IPost.submission: Submission?

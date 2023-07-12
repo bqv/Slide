@@ -9,8 +9,8 @@ import androidx.paging.RemoteMediator
 import androidx.room.withTransaction
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
-import ltd.ucode.lemmy.api.InstanceDataSource
-import ltd.ucode.lemmy.api.request.GetPostsRequest
+import ltd.ucode.network.lemmy.api.InstanceDataSource
+import ltd.ucode.network.lemmy.api.request.GetPostsRequest
 import ltd.ucode.slide.data.ContentDatabase
 import ltd.ucode.slide.data.entity.Post
 import kotlin.time.Duration.Companion.hours

@@ -9,7 +9,7 @@ import com.google.android.material.snackbar.Snackbar;
 import net.dean.jraw.managers.AccountManager;
 import net.dean.jraw.models.Submission;
 
-import ltd.ucode.reddit.data.RedditSubmission;
+import ltd.ucode.network.reddit.data.RedditSubmission;
 import me.ccrama.redditslide.ActionStates;
 import ltd.ucode.slide.Authentication;
 import ltd.ucode.slide.R;

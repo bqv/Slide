@@ -27,11 +27,11 @@ import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.customview.customView
-import ltd.ucode.lemmy.data.type.CommentView
+import ltd.ucode.network.lemmy.data.type.CommentView
 import ltd.ucode.slide.Authentication
 import ltd.ucode.slide.R
 import ltd.ucode.slide.SettingValues
-import ltd.ucode.slide.data.IPost
+import ltd.ucode.network.data.IPost
 import me.ccrama.redditslide.Activities.Reauthenticate
 import me.ccrama.redditslide.OpenRedditLink
 import me.ccrama.redditslide.Toolbox.RemovalReasons.RemovalReason

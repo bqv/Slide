@@ -88,15 +88,15 @@ import com.google.android.material.tabs.TabLayout
 import com.lusfold.androidkeyvaluestore.KVStore
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.runBlocking
-import ltd.ucode.lemmy.data.LemmyPost
-import ltd.ucode.lemmy.data.type.PostSortType
+import ltd.ucode.network.lemmy.data.LemmyPost
+import ltd.ucode.network.lemmy.data.type.PostSortType
 import ltd.ucode.slide.App
 import ltd.ucode.slide.Authentication
 import ltd.ucode.slide.BuildConfig
 import ltd.ucode.slide.Constants
 import ltd.ucode.slide.R
 import ltd.ucode.slide.SettingValues
-import ltd.ucode.slide.data.IPost
+import ltd.ucode.network.data.IPost
 import ltd.ucode.slide.repository.AccountRepository
 import ltd.ucode.slide.repository.CommentRepository
 import ltd.ucode.slide.repository.NetworkRepository
@@ -105,7 +105,7 @@ import ltd.ucode.slide.ui.BaseActivity
 import ltd.ucode.slide.ui.Slide
 import ltd.ucode.slide.ui.Tutorial
 import ltd.ucode.slide.ui.login.Login
-import ltd.ucode.util.CoroutineScopeExtensions.executeAsyncTask
+import ltd.ucode.util.extensions.CoroutineScopeExtensions.executeAsyncTask
 import me.ccrama.redditslide.Activities.Announcement
 import me.ccrama.redditslide.Activities.CancelSubNotifs
 import me.ccrama.redditslide.Activities.Discover
@@ -1117,7 +1117,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                 val data = clipboard.primaryClip
                 val s = data!!.getItemAt(0).text.toString()
                 if (!s.isEmpty()) {
-                    if (ltd.ucode.slide.ContentType.getContentType(s) == ltd.ucode.slide.ContentType.Type.REDDIT && !HasSeen.getSeen(
+                    if (ltd.ucode.network.ContentType.getContentType(s) == ltd.ucode.network.ContentType.Type.REDDIT && !HasSeen.getSeen(
                             s
                         )
                     ) {

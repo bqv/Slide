@@ -2,13 +2,13 @@ package me.ccrama.redditslide.Adapters
 
 import android.content.Context
 import android.os.AsyncTask
-import ltd.ucode.reddit.data.RedditSubmission
+import ltd.ucode.network.reddit.data.RedditSubmission
 import ltd.ucode.slide.App
 import ltd.ucode.slide.Authentication
 import ltd.ucode.slide.SettingValues
 import ltd.ucode.slide.SettingValues.getSubmissionSort
 import ltd.ucode.slide.SettingValues.getSubmissionTimePeriod
-import ltd.ucode.slide.data.IPost
+import ltd.ucode.network.data.IPost
 import me.ccrama.redditslide.Constants
 import me.ccrama.redditslide.HasSeen
 import me.ccrama.redditslide.LastComments

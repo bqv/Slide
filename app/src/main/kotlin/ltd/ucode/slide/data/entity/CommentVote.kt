@@ -3,17 +3,10 @@ package ltd.ucode.slide.data.entity
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
-import androidx.room.Ignore
 import androidx.room.Index
 import androidx.room.PrimaryKey
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toInstant
-import ltd.ucode.lemmy.data.type.Person
-import ltd.ucode.lemmy.data.type.PersonAggregates
-import ltd.ucode.lemmy.data.type.PersonView
-import ltd.ucode.slide.data.IUser
 
 @Entity(tableName = "comment_votes", indices = [
     Index(value = ["comment_rowid"])

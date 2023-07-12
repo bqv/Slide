@@ -46,7 +46,7 @@ import com.sothree.slidinguppanel.PanelState
 import com.sothree.slidinguppanel.SlidingUpPanelLayout
 import ltd.ucode.slide.App
 import ltd.ucode.slide.App.Companion.defaultShareText
-import ltd.ucode.slide.ContentType.Companion.isGif
+import ltd.ucode.network.ContentType.Companion.isGif
 import ltd.ucode.slide.R.attr
 import ltd.ucode.slide.R.drawable
 import ltd.ucode.slide.R.id

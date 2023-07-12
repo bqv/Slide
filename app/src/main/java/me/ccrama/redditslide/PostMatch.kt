@@ -1,7 +1,7 @@
 package me.ccrama.redditslide
 
 import android.content.SharedPreferences
-import ltd.ucode.slide.ContentType
+import ltd.ucode.network.ContentType
 import ltd.ucode.slide.SettingValues.alwaysExternal
 import ltd.ucode.slide.SettingValues.domainFilters
 import ltd.ucode.slide.SettingValues.flairFilters
@@ -10,7 +10,7 @@ import ltd.ucode.slide.SettingValues.subredditFilters
 import ltd.ucode.slide.SettingValues.textFilters
 import ltd.ucode.slide.SettingValues.titleFilters
 import ltd.ucode.slide.SettingValues.userFilters
-import ltd.ucode.slide.data.IPost
+import ltd.ucode.network.data.IPost
 import java.net.MalformedURLException
 import java.net.URL
 

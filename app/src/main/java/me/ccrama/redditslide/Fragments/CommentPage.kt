@@ -42,7 +42,7 @@ import com.rey.material.widget.Slider
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toInstant
-import ltd.ucode.reddit.data.RedditSubmission
+import ltd.ucode.network.reddit.data.RedditSubmission
 import ltd.ucode.slide.App
 import ltd.ucode.slide.App.Companion.forceRestart
 import ltd.ucode.slide.Authentication
@@ -54,7 +54,7 @@ import ltd.ucode.slide.SettingValues.authentication
 import ltd.ucode.slide.SettingValues.fabType
 import ltd.ucode.slide.SettingValues.getCommentSorting
 import ltd.ucode.slide.SettingValues.setDefaultCommentSorting
-import ltd.ucode.slide.data.IPost
+import ltd.ucode.network.data.IPost
 import ltd.ucode.slide.ui.main.MainActivity
 import me.ccrama.redditslide.Activities.Album
 import me.ccrama.redditslide.Activities.AlbumPager
@@ -76,7 +76,7 @@ import me.ccrama.redditslide.Adapters.CommentNavType
 import me.ccrama.redditslide.Adapters.MoreChildItem
 import me.ccrama.redditslide.Adapters.SubmissionComments
 import me.ccrama.redditslide.Constants
-import ltd.ucode.slide.ContentType
+import ltd.ucode.network.ContentType
 import ltd.ucode.slide.repository.CommentRepository
 import ltd.ucode.slide.repository.PostRepository
 import me.ccrama.redditslide.DataShare

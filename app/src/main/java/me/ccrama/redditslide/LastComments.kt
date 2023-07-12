@@ -3,7 +3,7 @@ package me.ccrama.redditslide
 import com.lusfold.androidkeyvaluestore.KVStore
 import com.lusfold.androidkeyvaluestore.core.KVManagerImpl
 import com.lusfold.androidkeyvaluestore.utils.CursorUtils
-import ltd.ucode.slide.data.IPost
+import ltd.ucode.network.data.IPost
 
 object LastComments {
     var commentsSince: HashMap<String, Int>? = null

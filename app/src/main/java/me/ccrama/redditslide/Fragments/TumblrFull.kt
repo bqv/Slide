@@ -15,7 +15,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.sothree.slidinguppanel.PanelSlideListener
 import com.sothree.slidinguppanel.PanelState
 import com.sothree.slidinguppanel.SlidingUpPanelLayout
-import ltd.ucode.reddit.data.RedditSubmission
+import ltd.ucode.network.reddit.data.RedditSubmission
 import ltd.ucode.slide.R
 import ltd.ucode.slide.ui.commentsScreen.CommentsScreen
 import me.ccrama.redditslide.Activities.Shadowbox

@@ -32,7 +32,7 @@ import com.neovisionaries.ws.client.WebSocketException
 import com.neovisionaries.ws.client.WebSocketFactory
 import ltd.ucode.slide.App
 import ltd.ucode.slide.Authentication
-import ltd.ucode.slide.ContentType.Companion.hostContains
+import ltd.ucode.network.ContentType.Companion.hostContains
 import ltd.ucode.slide.R.color
 import ltd.ucode.slide.R.id
 import ltd.ucode.slide.R.layout

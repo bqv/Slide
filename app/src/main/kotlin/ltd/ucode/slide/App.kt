@@ -32,6 +32,7 @@ import com.nostra13.universalimageloader.core.ImageLoader
 import dagger.hilt.android.HiltAndroidApp
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
+import ltd.ucode.network.ContentType
 import ltd.ucode.slide.ui.main.MainActivity
 import me.ccrama.redditslide.Autocache.AutoCacheScheduler
 import me.ccrama.redditslide.ImageFlairs
@@ -339,9 +340,9 @@ class App : Application(), ActivityLifecycleCallbacks {
                 .build()
             notificationManager.createNotificationChannel(notificationChannel)
         }
-    }
+        }
 
-    //IPV6 workaround by /u/talklittle
+    //IPV6 workaround by reddit:u/talklittle
     class GfycatIpv4Dns : Dns {
         @Throws(UnknownHostException::class)
         override fun lookup(hostname: String): List<InetAddress> {

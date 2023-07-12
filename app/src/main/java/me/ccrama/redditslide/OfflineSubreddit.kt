@@ -6,9 +6,9 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.ObjectReader
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import ltd.ucode.lemmy.data.LemmyPost
+import ltd.ucode.network.lemmy.data.LemmyPost
 import ltd.ucode.slide.App
-import ltd.ucode.slide.data.IPost
+import ltd.ucode.network.data.IPost
 import me.ccrama.redditslide.CommentCacheAsync.CommentStore
 import java.io.BufferedReader
 import java.io.File

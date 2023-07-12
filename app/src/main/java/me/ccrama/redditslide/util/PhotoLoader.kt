@@ -3,8 +3,8 @@ package me.ccrama.redditslide.util
 import android.content.Context
 import ltd.ucode.slide.App
 import ltd.ucode.slide.SettingValues
-import ltd.ucode.slide.data.IPost
-import ltd.ucode.slide.ContentType
+import ltd.ucode.network.data.IPost
+import ltd.ucode.network.ContentType
 import net.dean.jraw.models.Submission.ThumbnailType
 import net.dean.jraw.models.Thumbnails
 

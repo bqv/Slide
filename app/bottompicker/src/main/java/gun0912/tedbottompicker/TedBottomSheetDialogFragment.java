@@ -16,6 +16,7 @@ import android.provider.MediaStore;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
@@ -122,13 +123,10 @@ public class TedBottomSheetDialogFragment extends BottomSheetDialogFragment {
         ft.commitAllowingStateLoss();
     }
 
-
-    @SuppressLint("RestrictedApi")
     @Override
-    public void setupDialog(Dialog dialog, int style) {
-        super.setupDialog(dialog, style);
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View contentView = View.inflate(getContext(), R.layout.tedbottompicker_content_view, null);
-        dialog.setContentView(contentView);
+
         CoordinatorLayout.LayoutParams layoutParams =
                 (CoordinatorLayout.LayoutParams) ((View) contentView.getParent()).getLayoutParams();
         CoordinatorLayout.Behavior behavior = layoutParams.getBehavior();
@@ -142,7 +140,7 @@ public class TedBottomSheetDialogFragment extends BottomSheetDialogFragment {
 
         if (builder == null) {
             dismissAllowingStateLoss();
-            return;
+            return contentView;
         }
         initView(contentView);
 
@@ -163,6 +161,8 @@ public class TedBottomSheetDialogFragment extends BottomSheetDialogFragment {
 
         setDoneButton();
         checkMultiMode();
+
+        return contentView;
     }
 
     private void setSelectionView() {
@@ -180,15 +180,7 @@ public class TedBottomSheetDialogFragment extends BottomSheetDialogFragment {
             btn_done.setText(builder.completeButtonText);
         }
 
-        btn_done.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-
-                onMultiSelectComplete();
-
-
-            }
-        });
+        btn_done.setOnClickListener(view -> onMultiSelectComplete());
     }
 
     private void onMultiSelectComplete() {
@@ -244,31 +236,28 @@ public class TedBottomSheetDialogFragment extends BottomSheetDialogFragment {
                 getActivity()
                 , builder);
         rc_gallery.setAdapter(imageGalleryAdapter);
-        imageGalleryAdapter.setOnItemClickListener(new GalleryAdapter.OnItemClickListener() {
-            @Override
-            public void onItemClick(View view, int position) {
+        imageGalleryAdapter.setOnItemClickListener((view, position) -> {
 
-                GalleryAdapter.PickerTile pickerTile = imageGalleryAdapter.getItem(position);
+            GalleryAdapter.PickerTile pickerTile = imageGalleryAdapter.getItem(position);
 
-                switch (pickerTile.getTileType()) {
-                    case GalleryAdapter.PickerTile.CAMERA:
-                        startCameraIntent();
-                        break;
-                    case GalleryAdapter.PickerTile.GALLERY:
-                        startGalleryIntent();
-                        break;
-                    case GalleryAdapter.PickerTile.IMAGE:
-                        if (pickerTile.getImageUri() != null) {
-                            complete(pickerTile.getImageUri());
-                        }
+            switch (pickerTile.getTileType()) {
+                case GalleryAdapter.PickerTile.CAMERA:
+                    startCameraIntent();
+                    break;
+                case GalleryAdapter.PickerTile.GALLERY:
+                    startGalleryIntent();
+                    break;
+                case GalleryAdapter.PickerTile.IMAGE:
+                    if (pickerTile.getImageUri() != null) {
+                        complete(pickerTile.getImageUri());
+                    }
 
-                        break;
+                    break;
 
-                    default:
-                        errorMessage();
-                }
-
+                default:
+                    errorMessage();
             }
+
         });
     }
 
@@ -331,13 +320,7 @@ public class TedBottomSheetDialogFragment extends BottomSheetDialogFragment {
             iv_close.setImageDrawable(builder.deSelectIconDrawable);
         }
 
-        iv_close.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                removeImage(uri);
-
-            }
-        });
+        iv_close.setOnClickListener(v -> removeImage(uri));
 
 
         updateSelectedView();
@@ -406,12 +389,7 @@ public class TedBottomSheetDialogFragment extends BottomSheetDialogFragment {
 
         TedOnActivityResult.with(getActivity())
                 .setIntent(cameraInent)
-                .setListener(new OnActivityResultListener() {
-                    @Override
-                    public void onActivityResult(int resultCode, Intent data) {
-                        onActivityResultCamera(cameraImageUri);
-                    }
-                })
+                .setListener((resultCode, data) -> onActivityResultCamera(cameraImageUri))
                 .startActivityForResult();
     }
 
@@ -502,12 +480,7 @@ public class TedBottomSheetDialogFragment extends BottomSheetDialogFragment {
 
         TedOnActivityResult.with(getActivity())
                 .setIntent(galleryIntent)
-                .setListener(new OnActivityResultListener() {
-                    @Override
-                    public void onActivityResult(int resultCode, Intent data) {
-                        onActivityResultGallery(data);
-                    }
-                })
+                .setListener((resultCode, data) -> onActivityResultGallery(data))
                 .startActivityForResult();
     }
 
@@ -551,12 +524,9 @@ public class TedBottomSheetDialogFragment extends BottomSheetDialogFragment {
 
             @Override
             public void onScanCompleted(String s, Uri uri) {
-                getActivity().runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        updateAdapter();
-                        complete(cameraImageUri);
-                    }
+                getActivity().runOnUiThread(() -> {
+                    updateAdapter();
+                    complete(cameraImageUri);
                 });
 
             }

@@ -4,8 +4,8 @@ import com.lusfold.androidkeyvaluestore.KVStore
 import com.lusfold.androidkeyvaluestore.core.KVManagerImpl
 import com.lusfold.androidkeyvaluestore.core.KVManger
 import com.lusfold.androidkeyvaluestore.utils.CursorUtils
-import ltd.ucode.slide.SingleVote
-import ltd.ucode.slide.data.IPost
+import ltd.ucode.network.SingleVote
+import ltd.ucode.network.data.IPost
 import me.ccrama.redditslide.OpenRedditLink.RedditLinkType
 import me.ccrama.redditslide.Synccit.SynccitRead
 import net.dean.jraw.models.Contribution

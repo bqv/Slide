@@ -16,13 +16,13 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager.widget.ViewPager
 import androidx.viewpager.widget.ViewPager.SimpleOnPageChangeListener
 import dagger.hilt.android.AndroidEntryPoint
-import ltd.ucode.lemmy.data.id.PostId
+import ltd.ucode.network.lemmy.data.id.PostId
 import ltd.ucode.slide.Authentication
 import ltd.ucode.slide.R
 import ltd.ucode.slide.SettingValues
 import ltd.ucode.slide.SettingValues.appRestart
 import ltd.ucode.slide.SettingValues.fullCommentOverride
-import ltd.ucode.slide.data.IPost
+import ltd.ucode.network.data.IPost
 import ltd.ucode.slide.repository.PostRepository
 import ltd.ucode.slide.ui.BaseActivityAnim
 import ltd.ucode.slide.ui.commentsScreen.CommentsScreen.CommentsScreenPagerAdapter

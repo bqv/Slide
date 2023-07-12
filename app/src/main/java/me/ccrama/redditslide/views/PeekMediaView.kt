@@ -31,9 +31,9 @@ import com.nostra13.universalimageloader.core.imageaware.ImageViewAware
 import com.nostra13.universalimageloader.core.listener.ImageLoadingListener
 import com.nostra13.universalimageloader.core.listener.ImageLoadingProgressListener
 import ltd.ucode.slide.App
-import ltd.ucode.slide.ContentType
-import ltd.ucode.slide.ContentType.Companion.getContentType
-import ltd.ucode.slide.ContentType.Companion.isImgurLink
+import ltd.ucode.network.ContentType
+import ltd.ucode.network.ContentType.Companion.getContentType
+import ltd.ucode.network.ContentType.Companion.isImgurLink
 import ltd.ucode.slide.R
 import ltd.ucode.slide.SettingValues
 import me.ccrama.redditslide.Adapters.ImageGridAdapter

@@ -11,11 +11,11 @@ import dagger.hilt.android.AndroidEntryPoint
 import ltd.ucode.slide.Authentication
 import ltd.ucode.slide.R
 import ltd.ucode.slide.SettingValues
-import ltd.ucode.slide.data.IPost
+import ltd.ucode.network.data.IPost
 import me.ccrama.redditslide.Adapters.MultiredditPosts
 import me.ccrama.redditslide.Adapters.SubmissionDisplay
 import me.ccrama.redditslide.Adapters.SubredditPosts
-import ltd.ucode.slide.ContentType
+import ltd.ucode.network.ContentType
 import ltd.ucode.slide.repository.PostRepository
 import me.ccrama.redditslide.Fragments.AlbumFull
 import me.ccrama.redditslide.Fragments.MediaFragment

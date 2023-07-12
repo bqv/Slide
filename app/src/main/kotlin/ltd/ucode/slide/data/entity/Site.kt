@@ -11,12 +11,12 @@ import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toInstant
-import ltd.ucode.lemmy.api.response.GetSiteResponse
-import ltd.ucode.lemmy.data.type.LocalSite
-import ltd.ucode.lemmy.data.type.SiteAggregates
-import ltd.ucode.lemmy.data.type.SiteView
-import ltd.ucode.slide.data.ISite
-import ltd.ucode.lemmy.data.type.Site as LemmySite
+import ltd.ucode.network.lemmy.api.response.GetSiteResponse
+import ltd.ucode.network.lemmy.data.type.LocalSite
+import ltd.ucode.network.lemmy.data.type.SiteAggregates
+import ltd.ucode.network.lemmy.data.type.SiteView
+import ltd.ucode.network.data.ISite
+import ltd.ucode.network.lemmy.data.type.Site as LemmySite
 
 @Entity(tableName = "sites", indices = [
     Index(value = ["name"], unique = true)

@@ -36,7 +36,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
-import ltd.ucode.reddit.data.RedditSubmission;
+import ltd.ucode.network.reddit.data.RedditSubmission;
 import me.ccrama.redditslide.ActionStates;
 import me.ccrama.redditslide.Activities.Profile;
 import me.ccrama.redditslide.Activities.SubredditView;

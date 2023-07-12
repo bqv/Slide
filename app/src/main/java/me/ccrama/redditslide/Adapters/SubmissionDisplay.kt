@@ -1,6 +1,6 @@
 package me.ccrama.redditslide.Adapters
 
-import ltd.ucode.slide.data.IPost
+import ltd.ucode.network.data.IPost
 
 /**
  * Interface to provide methods for updating an object when new submissions

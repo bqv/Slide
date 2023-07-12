@@ -42,8 +42,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toInstant
-import ltd.ucode.lemmy.data.type.CommentView
-import ltd.ucode.slide.SingleVote
+import ltd.ucode.network.lemmy.data.type.CommentView
+import ltd.ucode.network.SingleVote
 import ltd.ucode.slide.App
 import ltd.ucode.slide.Authentication
 import ltd.ucode.slide.Authentication.Companion.doVerify
@@ -52,7 +52,7 @@ import ltd.ucode.slide.R
 import ltd.ucode.slide.SettingValues
 import ltd.ucode.slide.SettingValues.authentication
 import ltd.ucode.slide.SettingValues.commentLastVisit
-import ltd.ucode.slide.data.IPost
+import ltd.ucode.network.data.IPost
 import ltd.ucode.slide.repository.AccountRepository
 import ltd.ucode.slide.ui.BaseActivity
 import me.ccrama.redditslide.ActionStates.getVoteDirection

@@ -22,7 +22,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
-import ltd.ucode.reddit.data.RedditSubmission;
+import ltd.ucode.network.reddit.data.RedditSubmission;
 import ltd.ucode.slide.Authentication;
 import ltd.ucode.slide.ui.BaseActivityAnim;
 import me.ccrama.redditslide.Autocache.AutoCacheScheduler;

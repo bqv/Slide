@@ -6,7 +6,7 @@ import android.view.View
 import com.google.android.material.snackbar.Snackbar
 import ltd.ucode.slide.Authentication
 import ltd.ucode.slide.R
-import ltd.ucode.slide.data.IPost
+import ltd.ucode.network.data.IPost
 import me.ccrama.redditslide.Activities.MediaView
 import me.ccrama.redditslide.Fragments.SubmissionsView.Companion.currentPosition
 import me.ccrama.redditslide.Fragments.SubmissionsView.Companion.currentSubmission

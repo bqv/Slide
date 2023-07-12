@@ -9,8 +9,8 @@ import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toInstant
-import ltd.ucode.lemmy.api.response.GetSiteResponse
-import ltd.ucode.lemmy.data.type.Tagline as LemmyTagline
+import ltd.ucode.network.lemmy.api.response.GetSiteResponse
+import ltd.ucode.network.lemmy.data.type.Tagline as LemmyTagline
 
 @Entity(tableName = "taglines", indices = [
     Index(value = ["instance_rowid", "tagline_id"], unique = true),

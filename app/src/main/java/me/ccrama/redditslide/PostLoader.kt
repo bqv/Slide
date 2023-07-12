@@ -1,7 +1,7 @@
 package me.ccrama.redditslide
 
 import android.content.Context
-import ltd.ucode.slide.data.IPost
+import ltd.ucode.network.data.IPost
 import me.ccrama.redditslide.Adapters.SubmissionDisplay
 
 /**
