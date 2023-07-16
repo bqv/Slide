@@ -22,7 +22,7 @@ android {
 
     defaultConfig {
         applicationId = "ltd.ucode.slide"
-        minSdk = 23
+        minSdk = 26
         targetSdk = 33
         versionCode = 1
 

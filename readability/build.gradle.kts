@@ -1,30 +1,20 @@
 plugins {
     id(libs.plugins.java.library.get().pluginId)
-}
-
-repositories {
-    mavenLocal()
-    maven {
-        url = uri("https://oss.sonatype.org/content/repositories/snapshots")
-    }
-
-    maven {
-        url = uri("https://repo.maven.apache.org/maven2/")
-    }
+    id(libs.plugins.scala.library.get().pluginId)
+    //id(libs.plugins.scala.android.get().pluginId)
 }
 
 dependencies {
+    implementation(libs.scala.core)
     api(libs.jsoup)
 
-    testImplementation(libs.junit)
+    testImplementation(libs.scala.test.core)
+    testImplementation(libs.scala.test.junit)
+    //testImplementation(libs.junit)
 }
 
-group = "com.wu-man"
-version = "1.4-SNAPSHOT"
-description = "JReadability"
-java.sourceCompatibility = JavaVersion.VERSION_17
-
 java {
+    sourceCompatibility = JavaVersion.VERSION_17
     withSourcesJar()
     withJavadocJar()
 }

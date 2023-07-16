@@ -534,7 +534,7 @@ case class Readability(uri: String, html: String) {
       if (href.nonEmpty) {
         // Replace links with javascript: URIs with text content, since they won't work after scripts have been removed from the page.
         if (href.indexOf("javascript:") == 0) {
-          link.replaceWith(new TextNode(link.text, link.baseUri))
+          link.replaceWith(new TextNode(link.text))
         } else {
           link.attr("href", toAbsoluteURI(href))
         }

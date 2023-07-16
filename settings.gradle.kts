@@ -19,8 +19,10 @@ dependencyResolutionManagement {
             plugin("android-application", "com.android.application").version("")
             plugin("android-library", "com.android.library").version("")
             plugin("graphql", "com.expediagroup.graphql").version("")
+            plugin("scala-library", "scala").version("")
             plugin("scala-android", "jp.ken1ma.scala.android.gradle.plugin").version("")
 
+            plugin("scala-scalroid", "cash.bdo.scalroid").version("1.5-gradle8")
             plugin("kotlin-android", "org.jetbrains.kotlin.android").versionRef(kotlin)
             plugin("kotlin-kapt", "org.jetbrains.kotlin.kapt").versionRef(kotlin)
             plugin("kotlin-jvm", "org.jetbrains.kotlin.jvm").versionRef(kotlin)
