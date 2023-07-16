@@ -24,6 +24,7 @@ import ltd.ucode.network.data.IPost
 import ltd.ucode.slide.repository.AccountRepository
 import ltd.ucode.slide.repository.CommentRepository
 import ltd.ucode.slide.repository.PostRepository
+import ltd.ucode.slide.util.CommentSortTypeExtensions.from
 import me.ccrama.redditslide.util.GifUtils
 import me.ccrama.redditslide.util.LogUtil
 import me.ccrama.redditslide.util.PhotoLoader

@@ -7,8 +7,8 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromStream
 import ltd.ucode.crash.GithubSender
-import ltd.ucode.network.lemmy.api.AccountDataSource
-import ltd.ucode.network.lemmy.api.InstanceDataSource
+import ltd.ucode.network.lemmy.api.AccountApi
+import ltd.ucode.network.lemmy.api.InstanceApi
 import ltd.ucode.network.lemmy.api.request.LoginRequest
 import ltd.ucode.slide.repository.NetworkRepository
 import okhttp3.OkHttpClient
@@ -45,7 +45,7 @@ class Experiment {
         }
         val instance = "lemmy.ml"
 
-        val source: InstanceDataSource = AccountDataSource(
+        val source: InstanceApi = AccountApi(
             account.usernameOrEmail, account.password, account.totp2faToken,
             instance, OkHttpClient()
         )

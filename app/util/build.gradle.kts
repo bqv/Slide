@@ -33,9 +33,14 @@ android {
 }
 
 dependencies {
+    implementation(project(mapOf("path" to ":network:lemmy")))
+    implementation(project(mapOf("path" to ":util")))
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
+
+    implementation(libs.jraw)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.test.junit)

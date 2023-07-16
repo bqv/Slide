@@ -1,28 +1,29 @@
 package ltd.ucode.slide.ui.login
 
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import ltd.ucode.slide.App.Companion.appContext
 import ltd.ucode.slide.Authentication
 import ltd.ucode.slide.data.entity.Site
-import ltd.ucode.util.ExceptionExtensions.toast
+import ltd.ucode.slide.repository.NetworkRepository
+import ltd.ucode.slide.util.ExceptionExtensions.toast
 import org.acra.ktx.sendSilentlyWithAcra
 import javax.inject.Inject
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
     private val model: LoginModel,
+    private val networkRepository: NetworkRepository,
 ): ViewModel() {
-    private val _instanceList = MutableLiveData<Map<String, Site>>()
-    val instanceList: LiveData<Map<String, Site>> get() = _instanceList
-
-    init {
-        fetchInstanceList()
-    }
+    private val _instanceList = networkRepository.fetchInstanceList()
+        .map { it.associateBy(Site::name) }
+    val instanceList: LiveData<Map<String, Site>> = _instanceList
+        .asLiveData(context = viewModelScope.coroutineContext)
 
     fun updateUsername(text: String) { model.username = text.trim() }
     fun updatePassword(text: String) {
@@ -53,13 +54,8 @@ class LoginViewModel @Inject constructor(
         }
     }
 
-    private fun fetchInstanceList() {
-        viewModelScope.launch {
-            _instanceList.postValue(emptyMap())
-            model.getInstanceList().let {
-                _instanceList.postValue(it.associateBy { instance: Site -> instance.name })
-            }
-        }
+    private suspend fun LoginModel.createAccount() {
+        return networkRepository.create(username, password, totp, instance)
     }
 }
 

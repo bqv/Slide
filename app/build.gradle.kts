@@ -168,7 +168,7 @@ dependencies {
     implementation(libs.androidx.sqlite)
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.1")
     implementation("androidx.work:work-runtime-ktx:2.8.1")
-    implementation("androidx.security:security-crypto-ktx:1.1.0-alpha03")
+    implementation(libs.androidx.security.crypto)
     implementation("androidx.paging:paging-common-ktx:3.1.1")
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
 

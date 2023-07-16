@@ -33,7 +33,7 @@ object LastComments {
     }
 
     fun commentsSince(s: IPost): Int {
-        return if (commentsSince != null && commentsSince!!.containsKey(s.uri)) s.comments - commentsSince!![s.uri]!! else 0
+        return if (commentsSince != null && commentsSince!!.containsKey(s.uri)) s.commentCount - commentsSince!![s.uri]!! else 0
     }
 
     @JvmStatic
@@ -41,7 +41,7 @@ object LastComments {
         if (commentsSince == null) {
             commentsSince = HashMap()
         }
-        KVStore.getInstance().insertOrUpdate("comments" + s.uri, s.comments.toString())
-        commentsSince!![s.uri] = s.comments
+        KVStore.getInstance().insertOrUpdate("comments" + s.uri, s.commentCount.toString())
+        commentsSince!![s.uri] = s.commentCount
     }
 }

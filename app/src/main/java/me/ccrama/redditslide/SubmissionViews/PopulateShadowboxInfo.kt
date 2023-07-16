@@ -119,7 +119,7 @@ object PopulateShadowboxInfo {
             titleString.append(TimeUtils.getTimeAgo(s.created.toEpochMilliseconds(), c))
             desc.text = titleString
             (rootView.findViewById<View>(R.id.comments) as TextView).text =
-                String.format(Locale.getDefault(), "%d", s.comments)
+                String.format(Locale.getDefault(), "%d", s.commentCount)
             (rootView.findViewById<View>(R.id.score) as TextView).text =
                 String.format(Locale.getDefault(), "%d", s.score)
             if (extras) {

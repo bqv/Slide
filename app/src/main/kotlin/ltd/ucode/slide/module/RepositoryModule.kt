@@ -7,6 +7,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import ltd.ucode.slide.data.ContentDatabase
+import ltd.ucode.slide.data.auth.CredentialDatabase
 import ltd.ucode.slide.repository.AccountRepository
 import ltd.ucode.slide.repository.CommentRepository
 import ltd.ucode.slide.repository.GroupRepository
@@ -25,10 +26,12 @@ object RepositoryModule {
     @Provides
     @Singleton
     fun providesAccountRepository(@ApplicationContext context: Context,
-                                  contentDatabase: ContentDatabase
+                                  contentDatabase: ContentDatabase,
+                                  credentialDatabase: CredentialDatabase,
     ): AccountRepository =
         AccountRepository(context = context,
-            contentDatabase = contentDatabase)
+            contentDatabase = contentDatabase,
+            credentialDatabase = credentialDatabase)
 
     @Provides
     @Singleton
@@ -36,13 +39,13 @@ object RepositoryModule {
                                   okHttpClient: OkHttpClient,
                                   @Named("userAgent") userAgent: String,
                                   contentDatabase: ContentDatabase,
-                                  accountRepository: AccountRepository,
+                                  credentialDatabase: CredentialDatabase,
     ): NetworkRepository =
         NetworkRepository(context = context,
             okHttpClient = okHttpClient,
             userAgent = userAgent,
             contentDatabase = contentDatabase,
-            accountRepository = accountRepository)
+            credentialDatabase = credentialDatabase)
 
     @Provides
     @Singleton

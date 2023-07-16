@@ -1952,20 +1952,20 @@ class PopulateSubmissionViewHolder(private val postRepository: PostRepository,
 
         //Use this to offset the submission score
         var submissionScore = submission.score
-        val commentCount = submission.comments
+        val commentCount = submission.commentCount
         val more = LastComments.commentsSince(submission)
         holder.comments.text = String.format(
             Locale.getDefault(), "%d %s", commentCount,
             (if ((more > 0 && SettingValues.commentLastVisit)) "(+$more)" else "")
         )
         val scoreRatio =
-            if ((SettingValues.upvotePercentage && full && (submission.upvoteRatio != null))) ("("
-                    + (submission.upvoteRatio * 100).toInt() + "%)") else ""
+            if ((SettingValues.upvotePercentage && full && (submission.scoreRatio != null))) ("("
+                    + (submission.scoreRatio * 100).toInt() + "%)") else ""
         if (!scoreRatio.isEmpty()) {
             val percent = holder.itemView.findViewById<TextView>(R.id.percent)
             percent.visibility = View.VISIBLE
             percent.text = scoreRatio
-            val numb = (submission.upvoteRatio)
+            val numb = (submission.scoreRatio)
             if (numb <= .5) {
                 if (numb <= .1) {
                     percent.setTextColor(ContextCompat.getColor(mContext, R.color.md_blue_500))

@@ -3,6 +3,7 @@ package ltd.ucode.slide.module
 import android.content.Context
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.sqlite.db.SupportSQLiteDatabase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -12,6 +13,7 @@ import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
 import ltd.ucode.slide.BuildConfig
 import ltd.ucode.slide.data.ContentDatabase
+import ltd.ucode.slide.data.auth.CredentialDatabase
 import okhttp3.HttpUrl
 import okhttp3.OkHttpClient
 import okio.Buffer
@@ -41,7 +43,23 @@ object ApplicationModule {
                         logger.debug { "Query Arg: $bindArgs" }
                 }
             }, Executors.newSingleThreadExecutor())
+            .addCallback(object : RoomDatabase.Callback() {
+                override fun onCreate(db: SupportSQLiteDatabase) {
+                    super.onCreate(db)
+                    ContentDatabase.initScripts.forEach { sql ->
+                        db.query(sql.value, emptyArray())
+                    }
+                }
+            })
             .build()
+
+    @Provides
+    @Singleton
+    fun providesCredentialDatabase(@ApplicationContext context: Context,
+                                   contentDatabase: ContentDatabase,
+    ): CredentialDatabase =
+        CredentialDatabase(context = context,
+            contentDatabase = contentDatabase)
 
     @Provides
     @Named("userAgent")

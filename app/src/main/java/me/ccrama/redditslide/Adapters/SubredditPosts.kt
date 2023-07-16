@@ -6,6 +6,7 @@ import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.ActionBar
 import kotlinx.coroutines.runBlocking
+import ltd.ucode.network.data.IPost
 import ltd.ucode.network.lemmy.api.ApiException
 import ltd.ucode.network.lemmy.api.PagedData
 import ltd.ucode.network.lemmy.data.LemmyPost
@@ -15,11 +16,11 @@ import ltd.ucode.network.lemmy.data.type.PostView
 import ltd.ucode.slide.App
 import ltd.ucode.slide.Authentication
 import ltd.ucode.slide.BuildConfig
+import ltd.ucode.slide.util.PostSortTypeExtensions.from
 import ltd.ucode.slide.R
 import ltd.ucode.slide.SettingValues
 import ltd.ucode.slide.SettingValues.getSubmissionSort
 import ltd.ucode.slide.SettingValues.getSubmissionTimePeriod
-import ltd.ucode.network.data.IPost
 import ltd.ucode.slide.repository.AccountRepository
 import ltd.ucode.slide.repository.PostRepository
 import ltd.ucode.slide.ui.BaseActivity

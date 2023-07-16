@@ -19,6 +19,7 @@ dependencyResolutionManagement {
             plugin("android-application", "com.android.application").version("")
             plugin("android-library", "com.android.library").version("")
             plugin("graphql", "com.expediagroup.graphql").version("")
+            plugin("scala-android", "jp.ken1ma.scala.android.gradle.plugin").version("")
 
             plugin("kotlin-android", "org.jetbrains.kotlin.android").versionRef(kotlin)
             plugin("kotlin-kapt", "org.jetbrains.kotlin.kapt").versionRef(kotlin)
@@ -61,6 +62,7 @@ dependencyResolutionManagement {
             library("androidx-room-ktx", "androidx.room", "room-ktx").versionRef(room)
             library("androidx-room-compiler", "androidx.room", "room-compiler").versionRef(room)
             library("androidx-room-paging", "androidx.room", "room-paging").versionRef(room)
+            library("androidx-security-crypto", "androidx.security:security-crypto-ktx:1.1.0-alpha03")
             library("androidx-sqlite", "androidx.sqlite", "sqlite-ktx").version("2.3.1")
             library("androidx-test-core", "androidx.test:core:1.5.0")
             library("androidx-test-core-ktx", "androidx.test:core-ktx:1.5.0")
@@ -134,6 +136,7 @@ dependencyResolutionManagement {
 
             library("kotlin-logging", "io.github.oshai:kotlin-logging-jvm:4.0.0")
 
+            library("kotlin-reflect", "org.jetbrains.kotlin", "kotlin-reflect").versionRef(kotlin)
             library("kotlin-test", "org.jetbrains.kotlin", "kotlin-test").versionRef(kotlin)
 
             val coroutines = version("coroutines", "1.7.1")
@@ -176,6 +179,10 @@ dependencyResolutionManagement {
             library("robolectric", "org.robolectric:robolectric:4.10.3")
 
             library("rxjava", "io.reactivex.rxjava2", "rxjava").version("2.2.21")
+
+            library("scala-core", "org.scala-lang", "scala-library").version("2.13.4")
+            library("scala-test-core", "org.scalatest", "scalatest_2.13").version("3.2.3")
+            library("scala-test-junit", "org.scalatestplus", "junit-4-13_2.13").version("3.2.3.0")
 
             library("slf4j-handroid", "com.gitlab.mvysny.slf4j:slf4j-handroid:2.0.4")
             bundle("slf4j", listOf("slf4j-handroid"))

@@ -52,6 +52,9 @@ dependencies {
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
 
+    implementation(libs.kotlinx.coroutines.android)
+    implementation(libs.kotlinx.datetime)
+
     implementation(libs.androidx.room.ktx)
     //ksp(libs.androidx.room.compiler)
     kapt(libs.androidx.room.compiler)
@@ -62,6 +65,10 @@ dependencies {
     kapt(libs.hilt.compiler)
     implementation(libs.hilt.androidx.common)
     kapt(libs.hilt.androidx.compiler)
+
+    implementation(libs.kotlin.logging)
+
+    implementation(libs.okhttp)
 
     testImplementation(libs.junit)
     testImplementation(libs.robolectric)

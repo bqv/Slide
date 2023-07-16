@@ -118,7 +118,7 @@ open class LemmyPost(val instance: String, val data: PostView) : IPost() {
     override val myVote: SingleVote
         get() = SingleVote.of(data.myVote)
 
-    override val upvoteRatio: Double
+    override val scoreRatio: Double
         get() = data.counts.run { upvotes.toDouble() / (upvotes + downvotes) }
 
     override val upvotes: Int
@@ -126,7 +126,7 @@ open class LemmyPost(val instance: String, val data: PostView) : IPost() {
     override val downvotes: Int
         get() = TODO("Not yet implemented")
 
-    override val comments: Int
+    override val commentCount: Int
         get() = data.counts.comments
 
     companion object {

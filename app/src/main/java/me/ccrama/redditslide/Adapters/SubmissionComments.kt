@@ -3,14 +3,15 @@ package me.ccrama.redditslide.Adapters
 import android.os.AsyncTask
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import kotlinx.coroutines.runBlocking
+import ltd.ucode.network.data.IPost
 import ltd.ucode.network.lemmy.data.LemmyPost
 import ltd.ucode.network.lemmy.data.id.CommentId
 import ltd.ucode.network.lemmy.data.id.CommunityId
 import ltd.ucode.network.lemmy.data.id.PostId
 import ltd.ucode.network.lemmy.data.type.CommentSortType
 import ltd.ucode.network.lemmy.data.type.CommentView
-import ltd.ucode.network.data.IPost
 import ltd.ucode.slide.repository.AccountRepository
+import ltd.ucode.slide.util.CommentSortTypeExtensions.from
 import me.ccrama.redditslide.Fragments.CommentPage
 import me.ccrama.redditslide.LastComments.setComments
 import me.ccrama.redditslide.util.NetworkUtil

@@ -91,7 +91,7 @@ class RedditSubmission(val data: Submission) : IPost() {
     override val preview: String?
         get() = data.dataNode["preview"]["images"][0]["source"]["url"].asText()
 
-    override val upvoteRatio: Double
+    override val scoreRatio: Double
         get() = data.upvoteRatio
 
     override val upvotes: Int
@@ -100,7 +100,7 @@ class RedditSubmission(val data: Submission) : IPost() {
     override val downvotes: Int
         get() = TODO("Not yet implemented")
 
-    override val comments: Int
+    override val commentCount: Int
         get() = data.commentCount
 
     companion object {

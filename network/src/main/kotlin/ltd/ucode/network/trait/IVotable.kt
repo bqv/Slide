@@ -13,7 +13,7 @@ interface IVotable {
     val score: Int
         get() = upvotes - downvotes
     val myVote: SingleVote
-    val upvoteRatio: Double
+    val scoreRatio: Double
         get() = (100.0 * upvotes) / downvotes
     val upvotes: Int
     val downvotes: Int

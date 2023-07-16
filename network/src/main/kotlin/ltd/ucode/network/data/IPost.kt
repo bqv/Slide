@@ -31,10 +31,10 @@ abstract class IPost : IVotable {
     abstract override val user: IUser
     abstract override val score: Int
     abstract override val myVote: SingleVote
-    abstract override val upvoteRatio: Double
+    abstract override val scoreRatio: Double
     abstract override val upvotes: Int
     abstract override val downvotes: Int
-    abstract val comments: Int
+    abstract val commentCount: Int
 
     val domain: String?
         get() = link.ifBlank{null}?.let { URL(it).host }

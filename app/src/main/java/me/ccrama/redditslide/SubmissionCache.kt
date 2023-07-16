@@ -393,10 +393,10 @@ object SubmissionCache {
                     Locale.getDefault(), " %s", mContext.resources
                         .getQuantityString(R.plurals.points, submission.score)
                 ) + spacer
-                        + submission.comments
+                        + submission.commentCount
                         + String.format(
                     Locale.getDefault(), " %s", mContext.resources
-                        .getQuantityString(R.plurals.comments, submission.comments)
+                        .getQuantityString(R.plurals.comments, submission.commentCount)
                 )
             )
             s.setSpan(
