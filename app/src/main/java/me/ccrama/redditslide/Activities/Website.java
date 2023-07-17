@@ -183,17 +183,8 @@ public class Website extends BaseActivityAnim {
 
         if (!SettingValues.INSTANCE.getCookies()) {
             final CookieManager cookieManager = CookieManager.getInstance();
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                cookieManager.removeAllCookies(null);
-                cookieManager.flush();
-            } else {
-                final CookieSyncManager cookieSyncMngr = CookieSyncManager.createInstance(this);
-                cookieSyncMngr.startSync();
-                cookieManager.removeAllCookie();
-                cookieManager.removeSessionCookie();
-                cookieSyncMngr.stopSync();
-                cookieSyncMngr.sync();
-            }
+            cookieManager.removeAllCookies(null);
+            cookieManager.flush();
             cookieManager.setAcceptCookie(false);
 
             WebSettings ws = v.getSettings();

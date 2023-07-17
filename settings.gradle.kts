@@ -176,6 +176,8 @@ dependencyResolutionManagement {
             library("okhttp-urlconnection", "com.squareup.okhttp3", "okhttp-urlconnection").versionRef(okhttp)
             bundle("okhttp", listOf("okhttp", "okhttp-urlconnection"))
 
+            library("otpinput", "com.github.dev-niiaddy:OtpInput:1.0.5")
+
             library("retrofit", "com.squareup.retrofit2", "retrofit").version("2.9.0")
             library("retrofit-logging", "com.nightlynexus.logging-retrofit:logging:0.12.0")
             library("retrofit-kotlinx", "com.jakewharton.retrofit:retrofit2-kotlinx-serialization-converter:1.0.0")

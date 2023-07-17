@@ -191,6 +191,7 @@ dependencies {
     // Material design components for pre-Lollipop APIs
     //  TODO: Replace rey5137:material with AndroidX versions?
     implementation("com.github.rey5137:material:1.3.1")
+    implementation(libs.otpinput)
 
     // Image loading, caching, and displaying
     //  TODO: Replace with Glide/Picasso

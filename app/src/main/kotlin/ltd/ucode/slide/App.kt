@@ -1,6 +1,5 @@
 package ltd.ucode.slide
 
-import android.annotation.TargetApi
 import android.app.Activity
 import android.app.ActivityManager
 import android.app.Application
@@ -16,7 +15,6 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.util.Log
-import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationChannelCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
@@ -125,8 +123,7 @@ class App : Application(), ActivityLifecycleCallbacks {
 
     var active = false
 
-    @JvmField
-    var defaultImageLoader: ImageLoader? = null
+    @JvmField var defaultImageLoader: ImageLoader? = null
 
     override fun onLowMemory() {
         super.onLowMemory()
@@ -163,6 +160,7 @@ class App : Application(), ActivityLifecycleCallbacks {
 
     override fun onActivityPaused(activity: Activity) {}
     override fun onActivityStopped(activity: Activity) {}
+
     override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
         doLanguages()
     }
@@ -170,6 +168,7 @@ class App : Application(), ActivityLifecycleCallbacks {
     override fun onActivityStarted(activity: Activity) {}
     override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) {}
     override fun onActivityDestroyed(activity: Activity) {}
+
     override fun onCreate() {
         super.onCreate()
         mApplication = this
@@ -177,9 +176,7 @@ class App : Application(), ActivityLifecycleCallbacks {
         if (ProcessPhoenix.isPhoenixProcess(this)) {
             return
         }
-        val dir: File
-        dir =
-            if (Environment.getExternalStorageState() == Environment.MEDIA_MOUNTED && externalCacheDir != null) {
+        val dir = if (Environment.getExternalStorageState() == Environment.MEDIA_MOUNTED && externalCacheDir != null) {
                 File(externalCacheDir.toString() + File.separator + "video-cache")
             } else {
                 File(cacheDir.toString() + File.separator + "video-cache")
@@ -196,9 +193,7 @@ class App : Application(), ActivityLifecycleCallbacks {
         if (client == null) {
             client = OkHttpClient()
         }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            setCanUseNightModeAuto()
-        }
+        setCanUseNightModeAuto()
         overrideLanguage = getSharedPreferences("SETTINGS", 0).getBoolean(
             SettingValues.PREF_OVERRIDE_LANGUAGE,
             false
@@ -226,7 +221,7 @@ class App : Application(), ActivityLifecycleCallbacks {
         SettingValues.initialize()
         SortingUtil.defaultSorting = SettingValues.defaultSorting
         SortingUtil.timePeriod = SettingValues.timePeriod
-        KVStore.init(this, "SEEN") // TODO: replace with room
+        KVStore.init(this, "seen.db") // TODO: replace with room
         doLanguages()
         lastPosition = ArrayList()
         if (SettingValues.appRestart.contains("startScreen")) {
@@ -245,15 +240,15 @@ class App : Application(), ActivityLifecycleCallbacks {
         val heightDp = this.resources.configuration.screenHeightDp
         var fina = Math.max(widthDp, heightDp)
         fina += 99
-        if (SettingValues.colours.contains("tabletOVERRIDE")) {
-            dpWidth = SettingValues.colours.getInt("tabletOVERRIDE", fina / 300)
+        dpWidth = if (SettingValues.colours.contains("tabletOVERRIDE")) {
+            SettingValues.colours.getInt("tabletOVERRIDE", fina / 300)
         } else {
-            dpWidth = fina / 300
+            fina / 300
         }
-        if (SettingValues.colours.contains("notificationOverride")) {
-            notificationTime = SettingValues.colours.getInt("notificationOverride", 360)
+        notificationTime = if (SettingValues.colours.contains("notificationOverride")) {
+            SettingValues.colours.getInt("notificationOverride", 360)
         } else {
-            notificationTime = 360
+            360
         }
         SettingValues.isPro = isProPackageInstalled || BuildConfig.isFDroid
         videoPlugin = isVideoPluginInstalled
@@ -272,7 +267,6 @@ class App : Application(), ActivityLifecycleCallbacks {
     }
 
     val isNotificationAccessEnabled: Boolean
-        @RequiresApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
         get() {
             val manager = ContextCompat.getSystemService(this, ActivityManager::class.java)
             if (manager != null) {
@@ -340,7 +334,7 @@ class App : Application(), ActivityLifecycleCallbacks {
                 .build()
             notificationManager.createNotificationChannel(notificationChannel)
         }
-        }
+    }
 
     //IPV6 workaround by reddit:u/talklittle
     class GfycatIpv4Dns : Dns {
@@ -348,7 +342,7 @@ class App : Application(), ActivityLifecycleCallbacks {
         override fun lookup(hostname: String): List<InetAddress> {
             return if (ContentType.hostContains(hostname, "gfycat.com", "redgifs.com")) {
                 val addresses = InetAddress.getAllByName(hostname)
-                if (addresses == null || addresses.size == 0) {
+                if (addresses.isNullOrEmpty()) {
                     throw UnknownHostException("Bad host: $hostname")
                 }
 
@@ -377,41 +371,27 @@ class App : Application(), ActivityLifecycleCallbacks {
         const val EMPTY_STRING = "NOTHING"
         const val enter_animation_time_original: Long = 600
         const val SHARED_PREF_IS_MOD = "is_mod"
-        @JvmField
-        var videoCache: Cache? = null
+        @JvmField var videoCache: Cache? = null
         var enter_animation_time = enter_animation_time_original
         const val enter_animation_time_multiplier = 1
-        @JvmField
-        var authentication: Authentication? = null
-        @JvmField
-        var dpWidth = 0
-        @JvmField
-        var notificationTime = 0
-        @JvmField
-        var videoPlugin = false
-        @JvmField
-        var notifications: NotificationJobScheduler? = null
-        @JvmField
-        var isLoading = false
+        @JvmField var authentication: Authentication? = null
+        @JvmField var dpWidth = 0
+        @JvmField var notificationTime = 0
+        @JvmField var videoPlugin = false
+        @JvmField var notifications: NotificationJobScheduler? = null
+        @JvmField var isLoading = false
         val time = System.currentTimeMillis()
-        @JvmField
-        var fabClear = false
+        @JvmField var fabClear = false
         var lastPosition: ArrayList<Int>? = null
-        @JvmField
-        var currentPosition = 0
-        @JvmField
-        var cachedData: SharedPreferences? = null
+        @JvmField var currentPosition = 0
+        @JvmField var cachedData: SharedPreferences? = null
         const val noGapps = true //for testing
         var overrideLanguage = false
         var isRestarting = false
-        @JvmField
-        var autoCache: AutoCacheScheduler? = null
-        @JvmField
-        var peek = false
-        @JvmField
-        var client: OkHttpClient? = null
-        @JvmField
-        var canUseNightModeAuto = false
+        @JvmField var autoCache: AutoCacheScheduler? = null
+        @JvmField var peek = false
+        @JvmField var client: OkHttpClient? = null
+        @JvmField var canUseNightModeAuto = false
 
         @JvmStatic
         fun forceRestart(context: Context?, forceLoadScreen: Boolean) {
@@ -429,14 +409,10 @@ class App : Application(), ActivityLifecycleCallbacks {
 
         @JvmStatic
         fun defaultShareText(title: String?, url: String?, c: Context) {
-            var title = title
-            var url = url
-            url = StringEscapeUtils.unescapeHtml4(CompatUtil.fromHtml(url!!).toString())
             val sharingIntent = Intent(Intent.ACTION_SEND)
             sharingIntent.type = "text/plain"
-            /* Decode html entities */title = StringEscapeUtils.unescapeHtml4(title)
-            sharingIntent.putExtra(Intent.EXTRA_SUBJECT, title)
-            sharingIntent.putExtra(Intent.EXTRA_TEXT, url)
+            sharingIntent.putExtra(Intent.EXTRA_SUBJECT, /* Decode html entities */StringEscapeUtils.unescapeHtml4(title))
+            sharingIntent.putExtra(Intent.EXTRA_TEXT, StringEscapeUtils.unescapeHtml4(CompatUtil.fromHtml(url!!).toString()))
             c.startActivity(Intent.createChooser(sharingIntent, c.getString(R.string.title_share)))
         }
 
@@ -448,24 +424,25 @@ class App : Application(), ActivityLifecycleCallbacks {
                 )
                 if (pi != null && pi.applicationInfo.enabled) return true
             } catch (ignored: NameNotFoundException) {
+                // Ignore
             }
             return false
         }
 
         private val isProPackageInstalled: Boolean
-            private get() = isPackageInstalled(appContext.getString(R.string.ui_unlock_package))
+            get() = isPackageInstalled(appContext.getString(R.string.ui_unlock_package))
+
         private val isVideoPluginInstalled: Boolean
-            private get() = isPackageInstalled(appContext.getString(R.string.youtube_plugin_package))
+            get() = isPackageInstalled(appContext.getString(R.string.youtube_plugin_package))
+
         @JvmStatic
         val installedBrowsers: HashMap<String, String>
             get() {
-                val packageMatcher =
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) PackageManager.MATCH_ALL else PackageManager.GET_DISABLED_COMPONENTS
                 val browserMap = HashMap<String, String>()
                 val resolveInfoList = appContext.packageManager
                     .queryIntentActivities(
                         Intent(Intent.ACTION_VIEW, Uri.parse(Constants.TEST_URL)),
-                        packageMatcher
+                        PackageManager.MATCH_ALL
                     )
                 for (resolveInfo in resolveInfoList) {
                     if (resolveInfo.activityInfo.enabled) {
@@ -478,6 +455,7 @@ class App : Application(), ActivityLifecycleCallbacks {
                 }
                 return browserMap
             }
+
         @JvmField
         var notFirst = false
 
@@ -491,7 +469,6 @@ class App : Application(), ActivityLifecycleCallbacks {
         val appContext: Context
             get() = mApplication!!.applicationContext
 
-        @TargetApi(Build.VERSION_CODES.M)
         private fun setCanUseNightModeAuto() {
             val uiModeManager = appContext.getSystemService(
                 UiModeManager::class.java

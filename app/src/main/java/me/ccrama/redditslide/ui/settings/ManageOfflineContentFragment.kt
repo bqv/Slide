@@ -155,7 +155,7 @@ class ManageOfflineContentFragment(private val context: Activity) {
                 )
                 d.hour(App.cachedData!!.getInt("hour", 0))
                 d.minute(App.cachedData!!.getInt("minute", 0))
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) d.applyStyle(
+                d.applyStyle(
                     ColorPreferences(
                         context
                     ).fontStyle.baseId

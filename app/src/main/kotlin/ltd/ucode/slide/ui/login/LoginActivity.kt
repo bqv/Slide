@@ -9,7 +9,6 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.webkit.CookieManager
-import android.webkit.CookieSyncManager
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.activity.viewModels
@@ -17,6 +16,8 @@ import androidx.appcompat.app.AlertDialog
 import androidx.core.widget.addTextChangedListener
 import androidx.lifecycle.Observer
 import dagger.hilt.android.AndroidEntryPoint
+import io.github.oshai.kotlinlogging.KLogger
+import io.github.oshai.kotlinlogging.KotlinLogging
 import ltd.ucode.slide.App
 import ltd.ucode.slide.App.Companion.forceRestart
 import ltd.ucode.slide.R
@@ -31,8 +32,10 @@ import me.ccrama.redditslide.Visuals.Palette
 import net.dean.jraw.models.Subreddit
 
 @AndroidEntryPoint
-class Login : BaseActivityAnim() {
+class LoginActivity : BaseActivityAnim() {
+    private val logger: KLogger = KotlinLogging.logger {}
     private val viewModel: LoginViewModel by viewModels()
+
     private lateinit var binding: ActivityLoginBinding
     private lateinit var adapter: LoginAdapter
 
@@ -63,10 +66,10 @@ class Login : BaseActivityAnim() {
         }
 
         binding.loginInstance.apply {
-            this@Login.adapter = LoginAdapter(this@Login)
+            this@LoginActivity.adapter = LoginAdapter(this@LoginActivity)
 
             threshold = 1
-            setAdapter(this@Login.adapter)
+            setAdapter(this@LoginActivity.adapter)
 
             addTextChangedListener {
                 viewModel.updateInstance(it.toString())
@@ -82,16 +85,20 @@ class Login : BaseActivityAnim() {
             setOnClickListener {
                 if (binding.loginTotpChip.isChecked) {
                     binding.loginTotpLayout.visibility = View.VISIBLE
+                    binding.loginTotp.focusOtpInput()
                 } else {
                     binding.loginTotpLayout.visibility = View.GONE
-                    binding.loginTotp.text?.clear()
+                    binding.loginTotp.reset()
                 }
             }
             callOnClick()
         }
 
-        binding.loginTotp.addTextChangedListener {
-            viewModel.updateToken(it.toString())
+        binding.loginTotp.inputChangedListener { inputComplete, it ->
+            if (inputComplete)
+                viewModel.updateToken(it)
+            else
+                viewModel.clearToken()
         }
 
         binding.loginButton.setOnClickListener {
@@ -128,27 +135,24 @@ class Login : BaseActivityAnim() {
         //authorizationUrl = authorizationUrl.replace("www.", "i.")
         //authorizationUrl = authorizationUrl.replace("%3A%2F%2Fi", "://www")
         //Log.v(LogUtil.getTag(), "Auth URL: $authorizationUrl")
-        val webView = findViewById<View>(R.id.web) as WebView
-        webView.clearCache(true)
-        webView.clearHistory()
+        val webView = findViewById<WebView>(R.id.web)
+            .apply {
+                clearCache(true)
+                clearHistory()
+            }
         val webSettings = webView.settings
-        webSettings.javaScriptEnabled = true
-        webSettings.domStorageEnabled = true
-        webSettings.databaseEnabled = true
-        webSettings.minimumFontSize = 1
-        webSettings.minimumLogicalFontSize = 1
+            .apply {
+                javaScriptEnabled = true
+                domStorageEnabled = true
+                databaseEnabled = true
+                minimumFontSize = 1
+                minimumLogicalFontSize = 1
+            }
         val cookieManager = CookieManager.getInstance()
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            cookieManager.removeAllCookies(null)
-            cookieManager.flush()
-        } else {
-            val cookieSyncMngr = CookieSyncManager.createInstance(this)
-            cookieSyncMngr.startSync()
-            cookieManager.removeAllCookie()
-            cookieManager.removeSessionCookie()
-            cookieSyncMngr.stopSync()
-            cookieSyncMngr.sync()
-        }
+            .apply {
+                removeAllCookies(null)
+                flush()
+            }
         webView.webViewClient = object : WebViewClient() {
             override fun onPageStarted(view: WebView, url: String, favicon: Bitmap?) {
                 me.ccrama.redditslide.util.LogUtil.v(url)
@@ -176,29 +180,29 @@ class Login : BaseActivityAnim() {
         }
         subNames = sort(subNames)
         if (!subNames!!.contains("slideforreddit")) {
-            AlertDialog.Builder(this@Login)
+            AlertDialog.Builder(this@LoginActivity)
                 .setTitle(R.string.login_subscribe_rslideforreddit)
                 .setMessage(R.string.login_subscribe_rslideforreddit_desc)
                 .setPositiveButton(R.string.btn_yes) { dialog: DialogInterface?, which: Int ->
                     subNames!!.add(2, "slideforreddit")
                     setSubscriptions(subNames)
-                    forceRestart(this@Login, true)
+                    forceRestart(this@LoginActivity, true)
                 }
                 .setNegativeButton(R.string.btn_no) { dialog: DialogInterface?, which: Int ->
                     setSubscriptions(subNames)
-                    forceRestart(this@Login, true)
+                    forceRestart(this@LoginActivity, true)
                 }
                 .setCancelable(false)
                 .show()
         } else {
             setSubscriptions(subNames)
-            forceRestart(this@Login, true)
+            forceRestart(this@LoginActivity, true)
         }
     }
 
     fun doLastStuff(subs: ArrayList<Subreddit>) {
         d!!.dismiss()
-        AlertDialog.Builder(this@Login)
+        AlertDialog.Builder(this@LoginActivity)
             .setTitle(R.string.login_sync_colors)
             .setMessage(R.string.login_sync_colors_desc)
             .setPositiveButton(R.string.btn_yes) { dialog: DialogInterface?, which: Int ->
@@ -213,7 +217,7 @@ class Login : BaseActivityAnim() {
                             s.displayName.lowercase(),
                             GetClosestColor.getClosestColor(
                                 s.dataNode["key_color"].asText(),
-                                this@Login
+                                this@LoginActivity
                             )
                         )
                     }

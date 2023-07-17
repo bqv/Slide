@@ -47,11 +47,7 @@ class Reauthenticate constructor() : BaseActivityAnim() {
         authorizationUrl = authorizationUrl.replace("%3A%2F%2Fi", "://www")
         Log.v(LogUtil.getTag(), "Auth URL: $authorizationUrl")
         val cookieManager: CookieManager = CookieManager.getInstance()
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            cookieManager.removeAllCookies(null)
-        } else {
-            cookieManager.removeAllCookie()
-        }
+        cookieManager.removeAllCookies(null)
         val webView: WebView = findViewById<View>(R.id.web) as WebView
         webView.loadUrl(authorizationUrl)
         webView.webChromeClient = object : WebChromeClient() {

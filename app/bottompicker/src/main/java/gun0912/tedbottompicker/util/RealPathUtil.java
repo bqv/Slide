@@ -34,11 +34,8 @@ public class RealPathUtil {
     @SuppressLint("NewApi")
     public static String getRealPathFromURI_API19(final Context context, final Uri uri) {
 
-        // check here to KITKAT or new version
-        final boolean isKitKat = Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT;
-
         // DocumentProvider
-        if (isKitKat && DocumentsContract.isDocumentUri(context, uri)) {
+        if (DocumentsContract.isDocumentUri(context, uri)) {
 
             // ExternalStorageProvider
             if (isExternalStorageDocument(uri)) {

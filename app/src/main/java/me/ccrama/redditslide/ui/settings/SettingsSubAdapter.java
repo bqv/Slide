@@ -254,12 +254,9 @@ public class SettingsSubAdapter extends RecyclerView.Adapter<SettingsSubAdapter.
                                     Palette.removeColor(subreddit);
                                     hea.setBackgroundColor(Palette.getDefaultColor());
                                     findViewById(R.id.header).setBackgroundColor(Palette.getDefaultColor());
-                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                                        Window window = getWindow();
-                                        window.setStatusBarColor(Palette.getDarkerColor(Palette.getDefaultColor()));
-                                        context.setTaskDescription(new ActivityManager.TaskDescription(subreddit, ((BitmapDrawable) getResources().getDrawable(R.drawable.ic_launcher)).getBitmap(), colorPicker2.getColor()));
-
-                                    }
+                                    Window window = getWindow();
+                                    window.setStatusBarColor(Palette.getDarkerColor(Palette.getDefaultColor()));
+                                    context.setTaskDescription(new ActivityManager.TaskDescription(subreddit, ((BitmapDrawable) getResources().getDrawable(R.drawable.ic_launcher)).getBitmap(), colorPicker2.getColor()));
                                     title.setBackgroundColor(Palette.getDefaultColor());
 
 
@@ -267,7 +264,7 @@ public class SettingsSubAdapter extends RecyclerView.Adapter<SettingsSubAdapter.
                                     int cy = center.getHeight() / 2;
 
                                     int initialRadius = body.getWidth();
-                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                                    run {
 
                                         Animator anim =
                                                 ViewAnimationUtils.createCircularReveal(body, cx, cy, initialRadius, 0);

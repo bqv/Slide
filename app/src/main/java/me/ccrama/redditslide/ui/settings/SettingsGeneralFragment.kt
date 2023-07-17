@@ -864,9 +864,7 @@ class SettingsGeneralFragment(private val context: AppCompatActivity?) {
             run {
                 val notifs = context.findViewById<View>(R.id.settings_general_redditnotifs)
                 if (notifs != null) {
-                    if (!isPackageInstalled("com.reddit.frontpage") ||
-                        Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR2
-                    ) {
+                    if (false) {
                         notifs.visibility = View.GONE
                         if (context.findViewById<View?>(R.id.settings_general_installreddit) != null) {
                             context.findViewById<View>(R.id.settings_general_installreddit).visibility =

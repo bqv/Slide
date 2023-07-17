@@ -31,45 +31,6 @@ public class NetworkUtil {
      * @return A non-null value defined in {@link Status}.
      */
     private static Status getConnectivityStatus(final Context context) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
-            return getConnectivityStatusPre23(context);
-        }
-        return getConnectivityStatusNew(context);
-    }
-
-    /**
-     * For devices running pre-Marshmallow.
-     */
-    private static Status getConnectivityStatusPre23(final Context context) {
-        final ConnectivityManager cm = ContextCompat.getSystemService(context, ConnectivityManager.class);
-        if (cm == null) {
-            return Status.NONE;
-        }
-
-        final NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
-        if (activeNetwork == null) {
-            return Status.NONE;
-        }
-        switch (activeNetwork.getType()) {
-            case ConnectivityManager.TYPE_WIFI:
-            case ConnectivityManager.TYPE_ETHERNET:
-                if (cm.isActiveNetworkMetered())
-                    return Status.MOBILE; // respect metered wifi networks as mobile
-                return Status.WIFI;
-            case ConnectivityManager.TYPE_MOBILE:
-            case ConnectivityManager.TYPE_BLUETOOTH:
-            case ConnectivityManager.TYPE_WIMAX:
-                return Status.MOBILE;
-            default:
-                return Status.NONE;
-        }
-    }
-
-    /**
-     * For devices running Marshmallow and above.
-     */
-    @RequiresApi(api = Build.VERSION_CODES.M)
-    private static Status getConnectivityStatusNew(final Context context) {
         final ConnectivityManager cm = ContextCompat.getSystemService(context, ConnectivityManager.class);
         if (cm == null) {
             return Status.NONE;
@@ -134,7 +95,6 @@ public class NetworkUtil {
         return getConnectivityStatus(context) == Status.WIFI;
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     private static boolean isConnectedToInternet(final NetworkCapabilities nwCapabilities) {
         return nwCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) &&
                 nwCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED);

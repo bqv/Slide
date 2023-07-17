@@ -92,11 +92,9 @@ class Submit : BaseActivity() {
         super.onCreate(savedInstanceState)
         applyColorTheme()
         setContentView(R.layout.activity_submit)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            val window: Window = this.window
-            window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS)
-            window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
-        }
+        val window: Window = this.window
+        window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS)
+        window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
         setupAppBar(R.id.toolbar, R.string.title_submit_post, true, true)
         inboxReplies = findViewById<View>(R.id.replies) as SwitchCompat?
         val intent: Intent = intent

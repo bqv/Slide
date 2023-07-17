@@ -37,6 +37,9 @@ class LoginViewModel @Inject constructor(
             substring(0, Integer.min(length, 6))
         }.ifBlank { null }
     }
+    fun clearToken() {
+        model.totp = null
+    }
     fun updateInstance(text: String) { model.instance = text.trim() }
 
     fun doLogin(onSuccess: () -> Unit, onFailure: () -> Unit) {

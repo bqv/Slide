@@ -49,11 +49,7 @@ public class OpenContent extends Activity {
     public void onResume(){
         super.onResume();
         if(second){
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                finishAndRemoveTask();
-            } else {
-                finish();
-            }
+            finishAndRemoveTask();
         } else {
             second = true;
         }

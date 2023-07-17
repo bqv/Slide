@@ -12,7 +12,7 @@ import ltd.ucode.slide.SettingValues.alphabetizeOnSubscribe
 import ltd.ucode.slide.SettingValues.appRestart
 import ltd.ucode.slide.SettingValues.authentication
 import ltd.ucode.slide.ui.main.MainActivity
-import ltd.ucode.slide.ui.login.Login
+import ltd.ucode.slide.ui.login.LoginActivity
 import me.ccrama.redditslide.Activities.MultiredditOverview
 import me.ccrama.redditslide.Activities.NewsActivity
 import me.ccrama.redditslide.Toolbox.Toolbox
@@ -635,7 +635,7 @@ object UserSubscriptions {
     }
 
     @JvmStatic
-    fun syncSubredditsGetObjectAsync(mainActivity: Login) {
+    fun syncSubredditsGetObjectAsync(mainActivity: LoginActivity) {
         val toReturn = ArrayList<Subreddit>()
         object : AsyncTask<Void?, Void?, Void?>() {
             override fun doInBackground(vararg params: Void?): Void? {

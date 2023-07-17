@@ -4,7 +4,6 @@ import android.app.Activity
 import android.content.DialogInterface
 import android.content.Intent
 import android.content.res.Configuration
-import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.Gravity
@@ -555,12 +554,10 @@ class MultiredditOverview : BaseActivityAnim() {
                     )
                 )
                 doDrawerSubs(0)
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                    val window = this.window
-                    window.statusBarColor = Palette.getDarkerColor(
-                        usedArray!![0].displayName
-                    )
-                }
+                val window = this.window
+                window.statusBarColor = Palette.getDarkerColor(
+                    usedArray!![0].displayName
+                )
                 val header = findViewById<View>(R.id.header)
                 tabs!!.addOnTabSelectedListener(object :
                     TabLayout.ViewPagerOnTabSelectedListener(pager) {
@@ -655,7 +652,7 @@ class MultiredditOverview : BaseActivityAnim() {
                     findViewById<View>(R.id.header).setBackgroundColor(
                         Palette.getColor(usedArray!![position].displayName)
                     )
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    run {
                         val window = window
                         window.statusBarColor = Palette.getDarkerColor(
                             usedArray!![position].displayName

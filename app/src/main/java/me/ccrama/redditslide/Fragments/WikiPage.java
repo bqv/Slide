@@ -105,9 +105,7 @@ public class WikiPage extends Fragment {
             }
         });
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            WebView.setWebContentsDebuggingEnabled(BuildConfig.DEBUG);
-        }
+        WebView.setWebContentsDebuggingEnabled(BuildConfig.DEBUG);
     }
 
     private void onDomRetrieved(String dom) {

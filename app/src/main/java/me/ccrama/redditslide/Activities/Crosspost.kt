@@ -36,11 +36,9 @@ class Crosspost : BaseActivity() {
         super.onCreate(savedInstanceState)
         applyColorTheme()
         setContentView(R.layout.activity_crosspost)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            val window = this.window
-            window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS)
-            window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
-        }
+        val window = this.window
+        window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS)
+        window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
         setupAppBar(R.id.toolbar, R.string.title_crosspost, true, true)
         inboxReplies = findViewById<View>(R.id.replies) as SwitchCompat
         val subredditText = (findViewById<View>(R.id.subreddittext) as AutoCompleteTextView)

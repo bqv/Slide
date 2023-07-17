@@ -206,11 +206,9 @@ public class SettingsThemeFragment<ActivityType extends BaseActivity & RestartAc
                 if (toolbar != null)
                     toolbar.setBackgroundColor(colorPicker2.getColor());
 
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                    Window window = context.getWindow();
-                    window.setStatusBarColor(
-                            Palette.getDarkerColor(colorPicker2.getColor()));
-                }
+                Window window = context.getWindow();
+                window.setStatusBarColor(
+                        Palette.getDarkerColor(colorPicker2.getColor()));
                 context.setRecentBar(context.getString(R.string.title_theme_settings),
                         colorPicker2.getColor());
             });

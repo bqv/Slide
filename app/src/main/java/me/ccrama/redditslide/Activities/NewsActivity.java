@@ -149,11 +149,9 @@ public class NewsActivity extends BaseActivity
         mToolbar.setPopupTheme(new ColorPreferences(this).getFontStyle().getBaseId());
         setSupportActionBar(mToolbar);
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            Window window = this.getWindow();
-            window.setStatusBarColor(
-                    Palette.getDarkerColor(Palette.getDarkerColor(Palette.getDefaultColor())));
-        }
+        Window window = this.getWindow();
+        window.setStatusBarColor(
+                Palette.getDarkerColor(Palette.getDarkerColor(Palette.getDefaultColor())));
 
         mTabLayout = (TabLayout) findViewById(R.id.sliding_tabs);
         header = findViewById(R.id.header);
@@ -373,12 +371,10 @@ public class NewsActivity extends BaseActivity
 
                             header.setBackgroundColor(color);
 
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                                getWindow().setStatusBarColor(Palette.getDarkerColor(color));
-                                if (SettingValues.colorNavBar) {
-                                    getWindow().setNavigationBarColor(
-                                            Palette.getDarkerColor(color));
-                                }
+                            getWindow().setStatusBarColor(Palette.getDarkerColor(color));
+                            if (SettingValues.colorNavBar) {
+                                getWindow().setNavigationBarColor(
+                                        Palette.getDarkerColor(color));
                             }
                         }
                     });

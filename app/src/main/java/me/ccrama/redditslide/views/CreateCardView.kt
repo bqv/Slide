@@ -1,6 +1,5 @@
 package me.ccrama.redditslide.views
 
-import android.os.Build
 import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
@@ -41,20 +40,14 @@ object CreateCardView {
                 v = LayoutInflater.from(viewGroup.context)
                     .inflate(R.layout.submission_list, viewGroup, false)
 
-                //if the radius is set to 0 on KitKat--it crashes.
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                    (v.findViewById<View>(R.id.card) as CardView).radius = 0f
-                }
+                v.findViewById<CardView>(R.id.card).radius = 0f
             }
 
             CardEnum.DESKTOP -> {
                 v = LayoutInflater.from(viewGroup.context)
                     .inflate(R.layout.submission_list_desktop, viewGroup, false)
 
-                //if the radius is set to 0 on KitKat--it crashes.
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                    (v.findViewById<View>(R.id.card) as CardView).radius = 0f
-                }
+                v.findViewById<CardView>(R.id.card).radius = 0f
             }
         }
         val thumbImage = v.findViewById<View>(R.id.thumbimage2)
@@ -309,11 +302,7 @@ object CreateCardView {
                 picParams.bottomMargin
             )
             layoutParams.addRule(RelativeLayout.LEFT_OF, R.id.thumbimage2)
-            if (Build.VERSION.SDK_INT > Build.VERSION_CODES.JELLY_BEAN) {
-                layoutParams.removeRule(RelativeLayout.RIGHT_OF)
-            } else {
-                layoutParams.addRule(RelativeLayout.RIGHT_OF, 0)
-            }
+            layoutParams.removeRule(RelativeLayout.RIGHT_OF)
         }
         if (!SettingValues.bigPicEnabled) {
             v.findViewById<View>(R.id.thumbimage2).visibility = View.VISIBLE

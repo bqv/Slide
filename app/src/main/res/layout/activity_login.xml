@@ -151,21 +151,19 @@
                 android:paddingVertical="10dp"
                 android:orientation="horizontal">
 
-                <com.google.android.material.textfield.TextInputLayout
+                <com.godwinaddy.otpinput.OtpInput
+                    android:id="@+id/login_totp"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:padding="2dp"
-                    app:passwordToggleEnabled="true">
-
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/login_totp"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:minWidth="48dp"
-                        android:minHeight="48dp"
-                        android:hint="2FA Token"
-                        android:inputType="number" />
-                </com.google.android.material.textfield.TextInputLayout>
+                    android:minWidth="48dp"
+                    android:minHeight="48dp"
+                    android:hint="2FA Token"
+                    android:textColor="@android:color/darker_gray"
+                    app:inputBackground="@color/bs_divider_color"
+                    app:inputType="number"
+                    app:inputCount="6"
+                    app:inputRadius="10dp"
+                    app:inputSpacing="10dp" />
             </LinearLayout>
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>

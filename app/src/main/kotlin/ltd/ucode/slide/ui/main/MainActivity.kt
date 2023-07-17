@@ -53,6 +53,7 @@ import android.widget.TextView
 import android.widget.TextView.OnEditorActionListener
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts.RequestPermission
+import androidx.activity.viewModels
 import androidx.annotation.DrawableRes
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AlertDialog
@@ -87,17 +88,17 @@ import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.tabs.TabLayout
 import com.lusfold.androidkeyvaluestore.KVStore
 import dagger.hilt.android.AndroidEntryPoint
+import io.github.oshai.kotlinlogging.KLogger
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.runBlocking
-import ltd.ucode.network.lemmy.data.LemmyPost
-import ltd.ucode.network.lemmy.data.type.PostSortType
+import ltd.ucode.network.data.IPost
 import ltd.ucode.slide.App
 import ltd.ucode.slide.Authentication
 import ltd.ucode.slide.BuildConfig
 import ltd.ucode.slide.Constants
 import ltd.ucode.slide.R
 import ltd.ucode.slide.SettingValues
-import ltd.ucode.network.data.IPost
 import ltd.ucode.slide.data.value.Feed
 import ltd.ucode.slide.data.value.Sorting
 import ltd.ucode.slide.repository.AccountRepository
@@ -107,7 +108,7 @@ import ltd.ucode.slide.repository.PostRepository
 import ltd.ucode.slide.ui.BaseActivity
 import ltd.ucode.slide.ui.Slide
 import ltd.ucode.slide.ui.Tutorial
-import ltd.ucode.slide.ui.login.Login
+import ltd.ucode.slide.ui.login.LoginActivity
 import ltd.ucode.util.extensions.CoroutineScopeExtensions.executeAsyncTask
 import me.ccrama.redditslide.Activities.Announcement
 import me.ccrama.redditslide.Activities.CancelSubNotifs
@@ -154,8 +155,10 @@ import me.ccrama.redditslide.ui.settings.SettingsThemeFragment
 import me.ccrama.redditslide.util.EditTextValidator
 import me.ccrama.redditslide.util.LayoutUtils
 import me.ccrama.redditslide.util.LogUtil
+import me.ccrama.redditslide.util.NetworkStateReceiver
 import me.ccrama.redditslide.util.NetworkStateReceiver.NetworkStateReceiverListener
 import me.ccrama.redditslide.util.NetworkUtil
+import me.ccrama.redditslide.util.SortingUtil
 import me.ccrama.redditslide.util.StringUtil
 import me.ccrama.redditslide.util.TimeUtils
 import me.ccrama.redditslide.views.CatchStaggeredGridLayoutManager
@@ -189,59 +192,47 @@ import javax.inject.Inject
 import net.dean.jraw.paginators.Sorting as RedditSorting
 
 @AndroidEntryPoint
-class MainActivity : BaseActivity(), NetworkStateReceiverListener {
+class MainActivity : BaseActivity() {
+    private val logger: KLogger = KotlinLogging.logger {}
+    private val viewModel: MainViewModel by viewModels()
+
+    //private lateinit var binding: ActivityMainBinding
+    //private lateinit var adapter: MainAdapter
+
     var menu: Menu? = null
     var mTabLayout: TabLayout? = null
     var drawerSubList: ListView? = null
 
-    @Inject
-    lateinit var postRepository: PostRepository
-    @Inject
-    lateinit var commentRepository: CommentRepository
-    @Inject
-    lateinit var accountRepository: AccountRepository
-    @Inject
-    lateinit var networkRepository: NetworkRepository
+    @Inject lateinit var postRepository: PostRepository
+    @Inject lateinit var commentRepository: CommentRepository
+    @Inject lateinit var accountRepository: AccountRepository
+    @Inject lateinit var networkRepository: NetworkRepository
 
     val ANIMATE_DURATION: Long = 250 //duration of animations
     private val ANIMATE_DURATION_OFFSET: Long = 45 //offset for smoothing out the exit animations
-    @JvmField
-    var singleMode = false
-    @JvmField
-    var pager: ToggleSwipeViewPager? = null
-    @JvmField
-    var usedArray: CaseInsensitiveArrayList? = null
-    @JvmField
-    var drawerLayout: DrawerLayout? = null
+    @JvmField var singleMode = false
+    @JvmField var pager: ToggleSwipeViewPager? = null
+    @JvmField var usedArray: CaseInsensitiveArrayList? = null
+    @JvmField var drawerLayout: DrawerLayout? = null
     var hea: View? = null
-    @JvmField
-    var drawerSearch: EditText? = null
+    @JvmField var drawerSearch: EditText? = null
     var header: View? = null
     var subToDo: String? = null
-    @JvmField
-    var adapter: MainPagerAdapter? = null
+    @JvmField var adapter: MainPagerAdapter? = null
     var toGoto = 0
     var first = true
-    @JvmField
-    var selectedSub //currently selected subreddit
-            : String? = null
+    @JvmField var selectedSub: String? = null //currently selected subreddit
     var doImage: Runnable? = null
     var data: Intent? = null
-    @JvmField
-    var commentPager = false
-    @JvmField
-    var runAfterLoad: Runnable? = null
+    @JvmField var commentPager = false
+    @JvmField var runAfterLoad: Runnable? = null
     var canSubmit = false
 
     //if the view mode is set to Subreddit Tabs, save the title ("Slide" or "Slide (debug)")
-    @JvmField
-    var tabViewModeTitle: String? = null
-    @JvmField
-    var currentComment = 0
-    @JvmField
-    var openingComments: IPost? = null
-    @JvmField
-    var toOpenComments = -1
+    @JvmField var tabViewModeTitle: String? = null
+    @JvmField var currentComment = 0
+    @JvmField var openingComments: IPost? = null
+    @JvmField var toOpenComments = -1
     var inNightMode = false
     var changed = false
     var term: String? = null
@@ -256,10 +247,9 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
     var currentlySubbed = false
     var back = 0
     private var mAsyncGetSubreddit: AsyncGetSubreddit? = null
-    private var headerHeight //height of the header
-            = 0
-    @JvmField
-    var reloadItemNumber = -2
+    private var headerHeight = 0 //height of the header
+    @JvmField var reloadItemNumber = -2
+
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         if (requestCode == SETTINGS_RESULT) {
             var current = pager!!.currentItem
@@ -270,7 +260,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             pager!!.currentItem = current
             if (mTabLayout != null) {
                 mTabLayout!!.setupWithViewPager(pager)
-                me.ccrama.redditslide.util.LayoutUtils.scrollToTabAfterLayout(mTabLayout, current)
+                LayoutUtils.scrollToTabAfterLayout(mTabLayout, current)
             }
             setToolbarClick()
         } else if ((requestCode == 2001 || requestCode == 2002) && resultCode == RESULT_OK) {
@@ -284,7 +274,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
 
             //clear the text from the toolbar search field
             if (findViewById<AutoCompleteTextView>(R.id.toolbar_search) != null) {
-                findViewById<AutoCompleteTextView>(R.id.toolbar_search)?.setText("")
+                findViewById<AutoCompleteTextView>(R.id.toolbar_search).setText("")
             }
             val view = this@MainActivity.currentFocus
             if (view != null) {
@@ -384,7 +374,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             && !SynccitRead.newVisited.isEmpty()
         ) {
             object : AsyncTask<Void?, Void?, Void?>() {
-                protected override fun doInBackground(vararg params: Void?): Void? {
+                override fun doInBackground(vararg params: Void?): Void? {
                     try {
                         val returned = arrayOfNulls<String>(SynccitRead.newVisited.size)
                         for ((i, s) in SynccitRead.newVisited.withIndex()) {
@@ -470,7 +460,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         val inflater = menuInflater
-        if (me.ccrama.redditslide.util.NetworkUtil.isConnected(this)) {
+        if (NetworkUtil.isConnected(this)) {
             if (SettingValues.expandedToolbar) {
                 inflater.inflate(R.menu.menu_subreddit_overview_expanded, menu)
             } else {
@@ -617,7 +607,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                         findViewById(R.id.anchor),
                         getString(R.string.friends_sort_error), Snackbar.LENGTH_SHORT
                     )
-                    me.ccrama.redditslide.util.LayoutUtils.showSnackbar(s)
+                    LayoutUtils.showSnackbar(s)
                 } else {
                     openPopup()
                 }
@@ -702,7 +692,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             R.id.gallery -> {
                 if (SettingValues.isPro) {
                     val posts = (adapter!!.currentFragment as SubmissionsView?)!!.posts!!.posts
-                    if (posts != null && !posts.isEmpty()) {
+                    if (posts.isNotEmpty()) {
                         val i2 = Intent(this, Gallery::class.java)
                         i2.putExtra(
                             "offline",
@@ -726,7 +716,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                             SettingValues.decreasePreviewsLeft()
                             val posts =
                                 (adapter!!.currentFragment as SubmissionsView?)!!.posts!!.posts
-                            if (posts != null && !posts.isEmpty()) {
+                            if (posts.isNotEmpty()) {
                                 val i2 = Intent(this@MainActivity, Gallery::class.java)
                                 i2.putExtra(
                                     "offline",
@@ -750,7 +740,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             R.id.action_shadowbox -> {
                 if (SettingValues.isPro) {
                     val posts = (adapter!!.currentFragment as SubmissionsView?)!!.posts!!.posts
-                    if (posts != null && !posts.isEmpty()) {
+                    if (posts.isNotEmpty()) {
                         val i2 = Intent(this, Shadowbox::class.java)
                         i2.putExtra(Shadowbox.EXTRA_PAGE, currentPage)
                         i2.putExtra(
@@ -775,7 +765,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                             SettingValues.decreasePreviewsLeft()
                             val posts =
                                 (adapter!!.currentFragment as SubmissionsView?)!!.posts!!.posts
-                            if (posts != null && !posts.isEmpty()) {
+                            if (posts.isNotEmpty()) {
                                 val i2 = Intent(this@MainActivity, Shadowbox::class.java)
                                 i2.putExtra(Shadowbox.EXTRA_PAGE, currentPage)
                                 i2.putExtra(
@@ -923,7 +913,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                                             startActivity(i)
                                         }
                                     })
-                                me.ccrama.redditslide.util.LayoutUtils.showSnackbar(snack)
+                                LayoutUtils.showSnackbar(snack)
                             }
                         }
                     }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR)
@@ -947,7 +937,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
         if (intent != null && intent.hasExtra(EXTRA_PAGE_TO)) {
             toGoto = intent.getIntExtra(EXTRA_PAGE_TO, 0)
         }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+        run {
             val window = this.window
             window.statusBarColor =
                 Palette.getDarkerColor(Palette.getDarkerColor(Palette.getDefaultColor()))
@@ -972,7 +962,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
         }
         // Inflate tabs if single mode is disabled
         if (!singleMode) {
-            mTabLayout = findViewById<ViewStub>(R.id.stub_tabs)?.inflate() as TabLayout?
+            mTabLayout = findViewById<ViewStub>(R.id.stub_tabs).inflate() as TabLayout?
         }
         // Disable swiping if single mode is enabled
         if (singleMode) {
@@ -1053,7 +1043,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                 dismissProgressDialog()
             })
         }
-        if (!BuildConfig.isFDroid && Authentication.isLoggedIn && me.ccrama.redditslide.util.NetworkUtil.isConnected(this@MainActivity)) {
+        if (!BuildConfig.isFDroid && Authentication.isLoggedIn && NetworkUtil.isConnected(this@MainActivity)) {
             // Display an snackbar that asks the user to rate the app after this
             // activity was created 6 times, never again when once clicked or with a maximum of
             // two times.
@@ -1083,8 +1073,18 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
          * 0 = Dark, 1 = Light, 2 = AMOLED, 3 = Dark blue, 4 = AMOLED with contrast, 5 = Sepia
          */
         SettingValues.currentTheme = ColorPreferences(this).fontStyle.themeType
-        networkStateReceiver = me.ccrama.redditslide.util.NetworkStateReceiver()
-        networkStateReceiver!!.addListener(this)
+        networkStateReceiver = NetworkStateReceiver()
+            .apply {
+                addListener(object : NetworkStateReceiverListener {
+                    override fun networkAvailable() {
+                        if (runAfterLoad == null && App.authentication != null) {
+                            Authentication.resetAdapter()
+                        }
+                    }
+
+                    override fun networkUnavailable() {}
+                })
+            }
         try {
             this.registerReceiver(
                 networkStateReceiver,
@@ -1105,14 +1105,8 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
         }
     }
 
-    override fun networkAvailable() {
-        if (runAfterLoad == null && App.authentication != null) {
-            Authentication.resetAdapter()
-        }
-    }
+    var networkStateReceiver: NetworkStateReceiver? = null
 
-    var networkStateReceiver: me.ccrama.redditslide.util.NetworkStateReceiver? = null
-    override fun networkUnavailable() {}
     fun checkClipboard() {
         try {
             val clipboard = ContextCompat.getSystemService(this, ClipboardManager::class.java)
@@ -1181,7 +1175,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             datasetChanged = false
             if (mTabLayout != null) {
                 mTabLayout!!.setupWithViewPager(pager)
-                LayoutUtils.scrollToTabAfterLayout(mTabLayout, pager!!.getCurrentItem())
+                LayoutUtils.scrollToTabAfterLayout(mTabLayout, pager!!.currentItem)
             }
             setToolbarClick()
         }
@@ -1376,7 +1370,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                     me.ccrama.redditslide.util.AnimatorUtil.flipAnimator(true, header.findViewById(R.id.headerflip)).start()
                 }
             }
-            for (s in SettingValues.authentication!!.getStringSet("accounts", HashSet())!!) {
+            for (s in SettingValues.authentication.getStringSet("accounts", HashSet())!!) {
                 if (s.contains(":")) {
                     accounts[s.split(":".toRegex()).dropLastWhile { it.isEmpty() }
                         .toTypedArray()[0]] = s.split(":".toRegex()).dropLastWhile { it.isEmpty() }
@@ -1529,7 +1523,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             header.findViewById<View>(R.id.add)
                 .setOnClickListener(object : me.ccrama.redditslide.util.OnSingleClickListener() {
                     override fun onSingleClick(view: View) {
-                        val inte = Intent(this@MainActivity, Login::class.java)
+                        val inte = Intent(this@MainActivity, LoginActivity::class.java)
                         this@MainActivity.startActivity(inte)
                     }
                 })
@@ -1683,7 +1677,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             header.findViewById<View>(R.id.add)
                 .setOnClickListener(object : me.ccrama.redditslide.util.OnSingleClickListener() {
                     override fun onSingleClick(view: View) {
-                        val inte = Intent(this@MainActivity, Login::class.java)
+                        val inte = Intent(this@MainActivity, LoginActivity::class.java)
                         this@MainActivity.startActivity(inte)
                     }
                 })
@@ -1875,7 +1869,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                             val sub =
                                 (adapter!!.currentFragment as SubmissionsView?)!!.adapter!!.dataSet.subredditRandom
                             doSubSidebarNoLoad(sub!!)
-                            doSubSidebar(sub!!)
+                            doSubSidebar(sub)
                         }
                     } else {
                         doSubSidebar(usedArray!![current])
@@ -2028,7 +2022,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
 
             //whether or not this subreddit was in the keySet
             val isNotified = subThresholds.containsKey(subreddit.displayName.lowercase())
-            findViewById<AppCompatCheckBox>(R.id.notify_posts_state)!!.isChecked = isNotified
+            findViewById<AppCompatCheckBox>(R.id.notify_posts_state).isChecked = isNotified
         } else {
             findViewById<View>(R.id.sidebar_text).visibility = View.GONE
         }
@@ -2081,7 +2075,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                                                 ),
                                                 Snackbar.LENGTH_LONG
                                             )
-                                            me.ccrama.redditslide.util.LayoutUtils.showSnackbar(s)
+                                            LayoutUtils.showSnackbar(s)
                                         }
                                     } catch (e: NetworkException) {
                                         runOnUiThread {
@@ -2126,7 +2120,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
         }
         run {
             val notifyStateCheckBox = findViewById<AppCompatCheckBox>(R.id.notify_posts_state)
-            notifyStateCheckBox!!.setOnCheckedChangeListener { buttonView, isChecked ->
+            notifyStateCheckBox.setOnCheckedChangeListener { buttonView, isChecked ->
                 if (isChecked) {
                     val sub = subreddit.displayName
                     if (!sub.equals("all", ignoreCase = true)
@@ -2166,14 +2160,14 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                             }
                             .setNegativeButton(R.string.btn_cancel, null)
                             .setNegativeButton(R.string.btn_cancel) { dialog: DialogInterface?, which: Int ->
-                                notifyStateCheckBox!!.isChecked = false
+                                notifyStateCheckBox.isChecked = false
                             }
                             .setOnCancelListener { dialog: DialogInterface? ->
-                                notifyStateCheckBox!!.isChecked = false
+                                notifyStateCheckBox.isChecked = false
                             }
                             .show()
                     } else {
-                        notifyStateCheckBox!!.isChecked = false
+                        notifyStateCheckBox.isChecked = false
                         Toast.makeText(
                             this@MainActivity, R.string.sub_post_notifs_err,
                             Toast.LENGTH_SHORT
@@ -2196,7 +2190,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             ) || subreddit.isUserSubscriber
             me.ccrama.redditslide.util.MiscUtil.doSubscribeButtonText(currentlySubbed, subscribe)
             assert(subscribe != null)
-            subscribe!!.setOnClickListener(object : View.OnClickListener {
+            subscribe.setOnClickListener(object : View.OnClickListener {
                 private fun doSubscribe() {
                     if (Authentication.isLoggedIn) {
                         AlertDialog.Builder(this@MainActivity)
@@ -2218,7 +2212,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                                                         getString(R.string.misc_subscribed),
                                                         Snackbar.LENGTH_LONG
                                                     )
-                                                    me.ccrama.redditslide.util.LayoutUtils.showSnackbar(s)
+                                                    LayoutUtils.showSnackbar(s)
                                                 }
                                                 .setNegativeButton(R.string.btn_no, null)
                                                 .setCancelable(false)
@@ -2230,7 +2224,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
 
                                     override fun doInBackground(
                                         vararg params: Void?
-                                    ): Boolean? {
+                                    ): Boolean {
                                         try {
                                             AccountManager(
                                                 Authentication.reddit
@@ -2250,7 +2244,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                                     mToolbar!!, R.string.sub_added,
                                     Snackbar.LENGTH_LONG
                                 )
-                                me.ccrama.redditslide.util.LayoutUtils.showSnackbar(s)
+                                LayoutUtils.showSnackbar(s)
                             }
                             .setNegativeButton(R.string.btn_cancel, null)
                             .show()
@@ -2280,7 +2274,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                                                         getString(R.string.misc_unsubscribed),
                                                         Snackbar.LENGTH_LONG
                                                     )
-                                                    me.ccrama.redditslide.util.LayoutUtils.showSnackbar(s)
+                                                    LayoutUtils.showSnackbar(s)
                                                 }
                                                 .setNegativeButton(R.string.btn_no, null)
                                                 .setCancelable(false)
@@ -2290,9 +2284,9 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                                         }
                                     }
 
-                                    protected override fun doInBackground(
+                                    override fun doInBackground(
                                         vararg params: Void?
-                                    ): Boolean? {
+                                    ): Boolean {
                                         try {
                                             AccountManager(
                                                 Authentication.reddit
@@ -2313,7 +2307,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                                     R.string.misc_unsubscribed,
                                     Snackbar.LENGTH_LONG
                                 )
-                                me.ccrama.redditslide.util.LayoutUtils.showSnackbar(s)
+                                LayoutUtils.showSnackbar(s)
                             }
                             .setNegativeButton(R.string.btn_cancel, null)
                             .show()
@@ -2343,7 +2337,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
         } else {
             findViewById<View>(R.id.sub_title).visibility = View.GONE
         }
-        findViewById<ImageView>(R.id.subimage)?.setImageResource(0)
+        findViewById<ImageView>(R.id.subimage).setImageResource(0)
         if (subreddit.dataNode.has("icon_img") && !subreddit.dataNode["icon_img"]
                 .asText()
                 .isEmpty()
@@ -2368,12 +2362,12 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
         } else {
             findViewById<View>(R.id.sub_banner).visibility = View.GONE
         }
-        findViewById<TextView>(R.id.subscribers)!!.text = getString(
+        findViewById<TextView>(R.id.subscribers).text = getString(
             R.string.subreddit_subscribers_string,
             subreddit.localizedSubscriberCount
         )
         findViewById<View>(R.id.subscribers).visibility = View.VISIBLE
-        findViewById<TextView>(R.id.active_users)!!.text = getString(
+        findViewById<TextView>(R.id.active_users).text = getString(
             R.string.subreddit_active_users_string_new,
             subreddit.localizedAccountsActive
         )
@@ -2443,7 +2437,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             } else {
                 sort.text = "Set default sorting"
             }
-            val sortid = me.ccrama.redditslide.util.SortingUtil.getSortingId(sortingis)
+            val sortid = SortingUtil.getSortingId(sortingis)
             dialoglayout.findViewById<View>(R.id.sorting).setOnClickListener(View.OnClickListener {
                 val l2 = DialogInterface.OnClickListener { dialogInterface, i ->
                     when (i) {
@@ -2471,7 +2465,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                 }
                 AlertDialog.Builder(this@MainActivity)
                     .setTitle(R.string.sorting_choose)
-                    .setSingleChoiceItems(me.ccrama.redditslide.util.SortingUtil.getSortingStrings(), sortid, l2)
+                    .setSingleChoiceItems(SortingUtil.getSortingStrings(), sortid, l2)
                     .setNegativeButton("Reset default sorting") { dialog: DialogInterface?, which: Int ->
                         SettingValues.clearSort(subreddit)
                         val sort1 = dialoglayout.findViewById<TextView>(R.id.sort)
@@ -2508,7 +2502,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                     .also { it.show() }
                 object : AsyncTask<Void?, Void?, Void?>() {
                     var mods: ArrayList<UserRecord>? = null
-                    protected override fun doInBackground(vararg params: Void?): Void? {
+                    override fun doInBackground(vararg params: Void?): Void? {
                         mods = ArrayList()
                         val paginator = UserRecordPaginator(
                             Authentication.reddit, subreddit,
@@ -2616,8 +2610,8 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                 5 -> time = TimePeriod.ALL
             }
             SettingValues.setSubSorting(sort, time, sub)
-            me.ccrama.redditslide.util.SortingUtil.setSorting(sub, sort)
-            me.ccrama.redditslide.util.SortingUtil.setTime(sub, time)
+            SortingUtil.setSorting(sub, sort)
+            SortingUtil.setTime(sub, time)
             val sort = dialoglayout.findViewById<TextView>(R.id.sort)
             if (SettingValues.hasSort(sub)) {
                 val sortingis = SettingValues.getBaseSubmissionSort(sub)
@@ -2632,8 +2626,8 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
         AlertDialog.Builder(this@MainActivity)
             .setTitle(R.string.sorting_choose)
             .setSingleChoiceItems(
-                me.ccrama.redditslide.util.SortingUtil.getSortingTimesStrings(),
-                me.ccrama.redditslide.util.SortingUtil.getSortingTimeId(""),
+                SortingUtil.getSortingTimesStrings(),
+                SortingUtil.getSortingTimeId(""),
                 l2
             )
             .show()
@@ -2661,18 +2655,18 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             findViewById<View>(R.id.subscribers).visibility = View.GONE
             findViewById<View>(R.id.active_users).visibility = View.GONE
             findViewById<View>(R.id.header_sub).setBackgroundColor(Palette.getColor(subreddit))
-            findViewById<TextView>(R.id.sub_infotitle)!!.text = subreddit
+            findViewById<TextView>(R.id.sub_infotitle).text = subreddit
 
             //Sidebar buttons should use subreddit's accent color
             val subColor = ColorPreferences(this).getColor(subreddit)
-            findViewById<TextView>(R.id.theme_text)?.setTextColor(subColor)
-            findViewById<TextView>(R.id.wiki_text)?.setTextColor(subColor)
-            findViewById<TextView>(R.id.post_text)?.setTextColor(subColor)
-            findViewById<TextView>(R.id.mods_text)?.setTextColor(subColor)
-            findViewById<TextView>(R.id.flair_text)?.setTextColor(subColor)
+            findViewById<TextView>(R.id.theme_text).setTextColor(subColor)
+            findViewById<TextView>(R.id.wiki_text).setTextColor(subColor)
+            findViewById<TextView>(R.id.post_text).setTextColor(subColor)
+            findViewById<TextView>(R.id.mods_text).setTextColor(subColor)
+            findViewById<TextView>(R.id.flair_text).setTextColor(subColor)
             (drawerLayout!!.findViewById<View>(R.id.sorting)
                 .findViewById<View>(R.id.sort) as TextView?)?.setTextColor(subColor)
-            findViewById<TextView>(R.id.sync)?.setTextColor(subColor)
+            findViewById<TextView>(R.id.sync).setTextColor(subColor)
         } else {
             if (drawerLayout != null) {
                 drawerLayout!!.setDrawerLockMode(
@@ -2823,7 +2817,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                     !!.layoutManager as CatchStaggeredGridLayoutManager?)!!.findFirstCompletelyVisibleItemPositions(
                     firstVisibleItems
                 )
-                if (firstVisibleItems != null && firstVisibleItems.size > 0) {
+                if (firstVisibleItems?.isNotEmpty() == true) {
                     position = firstVisibleItems[0] - 1
                 }
             } else {
@@ -2837,7 +2831,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
     fun openPopup() {
         val popup = PopupMenu(this@MainActivity, findViewById(R.id.anchor), Gravity.RIGHT)
         val id = ((pager!!.adapter as MainPagerAdapter?)!!.currentFragment as SubmissionsView?)!!.id
-        val base = me.ccrama.redditslide.util.SortingUtil.getSortingSpannables(id)
+        val base = SortingUtil.getSortingSpannables(id)
         for (s in base) {
             // Do not add option for "Best" in any subreddit except for the frontpage.
             if (id != "frontpage" && s.toString() == getString(R.string.sorting_best)) {
@@ -2856,7 +2850,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             }
             when (i) {
                 0 -> {
-                    me.ccrama.redditslide.util.SortingUtil.setSorting(
+                    SortingUtil.setSorting(
                         ((pager!!.adapter as MainPagerAdapter?)!!.currentFragment as SubmissionsView?)!!.id,
                         RedditSorting.HOT
                     )
@@ -2864,7 +2858,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                 }
 
                 1 -> {
-                    me.ccrama.redditslide.util.SortingUtil.setSorting(
+                    SortingUtil.setSorting(
                         ((pager!!.adapter as MainPagerAdapter?)!!.currentFragment as SubmissionsView?)!!.id,
                         RedditSorting.NEW
                     )
@@ -2872,7 +2866,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                 }
 
                 2 -> {
-                    me.ccrama.redditslide.util.SortingUtil.setSorting(
+                    SortingUtil.setSorting(
                         ((pager!!.adapter as MainPagerAdapter?)!!.currentFragment as SubmissionsView?)!!.id,
                         RedditSorting.RISING
                     )
@@ -2880,7 +2874,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                 }
 
                 3 -> {
-                    me.ccrama.redditslide.util.SortingUtil.setSorting(
+                    SortingUtil.setSorting(
                         ((pager!!.adapter as MainPagerAdapter?)!!.currentFragment as SubmissionsView?)!!.id,
                         RedditSorting.TOP
                     )
@@ -2888,7 +2882,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                 }
 
                 4 -> {
-                    me.ccrama.redditslide.util.SortingUtil.setSorting(
+                    SortingUtil.setSorting(
                         ((pager!!.adapter as MainPagerAdapter?)!!.currentFragment as SubmissionsView?)!!.id,
                         RedditSorting.CONTROVERSIAL
                     )
@@ -2896,7 +2890,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                 }
 
                 5 -> {
-                    me.ccrama.redditslide.util.SortingUtil.setSorting(
+                    SortingUtil.setSorting(
                         ((pager!!.adapter as MainPagerAdapter?)!!.currentFragment as SubmissionsView?)!!.id,
                         RedditSorting.BEST
                     )
@@ -2911,7 +2905,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
     fun openPopupTime() {
         val popup = PopupMenu(this@MainActivity, findViewById(R.id.anchor), Gravity.RIGHT)
         val id = ((pager!!.adapter as MainPagerAdapter?)!!.currentFragment as SubmissionsView?)!!.id
-        val base = me.ccrama.redditslide.util.SortingUtil.getSortingTimesSpannables(id)
+        val base = SortingUtil.getSortingTimesSpannables(id)
         for (s in base) {
             val m = popup.menu.add(s)
         }
@@ -2926,7 +2920,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             }
             when (i) {
                 0 -> {
-                    me.ccrama.redditslide.util.SortingUtil.setTime(
+                    SortingUtil.setTime(
                         ((pager!!.adapter as MainPagerAdapter?)!!.currentFragment as SubmissionsView?)!!.id,
                         TimePeriod.HOUR
                     )
@@ -2934,7 +2928,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                 }
 
                 1 -> {
-                    me.ccrama.redditslide.util.SortingUtil.setTime(
+                    SortingUtil.setTime(
                         ((pager!!.adapter as MainPagerAdapter?)!!.currentFragment as SubmissionsView?)!!.id,
                         TimePeriod.DAY
                     )
@@ -2942,7 +2936,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                 }
 
                 2 -> {
-                    me.ccrama.redditslide.util.SortingUtil.setTime(
+                    SortingUtil.setTime(
                         ((pager!!.adapter as MainPagerAdapter?)!!.currentFragment as SubmissionsView?)!!.id,
                         TimePeriod.WEEK
                     )
@@ -2950,7 +2944,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                 }
 
                 3 -> {
-                    me.ccrama.redditslide.util.SortingUtil.setTime(
+                    SortingUtil.setTime(
                         ((pager!!.adapter as MainPagerAdapter?)!!.currentFragment as SubmissionsView?)!!.id,
                         TimePeriod.MONTH
                     )
@@ -2958,7 +2952,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                 }
 
                 4 -> {
-                    me.ccrama.redditslide.util.SortingUtil.setTime(
+                    SortingUtil.setTime(
                         ((pager!!.adapter as MainPagerAdapter?)!!.currentFragment as SubmissionsView?)!!.id,
                         TimePeriod.YEAR
                     )
@@ -2966,7 +2960,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                 }
 
                 5 -> {
-                    me.ccrama.redditslide.util.SortingUtil.setTime(
+                    SortingUtil.setTime(
                         ((pager!!.adapter as MainPagerAdapter?)!!.currentFragment as SubmissionsView?)!!.id,
                         TimePeriod.ALL
                     )
@@ -2999,7 +2993,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
         pager!!.currentItem = current
         if (mTabLayout != null) {
             mTabLayout!!.setupWithViewPager(pager)
-            me.ccrama.redditslide.util.LayoutUtils.scrollToTabAfterLayout(mTabLayout, current)
+            LayoutUtils.scrollToTabAfterLayout(mTabLayout, current)
         }
         if (SettingValues.single) {
             supportActionBar!!.title = shouldLoad
@@ -3022,7 +3016,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                 pager!!.adapter = adapter
                 if (mTabLayout != null) {
                     mTabLayout!!.setupWithViewPager(pager)
-                    me.ccrama.redditslide.util.LayoutUtils.scrollToTabAfterLayout(mTabLayout, usedArray!!.indexOf(subToDo))
+                    LayoutUtils.scrollToTabAfterLayout(mTabLayout, usedArray!!.indexOf(subToDo))
                 }
                 setToolbarClick()
                 pager!!.currentItem = usedArray!!.indexOf(subToDo)
@@ -3083,7 +3077,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
         if (adapter!!.currentFragment == null) return
         val firstVisibleItems = ((adapter!!.currentFragment as SubmissionsView?)!!.rv
             !!.layoutManager as CatchStaggeredGridLayoutManager?)!!.findFirstVisibleItemPositions(null)
-        if (firstVisibleItems != null && firstVisibleItems.size > 0) {
+        if (firstVisibleItems?.isEmpty() == false) {
             for (firstVisibleItem in firstVisibleItems) {
                 pastVisiblesItems = firstVisibleItem
             }
@@ -3138,7 +3132,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                 mTabLayout!!.setupWithViewPager(pager)
                 if (mTabLayout != null) {
                     mTabLayout!!.setupWithViewPager(pager)
-                    me.ccrama.redditslide.util.LayoutUtils.scrollToTabAfterLayout(mTabLayout, toGoto)
+                    LayoutUtils.scrollToTabAfterLayout(mTabLayout, toGoto)
                 }
             } else {
                 supportActionBar!!.title = usedArray!![toGoto]
@@ -3147,14 +3141,14 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             setToolbarClick()
             setRecentBar(usedArray!![toGoto])
             doSubSidebarNoLoad(usedArray!![toGoto])
-        } else if (me.ccrama.redditslide.util.NetworkUtil.isConnected(this)) {
+        } else if (NetworkUtil.isConnected(this)) {
             UserSubscriptions.doMainActivitySubs(this)
         }
     }
 
     fun setDrawerSubList() {
         val copy: ArrayList<String?>
-        copy = if (me.ccrama.redditslide.util.NetworkUtil.isConnected(this)) {
+        copy = if (NetworkUtil.isConnected(this)) {
             ArrayList(usedArray)
         } else {
             UserSubscriptions.getAllUserSubreddits(this)
@@ -3169,17 +3163,17 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             != me.ccrama.redditslide.Constants.SUBREDDIT_SEARCH_METHOD_TOOLBAR
         ) {
             drawerSearch = headerMain!!.findViewById(R.id.sort)
-            drawerSearch!!.setVisibility(View.VISIBLE)
+            drawerSearch!!.visibility = View.VISIBLE
             drawerSubList!!.isFocusable = false
             headerMain!!.findViewById<View>(R.id.close_search_drawer)
                 .setOnClickListener { drawerSearch!!.setText("") }
-            drawerSearch!!.setOnFocusChangeListener(OnFocusChangeListener { v, hasFocus ->
+            drawerSearch!!.onFocusChangeListener = OnFocusChangeListener { v, hasFocus ->
                 if (hasFocus) {
                     window.setSoftInputMode(
                         WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN
                     )
                     drawerSubList!!.smoothScrollToPositionFromTop(
-                        1, drawerSearch!!.getHeight(),
+                        1, drawerSearch!!.height,
                         100
                     )
                 } else {
@@ -3187,19 +3181,19 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                         WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE
                     )
                 }
-            })
+            }
             drawerSearch!!.setOnEditorActionListener(OnEditorActionListener { arg0, arg1, arg2 ->
                 if (arg1 == EditorInfo.IME_ACTION_SEARCH) {
                     //If it the input text doesn't match a subreddit from the list exactly, openInSubView is true
                     if (sideArrayAdapter!!.fitems == null || sideArrayAdapter!!.openInSubView
                         || !usedArray!!.contains(
-                            drawerSearch!!.getText().toString().lowercase()
+                            drawerSearch!!.text.toString().lowercase()
                         )
                     ) {
                         val inte = Intent(this@MainActivity, SubredditView::class.java)
                         inte.putExtra(
                             SubredditView.EXTRA_SUBREDDIT,
-                            drawerSearch!!.getText().toString()
+                            drawerSearch!!.text.toString()
                         )
                         this@MainActivity.startActivityForResult(inte, 2001)
                     } else {
@@ -3209,12 +3203,12 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                             (adapter as MainPagerAdapterComment).size = usedArray!!.size + 1
                             adapter!!.notifyDataSetChanged()
                             if (usedArray!!.contains(
-                                    drawerSearch!!.getText().toString().lowercase()
+                                    drawerSearch!!.text.toString().lowercase()
                                 )
                             ) {
                                 doPageSelectedComments(
                                     usedArray!!.indexOf(
-                                        drawerSearch!!.getText().toString().lowercase()
+                                        drawerSearch!!.text.toString().lowercase()
                                     )
                                 )
                             } else {
@@ -3224,11 +3218,11 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                             }
                         }
                         if (usedArray!!.contains(
-                                drawerSearch!!.getText().toString().lowercase()
+                                drawerSearch!!.text.toString().lowercase()
                             )
                         ) {
                             pager!!.currentItem = usedArray!!.indexOf(
-                                drawerSearch!!.getText().toString().lowercase()
+                                drawerSearch!!.text.toString().lowercase()
                             )
                         } else {
                             pager!!.currentItem = usedArray!!.indexOf(sideArrayAdapter!!.fitems[0])
@@ -3287,7 +3281,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
         if (accountsArea != null) {
             accountsArea!!.setBackgroundColor(Palette.getDarkerColor(color))
         }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+        run {
             val window = window
             window.statusBarColor = Palette.getDarkerColor(color)
         }
@@ -3300,7 +3294,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
     }
 
     fun updateSubs(subs: ArrayList<String>) {
-        if (subs.isEmpty() && !me.ccrama.redditslide.util.NetworkUtil.isConnected(this)) {
+        if (subs.isEmpty() && !NetworkUtil.isConnected(this)) {
             findViewById<View>(R.id.toolbar).visibility = View.GONE
             d = MaterialDialog(this@MainActivity)
                 .title(R.string.offline_no_content_found)
@@ -3333,7 +3327,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                 doDrawer()
             }
         }
-        if (me.ccrama.redditslide.util.NetworkUtil.isConnected(this@MainActivity)) {
+        if (NetworkUtil.isConnected(this@MainActivity)) {
             val shortcuts = ArrayList<ShortcutInfoCompat?>()
             if (Authentication.isLoggedIn) {
                 shortcuts.add(
@@ -3505,7 +3499,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             for (i in 0 until commentOverflow.childCount) {
                 val maybeScrollable = commentOverflow.getChildAt(i)
                 if (maybeScrollable is HorizontalScrollView) {
-                    sidebar!!.addScrollable(maybeScrollable)
+                    sidebar.addScrollable(maybeScrollable)
                 }
             }
         } else {
@@ -3519,7 +3513,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
      * onClicks for the views of the search bar.
      */
     private fun setupSubredditSearchToolbar() {
-        if (!me.ccrama.redditslide.util.NetworkUtil.isConnected(this)) {
+        if (!NetworkUtil.isConnected(this)) {
             if (findViewById<View>(R.id.drawer_divider) != null) {
                 findViewById<View>(R.id.drawer_divider).visibility = View.GONE
             }
@@ -3559,9 +3553,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                         //if the view mode is set to Subreddit Tabs, save the title ("Slide" or "Slide (debug)")
                         tabViewModeTitle = if (!SettingValues.single) supportActionBar!!.title
                             .toString() else null
-                        supportActionBar!!.setTitle(
-                            ""
-                        ) //clear title to make room for search field
+                        supportActionBar!!.title = "" //clear title to make room for search field
                         if (GO_TO_SUB_FIELD != null && CLOSE_BUTTON != null && SUGGESTIONS_BACKGROUND != null) {
                             GO_TO_SUB_FIELD.visibility = View.VISIBLE
                             CLOSE_BUTTON.visibility = View.VISIBLE
@@ -3683,12 +3675,10 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                                     GO_TO_SUB_FIELD.visibility = View.GONE
                                     CLOSE_BUTTON.visibility = View.GONE
                                     if (SettingValues.single) {
-                                        supportActionBar!!.setTitle(selectedSub)
+                                        supportActionBar!!.title = selectedSub
                                     } else {
                                         //Set the title back to "Slide" or "Slide (debug)"
-                                        supportActionBar!!.setTitle(
-                                            tabViewModeTitle
-                                        )
+                                        supportActionBar!!.title = tabViewModeTitle
                                     }
                                 }
                                 false
@@ -3738,7 +3728,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             subreddit?.let { doSubOnlyStuff(it) }
         }
 
-        protected override fun doInBackground(vararg params: String?): Subreddit? {
+        override fun doInBackground(vararg params: String?): Subreddit? {
             return try {
                 Authentication.reddit!!.getSubreddit(params[0])
             } catch (e: Exception) {
@@ -3751,7 +3741,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
         var count = 0
         var restart = false
         var modCount = 0
-        protected override fun doInBackground(vararg params: Void?): Void? {
+        override fun doInBackground(vararg params: Void?): Void? {
             try {
                 val me: LoggedInAccount
                 if (Authentication.me == null) {
@@ -3778,7 +3768,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                     val name = me.fullName
                     Authentication.name = name
                     LogUtil.v("AUTHENTICATED")
-                    if (Authentication.reddit!!.isAuthenticated) {
+                    if (Authentication.reddit.isAuthenticated) {
                         val accounts = SettingValues.authentication.getStringSet(
                             "accounts",
                             HashSet()
@@ -3839,7 +3829,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                                 startActivity(i)
                             }
                         })
-                    me.ccrama.redditslide.util.LayoutUtils.showSnackbar(s)
+                    LayoutUtils.showSnackbar(s)
                 }
                 SettingValues.appRestart.edit().putInt("inbox", count).apply()
             }
@@ -3910,7 +3900,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                     colorAnimation.addUpdateListener { animator ->
                         val color = animator.animatedValue as Int
                         header!!.setBackgroundColor(color)
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                        run {
                             window.statusBarColor = Palette.getDarkerColor(color)
                             if (SettingValues.colorNavBar) {
                                 window.navigationBarColor = Palette.getDarkerColor(color)
@@ -3942,7 +3932,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                             ColorPreferences(this@MainActivity).getColor(selectedSub)
                         )
                     }
-                    if (page != null && page.adapter != null) {
+                    if (page?.adapter != null) {
                         val p = page.adapter!!.dataSet
                         if (p.offline && !isRestart) {
                             p.doMainActivityOffline(this@MainActivity, p.displayer)
@@ -3968,8 +3958,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
         override fun getItem(i: Int): Fragment {
             val f = SubmissionsView()
             val args = Bundle()
-            val name: String?
-            name = if (multiNameToSubsMap.containsKey(usedArray!![i])) {
+            val name: String? = if (multiNameToSubsMap.containsKey(usedArray!![i])) {
                 multiNameToSubsMap[usedArray!![i]]
             } else {
                 usedArray!![i]
@@ -4047,7 +4036,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                             doPageSelectedComments(position)
                             if (position == toOpenComments - 1 && adapter != null && adapter!!.currentFragment != null) {
                                 val page = adapter!!.currentFragment as SubmissionsView?
-                                if (page != null && page.adapter != null) {
+                                if (page?.adapter != null) {
                                     page.adapter!!.refreshView()
                                 }
                             }
@@ -4070,7 +4059,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                 override fun onPageSelected(position: Int) {
                     if (position == toOpenComments - 1 && adapter != null && adapter!!.currentFragment != null) {
                         val page = adapter!!.currentFragment as SubmissionsView?
-                        if (page != null && page.adapter != null) {
+                        if (page?.adapter != null) {
                             page.adapter!!.refreshView()
                             val p = page.adapter!!.dataSet
                             if (p.offline && !isRestart) {
@@ -4079,7 +4068,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                         }
                     } else {
                         val page = adapter!!.currentFragment as SubmissionsView?
-                        if (page != null && page.adapter != null) {
+                        if (page?.adapter != null) {
                             val p = page.adapter!!.dataSet
                             if (p.offline && !isRestart) {
                                 p.doMainActivityOffline(this@MainActivity, p.displayer)
@@ -4133,22 +4122,22 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             return null
         }
 
-        override fun doSetPrimary(`object`: Any?, position: Int) {
+        override fun doSetPrimary(obj: Any?, position: Int) {
             if (position != toOpenComments) {
                 if (multiNameToSubsMap.containsKey(usedArray!![position])) {
                     shouldLoad = multiNameToSubsMap[usedArray!![position]]
                 } else {
                     shouldLoad = usedArray!![position]
                 }
-                if (currentFragment !== `object`) {
-                    mCurrentFragment = `object` as SubmissionsView?
+                if (currentFragment !== obj) {
+                    mCurrentFragment = obj as SubmissionsView?
                     if (mCurrentFragment != null && mCurrentFragment!!.posts == null && mCurrentFragment!!.isAdded
                     ) {
                         mCurrentFragment!!.doAdapter()
                     }
                 }
-            } else if (`object` is CommentPage) {
-                mCurrentComments = `object`
+            } else if (obj is CommentPage) {
+                mCurrentComments = obj
             }
         }
 
@@ -4180,18 +4169,14 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
         const val INBOX_RESULT = 66
         const val RESET_ADAPTER_RESULT = 3
         const val SETTINGS_RESULT = 2
-        @JvmField
-        var loader: Loader? = null
+        @JvmField var loader: Loader? = null
         var datasetChanged = false
-        @JvmField
-        var multiNameToSubsMap: MutableMap<String, String> = HashMap()
+        @JvmField var multiNameToSubsMap: MutableMap<String, String> = HashMap()
         var checkedPopups = false
-        @JvmField
-        var shouldLoad: String? = null
-        @JvmField
-        var isRestart = false
-        @JvmField
-        var restartPage = 0
+        @JvmField var shouldLoad: String? = null
+        @JvmField var isRestart = false
+        @JvmField var restartPage = 0
+        @JvmField var randomoverride: String? = null
 
         /**
          * Set the drawer edge (i.e. how sensitive the drawer is) Based on a given screen width
@@ -4216,14 +4201,11 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                 activity.windowManager.defaultDisplay.getSize(displaySize)
                 mEdgeSize.setInt(
                     leftDragger,
-                    Math.max(currentEdgeSize, (displaySize.x * displayWidthPercentage).toInt())
+                    currentEdgeSize.coerceAtLeast((displaySize.x * displayWidthPercentage).toInt())
                 )
             } catch (e: Exception) {
                 LogUtil.e("$e: Exception thrown while changing navdrawer edge size")
             }
         }
-
-        @JvmField
-        var randomoverride: String? = null
     }
 }

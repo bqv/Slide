@@ -11,7 +11,6 @@ import android.util.Log
 import android.view.MenuItem
 import android.view.View
 import androidx.annotation.IdRes
-import androidx.annotation.RequiresApi
 import androidx.annotation.StringRes
 import androidx.appcompat.widget.Toolbar
 import ltd.ucode.slide.R
@@ -392,7 +391,7 @@ open class BaseActivity : PeekViewActivity(), SwipeBackActivityBase {
      * @param color The color to tint the bars with
      */
     protected fun themeSystemBars(color: Int) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+        run {
             window.statusBarColor = color
             if (SettingValues.colorNavBar) {
                 window.navigationBarColor = color
@@ -426,15 +425,14 @@ open class BaseActivity : PeekViewActivity(), SwipeBackActivityBase {
      */
     fun setRecentBar(title: String?, color: Int) {
         var title = title
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            if (title == null || title.isEmpty()) {
+        run {
+            if (title.isNullOrEmpty()) {
                 title = getString(R.string.app_name)
             }
             setRecentBarTaskDescription(title, color)
         }
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     private fun setRecentBarTaskDescription(title: String?, color: Int) {
         val icon = R.drawable.ic_launcher
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {

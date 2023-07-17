@@ -15,18 +15,13 @@ import androidx.core.content.ContextCompat;
  * Created by Carlos on 9/27/2017.
  */
 
-@RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
 public class NotificationPiggyback extends NotificationListenerService {
 
     @Override
     public void onNotificationPosted(StatusBarNotification sbn) {
         final String packageName = sbn.getPackageName();
         if (!TextUtils.isEmpty(packageName) && packageName.equals("com.reddit.frontpage")) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                cancelNotification(sbn.getKey());
-            } else {
-                cancelNotification(packageName, sbn.getTag(), sbn.getId());
-            }
+            cancelNotification(sbn.getKey());
             Intent alarmIntent = new Intent(getApplicationContext(), CheckForMailSingle.class);
             PendingIntent pendingIntent =
                     PendingIntent.getBroadcast(getApplicationContext(), 0, alarmIntent, 0);

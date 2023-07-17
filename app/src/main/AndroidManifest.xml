@@ -632,7 +632,7 @@
                 android:configChanges="keyboard|keyboardHidden|orientation|screenSize|smallestScreenSize|screenLayout|uiMode"
                 android:theme="@style/swipeable"/>
         <activity
-                android:name=".ui.login.Login"
+                android:name=".ui.login.LoginActivity"
                 android:alwaysRetainTaskState="true"
                 android:configChanges="keyboard|keyboardHidden|orientation|screenSize|smallestScreenSize|screenLayout|uiMode"
                 android:theme="@style/swipeable"/>

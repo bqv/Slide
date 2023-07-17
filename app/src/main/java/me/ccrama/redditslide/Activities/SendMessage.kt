@@ -112,7 +112,7 @@ class SendMessage : BaseActivity() {
         if (intent.hasExtra(EXTRA_SUBJECT)) {
             subject!!.setText(intent.getStringExtra(EXTRA_SUBJECT))
         }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+        run {
             val window = this.window
             window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS)
             window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)

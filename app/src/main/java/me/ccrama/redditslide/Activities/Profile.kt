@@ -605,19 +605,15 @@ class Profile : BaseActivityAnim() {
                             val cx = center.width / 2
                             val cy = center.height / 2
                             val finalRadius = Math.max(body.width, body.height)
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                                val anim = ViewAnimationUtils.createCircularReveal(
-                                    body,
-                                    cx,
-                                    cy,
-                                    0f,
-                                    finalRadius.toFloat()
-                                )
-                                body.visibility = View.VISIBLE
-                                anim.start()
-                            } else {
-                                body.visibility = View.VISIBLE
-                            }
+                            val anim = ViewAnimationUtils.createCircularReveal(
+                                body,
+                                cx,
+                                cy,
+                                0f,
+                                finalRadius.toFloat()
+                            )
+                            body.visibility = View.VISIBLE
+                            anim.start()
                         }
                     val colorPicker = dialoglayout.findViewById<LineColorPicker>(R.id.picker)
                     val colorPicker2 = dialoglayout.findViewById<LineColorPicker>(R.id.picker2)
@@ -642,7 +638,7 @@ class Profile : BaseActivityAnim() {
                         override fun onColorChanged(i: Int) {
                             findViewById<View>(R.id.header).setBackgroundColor(colorPicker2.color)
                             if (mToolbar != null) mToolbar!!.setBackgroundColor(colorPicker2.color)
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                            run {
                                 val window = window
                                 window.statusBarColor = Palette.getDarkerColor(colorPicker2.color)
                             }
@@ -659,24 +655,20 @@ class Profile : BaseActivityAnim() {
                                 val cx: Int = center.width / 2
                                 val cy: Int = center.height / 2
                                 val initialRadius: Int = body.width
-                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                                    val anim: Animator = ViewAnimationUtils.createCircularReveal(
-                                        body,
-                                        cx,
-                                        cy,
-                                        initialRadius.toFloat(),
-                                        0f
-                                    )
-                                    anim.addListener(object : AnimatorListenerAdapter() {
-                                        override fun onAnimationEnd(animation: Animator) {
-                                            super.onAnimationEnd(animation)
-                                            body.visibility = View.GONE
-                                        }
-                                    })
-                                    anim.start()
-                                } else {
-                                    body.visibility = View.GONE
-                                }
+                                val anim: Animator = ViewAnimationUtils.createCircularReveal(
+                                    body,
+                                    cx,
+                                    cy,
+                                    initialRadius.toFloat(),
+                                    0f
+                                )
+                                anim.addListener(object : AnimatorListenerAdapter() {
+                                    override fun onAnimationEnd(animation: Animator) {
+                                        super.onAnimationEnd(animation)
+                                        body.visibility = View.GONE
+                                    }
+                                })
+                                anim.start()
                             }
                         })
                     }
@@ -694,24 +686,20 @@ class Profile : BaseActivityAnim() {
                             val cx: Int = center.width / 2
                             val cy: Int = center.height / 2
                             val initialRadius: Int = body.width
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                                val anim: Animator = ViewAnimationUtils.createCircularReveal(
-                                    body,
-                                    cx,
-                                    cy,
-                                    initialRadius.toFloat(),
-                                    0f
-                                )
-                                anim.addListener(object : AnimatorListenerAdapter() {
-                                    override fun onAnimationEnd(animation: Animator) {
-                                        super.onAnimationEnd(animation)
-                                        body.visibility = View.GONE
-                                    }
-                                })
-                                anim.start()
-                            } else {
-                                body.visibility = View.GONE
-                            }
+                            val anim: Animator = ViewAnimationUtils.createCircularReveal(
+                                body,
+                                cx,
+                                cy,
+                                initialRadius.toFloat(),
+                                0f
+                            )
+                            anim.addListener(object : AnimatorListenerAdapter() {
+                                override fun onAnimationEnd(animation: Animator) {
+                                    super.onAnimationEnd(animation)
+                                    body.visibility = View.GONE
+                                }
+                            })
+                            anim.start()
                         }
                     }
                     (dialoglayout.findViewById<View>(R.id.commentkarma) as TextView).text =
@@ -730,7 +718,7 @@ class Profile : BaseActivityAnim() {
                         .setOnDismissListener { dialogInterface: DialogInterface? ->
                             findViewById<View>(R.id.header).setBackgroundColor(currentColor)
                             if (mToolbar != null) mToolbar!!.setBackgroundColor(currentColor)
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                            run {
                                 val window: Window = window
                                 window.statusBarColor = Palette.getDarkerColor(currentColor)
                             }

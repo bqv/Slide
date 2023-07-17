@@ -65,7 +65,7 @@ abstract class ContentDatabase : RoomDatabase() {
     abstract val timestamps: TimestampDao
 
     companion object {
-        const val filename: String = "content"
+        const val filename: String = "content.db"
 
         val initScripts: List<Query> = listOf(
             Query("""SELECT 1"""), // sanity check

@@ -43,7 +43,7 @@ class Tutorial : AppCompatActivity() {
         if (intent.hasExtra("page")) {
             binding!!.tutorialViewPager.currentItem = 1
         }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+        run {
             val window = this.window
             window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS)
             window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
@@ -102,7 +102,7 @@ class Tutorial : AppCompatActivity() {
                 Palette.getDefaultColor()
             )
             personalizeBinding!!.header.setBackgroundColor(Palette.getDefaultColor())
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            run {
                 val window = requireActivity().window
                 window.statusBarColor = Palette.getDarkerColor(Palette.getDefaultColor())
             }
@@ -135,7 +135,7 @@ class Tutorial : AppCompatActivity() {
                     override fun onColorChanged(c: Int) {
                         choosemainBinding.title.setBackgroundColor(choosemainBinding.picker2.color)
                         personalizeBinding!!.header.setBackgroundColor(choosemainBinding.picker2.color)
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                        run {
                             val window = requireActivity().window
                             window.statusBarColor =
                                 Palette.getDarkerColor(choosemainBinding.picker2.color)
