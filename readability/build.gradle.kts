@@ -5,8 +5,8 @@ plugins {
 }
 
 dependencies {
-    implementation(libs.scala.core)
-    api(libs.jsoup)
+    api(libs.scala.core)
+    implementation(libs.jsoup)
 
     testImplementation(libs.scala.test.core)
     testImplementation(libs.scala.test.junit)

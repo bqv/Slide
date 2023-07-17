@@ -171,7 +171,10 @@ dependencyResolutionManagement {
 
             library("newpipe-extractor", "com.github.teamnewpipe:NewPipeExtractor:v0.22.6") // TODO: migrate :videoplugin
 
-            library("okhttp", "com.squareup.okhttp3", "okhttp").version("4.11.0")
+            val okhttp = version("okhttp", "4.11.0")
+            library("okhttp", "com.squareup.okhttp3", "okhttp").versionRef(okhttp)
+            library("okhttp-urlconnection", "com.squareup.okhttp3", "okhttp-urlconnection").versionRef(okhttp)
+            bundle("okhttp", listOf("okhttp", "okhttp-urlconnection"))
 
             library("retrofit", "com.squareup.retrofit2", "retrofit").version("2.9.0")
             library("retrofit-logging", "com.nightlynexus.logging-retrofit:logging:0.12.0")

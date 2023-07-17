@@ -23,4 +23,5 @@ interface IDataSource {
     fun getPost(domain: String, key: Int): Flow<Post>
 
     fun getPosts(domain: String, feed: Feed, period: Period, order: Sorting): Flow<PagingData<Post>>
+    fun getPosts(domain: String, feed: Feed, pageSize: Int, period: Period, order: Sorting): Flow<List<Post>>
 }

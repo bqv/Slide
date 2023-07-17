@@ -58,27 +58,40 @@ class Login : BaseActivityAnim() {
     }
 
     private fun setupUI() {
-        adapter = LoginAdapter(this)
-
-        binding.loginInstance.apply {
-            threshold = 1
-            setAdapter(this@Login.adapter)
-        }
-
         binding.loginUsername.addTextChangedListener {
             viewModel.updateUsername(it.toString())
+        }
+
+        binding.loginInstance.apply {
+            this@Login.adapter = LoginAdapter(this@Login)
+
+            threshold = 1
+            setAdapter(this@Login.adapter)
+
+            addTextChangedListener {
+                viewModel.updateInstance(it.toString())
+            }
         }
 
         binding.loginPassword.addTextChangedListener {
             viewModel.updatePassword(it.toString())
         }
 
-        binding.loginTotp.addTextChangedListener {
-            viewModel.updateToken(it.toString())
+        binding.loginTotpChip.apply {
+            isChecked = false
+            setOnClickListener {
+                if (binding.loginTotpChip.isChecked) {
+                    binding.loginTotpLayout.visibility = View.VISIBLE
+                } else {
+                    binding.loginTotpLayout.visibility = View.GONE
+                    binding.loginTotp.text?.clear()
+                }
+            }
+            callOnClick()
         }
 
-        binding.loginInstance.addTextChangedListener {
-            viewModel.updateInstance(it.toString())
+        binding.loginTotp.addTextChangedListener {
+            viewModel.updateToken(it.toString())
         }
 
         binding.loginButton.setOnClickListener {

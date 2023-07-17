@@ -21,20 +21,35 @@ class PostRepository @Inject constructor(
 ) {
     fun getPosts(instance: String?,
                  feed: Feed,
-                 period: Period,
-                 sort: Sorting,
+                 pageSize: Int,
+                 sort: Sorting? = null,
+                 period: Period? = null,
+    ): Flow<List<Post>> {
+        return networkRepository.dataSource
+            .getPosts(instance ?: networkRepository.defaultInstance,
+                feed = feed,
+                pageSize = pageSize,
+                period = period ?: Period.All,
+                order = sort ?: Sorting.New(false),
+            )
+    }
+
+    fun getPosts(instance: String?,
+                 feed: Feed,
+                 sort: Sorting? = null,
+                 period: Period? = null,
     ): Flow<PagingData<Post>> {
         return networkRepository.dataSource
             .getPosts(instance ?: networkRepository.defaultInstance,
                 feed = feed,
-                period = period,
-                order = sort,
+                period = period ?: Period.All,
+                order = sort ?: Sorting.New(false),
             )
     }
 
     fun getPost(instance: String?,
-                        id: PostId,
-                        commentId: CommentId? = null,
+                id: PostId,
+                commentId: CommentId? = null,
     ): Flow<Post> {
         //return networkRepository.dataSource.getPost(instance, id, commentId)
         return networkRepository.dataSource

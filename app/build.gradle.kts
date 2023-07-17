@@ -170,6 +170,7 @@ dependencies {
     implementation("androidx.work:work-runtime-ktx:2.8.1")
     implementation(libs.androidx.security.crypto)
     implementation("androidx.paging:paging-common-ktx:3.1.1")
+    implementation("androidx.paging:paging-runtime-ktx:3.1.1")
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
 
     // Application level media player
@@ -254,7 +255,7 @@ dependencies {
     implementation("com.github.raulhaag.RapidDecoder:library:0.3.1Ax")
 
     // HTTP client
-    implementation(libs.okhttp)
+    implementation(libs.bundles.okhttp)
 
     // Convert Java objects into JSON and back
     implementation(libs.gson)

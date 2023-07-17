@@ -2,15 +2,15 @@ package me.ccrama.redditslide.Adapters
 
 import android.os.AsyncTask
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.runBlocking
 import ltd.ucode.network.data.IPost
-import ltd.ucode.network.lemmy.data.LemmyPost
-import ltd.ucode.network.lemmy.data.id.CommentId
 import ltd.ucode.network.lemmy.data.id.CommunityId
 import ltd.ucode.network.lemmy.data.id.PostId
 import ltd.ucode.network.lemmy.data.type.CommentSortType
 import ltd.ucode.network.lemmy.data.type.CommentView
 import ltd.ucode.slide.repository.AccountRepository
+import ltd.ucode.slide.shim.FlowExtensions.items
 import ltd.ucode.slide.util.CommentSortTypeExtensions.from
 import me.ccrama.redditslide.Fragments.CommentPage
 import me.ccrama.redditslide.LastComments.setComments
@@ -142,8 +142,9 @@ class SubmissionComments {
     fun reloadSubmission(commentAdapter: CommentAdapter) {
         val post = runBlocking {
             postRepository.getPost(AccountRepository.currentAccount, id = PostId(fullName.toInt()))
-        }.success
-        commentAdapter.submission = LemmyPost(post.postView.instanceName, post.postView)
+                .single()
+        }
+        commentAdapter.submission = post
     }
 
     inner class LoadData(val reset: Boolean) :
@@ -168,20 +169,17 @@ class SubmissionComments {
             val paginator = commentRepository.getComments(
                 AccountRepository.currentAccount,
                 communityId = submission?.groupRowId?.let(::CommunityId),
-                communityName = null,
-                parentId = context?.toInt()?.let(::CommentId),
+                //communityName = null,
+                //parentId = context?.toInt()?.let(::CommentId),
                 postId = PostId(fullName.split("/").last().toInt()),
-                maxDepth = null, // contextNumber?
-                limit = null,
+                //maxDepth = null, // contextNumber?
+                //limit = null,
                 sort = CommentSortType.from(defaultSorting),
-                type = null
+                //type = null,
             )
 
-            val commentViews: MutableList<CommentView> = mutableListOf<CommentView>().also {
-                while (paginator.hasNext) {
-                    val page = runBlocking { paginator.next() }.success
-                    it.addAll(page)
-                } // assume closed set
+            val commentViews: List<CommentView> = mutableListOf<CommentView>().apply {
+                addAll(paginator.items()) // assume closed set
             }
             val commentQueue = commentViews
                 .associateBy { it.comment.id.id }.toMutableMap()

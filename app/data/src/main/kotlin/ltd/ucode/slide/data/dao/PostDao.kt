@@ -112,6 +112,84 @@ interface PostDao {
             "ORDER BY p.active_rank DESC ")
     fun pagingSourceActive(siteName: String, before: Instant? = null, after: Instant? = null): PagingSource<Int, Post>
 
+    @Query("SELECT * FROM sites AS s " +
+        "INNER JOIN posts AS p ON p.site_rowid = s.rowid " +
+        "WHERE s.name LIKE :siteName " +
+        "AND (:before IS NULL OR p.created <= :before) " +
+        "AND (:after IS NULL OR p.created >= :after) " +
+        "ORDER BY p.created DESC " +
+        "LIMIT :limit ")
+    fun flowNew(limit: Int, siteName: String, before: Instant? = null, after: Instant? = null): Flow<List<Post>>
+
+    @Query("SELECT * FROM sites AS s " +
+        "INNER JOIN posts AS p ON p.site_rowid = s.rowid " +
+        "WHERE s.name LIKE :siteName " +
+        "AND (:before IS NULL OR p.created <= :before) " +
+        "AND (:after IS NULL OR p.created >= :after) " +
+        "ORDER BY p.created ASC " +
+        "LIMIT :limit ")
+    fun flowOld(limit: Int, siteName: String, before: Instant? = null, after: Instant? = null): Flow<List<Post>>
+
+    @Query("SELECT * FROM sites AS s " +
+        "INNER JOIN posts AS p ON p.site_rowid = s.rowid " +
+        "INNER JOIN comments AS c ON c.post_rowid = p.rowid " + // TODO: add lastComment timestamp
+        "WHERE s.name LIKE :siteName " +
+        "AND (:before IS NULL OR p.created <= :before) " +
+        "AND (:after IS NULL OR p.created >= :after) " +
+        "GROUP BY p.rowid " +
+        "ORDER BY max(c.created) DESC " +
+        "LIMIT :limit ")
+    fun flowNewComments(limit: Int, siteName: String, before: Instant? = null, after: Instant? = null): Flow<List<Post>>
+
+    @Query("SELECT * FROM sites AS s " +
+        "INNER JOIN posts AS p ON p.site_rowid = s.rowid " +
+        "WHERE s.name LIKE :siteName " +
+        "AND (:before IS NULL OR p.created <= :before) " +
+        "AND (:after IS NULL OR p.created >= :after) " +
+        "ORDER BY CASE " +
+        "   WHEN p.upvotes = 0 OR p.upvotes = 0 THEN 0 " +
+        "   ELSE (p.upvotes + p.downvotes) * (min(p.upvotes, p.downvotes)/max(p.upvotes, p.downvotes)) " +
+        "END ASC " +
+        "LIMIT :limit ")
+    fun flowControversial(limit: Int, siteName: String, before: Instant? = null, after: Instant? = null): Flow<List<Post>>
+
+    @Query("SELECT * FROM sites AS s " +
+        "INNER JOIN posts AS p ON p.site_rowid = s.rowid " +
+        "WHERE s.name LIKE :siteName " +
+        "AND (:before IS NULL OR p.created <= :before) " +
+        "AND (:after IS NULL OR p.created >= :after) " +
+        "ORDER BY p.comment_count DESC " +
+        "LIMIT :limit ")
+    fun flowMostComments(limit: Int, siteName: String, before: Instant? = null, after: Instant? = null): Flow<List<Post>>
+
+
+    @Query("SELECT * FROM sites AS s " +
+        "INNER JOIN posts AS p ON p.site_rowid = s.rowid " +
+        "WHERE s.name LIKE :siteName " +
+        "AND (:before IS NULL OR p.created <= :before) " +
+        "AND (:after IS NULL OR p.created >= :after) " +
+        "ORDER BY p.score DESC " +
+        "LIMIT :limit ")
+    fun flowTop(limit: Int, siteName: String, before: Instant? = null, after: Instant? = null): Flow<List<Post>>
+
+    @Query("SELECT * FROM sites AS s " +
+        "INNER JOIN posts AS p ON p.site_rowid = s.rowid " +
+        "WHERE s.name LIKE :siteName " +
+        "AND (:before IS NULL OR p.created <= :before) " +
+        "AND (:after IS NULL OR p.created >= :after) " +
+        "ORDER BY p.hot_rank DESC " +
+        "LIMIT :limit ")
+    fun flowHot(limit: Int, siteName: String, before: Instant? = null, after: Instant? = null): Flow<List<Post>>
+
+    @Query("SELECT * FROM sites AS s " +
+        "INNER JOIN posts AS p ON p.site_rowid = s.rowid " +
+        "WHERE s.name LIKE :siteName " +
+        "AND (:before IS NULL OR p.created <= :before) " +
+        "AND (:after IS NULL OR p.created >= :after) " +
+        "ORDER BY p.active_rank DESC " +
+        "LIMIT :limit ")
+    fun flowActive(limit: Int, siteName: String, before: Instant? = null, after: Instant? = null): Flow<List<Post>>
+
     @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun add(post: Post)
 

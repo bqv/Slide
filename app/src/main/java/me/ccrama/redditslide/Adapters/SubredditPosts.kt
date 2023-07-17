@@ -5,28 +5,30 @@ import android.os.AsyncTask
 import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.ActionBar
+import kotlinx.coroutines.flow.singleOrNull
 import kotlinx.coroutines.runBlocking
 import ltd.ucode.network.data.IPost
 import ltd.ucode.network.lemmy.api.ApiException
+import ltd.ucode.network.lemmy.api.ApiResult
 import ltd.ucode.network.lemmy.api.PagedData
-import ltd.ucode.network.lemmy.data.LemmyPost
-import ltd.ucode.network.lemmy.data.type.PostListingType
-import ltd.ucode.network.lemmy.data.type.PostSortType
-import ltd.ucode.network.lemmy.data.type.PostView
 import ltd.ucode.slide.App
 import ltd.ucode.slide.Authentication
 import ltd.ucode.slide.BuildConfig
-import ltd.ucode.slide.util.PostSortTypeExtensions.from
 import ltd.ucode.slide.R
 import ltd.ucode.slide.SettingValues
 import ltd.ucode.slide.SettingValues.getSubmissionSort
 import ltd.ucode.slide.SettingValues.getSubmissionTimePeriod
+import ltd.ucode.slide.data.entity.Post
+import ltd.ucode.slide.data.value.Feed
+import ltd.ucode.slide.data.value.Period
+import ltd.ucode.slide.data.value.Sorting
 import ltd.ucode.slide.repository.AccountRepository
 import ltd.ucode.slide.repository.PostRepository
+import ltd.ucode.slide.shim.PeriodExtensions.from
+import ltd.ucode.slide.shim.SortingExtensions.from
 import ltd.ucode.slide.ui.BaseActivity
 import ltd.ucode.slide.ui.main.MainActivity
 import me.ccrama.redditslide.Activities.SubredditView
-import me.ccrama.redditslide.Constants
 import me.ccrama.redditslide.Fragments.SubmissionsView
 import me.ccrama.redditslide.OfflineSubreddit
 import me.ccrama.redditslide.PostLoader
@@ -62,7 +64,7 @@ class SubredditPosts @JvmOverloads constructor(
     var loading = false
     @JvmField
     var error = false
-    private var paginator: PagedData<PostView>? = null
+    private var paginator: PagedData<Post>? = null
     @JvmField
     var cached: OfflineSubreddit? = null
     var c: Context
@@ -215,50 +217,66 @@ class SubredditPosts @JvmOverloads constructor(
                 offline = false
                 nomore = false
                 var sub = subredditPaginators[0]!!.lowercase()
-                if (sub == "random" || sub == "randnsfw" && MainActivity.randomoverride != null && !MainActivity.randomoverride!!.isEmpty()) {
+                if (sub == "random" || sub == "randnsfw" && MainActivity.randomoverride != null && MainActivity.randomoverride!!.isNotEmpty()) {
                     sub = MainActivity.randomoverride!!
                     MainActivity.randomoverride = ""
                 }
-                paginator = if (sub == "subscribed") {
+                val postFlow = if (sub == "subscribed") {
                     //SubredditPaginator(Authentication.reddit)
                     postRepository.getPosts(
                         AccountRepository.currentAccount,
-                        type = PostListingType.Subscribed,
-                        sort = PostSortType.from(getSubmissionSort(subreddit), getSubmissionTimePeriod(subreddit)),
-                        limit = Constants.PAGINATOR_POST_LIMIT
+                        feed = Feed.Subscribed,
+                        pageSize = 50,
+                        period = Period.from(getSubmissionTimePeriod(subreddit)),
+                        sort = Sorting.from(getSubmissionSort(subreddit)),
                     )
                 } else if (sub == "local") {
                     //SubredditPaginator(Authentication.reddit)
                     postRepository.getPosts(
                         AccountRepository.currentAccount,
-                        type = PostListingType.Local,
-                        sort = PostSortType.from(getSubmissionSort(subreddit), getSubmissionTimePeriod(subreddit)),
-                        limit = Constants.PAGINATOR_POST_LIMIT
+                        feed = Feed.Local,
+                        pageSize = 50,
+                        period = Period.from(getSubmissionTimePeriod(subreddit)),
+                        sort = Sorting.from(getSubmissionSort(subreddit)),
                     )
                 } else if (sub == "all") {
                     //SubredditPaginator(Authentication.reddit)
                     postRepository.getPosts(
                         AccountRepository.currentAccount,
-                        type = PostListingType.All,
-                        sort = PostSortType.from(getSubmissionSort(subreddit), getSubmissionTimePeriod(subreddit)),
-                        limit = Constants.PAGINATOR_POST_LIMIT
+                        feed = Feed.All,
+                        pageSize = 50,
+                        period = Period.from(getSubmissionTimePeriod(subreddit)),
+                        sort = Sorting.from(getSubmissionSort(subreddit)),
                     )
                 } else if (!sub.contains(".")) {
                     //SubredditPaginator(Authentication.reddit, sub)
                     postRepository.getPosts(
                         AccountRepository.currentAccount,
-                        communityName = sub,
-                        sort = PostSortType.from(getSubmissionSort(subreddit), getSubmissionTimePeriod(subreddit)),
-                        limit = Constants.PAGINATOR_POST_LIMIT
+                        feed = Feed.Group(sub),
+                        pageSize = 50,
+                        period = Period.from(getSubmissionTimePeriod(subreddit)),
+                        sort = Sorting.from(getSubmissionSort(subreddit)),
                     )
                 } else {
                     //DomainPaginator(Authentication.reddit, sub)
                     postRepository.getPosts(
                         AccountRepository.currentAccount,
-                        communityName = sub,
-                        sort = PostSortType.from(getSubmissionSort(subreddit), getSubmissionTimePeriod(subreddit)),
-                        limit = Constants.PAGINATOR_POST_LIMIT
+                        feed = Feed.Group(sub),
+                        pageSize = 50,
+                        period = Period.from(getSubmissionTimePeriod(subreddit)),
+                        sort = Sorting.from(getSubmissionSort(subreddit)),
                     )
+                }
+                paginator = postFlow.let {
+                    runBlocking {
+                        it.singleOrNull().orEmpty()
+                    }
+                }.let { posts ->
+                    PagedData {
+                        { ApiResult.Success(
+                            instance = AccountRepository.currentAccount ?: posts.first().domain!!,
+                            data = posts) }
+                    }
                 }
             }
             val filteredSubmissions: MutableList<IPost> = nextFiltered
@@ -297,14 +315,14 @@ class SubredditPosts @JvmOverloads constructor(
         val nextFiltered: ArrayList<IPost>
             get() {
                 val filteredSubmissions = ArrayList<IPost>()
-                val adding = ArrayList<LemmyPost>()
+                val adding = ArrayList<Post>()
                 try {
                     if (paginator != null && paginator!!.hasNext) {
                         //if (force18 && paginator is SubredditPaginator) {
                         //    (paginator as SubredditPaginator).setObeyOver18(false)
                         //}
                         val page = runBlocking { paginator!!.next() }
-                            .mapSuccess { data.map { LemmyPost(instance, it) } }
+                            .mapSuccess { data.map { it } }
                         adding.addAll(page.success)
                     } else {
                         nomore = true

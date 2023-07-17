@@ -433,21 +433,21 @@
         <item name="colorAccent">@color/md_yellow_A400</item>
     </style>
 
-    <style parent="Theme.AppCompat.Dialog.Alert" name="popup">
+    <style parent="Theme.MaterialComponents.Dialog.Alert.Bridge" name="popup">
         <item name="android:background">@android:color/transparent</item>
     </style>
 
-    <style parent="Theme.AppCompat.Light.NoActionBar" name="swipestylelight">
+    <style parent="Theme.MaterialComponents.Light.NoActionBar.Bridge" name="swipestylelight">
         <item name="colorAccent">@color/md_amber_A400</item>
     </style>
 
-    <style parent="Theme.AppCompat.NoActionBar" name="swipeable">
+    <style parent="Theme.MaterialComponents.NoActionBar.Bridge" name="swipeable">
         <item name="android:windowBackground">@null</item>
         <item name="android:windowIsTranslucent">true</item>
     </style>
 
 
-    <style parent="Theme.AppCompat.NoActionBar" name="swipeableweb">
+    <style parent="Theme.MaterialComponents.NoActionBar.Bridge" name="swipeableweb">
         <item name="android:windowBackground">@null</item>
         <item name="android:windowIsTranslucent">true</item>
         <item name="actionMenuTextColor">#DE000000</item>
@@ -459,7 +459,7 @@
 
     </style>
 
-    <style parent="Theme.AppCompat.NoActionBar" name="swipestyle">
+    <style parent="Theme.MaterialComponents.NoActionBar.Bridge" name="swipestyle">
         <item name="colorAccent">@color/md_amber_A400</item>
         <item name="android:windowActivityTransitions">true</item>
     </style>

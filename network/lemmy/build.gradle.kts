@@ -17,7 +17,7 @@ dependencies {
     implementation(libs.kotlin.logging)
     implementation(libs.jraw)
 
-    implementation(libs.okhttp)
+    implementation(libs.bundles.okhttp)
 
     implementation(libs.bundles.retrofit)
     implementation(libs.kotlinx.serialization)

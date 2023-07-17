@@ -87,6 +87,7 @@ import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.tabs.TabLayout
 import com.lusfold.androidkeyvaluestore.KVStore
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.runBlocking
 import ltd.ucode.network.lemmy.data.LemmyPost
 import ltd.ucode.network.lemmy.data.type.PostSortType
@@ -97,6 +98,8 @@ import ltd.ucode.slide.Constants
 import ltd.ucode.slide.R
 import ltd.ucode.slide.SettingValues
 import ltd.ucode.network.data.IPost
+import ltd.ucode.slide.data.value.Feed
+import ltd.ucode.slide.data.value.Sorting
 import ltd.ucode.slide.repository.AccountRepository
 import ltd.ucode.slide.repository.CommentRepository
 import ltd.ucode.slide.repository.NetworkRepository
@@ -170,7 +173,6 @@ import net.dean.jraw.models.LoggedInAccount
 import net.dean.jraw.models.MultiReddit
 import net.dean.jraw.models.Subreddit
 import net.dean.jraw.models.UserRecord
-import net.dean.jraw.paginators.Sorting
 import net.dean.jraw.paginators.TimePeriod
 import net.dean.jraw.paginators.UserRecordPaginator
 import org.ligi.snackengage.SnackEngage
@@ -184,6 +186,7 @@ import java.util.Collections
 import java.util.Locale
 import java.util.concurrent.Executors
 import javax.inject.Inject
+import net.dean.jraw.paginators.Sorting as RedditSorting
 
 @AndroidEntryPoint
 class MainActivity : BaseActivity(), NetworkStateReceiverListener {
@@ -847,14 +850,14 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                         override fun doInBackground(vararg params: Void?): IPost? {
                             if (Authentication.isLoggedIn) UserSubscriptions.doOnlineSyncing()
                             try {
-                                val pager = postRepository.getPosts(
+                                val page = postRepository.getPosts(
                                     null,
-                                    communityName = "slide@feddit.uk",
-                                    sort = PostSortType.New
+                                    feed = Feed.Group("slide@feddit.uk"),
+                                    pageSize = 5,
+                                    sort = Sorting.New(false)
                                 )
-                                val posts = runBlocking { pager.next() }
-                                    .mapSuccess { data.map { LemmyPost(instance, it) } }
-                                for (s in posts.success) {
+                                val posts = runBlocking { page.single() }
+                                for (s in posts) {
                                     var version = BuildConfig.VERSION_NAME
                                     if (version.length > 5 && version.contains(".")) {
                                         version = version.substring(0, version.lastIndexOf("."))
@@ -2377,7 +2380,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
         findViewById<View>(R.id.active_users).visibility = View.VISIBLE
     }
 
-    var sorts: Sorting? = null
+    var sorts: RedditSorting? = null
     fun doSubSidebar(subreddit: String) {
         if (mAsyncGetSubreddit != null) {
             mAsyncGetSubreddit!!.cancel(true)
@@ -2431,11 +2434,11 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                 startActivity(i)
             }
             val sort = dialoglayout.findViewById<TextView>(R.id.sort)
-            var sortingis = Sorting.HOT
+            var sortingis = RedditSorting.HOT
             if (SettingValues.hasSort(subreddit)) {
                 sortingis = SettingValues.getBaseSubmissionSort(subreddit)
                 sort.text = (sortingis.name
-                        + if (sortingis == Sorting.CONTROVERSIAL || sortingis == Sorting.TOP) " of "
+                        + if (sortingis == RedditSorting.CONTROVERSIAL || sortingis == RedditSorting.TOP) " of "
                         + SettingValues.getBaseTimePeriod(subreddit).name else "")
             } else {
                 sort.text = "Set default sorting"
@@ -2444,17 +2447,17 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             dialoglayout.findViewById<View>(R.id.sorting).setOnClickListener(View.OnClickListener {
                 val l2 = DialogInterface.OnClickListener { dialogInterface, i ->
                     when (i) {
-                        0 -> sorts = Sorting.HOT
-                        1 -> sorts = Sorting.NEW
-                        2 -> sorts = Sorting.RISING
+                        0 -> sorts = RedditSorting.HOT
+                        1 -> sorts = RedditSorting.NEW
+                        2 -> sorts = RedditSorting.RISING
                         3 -> {
-                            sorts = Sorting.TOP
+                            sorts = RedditSorting.TOP
                             askTimePeriod(sorts!!, subreddit, dialoglayout)
                             return@OnClickListener
                         }
 
                         4 -> {
-                            sorts = Sorting.CONTROVERSIAL
+                            sorts = RedditSorting.CONTROVERSIAL
                             askTimePeriod(sorts!!, subreddit, dialoglayout)
                             return@OnClickListener
                         }
@@ -2462,7 +2465,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                     SettingValues.setSubSorting(sorts!!, time, subreddit)
                     val sortingis = SettingValues.getBaseSubmissionSort(subreddit)
                     sort.text = (sortingis.name
-                            + if (sortingis == Sorting.CONTROVERSIAL || sortingis == Sorting.TOP) " of "
+                            + if (sortingis == RedditSorting.CONTROVERSIAL || sortingis == RedditSorting.TOP) " of "
                             + SettingValues.getBaseTimePeriod(subreddit).name else "")
                     reloadSubs()
                 }
@@ -2475,7 +2478,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                         if (SettingValues.hasSort(subreddit)) {
                             val sortingis1 = SettingValues.getBaseSubmissionSort(subreddit)
                             sort1.text = (sortingis1.name
-                                    + if (sortingis1 == Sorting.CONTROVERSIAL || sortingis1 == Sorting.TOP) " of "
+                                    + if (sortingis1 == RedditSorting.CONTROVERSIAL || sortingis1 == RedditSorting.TOP) " of "
                                     + SettingValues.getBaseTimePeriod(subreddit).name else "")
                         } else {
                             sort1.text = "Set default sorting"
@@ -2511,7 +2514,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                             Authentication.reddit, subreddit,
                             "moderators"
                         )
-                        paginator.sorting = Sorting.HOT
+                        paginator.sorting = RedditSorting.HOT
                         paginator.timePeriod = TimePeriod.ALL
                         while (paginator.hasNext()) {
                             mods!!.addAll(paginator.next())
@@ -2602,7 +2605,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
     }
 
     var time = TimePeriod.DAY
-    private fun askTimePeriod(sort: Sorting, sub: String, dialoglayout: View) {
+    private fun askTimePeriod(sort: RedditSorting, sub: String, dialoglayout: View) {
         val l2 = DialogInterface.OnClickListener { dialogInterface, i ->
             when (i) {
                 0 -> time = TimePeriod.HOUR
@@ -2619,7 +2622,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
             if (SettingValues.hasSort(sub)) {
                 val sortingis = SettingValues.getBaseSubmissionSort(sub)
                 sort.text = (sortingis.name
-                        + if (sortingis == Sorting.CONTROVERSIAL || sortingis == Sorting.TOP) " of "
+                        + if (sortingis == RedditSorting.CONTROVERSIAL || sortingis == RedditSorting.TOP) " of "
                         + SettingValues.getBaseTimePeriod(sub).name else "")
             } else {
                 sort.text = "Set default sorting"
@@ -2855,7 +2858,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                 0 -> {
                     me.ccrama.redditslide.util.SortingUtil.setSorting(
                         ((pager!!.adapter as MainPagerAdapter?)!!.currentFragment as SubmissionsView?)!!.id,
-                        Sorting.HOT
+                        RedditSorting.HOT
                     )
                     reloadSubs()
                 }
@@ -2863,7 +2866,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                 1 -> {
                     me.ccrama.redditslide.util.SortingUtil.setSorting(
                         ((pager!!.adapter as MainPagerAdapter?)!!.currentFragment as SubmissionsView?)!!.id,
-                        Sorting.NEW
+                        RedditSorting.NEW
                     )
                     reloadSubs()
                 }
@@ -2871,7 +2874,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                 2 -> {
                     me.ccrama.redditslide.util.SortingUtil.setSorting(
                         ((pager!!.adapter as MainPagerAdapter?)!!.currentFragment as SubmissionsView?)!!.id,
-                        Sorting.RISING
+                        RedditSorting.RISING
                     )
                     reloadSubs()
                 }
@@ -2879,7 +2882,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                 3 -> {
                     me.ccrama.redditslide.util.SortingUtil.setSorting(
                         ((pager!!.adapter as MainPagerAdapter?)!!.currentFragment as SubmissionsView?)!!.id,
-                        Sorting.TOP
+                        RedditSorting.TOP
                     )
                     openPopupTime()
                 }
@@ -2887,7 +2890,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                 4 -> {
                     me.ccrama.redditslide.util.SortingUtil.setSorting(
                         ((pager!!.adapter as MainPagerAdapter?)!!.currentFragment as SubmissionsView?)!!.id,
-                        Sorting.CONTROVERSIAL
+                        RedditSorting.CONTROVERSIAL
                     )
                     openPopupTime()
                 }
@@ -2895,7 +2898,7 @@ class MainActivity : BaseActivity(), NetworkStateReceiverListener {
                 5 -> {
                     me.ccrama.redditslide.util.SortingUtil.setSorting(
                         ((pager!!.adapter as MainPagerAdapter?)!!.currentFragment as SubmissionsView?)!!.id,
-                        Sorting.BEST
+                        RedditSorting.BEST
                     )
                     reloadSubs()
                 }

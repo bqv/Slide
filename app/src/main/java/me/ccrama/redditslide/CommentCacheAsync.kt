@@ -8,22 +8,24 @@ import android.os.AsyncTask
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
+import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.runBlocking
+import ltd.ucode.network.ContentType
+import ltd.ucode.network.data.IPost
 import ltd.ucode.network.lemmy.api.ApiException
-import ltd.ucode.network.lemmy.data.LemmyPost
 import ltd.ucode.network.lemmy.data.id.PostId
 import ltd.ucode.network.lemmy.data.type.CommentSortType
 import ltd.ucode.network.lemmy.data.type.CommentView
 import ltd.ucode.slide.App
 import ltd.ucode.slide.Authentication
-import ltd.ucode.network.ContentType
 import ltd.ucode.slide.R
 import ltd.ucode.slide.SettingValues
 import ltd.ucode.slide.SettingValues.getCommentSorting
-import ltd.ucode.network.data.IPost
+import ltd.ucode.slide.data.value.Feed
 import ltd.ucode.slide.repository.AccountRepository
 import ltd.ucode.slide.repository.CommentRepository
 import ltd.ucode.slide.repository.PostRepository
+import ltd.ucode.slide.shim.FlowExtensions.items
 import ltd.ucode.slide.util.CommentSortTypeExtensions.from
 import me.ccrama.redditslide.util.GifUtils
 import me.ccrama.redditslide.util.LogUtil
@@ -134,18 +136,17 @@ class CommentCacheAsync : AsyncTask<Any?, Any?, Any?> {
                 if (alreadyReceived != null) {
                     submissions.addAll(alreadyReceived!!)
                 } else {
-                    var p = if (fSub.equals("frontpage", ignoreCase = true)) {
+                    val p = if (fSub.equals("frontpage", ignoreCase = true)) {
                         //SubredditPaginator(Authentication.reddit)
-                        postRepository.getPosts(AccountRepository.currentAccount)
+                        postRepository.getPosts(AccountRepository.currentAccount, feed = Feed.All, pageSize = 50)
                     } else {
                         //SubredditPaginator(Authentication.reddit, sub)
-                        postRepository.getPosts(AccountRepository.currentAccount, communityName = sub)
+                        postRepository.getPosts(AccountRepository.currentAccount, feed = Feed.Group(sub), pageSize = 50)
                     }
                     //p.setLimit(Constants.PAGINATOR_POST_LIMIT)
                     try {
-                        val page = runBlocking { p.next() }
-                            .mapSuccess { data.map { LemmyPost(instance, it) } }
-                        submissions.addAll(page.success)
+                        val page = runBlocking { p.single() }
+                        submissions.addAll(page)
                     } catch (e: Exception) {
                         e.printStackTrace()
                     }
@@ -221,15 +222,10 @@ class CommentCacheAsync : AsyncTask<Any?, Any?, Any?> {
         val paginator = commentRepository.getComments(
             AccountRepository.currentAccount,
             postId = id,
-            maxDepth = depth,
-            limit = limit,
             sort = sort
         )
-        val comments: MutableList<CommentView> = mutableListOf()
-        while (paginator.hasNext) {
-            val page = runBlocking { paginator.next() }.success
-            comments.addAll(page)
-        }
+        val comments: List<CommentView> = mutableListOf<CommentView>()
+            .apply { addAll(paginator.items()) }
         return CommentStore(sort, comments)
     }
 

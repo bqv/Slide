@@ -28,7 +28,7 @@ import me.ccrama.redditslide.util.LinkUtil;
 
 public class ReaderMode extends BaseActivityAnim {
     private       int    mSubredditColor;
-    public static String html;
+    public static String html; // why?!
     SpoilerRobotoTextView v;
     private String url;
 
@@ -102,10 +102,15 @@ public class ReaderMode extends BaseActivityAnim {
                     html = document.html();
                     title = document.title();
 
+                    var article = new com.github.ghostdogpr.readability4s.ReadableDocument(document);
+                    title = article.title();
+                    articleText = article.content();
+                    /*
                     Readability readability = new Readability(document);
                     readability.init();
 
                     articleText = readability.outerHtml();
+                     */
                 } else {
                     Readability readability =
                             new Readability(StringEscapeUtils.unescapeJava(html));  // URL

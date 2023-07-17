@@ -5,4 +5,6 @@ sealed class Sorting {
     class Old(val controversial: Boolean = false) : Sorting() // Remote Mediated (Reverse)
     class Top(val comments: Boolean = false) : Sorting() // Oneshot
     class Hot(val active: Boolean = false) : Sorting()   // Oneshot
+
+    companion object {}
 }

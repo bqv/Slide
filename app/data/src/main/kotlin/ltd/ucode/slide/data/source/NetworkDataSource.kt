@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onEmpty
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.single
+import ltd.ucode.slide.data.Constants.DEFAULT_PAGE_SIZE
 import ltd.ucode.slide.data.ContentDatabase
 import ltd.ucode.slide.data.auth.Credential
 import ltd.ucode.slide.data.auth.CredentialDatabase
@@ -120,7 +121,7 @@ class NetworkDataSource(
     }
 
     override fun getPosts(domain: String, feed: Feed, period: Period, order: Sorting): Flow<PagingData<Post>> {
-        val pager = Pager(config = PagingConfig(pageSize = 50),
+        val pager = Pager(config = PagingConfig(pageSize = DEFAULT_PAGE_SIZE),
             // TODO: remoteMediator = ??
         ) {
             when (order) {
@@ -146,6 +147,38 @@ class NetworkDataSource(
         return domainSource(domain)
             .flatMapLatest { source ->
                 pager.flow.distinctUntilChanged()
+                    .onStart {
+                        source.updatePosts(domain, feed, period, order)
+                    }
+            }
+    }
+
+    override fun getPosts(domain: String, feed: Feed, pageSize: Int, period: Period, order: Sorting): Flow<List<Post>> {
+        val dbFlow = when (order) {
+            is Sorting.New -> if (order.comments)
+                contentDatabase.posts.flowNewComments(limit = pageSize, siteName = domain, before = period.before, after = period.after)
+            else
+                contentDatabase.posts.flowNew(limit = pageSize, siteName = domain, before = period.before, after = period.after)
+
+            is Sorting.Old -> if (order.controversial)
+                contentDatabase.posts.flowControversial(limit = pageSize, siteName = domain, before = period.before, after = period.after)
+            else
+                contentDatabase.posts.flowOld(limit = pageSize, siteName = domain, before = period.before, after = period.after)
+
+            is Sorting.Top -> if (order.comments)
+                contentDatabase.posts.flowMostComments(limit = pageSize, siteName = domain, before = period.before, after = period.after)
+            else
+                contentDatabase.posts.flowTop(limit = pageSize, siteName = domain, before = period.before, after = period.after)
+
+            is Sorting.Hot -> if (order.active)
+                contentDatabase.posts.flowActive(limit = pageSize, siteName = domain, before = period.before, after = period.after)
+            else
+                contentDatabase.posts.flowHot(limit = pageSize, siteName = domain, before = period.before, after = period.after)
+        }
+
+        return domainSource(domain)
+            .flatMapLatest { source ->
+                dbFlow.distinctUntilChanged()
                     .onStart {
                         source.updatePosts(domain, feed, period, order)
                     }

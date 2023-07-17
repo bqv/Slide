@@ -40,4 +40,6 @@ sealed class Period {
     object NineMonths : Period((31 * 9).days)
     object Year : Period(365.days)
     object All : Period()
+
+    companion object {}
 }

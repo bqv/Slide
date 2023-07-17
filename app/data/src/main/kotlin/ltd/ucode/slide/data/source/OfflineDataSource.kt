@@ -5,6 +5,7 @@ import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
+import ltd.ucode.slide.data.Constants.DEFAULT_PAGE_SIZE
 import ltd.ucode.slide.data.ContentDatabase
 import ltd.ucode.slide.data.auth.Credential
 import ltd.ucode.slide.data.entity.Post
@@ -45,7 +46,7 @@ class OfflineDataSource(private val contentDatabase: ContentDatabase) : IDataSou
     }
 
     override fun getPosts(domain: String, feed: Feed, period: Period, order: Sorting): Flow<PagingData<Post>> {
-        val pager = Pager(config = PagingConfig(pageSize = 50),
+        val pager = Pager(config = PagingConfig(pageSize = DEFAULT_PAGE_SIZE),
         ) {
             when (order) {
                 is Sorting.New -> if (order.comments)
@@ -68,5 +69,29 @@ class OfflineDataSource(private val contentDatabase: ContentDatabase) : IDataSou
         }
 
         return pager.flow.distinctUntilChanged()
+    }
+
+    override fun getPosts(domain: String, feed: Feed, pageSize: Int, period: Period, order: Sorting): Flow<List<Post>> {
+        return when (order) {
+            is Sorting.New -> if (order.comments)
+                contentDatabase.posts.flowNewComments(limit = pageSize, siteName = domain, before = period.before, after = period.after)
+            else
+                contentDatabase.posts.flowNew(limit = pageSize, siteName = domain, before = period.before, after = period.after)
+
+            is Sorting.Old -> if (order.controversial)
+                contentDatabase.posts.flowControversial(limit = pageSize, siteName = domain, before = period.before, after = period.after)
+            else
+                contentDatabase.posts.flowOld(limit = pageSize, siteName = domain, before = period.before, after = period.after)
+
+            is Sorting.Top -> if (order.comments)
+                contentDatabase.posts.flowMostComments(limit = pageSize, siteName = domain, before = period.before, after = period.after)
+            else
+                contentDatabase.posts.flowTop(limit = pageSize, siteName = domain, before = period.before, after = period.after)
+
+            is Sorting.Hot -> if (order.active)
+                contentDatabase.posts.flowActive(limit = pageSize, siteName = domain, before = period.before, after = period.after)
+            else
+                contentDatabase.posts.flowHot(limit = pageSize, siteName = domain, before = period.before, after = period.after)
+        }
     }
 }
