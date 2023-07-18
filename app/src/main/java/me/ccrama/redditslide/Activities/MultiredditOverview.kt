@@ -20,13 +20,14 @@ import androidx.appcompat.widget.PopupMenu
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
-import androidx.fragment.app.FragmentStatePagerAdapter
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.viewpager.widget.ViewPager
-import androidx.viewpager.widget.ViewPager.SimpleOnPageChangeListener
+import androidx.viewpager2.adapter.FragmentStateAdapter
+import androidx.viewpager2.widget.ViewPager2
+import androidx.viewpager2.widget.ViewPager2.OnPageChangeCallback
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.input.input
 import com.google.android.material.tabs.TabLayout
+import com.google.android.material.tabs.TabLayoutMediator
 import ltd.ucode.slide.Authentication
 import ltd.ucode.slide.R
 import ltd.ucode.slide.SettingValues
@@ -50,7 +51,7 @@ import net.dean.jraw.paginators.TimePeriod
 
 class MultiredditOverview : BaseActivityAnim() {
     var adapter: MultiredditOverviewPagerAdapter? = null
-    private var pager: ViewPager? = null
+    private var pager: ViewPager2? = null
     private var profile: String? = null
     private var tabs: TabLayout? = null
     private var usedArray: List<MultiReddit>? = null
@@ -322,7 +323,7 @@ class MultiredditOverview : BaseActivityAnim() {
         findViewById<View>(R.id.header).setBackgroundColor(Palette.getDefaultColor())
         tabs = findViewById<View>(R.id.sliding_tabs) as TabLayout
         tabs!!.tabMode = TabLayout.MODE_SCROLLABLE
-        pager = findViewById<View>(R.id.content_view) as ViewPager
+        pager = findViewById<View>(R.id.content_view) as ViewPager2
         mToolbar!!.popupTheme = ColorPreferences(this).fontStyle.baseId
         profile = ""
         initialMulti = ""
@@ -539,7 +540,6 @@ class MultiredditOverview : BaseActivityAnim() {
                 }
                 pager!!.adapter = adapter
                 pager!!.offscreenPageLimit = 1
-                tabs!!.setupWithViewPager(pager)
                 if (!initialMulti!!.isEmpty()) {
                     for (i in usedArray!!.indices) {
                         if (usedArray!![i].displayName.equals(initialMulti, ignoreCase = true)) {
@@ -559,37 +559,33 @@ class MultiredditOverview : BaseActivityAnim() {
                     usedArray!![0].displayName
                 )
                 val header = findViewById<View>(R.id.header)
-                tabs!!.addOnTabSelectedListener(object :
-                    TabLayout.ViewPagerOnTabSelectedListener(pager) {
-                    override fun onTabReselected(tab: TabLayout.Tab) {
-                        super.onTabReselected(tab)
-                        var pastVisiblesItems = 0
-                        val firstVisibleItems =
-                            ((adapter!!.currentFragment as MultiredditView?)!!.rv!!
-                                .layoutManager as CatchStaggeredGridLayoutManager?)!!.findFirstVisibleItemPositions(
-                                null
-                            )
-                        if (firstVisibleItems != null && firstVisibleItems.size > 0) {
-                            for (firstVisibleItem in firstVisibleItems) {
-                                pastVisiblesItems = firstVisibleItem
-                            }
-                        }
-                        if (pastVisiblesItems > 8) {
-                            (adapter!!.currentFragment as MultiredditView?)!!.rv!!.scrollToPosition(
-                                0
-                            )
-                            if (header != null) {
-                                header.animate()
-                                    .translationY(header.height.toFloat())
-                                    .setInterpolator(LinearInterpolator()).duration = 0
-                            }
-                        } else {
-                            (adapter!!.currentFragment as MultiredditView?)!!.rv!!.smoothScrollToPosition(
-                                0
-                            )
+                TabLayoutMediator(tabs!!, pager!!) { tab, position ->
+                    var pastVisiblesItems = 0
+                    val firstVisibleItems =
+                        ((adapter!!.currentFragment as MultiredditView?)!!.rv!!
+                            .layoutManager as CatchStaggeredGridLayoutManager?)!!.findFirstVisibleItemPositions(
+                            null
+                        )
+                    if (firstVisibleItems != null && firstVisibleItems.isNotEmpty()) {
+                        for (firstVisibleItem in firstVisibleItems) {
+                            pastVisiblesItems = firstVisibleItem
                         }
                     }
-                })
+                    if (pastVisiblesItems > 8) {
+                        (adapter!!.currentFragment as MultiredditView?)!!.rv!!.scrollToPosition(
+                            0
+                        )
+                        if (header != null) {
+                            header.animate()
+                                .translationY(header.height.toFloat())
+                                .setInterpolator(LinearInterpolator()).duration = 0
+                        }
+                    } else {
+                        (adapter!!.currentFragment as MultiredditView?)!!.rv!!.smoothScrollToPosition(
+                            0
+                        )
+                    }
+                }
                 findViewById<View>(R.id.header).setBackgroundColor(
                     Palette.getColor(usedArray!![0].displayName)
                 )
@@ -627,11 +623,8 @@ class MultiredditOverview : BaseActivityAnim() {
         }
     }
 
-    inner class MultiredditOverviewPagerAdapter internal constructor(fm: FragmentManager?) :
-        FragmentStatePagerAdapter(
-            fm!!, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT
-        ) {
-        override fun getItem(i: Int): Fragment {
+    inner class MultiredditOverviewPagerAdapter internal constructor(fm: FragmentManager) : FragmentStateAdapter(fm, lifecycle) {
+        override fun createFragment(i: Int): Fragment {
             val f: Fragment = MultiredditView()
             val args = Bundle()
             args.putInt("id", i)
@@ -644,7 +637,7 @@ class MultiredditOverview : BaseActivityAnim() {
             private set
 
         init {
-            pager!!.addOnPageChangeListener(object : SimpleOnPageChangeListener() {
+            pager!!.registerOnPageChangeCallback(object : OnPageChangeCallback() {
                 override fun onPageSelected(position: Int) {
                     findViewById<View>(R.id.header).animate()
                         .translationY(0f)
@@ -668,14 +661,16 @@ class MultiredditOverview : BaseActivityAnim() {
             })
         }
 
-        override fun setPrimaryItem(container: ViewGroup, position: Int, `object`: Any) {
-            if (currentFragment !== `object`) {
-                currentFragment = `object` as Fragment
+        fun setPrimaryItem(container: ViewGroup, position: Int, obj: Any) {
+            /*
+            if (currentFragment !== obj) {
+                currentFragment = obj as Fragment
             }
-            super.setPrimaryItem(container, position, `object`)
+            super.setPrimaryItem(container, position, obj)
+             */TODO("hmm")
         }
 
-        override fun getCount(): Int {
+        override fun getItemCount(): Int {
             return if (usedArray == null) {
                 1
             } else {
@@ -683,7 +678,7 @@ class MultiredditOverview : BaseActivityAnim() {
             }
         }
 
-        override fun getPageTitle(position: Int): CharSequence? {
+        fun getPageTitle(position: Int): CharSequence? {
             return usedArray!![position].fullName
         }
     }
@@ -715,9 +710,7 @@ class MultiredditOverview : BaseActivityAnim() {
     companion object {
         const val EXTRA_PROFILE = "profile"
         const val EXTRA_MULTI = "multi"
-        @JvmField
-        var multiActivity: Activity? = null
-        @JvmField
-        var searchMulti: MultiReddit? = null
+        @JvmField var multiActivity: Activity? = null
+        @JvmField var searchMulti: MultiReddit? = null
     }
 }

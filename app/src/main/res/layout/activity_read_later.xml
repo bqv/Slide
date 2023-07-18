@@ -13,7 +13,7 @@
         android:layout_gravity="top|end"
         android:layout_height="1dp" />
 
-    <androidx.viewpager.widget.ViewPager
+    <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/content_view"
         android:layout_marginTop="4dp"
         android:layout_width="match_parent"

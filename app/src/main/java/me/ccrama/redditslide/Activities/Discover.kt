@@ -11,14 +11,16 @@ import android.view.animation.LinearInterpolator
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
-import androidx.fragment.app.FragmentStatePagerAdapter
-import androidx.viewpager.widget.ViewPager
+import androidx.viewpager2.adapter.FragmentStateAdapter
+import androidx.viewpager2.widget.ViewPager2
+import androidx.viewpager2.widget.ViewPager2.OnPageChangeCallback
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.WhichButton
 import com.afollestad.materialdialogs.actions.getActionButton
 import com.afollestad.materialdialogs.input.getInputField
 import com.afollestad.materialdialogs.input.input
 import com.google.android.material.tabs.TabLayout
+import com.google.android.material.tabs.TabLayoutMediator
 import ltd.ucode.slide.R
 import ltd.ucode.slide.ui.BaseActivityAnim
 import me.ccrama.redditslide.Fragments.SubredditListView
@@ -78,10 +80,13 @@ class Discover : BaseActivityAnim() {
         val tabs: TabLayout = findViewById<View>(R.id.sliding_tabs) as TabLayout
         tabs.tabMode = TabLayout.MODE_FIXED
         tabs.setSelectedTabIndicatorColor(ColorPreferences(this@Discover).getColor("no sub"))
-        val pager: ViewPager = findViewById<View>(R.id.content_view) as ViewPager
+        val pager: ViewPager2 = findViewById<View>(R.id.content_view) as ViewPager2
         pager.adapter = DiscoverPagerAdapter(supportFragmentManager)
-        tabs.setupWithViewPager(pager)
-        pager.addOnPageChangeListener(object : ViewPager.SimpleOnPageChangeListener() {
+        TabLayoutMediator(tabs, pager) { tab, position ->
+            tab
+            position
+        }
+        pager.registerOnPageChangeCallback(object : OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {
                 findViewById<View>(R.id.header).animate()
                     .translationY(0f)
@@ -91,11 +96,9 @@ class Discover : BaseActivityAnim() {
         })
     }
 
-    inner class DiscoverPagerAdapter internal constructor(fm: FragmentManager?) :
-        FragmentStatePagerAdapter(
-            fm!!, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT
-        ) {
-        override fun getItem(i: Int): Fragment {
+    inner class DiscoverPagerAdapter internal constructor(fm: FragmentManager) :
+        FragmentStateAdapter(fm, lifecycle) {
+        override fun createFragment(i: Int): Fragment {
             val f: Fragment = SubredditListView()
             val args = Bundle()
             args.putString("id", if (i == 1) "trending" else "popular")
@@ -103,11 +106,11 @@ class Discover : BaseActivityAnim() {
             return f
         }
 
-        override fun getCount(): Int {
+        override fun getItemCount(): Int {
             return 2
         }
 
-        override fun getPageTitle(position: Int): CharSequence? {
+        fun getPageTitle(position: Int): CharSequence? {
             return if (position == 0) {
                 getString(R.string.discover_popular)
             } else {

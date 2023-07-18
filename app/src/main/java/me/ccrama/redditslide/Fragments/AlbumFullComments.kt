@@ -141,6 +141,6 @@ class AlbumFullComments : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val bundle = this.arguments
-        s = ShadowboxComments.comments[bundle!!.getInt("page", 0)]
+        s = ShadowboxComments.comments!![bundle!!.getInt("page", 0)]
     }
 }

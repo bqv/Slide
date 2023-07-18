@@ -28,7 +28,7 @@
         android:max="100"
         android:progress="0" />
 
-    <androidx.viewpager.widget.ViewPager
+    <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/images_horizontal"
         android:layout_width="match_parent"
         android:layout_below="@+id/toolbar"

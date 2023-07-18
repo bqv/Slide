@@ -1,63 +1,84 @@
-package me.ccrama.redditslide.views;
+package me.ccrama.redditslide.views
 
-import android.content.Context;
-import android.util.AttributeSet;
-import android.view.MotionEvent;
-
-import androidx.viewpager.widget.ViewPager;
+import android.view.MotionEvent
+import android.view.View
+import androidx.viewpager2.widget.ViewPager2
 
 /**
- * A simple ViewPager subclass that allows swiping between pages to be enabled or disabled at
+ * A simple ViewPager2 subclass that allows swiping between pages to be enabled or disabled at
  * runtime.
  */
-public class ToggleSwipeViewPager extends ViewPager {
-    private boolean mEnableSwiping = true;
-    private boolean swipeLeftOnly = false;
-    private boolean mSwipeDisabledUntilRelease = false;
-    private float mStartDragX;
+typealias ToggleSwipeViewPager = ViewPager2
 
-    public ToggleSwipeViewPager(Context context) {
-        super(context);
+fun ToggleSwipeViewPager.setSwipeLeftOnly(enabled: Boolean) {
+    this.setOnTouchListener(SwipeControlTouchListener().apply {
+        setSwipeDirection(if (enabled) SwipeDirection.LEFT else SwipeDirection.ALL)
+    })
+}
+
+fun ToggleSwipeViewPager.setSwipingEnabled(enabled: Boolean) {
+    this.setOnTouchListener(SwipeControlTouchListener().apply {
+        setSwipeDirection(if (enabled) SwipeDirection.ALL else SwipeDirection.NONE)
+    })
+}
+
+fun ToggleSwipeViewPager.disableSwipingUntilRelease() {
+    this.setOnTouchListener(SwipeControlTouchListener().apply {
+        disableUntilRelease()
+    })
+}
+
+enum class SwipeDirection {
+    ALL, // swipe allowed in left and right both directions
+    LEFT, // swipe allowed in only Left direction
+    RIGHT, // only right
+    NONE, // swipe is disabled completely
+}
+
+class SwipeControlTouchListener: View.OnTouchListener  {
+    private var initialXValue = 0f
+    private var direction: SwipeDirection = SwipeDirection.ALL
+    private var disabledUntilRelease: Boolean = false
+
+    fun setSwipeDirection(direction: SwipeDirection) {
+        this.direction = direction
     }
 
-    public ToggleSwipeViewPager(Context context, AttributeSet attrs) {
-        super(context, attrs);
+    fun disableUntilRelease() {
+        setSwipeDirection(SwipeDirection.NONE)
+        this.disabledUntilRelease = true
     }
 
+    override fun onTouch(v: View, event: MotionEvent): Boolean = !isSwipeAllowed(event)
 
-    @Override
-    public boolean onTouchEvent(MotionEvent ev) {
-        return (mEnableSwiping || swipeLeftOnly) && super.onTouchEvent(ev);
-    }
-
-
-    @Override
-    public boolean onInterceptTouchEvent(MotionEvent ev) {
-        if (ev.getAction() == MotionEvent.ACTION_UP) {
-            if (mSwipeDisabledUntilRelease) {
-                mEnableSwiping = true;
-                mSwipeDisabledUntilRelease = false;
+    private fun isSwipeAllowed(event: MotionEvent): Boolean {
+        if (event.action == MotionEvent.ACTION_UP) {
+            if (disabledUntilRelease) {
+                direction = SwipeDirection.ALL
+                disabledUntilRelease = false
             }
         }
-        try {
-            return (mEnableSwiping || swipeLeftOnly) && super.onInterceptTouchEvent(ev);
-        } catch (IllegalArgumentException ex) {
-            ex.printStackTrace();
+        if (direction === SwipeDirection.ALL) return true
+        if (direction == SwipeDirection.NONE) //disable any swipe
+            return false
+        if (event.action == MotionEvent.ACTION_DOWN) {
+            initialXValue = event.x
+            return true
         }
-        return false;
+        if (event.action == MotionEvent.ACTION_MOVE) {
+            try {
+                val diffX: Float = event.x - initialXValue
+                if (diffX > 0 && direction == SwipeDirection.RIGHT) {
+                    // swipe from left to right detected
+                    return false
+                } else if (diffX < 0 && direction == SwipeDirection.LEFT) {
+                    // swipe from right to left detected
+                    return false
+                }
+            } catch (exception: Exception) {
+                exception.printStackTrace()
+            }
+        }
+        return true
     }
-
-    public void setSwipeLeftOnly(boolean enabled) {
-        swipeLeftOnly = enabled;
-    }
-
-    public void setSwipingEnabled(boolean enabled) {
-        mEnableSwiping = enabled;
-    }
-
-    public void disableSwipingUntilRelease() {
-        mEnableSwiping = false;
-        mSwipeDisabledUntilRelease = true;
-    }
-
 }

@@ -12,10 +12,10 @@ import android.view.WindowManager
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
-import androidx.fragment.app.FragmentStatePagerAdapter
+import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.recyclerview.widget.RecyclerView
-import androidx.viewpager.widget.ViewPager
-import androidx.viewpager.widget.ViewPager.SimpleOnPageChangeListener
+import androidx.viewpager2.widget.ViewPager2
+import androidx.viewpager2.widget.ViewPager2.OnPageChangeCallback
 import ltd.ucode.slide.R
 import ltd.ucode.slide.SettingValues.albumSwipe
 import ltd.ucode.slide.SettingValues.appRestart
@@ -149,11 +149,11 @@ class RedditGallery : FullScreenActivity() {
             submissionTitle =
                 intent.extras!!.getString(ImageDownloadNotificationService.EXTRA_SUBMISSION_TITLE)
         }
-        val pager = findViewById<View>(R.id.images) as ViewPager
+        val pager = findViewById<View>(R.id.images) as ViewPager2
         album = RedditGalleryPagerAdapter(supportFragmentManager)
         pager.adapter = album
         pager.currentItem = 1
-        pager.addOnPageChangeListener(object : SimpleOnPageChangeListener() {
+        pager.registerOnPageChangeCallback(object : OnPageChangeCallback() {
             override fun onPageScrolled(
                 position: Int, positionOffset: Float,
                 positionOffsetPixels: Int
@@ -184,13 +184,10 @@ class RedditGallery : FullScreenActivity() {
         }
     }
 
-    class RedditGalleryPagerAdapter internal constructor(fm: FragmentManager?) :
-        FragmentStatePagerAdapter(
-            fm!!, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT
-        ) {
+    inner class RedditGalleryPagerAdapter internal constructor(fm: FragmentManager) : FragmentStateAdapter(fm, lifecycle) {
         var blankPage: BlankFragment? = null
         var album: AlbumFrag? = null
-        override fun getItem(i: Int): Fragment {
+        override fun createFragment(i: Int): Fragment {
             return if (i == 0) {
                 blankPage = BlankFragment()
                 blankPage!!
@@ -200,7 +197,7 @@ class RedditGallery : FullScreenActivity() {
             }
         }
 
-        override fun getCount(): Int {
+        override fun getItemCount(): Int {
             return 2
         }
     }
@@ -208,6 +205,7 @@ class RedditGallery : FullScreenActivity() {
     class AlbumFrag : Fragment() {
         var rootView: View? = null
         var recyclerView: RecyclerView? = null
+
         override fun onCreateView(
             inflater: LayoutInflater, container: ViewGroup?,
             savedInstanceState: Bundle?
@@ -231,15 +229,15 @@ class RedditGallery : FullScreenActivity() {
             galleryActivity.mToolbar!!.popupTheme = ColorPreferences(activity).getDarkThemeSubreddit(
                 ColorPreferences.FONT_STYLE
             )
-            rootView!!.post(Runnable {
+            rootView!!.post {
                 rootView!!.findViewById<View>(R.id.progress).visibility = View.GONE
                 val adapter = RedditGalleryView(
                     galleryActivity, galleryActivity.images,
                     rootView!!.findViewById<View>(R.id.toolbar).height, galleryActivity.subreddit,
                     galleryActivity.submissionTitle
                 )
-                recyclerView!!.setAdapter(adapter)
-            })
+                recyclerView!!.adapter = adapter
+            }
             return rootView
         }
     }

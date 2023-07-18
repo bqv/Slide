@@ -18,9 +18,9 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.Toolbar
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
-import androidx.fragment.app.FragmentStatePagerAdapter
-import androidx.viewpager.widget.ViewPager
-import androidx.viewpager.widget.ViewPager.SimpleOnPageChangeListener
+import androidx.viewpager2.adapter.FragmentStateAdapter
+import androidx.viewpager2.widget.ViewPager2
+import androidx.viewpager2.widget.ViewPager2.OnPageChangeCallback
 import com.cocosw.bottomsheet.BottomSheet
 import ltd.ucode.slide.App.Companion.defaultShareText
 import ltd.ucode.slide.SettingValues
@@ -44,7 +44,7 @@ import java.util.Arrays
 
 /**
  * This is an extension of RedditAlbum.java which utilizes a
- * ViewPager for Reddit Gallery content instead of a RecyclerView (horizontal vs vertical).
+ * ViewPager2 for Reddit Gallery content instead of a RecyclerView (horizontal vs vertical).
  */
 class RedditGalleryPager : FullScreenActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -142,7 +142,7 @@ class RedditGalleryPager : FullScreenActivity() {
         findViewById<View>(ltd.ucode.slide.R.id.progress).visibility = View.GONE
         images =
             intent.getSerializableExtra(RedditGallery.Companion.GALLERY_URLS) as ArrayList<GalleryImage>?
-        p = findViewById<View>(ltd.ucode.slide.R.id.images_horizontal) as ViewPager
+        p = findViewById<View>(ltd.ucode.slide.R.id.images_horizontal) as ViewPager2
         if (supportActionBar != null) {
             supportActionBar!!.setSubtitle(1.toString() + "/" + images!!.size)
         }
@@ -164,7 +164,7 @@ class RedditGalleryPager : FullScreenActivity() {
                 }
             d.show()
         }
-        p!!.addOnPageChangeListener(object : SimpleOnPageChangeListener() {
+        p!!.registerOnPageChangeCallback(object : OnPageChangeCallback() {
             override fun onPageScrolled(
                 position: Int, positionOffset: Float,
                 positionOffsetPixels: Int
@@ -182,7 +182,7 @@ class RedditGalleryPager : FullScreenActivity() {
         adapter.notifyDataSetChanged()
     }
 
-    var p: ViewPager? = null
+    var p: ViewPager2? = null
     private var images: List<GalleryImage>? = null
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         val inflater = menuInflater
@@ -194,11 +194,8 @@ class RedditGalleryPager : FullScreenActivity() {
         return true
     }
 
-    private inner class GalleryViewPagerAdapter(m: FragmentManager?) :
-        FragmentStatePagerAdapter(
-            (m)!!, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT
-        ) {
-        override fun getItem(i: Int): Fragment {
+    private inner class GalleryViewPagerAdapter(fm: FragmentManager) : FragmentStateAdapter(fm, lifecycle) {
+        override fun createFragment(i: Int): Fragment {
             var i = i
             if (i == 0) {
                 return BlankFragment()
@@ -211,7 +208,7 @@ class RedditGalleryPager : FullScreenActivity() {
             return f
         }
 
-        override fun getCount(): Int {
+        override fun getItemCount(): Int {
             return if (images == null) {
                 0
             } else images!!.size + 1
@@ -229,7 +226,7 @@ class RedditGalleryPager : FullScreenActivity() {
         val share = resources.getDrawable(ltd.ucode.slide.R.drawable.ic_share)
         val image = resources.getDrawable(ltd.ucode.slide.R.drawable.ic_image)
         val save = resources.getDrawable(ltd.ucode.slide.R.drawable.ic_download)
-        val drawableSet = Arrays.asList(external, share, image, save)
+        val drawableSet = listOf(external, share, image, save)
         BlendModeUtil.tintDrawablesAsSrcAtop(drawableSet, color)
         ta.recycle()
         val b = BottomSheet.Builder(this).title(contentUrl)

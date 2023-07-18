@@ -1,59 +1,39 @@
-package me.ccrama.redditslide.util;
+package me.ccrama.redditslide.util
 
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
 
-import java.util.ArrayList;
-import java.util.List;
+class NetworkStateReceiver : BroadcastReceiver() {
+    protected var listeners: MutableList<NetworkStateReceiverListener> = ArrayList()
+    protected var connected: Boolean? = null
 
-/**
- * Created by Carlos on 9/10/2016.
- */
-
-public class NetworkStateReceiver extends BroadcastReceiver {
-
-    protected List<NetworkStateReceiverListener> listeners;
-    protected Boolean                            connected;
-
-    public NetworkStateReceiver() {
-        listeners = new ArrayList<NetworkStateReceiverListener>();
-        connected = null;
+    override fun onReceive(context: Context, intent: Intent?) {
+        if (intent?.extras == null) return
+        connected = NetworkUtil.isConnected(context)
+        notifyStateToAll()
     }
 
-    public void onReceive(Context context, Intent intent) {
-        if(intent == null || intent.getExtras() == null)
-            return;
-        connected = NetworkUtil.isConnected(context);
-        notifyStateToAll();
+    private fun notifyStateToAll() {
+        for (listener in listeners) notifyState(listener)
     }
 
-    private void notifyStateToAll() {
-        for(NetworkStateReceiverListener listener : listeners)
-            notifyState(listener);
+    private fun notifyState(listener: NetworkStateReceiverListener?) {
+        if (connected == null || listener == null) return
+        if (connected!!) listener.networkAvailable() else listener.networkUnavailable()
     }
 
-    private void notifyState(NetworkStateReceiverListener listener) {
-        if(connected == null || listener == null)
-            return;
-
-        if(connected)
-            listener.networkAvailable();
-        else
-            listener.networkUnavailable();
+    fun addListener(l: NetworkStateReceiverListener) {
+        listeners.add(l)
+        notifyState(l)
     }
 
-    public void addListener(NetworkStateReceiverListener l) {
-        listeners.add(l);
-        notifyState(l);
+    fun removeListener(l: NetworkStateReceiverListener) {
+        listeners.remove(l)
     }
 
-    public void removeListener(NetworkStateReceiverListener l) {
-        listeners.remove(l);
-    }
-
-    public interface NetworkStateReceiverListener {
-        void networkAvailable();
-        void networkUnavailable();
+    interface NetworkStateReceiverListener {
+        fun networkAvailable()
+        fun networkUnavailable()
     }
 }

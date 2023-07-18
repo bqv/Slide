@@ -1,98 +1,67 @@
-package me.ccrama.redditslide.Activities;
+package me.ccrama.redditslide.Activities
 
-import android.os.Bundle;
+import android.os.Bundle
+import android.view.View
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentManager
+import androidx.viewpager2.adapter.FragmentStateAdapter
+import androidx.viewpager2.widget.ViewPager2
+import ltd.ucode.network.ContentType
+import ltd.ucode.network.ContentType.Companion.getContentType
+import ltd.ucode.slide.R
+import me.ccrama.redditslide.Adapters.CommentUrlObject
+import me.ccrama.redditslide.Fragments.AlbumFullComments
+import me.ccrama.redditslide.Fragments.MediaFragmentComment
 
-import androidx.annotation.NonNull;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentStatePagerAdapter;
-import androidx.viewpager.widget.ViewPager;
-
-import net.dean.jraw.models.Comment;
-
-import java.util.ArrayList;
-
-import me.ccrama.redditslide.Adapters.CommentUrlObject;
-import ltd.ucode.network.ContentType;
-import me.ccrama.redditslide.Fragments.AlbumFullComments;
-import me.ccrama.redditslide.Fragments.MediaFragmentComment;
-import ltd.ucode.slide.R;
-
-/**
- * Created by ccrama on 9/17/2015.
- */
-public class ShadowboxComments extends FullScreenActivity {
-    public static ArrayList<CommentUrlObject> comments;
-
-    @Override
-    public void onCreate(Bundle savedInstance) {
-        overrideSwipeFromAnywhere();
-
-        if(comments == null || comments.isEmpty()){
-            finish();
+class ShadowboxComments : FullScreenActivity() {
+    public override fun onCreate(savedInstance: Bundle?) {
+        overrideSwipeFromAnywhere()
+        if (comments == null || comments!!.isEmpty()) {
+            finish()
         }
-        applyDarkColorTheme(comments.get(0).comment.getComment().getSubredditName());
-        super.onCreate(savedInstance);
-        setContentView(R.layout.activity_slide);
-
-        ViewPager pager = (ViewPager) findViewById(R.id.content_view);
-        commentPager = new ShadowboxCommentsPagerAdapter(getSupportFragmentManager());
-        pager.setAdapter(commentPager);
+        applyDarkColorTheme(comments!![0].comment.comment.subredditName)
+        super.onCreate(savedInstance)
+        setContentView(R.layout.activity_slide)
+        val pager = findViewById<View>(R.id.content_view) as ViewPager2
+        commentPager = ShadowboxCommentsPagerAdapter(supportFragmentManager)
+        pager.adapter = commentPager
     }
 
-    ShadowboxCommentsPagerAdapter commentPager;
+    var commentPager: ShadowboxCommentsPagerAdapter? = null
 
-    private static class ShadowboxCommentsPagerAdapter extends FragmentStatePagerAdapter {
+    inner class ShadowboxCommentsPagerAdapter internal constructor(fm: FragmentManager) : FragmentStateAdapter(fm, lifecycle) {
+        override fun createFragment(i: Int): Fragment {
+            var f: Fragment? = null
+            val args = Bundle()
+            val comment = comments!![i].comment.comment
+            val url = comments!![i].url
+            val t = getContentType(url)
 
-        ShadowboxCommentsPagerAdapter(FragmentManager fm) {
-            super(fm, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT);
-        }
+            when (t) {
+                ContentType.Type.GIF, ContentType.Type.IMAGE, ContentType.Type.IMGUR, ContentType.Type.REDDIT, ContentType.Type.EXTERNAL, ContentType.Type.XKCD, ContentType.Type.SPOILER, ContentType.Type.DEVIANTART, ContentType.Type.REDDIT_GALLERY, ContentType.Type.EMBEDDED, ContentType.Type.LINK, ContentType.Type.STREAMABLE, ContentType.Type.VIDEO -> {
+                    f = MediaFragmentComment()
+                    args.putString("contentUrl", url)
+                    args.putString("firstUrl", url)
+                    args.putInt("page", i)
+                    args.putString("sub", comment.subredditName)
+                    f.setArguments(args)
+                }
 
-        @NonNull
-        @Override
-        public Fragment getItem(int i) {
+                ContentType.Type.ALBUM -> {
+                    f = AlbumFullComments()
+                    args.putInt("page", i)
+                    f.setArguments(args)
+                }
 
-            Fragment f = null;
-            Bundle args = new Bundle();
-            Comment comment = comments.get(i).comment.getComment();
-
-            String url = comments.get(i).url;
-
-            ContentType.Type t = ContentType.getContentType(url);
-
-            switch (t) {
-                case GIF:
-                case IMAGE:
-                case IMGUR:
-                case REDDIT:
-                case EXTERNAL:
-                case XKCD:
-                case SPOILER:
-                case DEVIANTART:
-                case REDDIT_GALLERY:
-                case EMBEDDED:
-                case LINK:
-                case STREAMABLE:
-                case VIDEO:
-                    f = new MediaFragmentComment();
-                    args.putString("contentUrl", url);
-                    args.putString("firstUrl", url);
-                    args.putInt("page", i);
-                    args.putString("sub", comment.getSubredditName());
-                    f.setArguments(args);
-                    break;
-                case ALBUM:
-                    f = new AlbumFullComments();
-                    args.putInt("page", i);
-                    f.setArguments(args);
-                    break;
+                else -> {}
             }
-            return f;
+            return f!!
         }
 
-        @Override
-        public int getCount() {
-            return comments.size() ;
-        }
+        override fun getItemCount(): Int = comments!!.size
+    }
+
+    companion object {
+        var comments: ArrayList<CommentUrlObject>? = null
     }
 }

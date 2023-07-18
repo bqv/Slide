@@ -1,140 +1,120 @@
-package me.ccrama.redditslide.Activities;
+package me.ccrama.redditslide.Activities
 
-import android.os.Bundle;
-import android.view.View;
-import android.view.ViewGroup;
-import android.view.animation.LinearInterpolator;
+import android.os.Bundle
+import android.view.View
+import android.view.ViewGroup
+import android.view.animation.LinearInterpolator
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentManager
+import androidx.viewpager2.adapter.FragmentStateAdapter
+import androidx.viewpager2.widget.ViewPager2
+import com.google.android.material.tabs.TabLayout
+import com.google.android.material.tabs.TabLayoutMediator
+import ltd.ucode.slide.R
+import ltd.ucode.slide.ui.BaseActivityAnim
+import me.ccrama.redditslide.Fragments.InboxPage
+import me.ccrama.redditslide.Fragments.ModLog
+import me.ccrama.redditslide.Fragments.ModPage
+import me.ccrama.redditslide.UserSubscriptions
+import me.ccrama.redditslide.Visuals.ColorPreferences
+import me.ccrama.redditslide.Visuals.Palette
 
-import androidx.annotation.NonNull;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentStatePagerAdapter;
-import androidx.viewpager.widget.ViewPager;
+class ModQueue : BaseActivityAnim() {
+    var adapter: ModQueuePagerAdapter? = null
 
-import com.google.android.material.tabs.TabLayout;
-
-import ltd.ucode.slide.ui.BaseActivityAnim;
-import me.ccrama.redditslide.Fragments.InboxPage;
-import me.ccrama.redditslide.Fragments.ModLog;
-import me.ccrama.redditslide.Fragments.ModPage;
-import ltd.ucode.slide.R;
-import me.ccrama.redditslide.UserSubscriptions;
-import me.ccrama.redditslide.Visuals.ColorPreferences;
-import me.ccrama.redditslide.Visuals.Palette;
-
-/**
- * Created by ccrama on 9/17/2015.
- */
-public class ModQueue extends BaseActivityAnim {
-
-    public ModQueuePagerAdapter adapter;
-
-    @Override
-    public void onCreate(Bundle savedInstance) {
-        overrideSwipeFromAnywhere();
-
-        super.onCreate(savedInstance);
-
-        applyColorTheme("");
-        setContentView(R.layout.activity_inbox);
-        setupAppBar(R.id.toolbar, R.string.drawer_moderation, true, true);
-
-        TabLayout tabs = (TabLayout) findViewById(R.id.sliding_tabs);
-        tabs.setTabMode(TabLayout.MODE_SCROLLABLE);
-        tabs.setSelectedTabIndicatorColor(new ColorPreferences(ModQueue.this).getColor("no sub"));
-        final View header = findViewById(R.id.header);
-        ViewPager pager = (ViewPager) findViewById(R.id.content_view);
-        pager.addOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
-            @Override
-            public void onPageSelected(int position) {
-                header.animate()
-                        .translationY(0)
-                        .setInterpolator(new LinearInterpolator())
-                        .setDuration(180);
-            }
-        });
-        findViewById(R.id.header).setBackgroundColor(Palette.getDefaultColor());
-        pager.setAdapter(new ModQueuePagerAdapter(getSupportFragmentManager()));
-        tabs.setupWithViewPager(pager);
+    public override fun onCreate(savedInstance: Bundle?) {
+        overrideSwipeFromAnywhere()
+        super.onCreate(savedInstance)
+        applyColorTheme("")
+        setContentView(R.layout.activity_inbox)
+        setupAppBar(R.id.toolbar, R.string.drawer_moderation, true, true)
+        val tabs = findViewById<View>(R.id.sliding_tabs) as TabLayout
+        tabs.tabMode = TabLayout.MODE_SCROLLABLE
+        tabs.setSelectedTabIndicatorColor(ColorPreferences(this@ModQueue).getColor("no sub"))
+        val header = findViewById<View>(R.id.header)
+        val pager = findViewById<ViewPager2>(R.id.content_view)
+        findViewById<View>(R.id.header).setBackgroundColor(Palette.getDefaultColor())
+        pager.adapter = ModQueuePagerAdapter(supportFragmentManager)
+        TabLayoutMediator(tabs, pager) { tab, position ->
+            header.animate()
+                .translationY(0f)
+                .setInterpolator(LinearInterpolator()).duration = 180
+        }
     }
 
-    private class ModQueuePagerAdapter extends FragmentStatePagerAdapter {
+    inner class ModQueuePagerAdapter internal constructor(fm: FragmentManager) : FragmentStateAdapter(fm, lifecycle) {
+        private var mCurrentFragment: Fragment? = null
 
-        private Fragment mCurrentFragment;
-
-        ModQueuePagerAdapter(FragmentManager fm) {
-            super(fm, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT);
-        }
-
-        @Override
-        public void setPrimaryItem(@NonNull ViewGroup container, int position, @NonNull Object object) {
-            if (mCurrentFragment != object) {
-                mCurrentFragment = (Fragment) object;
+        fun setPrimaryItem(container: ViewGroup, position: Int, obj: Any) {
+            /*
+            if (mCurrentFragment !== obj) {
+                mCurrentFragment = obj as Fragment
             }
-            super.setPrimaryItem(container, position, object);
+            super.setPrimaryItem(container, position, obj)
+             */TODO("hmm")
         }
 
-        @NonNull
-        @Override
-        public Fragment getItem(int i) {
-            Fragment f;
-            Bundle args = new Bundle();
-            switch (i) {
-                case 0:
-                    f = new InboxPage();
-                    args.putString("id", "moderator/unread");
-                    f.setArguments(args);
-                    return f;
-                case 1:
-                    f = new InboxPage();
-                    args.putString("id", "moderator");
-                    f.setArguments(args);
-                    return f;
-                case 2:
-                    f = new ModPage();
-                    args.putString("id", "modqueue");
-                    args.putString("subreddit", "mod");
-                    f.setArguments(args);
-                    return f;
-                case 3:
-                    f = new ModPage();
-                    args.putString("id", "unmoderated");
-                    args.putString("subreddit", "mod");
-                    f.setArguments(args);
-                    return f;
-                case 4:
-                    f = new ModLog();
-                    f.setArguments(args);
-                    return f;
-                default:
-                    f = new ModPage();
-                    args.putString("id", "modqueue");
-                    args.putString("subreddit", UserSubscriptions.modOf.get(i - 5));
-                    f.setArguments(args);
-                    return f;
+        override fun createFragment(i: Int): Fragment {
+            val f: Fragment
+            val args = Bundle()
+
+            return when (i) {
+                0 -> {
+                    f = InboxPage()
+                    args.putString("id", "moderator/unread")
+                    f.setArguments(args)
+                    f
+                }
+
+                1 -> {
+                    f = InboxPage()
+                    args.putString("id", "moderator")
+                    f.setArguments(args)
+                    f
+                }
+
+                2 -> {
+                    f = ModPage()
+                    args.putString("id", "modqueue")
+                    args.putString("subreddit", "mod")
+                    f.setArguments(args)
+                    f
+                }
+
+                3 -> {
+                    f = ModPage()
+                    args.putString("id", "unmoderated")
+                    args.putString("subreddit", "mod")
+                    f.setArguments(args)
+                    f
+                }
+
+                4 -> {
+                    f = ModLog()
+                    f.setArguments(args)
+                    f
+                }
+
+                else -> {
+                    f = ModPage()
+                    args.putString("id", "modqueue")
+                    args.putString("subreddit", UserSubscriptions.modOf!![i - 5])
+                    f.setArguments(args)
+                    f
+                }
             }
         }
 
-        @Override
-        public int getCount() {
-            return UserSubscriptions.modOf == null ? 2 : UserSubscriptions.modOf.size() + 5;
-        }
+        override fun getItemCount(): Int = if (UserSubscriptions.modOf == null) 2 else UserSubscriptions.modOf!!.size + 5
 
-        @Override
-        public CharSequence getPageTitle(int position) {
-            switch (position) {
-                case 0:
-                    return getString(R.string.mod_mail_unread);
-                case 1:
-                    return getString(R.string.mod_mail);
-                case 2:
-                    return getString(R.string.mod_modqueue);
-                case 3:
-                    return getString(R.string.mod_unmoderated);
-                case 4:
-                    return getString(R.string.mod_log);
-                default:
-                    return UserSubscriptions.modOf.get(position - 5);
+        fun getPageTitle(position: Int): CharSequence {
+            return when (position) {
+                0 -> getString(R.string.mod_mail_unread)
+                1 -> getString(R.string.mod_mail)
+                2 -> getString(R.string.mod_modqueue)
+                3 -> getString(R.string.mod_unmoderated)
+                4 -> getString(R.string.mod_log)
+                else -> UserSubscriptions.modOf!![position - 5]
             }
         }
     }

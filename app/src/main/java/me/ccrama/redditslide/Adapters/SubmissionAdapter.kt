@@ -22,7 +22,7 @@ import ltd.ucode.slide.repository.CommentRepository
 import ltd.ucode.slide.repository.PostRepository
 import ltd.ucode.slide.ui.commentsScreen.CommentsScreen
 import ltd.ucode.slide.ui.main.MainActivity
-import ltd.ucode.slide.ui.main.MainActivity.MainPagerAdapterComment
+import ltd.ucode.slide.ui.main.MainPagerAdapterComment
 import me.ccrama.redditslide.Activities.SubredditView
 import me.ccrama.redditslide.Activities.SubredditView.SubredditPagerAdapterComment
 import me.ccrama.redditslide.Fragments.SubmissionsView

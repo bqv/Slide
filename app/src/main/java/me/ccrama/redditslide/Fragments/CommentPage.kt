@@ -703,7 +703,7 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
                                 }
                             }
                         }
-                        if (ShadowboxComments.comments.isNotEmpty()) {
+                        if (ShadowboxComments.comments!!.isNotEmpty()) {
                             val i = Intent(activity, ShadowboxComments::class.java)
                             startActivity(i)
                         } else {

@@ -30,9 +30,9 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.Toolbar
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
-import androidx.fragment.app.FragmentStatePagerAdapter
-import androidx.viewpager.widget.ViewPager
-import androidx.viewpager.widget.ViewPager.SimpleOnPageChangeListener
+import androidx.viewpager2.adapter.FragmentStateAdapter
+import androidx.viewpager2.widget.ViewPager2
+import androidx.viewpager2.widget.ViewPager2.OnPageChangeCallback
 import com.cocosw.bottomsheet.BottomSheet
 import com.davemorrissey.labs.subscaleview.ImageSource
 import com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView
@@ -83,7 +83,7 @@ import java.net.URISyntaxException
 
 /**
  * This is an extension of Album.java which utilizes a
- * ViewPager for Imgur content instead of a RecyclerView (horizontal vs vertical). It also supports
+ * ViewPager2 for Imgur content instead of a RecyclerView (horizontal vs vertical). It also supports
  * gifs and progress bars which Album.java doesn't.
  */
 class TumblrPager : FullScreenActivity() {
@@ -182,7 +182,7 @@ class TumblrPager : FullScreenActivity() {
             super.doWithData(jsonElements)
             findViewById<View>(ltd.ucode.slide.R.id.progress).visibility = View.GONE
             images = ArrayList(jsonElements)
-            p = findViewById<View>(ltd.ucode.slide.R.id.images_horizontal) as ViewPager?
+            p = findViewById<View>(ltd.ucode.slide.R.id.images_horizontal) as ViewPager2?
             if (supportActionBar != null) {
                 supportActionBar!!.setSubtitle(1.toString() + "/" + images!!.size)
             }
@@ -206,7 +206,7 @@ class TumblrPager : FullScreenActivity() {
                     }
                 d.show()
             }
-            p!!.addOnPageChangeListener(object : SimpleOnPageChangeListener() {
+            p!!.registerOnPageChangeCallback(object : OnPageChangeCallback() {
                 override fun onPageScrolled(
                     position: Int, positionOffset: Float,
                     positionOffsetPixels: Int
@@ -225,7 +225,7 @@ class TumblrPager : FullScreenActivity() {
         }
     }
 
-    var p: ViewPager? = null
+    var p: ViewPager2? = null
     var images: List<Photo>? = null
     var subreddit: String? = null
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -238,11 +238,8 @@ class TumblrPager : FullScreenActivity() {
         return true
     }
 
-    private inner class TumblrViewPagerAdapter(m: FragmentManager?) :
-        FragmentStatePagerAdapter(
-            (m)!!, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT
-        ) {
-        override fun getItem(i: Int): Fragment {
+    private inner class TumblrViewPagerAdapter(fm: FragmentManager) : FragmentStateAdapter(fm, lifecycle) {
+        override fun createFragment(i: Int): Fragment {
             var i: Int = i
             if (i == 0) {
                 return BlankFragment()
@@ -273,7 +270,7 @@ class TumblrPager : FullScreenActivity() {
             }
         }
 
-        override fun getCount(): Int {
+        override fun getItemCount(): Int {
             if (images == null) {
                 return 0
             }

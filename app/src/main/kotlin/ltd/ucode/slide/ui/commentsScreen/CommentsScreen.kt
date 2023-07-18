@@ -11,10 +11,10 @@ import android.view.ViewGroup
 import android.view.Window
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
-import androidx.fragment.app.FragmentStatePagerAdapter
+import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.recyclerview.widget.RecyclerView
-import androidx.viewpager.widget.ViewPager
-import androidx.viewpager.widget.ViewPager.SimpleOnPageChangeListener
+import androidx.viewpager2.widget.ViewPager2
+import androidx.viewpager2.widget.ViewPager2.OnPageChangeCallback
 import dagger.hilt.android.AndroidEntryPoint
 import ltd.ucode.network.lemmy.data.id.PostId
 import ltd.ucode.slide.Authentication
@@ -167,12 +167,12 @@ class CommentsScreen : BaseActivityAnim(), SubmissionDisplay {
             finish()
         } else {
             updateSubredditAndSubmission(currentPosts!![firstPage])
-            val pager = findViewById<View>(R.id.content_view) as ViewPager
+            val pager = findViewById<View>(R.id.content_view) as ViewPager2
             comments = CommentsScreenPagerAdapter(supportFragmentManager)
             pager.adapter = comments
             currentPage = firstPage
             pager.currentItem = firstPage + 1
-            pager.addOnPageChangeListener(object : SimpleOnPageChangeListener() {
+            pager.registerOnPageChangeCallback(object : OnPageChangeCallback() {
                 override fun onPageScrolled(
                     position: Int, positionOffset: Float,
                     positionOffsetPixels: Int
@@ -260,26 +260,25 @@ class CommentsScreen : BaseActivityAnim(), SubmissionDisplay {
         comments!!.notifyDataSetChanged()
     }
 
-    inner class CommentsScreenPagerAdapter internal constructor(fm: FragmentManager?) :
-        FragmentStatePagerAdapter(
-            fm!!, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT
-        ) {
+    inner class CommentsScreenPagerAdapter internal constructor(fm: FragmentManager) : FragmentStateAdapter(fm, lifecycle) {
         private var mCurrentFragment: CommentPage? = null
         var blankPage: BlankFragment? = null
         val currentFragment: Fragment?
             get() = mCurrentFragment
 
-        override fun setPrimaryItem(container: ViewGroup, position: Int, `object`: Any) {
-            super.setPrimaryItem(container, position, `object`)
-            if (currentFragment !== `object` && `object` is CommentPage) {
-                mCurrentFragment = `object`
+        fun setPrimaryItem(container: ViewGroup, position: Int, obj: Any) {
+            /*
+            super.setPrimaryItem(container, position, obj)
+            if (currentFragment !== obj && obj is CommentPage) {
+                mCurrentFragment = obj
                 if (!mCurrentFragment!!.loaded && mCurrentFragment!!.isAdded) {
                     mCurrentFragment!!.doAdapter(true)
                 }
             }
+             */TODO("hmm")
         }
 
-        override fun getItem(i: Int): Fragment {
+        override fun createFragment(i: Int): Fragment {
             var i = i
             return if (i <= firstPage || i == 0) {
                 blankPage = BlankFragment()
@@ -304,7 +303,7 @@ class CommentsScreen : BaseActivityAnim(), SubmissionDisplay {
             }
         }
 
-        override fun getCount(): Int {
+        override fun getItemCount(): Int {
             return currentPosts!!.size + 1
         }
     }

@@ -332,10 +332,10 @@ class Submit : BaseActivity() {
                 } else {
                     try {
                         val flairs: HashMap<String, RichFlair> = HashMap<String, RichFlair>()
-                        for (`object`: JsonElement in result) {
+                        for (obj: JsonElement in result) {
                             val choice: RichFlair = ObjectMapper().disable(
                                 DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES
-                            ).readValue(`object`.toString(), RichFlair::class.java)
+                            ).readValue(obj.toString(), RichFlair::class.java)
                             val title: String = choice.text
                             flairs[title] = choice
                         }

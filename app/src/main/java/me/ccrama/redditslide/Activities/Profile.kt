@@ -29,15 +29,16 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.PopupMenu
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
-import androidx.fragment.app.FragmentStatePagerAdapter
-import androidx.viewpager.widget.ViewPager
-import androidx.viewpager.widget.ViewPager.SimpleOnPageChangeListener
+import androidx.viewpager2.adapter.FragmentStateAdapter
+import androidx.viewpager2.widget.ViewPager2
+import androidx.viewpager2.widget.ViewPager2.OnPageChangeCallback
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.input.getInputField
 import com.afollestad.materialdialogs.input.input
 import com.afollestad.materialdialogs.list.listItems
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.tabs.TabLayout
+import com.google.android.material.tabs.TabLayoutMediator
 import ltd.ucode.slide.App
 import ltd.ucode.slide.App.Companion.defaultShareText
 import ltd.ucode.slide.Authentication
@@ -69,7 +70,7 @@ class Profile : BaseActivityAnim() {
     private var name: String? = null
     private var account: Account? = null
     private var trophyCase: List<Trophy>? = null
-    private var pager: ViewPager? = null
+    private var pager: ViewPager2? = null
     private var tabs: TabLayout? = null
     private var usedArray: Array<String>? = null
     var isSavedView = false
@@ -92,7 +93,7 @@ class Profile : BaseActivityAnim() {
         tabs = findViewById<View>(R.id.sliding_tabs) as TabLayout
         tabs!!.tabMode = TabLayout.MODE_SCROLLABLE
         tabs!!.setSelectedTabIndicatorColor(ColorPreferences(this@Profile).getColor("no sub"))
-        pager = findViewById<View>(R.id.content_view) as ViewPager
+        pager = findViewById<View>(R.id.content_view) as ViewPager2
         if ((name == Authentication.name)) setDataSet(
             arrayOf(
                 getString(R.string.profile_overview),
@@ -114,7 +115,7 @@ class Profile : BaseActivityAnim() {
             )
         )
         getProfile().execute(name)
-        pager!!.addOnPageChangeListener(object : SimpleOnPageChangeListener() {
+        pager!!.registerOnPageChangeCallback(object : OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {
                 isSavedView = position == 6
                 findViewById<View>(R.id.header).animate()
@@ -185,7 +186,8 @@ class Profile : BaseActivityAnim() {
         val adapter = ProfilePagerAdapter(supportFragmentManager)
         pager!!.adapter = adapter
         pager!!.offscreenPageLimit = 1
-        tabs!!.setupWithViewPager(pager)
+        TabLayoutMediator(tabs!!, pager!!) { tab, position ->
+        }
     }
 
     private inner class getProfile : AsyncTask<String?, Void?, Void?>() {
@@ -207,11 +209,8 @@ class Profile : BaseActivityAnim() {
         }
     }
 
-    private inner class ProfilePagerAdapter(fm: FragmentManager?) :
-        FragmentStatePagerAdapter(
-            (fm)!!, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT
-        ) {
-        override fun getItem(i: Int): Fragment {
+    private inner class ProfilePagerAdapter(fm: FragmentManager) : FragmentStateAdapter(fm, lifecycle) {
+        override fun createFragment(i: Int): Fragment {
             if (i < 8) {
                 val f: Fragment = ContributionsView()
                 val args = Bundle()
@@ -236,7 +235,7 @@ class Profile : BaseActivityAnim() {
             }
         }
 
-        override fun getCount(): Int {
+        override fun getItemCount(): Int {
             return if (usedArray == null) {
                 1
             } else {
@@ -244,7 +243,7 @@ class Profile : BaseActivityAnim() {
             }
         }
 
-        override fun getPageTitle(position: Int): CharSequence {
+        fun getPageTitle(position: Int): CharSequence {
             return usedArray!![position]
         }
     }
@@ -285,7 +284,8 @@ class Profile : BaseActivityAnim() {
             val adapter = ProfilePagerAdapter(supportFragmentManager)
             pager!!.adapter = adapter
             pager!!.offscreenPageLimit = 1
-            tabs!!.setupWithViewPager(pager)
+            TabLayoutMediator(tabs!!, pager!!) { tab, position ->
+            }
             pager!!.currentItem = current
             true
         })
@@ -321,7 +321,8 @@ class Profile : BaseActivityAnim() {
             val adapter = ProfilePagerAdapter(supportFragmentManager)
             pager!!.adapter = adapter
             pager!!.offscreenPageLimit = 1
-            tabs!!.setupWithViewPager(pager)
+            TabLayoutMediator(tabs!!, pager!!) { tab, position ->
+            }
             pager!!.currentItem = current
             true
         }
@@ -386,7 +387,8 @@ class Profile : BaseActivityAnim() {
                                 val adapter = ProfilePagerAdapter(supportFragmentManager)
                                 pager!!.adapter = adapter
                                 pager!!.offscreenPageLimit = 1
-                                tabs!!.setupWithViewPager(pager)
+                                TabLayoutMediator(tabs!!, pager!!) { tab, position ->
+                                }
                                 pager!!.currentItem = current
                             }
                             .show()
@@ -649,28 +651,26 @@ class Profile : BaseActivityAnim() {
                         val dialogButton: TextView = dialoglayout.findViewById(R.id.ok)
 
                         // if button is clicked, close the custom dialog
-                        dialogButton.setOnClickListener(object : View.OnClickListener {
-                            override fun onClick(v: View) {
-                                Palette.setColorUser(name, colorPicker2.color)
-                                val cx: Int = center.width / 2
-                                val cy: Int = center.height / 2
-                                val initialRadius: Int = body.width
-                                val anim: Animator = ViewAnimationUtils.createCircularReveal(
-                                    body,
-                                    cx,
-                                    cy,
-                                    initialRadius.toFloat(),
-                                    0f
-                                )
-                                anim.addListener(object : AnimatorListenerAdapter() {
-                                    override fun onAnimationEnd(animation: Animator) {
-                                        super.onAnimationEnd(animation)
-                                        body.visibility = View.GONE
-                                    }
-                                })
-                                anim.start()
-                            }
-                        })
+                        dialogButton.setOnClickListener {
+                            Palette.setColorUser(name, colorPicker2.color)
+                            val cx: Int = center.width / 2
+                            val cy: Int = center.height / 2
+                            val initialRadius: Int = body.width
+                            val anim: Animator = ViewAnimationUtils.createCircularReveal(
+                                body,
+                                cx,
+                                cy,
+                                initialRadius.toFloat(),
+                                0f
+                            )
+                            anim.addListener(object : AnimatorListenerAdapter() {
+                                override fun onAnimationEnd(animation: Animator) {
+                                    super.onAnimationEnd(animation)
+                                    body.visibility = View.GONE
+                                }
+                            })
+                            anim.start()
+                        }
                     }
                     run {
                         val dialogButton: TextView = dialoglayout.findViewById(R.id.reset)

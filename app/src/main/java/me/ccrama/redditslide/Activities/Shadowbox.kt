@@ -4,9 +4,9 @@ import android.os.Bundle
 import android.view.View
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
-import androidx.fragment.app.FragmentStatePagerAdapter
-import androidx.viewpager.widget.ViewPager
-import androidx.viewpager.widget.ViewPager.SimpleOnPageChangeListener
+import androidx.viewpager2.adapter.FragmentStateAdapter
+import androidx.viewpager2.widget.ViewPager2
+import androidx.viewpager2.widget.ViewPager2.OnPageChangeCallback
 import dagger.hilt.android.AndroidEntryPoint
 import ltd.ucode.slide.Authentication
 import ltd.ucode.slide.R
@@ -41,7 +41,7 @@ class Shadowbox : FullScreenActivity(), SubmissionDisplay {
     var firstPage = 0
     private var count = 0
     @JvmField
-    var pager: ViewPager? = null
+    var pager: ViewPager2? = null
 
     public override fun onCreate(savedInstance: Bundle?) {
         overrideSwipeFromAnywhere()
@@ -66,11 +66,11 @@ class Shadowbox : FullScreenActivity(), SubmissionDisplay {
             OfflineSubreddit.getSubreddit(subreddit, offline, !Authentication.didOnline, this)
         subredditPosts!!.posts.addAll(submissions!!.submissions.orEmpty())
         count = subredditPosts!!.posts.size
-        pager = findViewById<View>(R.id.content_view) as ViewPager
+        pager = findViewById<View>(R.id.content_view) as ViewPager2
         submissionsPager = ShadowboxPagerAdapter(supportFragmentManager)
         pager!!.adapter = submissionsPager
         pager!!.currentItem = firstPage
-        pager!!.addOnPageChangeListener(object : SimpleOnPageChangeListener() {
+        pager!!.registerOnPageChangeCallback(object : OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {
                 if (SettingValues.storeHistory) {
                     if (subredditPosts!!.posts[position].isNsfw && !SettingValues.storeNSFWHistory) {
@@ -111,11 +111,8 @@ class Shadowbox : FullScreenActivity(), SubmissionDisplay {
         submissionsPager!!.notifyDataSetChanged()
     }
 
-    inner class ShadowboxPagerAdapter internal constructor(fm: FragmentManager?) :
-        FragmentStatePagerAdapter(
-            fm!!, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT
-        ) {
-        override fun getItem(i: Int): Fragment {
+    inner class ShadowboxPagerAdapter internal constructor(fm: FragmentManager) : FragmentStateAdapter(fm, lifecycle) {
+        override fun createFragment(i: Int): Fragment {
             var f: Fragment? = null
             val t: ContentType.Type = subredditPosts!!.posts[i].contentType!!
             if (subredditPosts!!.posts.size - 2 <= i && subredditPosts!!.hasMore()) {
@@ -183,7 +180,7 @@ class Shadowbox : FullScreenActivity(), SubmissionDisplay {
             return f
         }
 
-        override fun getCount(): Int {
+        override fun getItemCount(): Int {
             return count
         }
     }

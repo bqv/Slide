@@ -129,7 +129,7 @@ object UserSubscriptions {
             val s = news!!.getString("subs", "news,android")
             if (s!!.isEmpty()) {
                 //get online subs
-                c.updateSubs(syncSubscriptionsOverwrite(c))
+                c.updateSubs(syncSubscriptionsOverwrite(c)!!)
             } else {
                 val subredditsForHome = CaseInsensitiveArrayList()
                 for (s2 in s.split(",".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()) {

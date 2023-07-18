@@ -1,481 +1,380 @@
-package me.ccrama.redditslide.Activities;
+package me.ccrama.redditslide.Activities
 
-import android.animation.ArgbEvaluator;
-import android.animation.ValueAnimator;
-import android.content.Intent;
-import android.content.IntentFilter;
-import android.content.res.Configuration;
-import android.graphics.drawable.ColorDrawable;
-import android.os.AsyncTask;
-import android.os.Build;
-import android.os.Bundle;
-import android.os.Parcelable;
-import android.view.View;
-import android.view.ViewGroup;
-import android.view.Window;
-import android.view.animation.AccelerateDecelerateInterpolator;
-import android.view.animation.LinearInterpolator;
+import android.animation.ArgbEvaluator
+import android.animation.ValueAnimator
+import android.content.Intent
+import android.content.IntentFilter
+import android.content.res.Configuration
+import android.graphics.drawable.ColorDrawable
+import android.net.ConnectivityManager
+import android.os.AsyncTask
+import android.os.Bundle
+import android.view.View
+import android.view.ViewGroup
+import android.view.Window
+import android.view.animation.AccelerateDecelerateInterpolator
+import android.view.animation.LinearInterpolator
+import androidx.appcompat.widget.Toolbar
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentManager
+import androidx.viewpager2.adapter.FragmentStateAdapter
+import androidx.viewpager2.widget.ViewPager2.OnPageChangeCallback
+import com.google.android.material.tabs.TabLayout
+import com.google.android.material.tabs.TabLayoutMediator
+import ltd.ucode.slide.App
+import ltd.ucode.slide.Authentication
+import ltd.ucode.slide.R
+import ltd.ucode.slide.SettingValues
+import ltd.ucode.slide.ui.BaseActivity
+import ltd.ucode.slide.ui.Slide
+import me.ccrama.redditslide.Adapters.SubredditPostsRealm
+import me.ccrama.redditslide.CaseInsensitiveArrayList
+import me.ccrama.redditslide.Fragments.NewsView
+import me.ccrama.redditslide.Synccit.MySynccitUpdateTask
+import me.ccrama.redditslide.Synccit.SynccitRead
+import me.ccrama.redditslide.UserSubscriptions
+import me.ccrama.redditslide.Visuals.ColorPreferences
+import me.ccrama.redditslide.Visuals.Palette
+import me.ccrama.redditslide.util.LayoutUtils
+import me.ccrama.redditslide.util.NetworkStateReceiver
+import me.ccrama.redditslide.util.NetworkUtil
+import me.ccrama.redditslide.util.StringUtil
+import me.ccrama.redditslide.views.CatchStaggeredGridLayoutManager
+import me.ccrama.redditslide.views.ToggleSwipeViewPager
+import net.dean.jraw.managers.AccountManager
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.widget.Toolbar;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentStatePagerAdapter;
-import androidx.viewpager.widget.ViewPager;
+class NewsActivity : BaseActivity(), NetworkStateReceiver.NetworkStateReceiverListener {
+    lateinit var header: View
+    val ANIMATE_DURATION: Long = 250 //duration of animations
+    private val ANIMATE_DURATION_OFFSET: Long = 45
 
-import com.google.android.material.tabs.TabLayout;
-
-import net.dean.jraw.managers.AccountManager;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import ltd.ucode.slide.ui.BaseActivity;
-import ltd.ucode.slide.ui.Slide;
-import me.ccrama.redditslide.Adapters.SubredditPostsRealm;
-import ltd.ucode.slide.Authentication;
-import me.ccrama.redditslide.CaseInsensitiveArrayList;
-import me.ccrama.redditslide.Fragments.NewsView;
-import ltd.ucode.slide.R;
-import ltd.ucode.slide.App;
-import ltd.ucode.slide.SettingValues;
-import me.ccrama.redditslide.Synccit.MySynccitUpdateTask;
-import me.ccrama.redditslide.Synccit.SynccitRead;
-import me.ccrama.redditslide.UserSubscriptions;
-import me.ccrama.redditslide.views.CatchStaggeredGridLayoutManager;
-import me.ccrama.redditslide.views.ToggleSwipeViewPager;
-import me.ccrama.redditslide.Visuals.ColorPreferences;
-import me.ccrama.redditslide.Visuals.Palette;
-import me.ccrama.redditslide.util.LayoutUtils;
-import me.ccrama.redditslide.util.LogUtil;
-import me.ccrama.redditslide.util.NetworkStateReceiver;
-import me.ccrama.redditslide.util.NetworkUtil;
-import me.ccrama.redditslide.util.StringUtil;
-
-public class NewsActivity extends BaseActivity
-        implements NetworkStateReceiver.NetworkStateReceiverListener {
-    public static final  String IS_ONLINE     = "online";
-    // Instance state keys
-    static final         String SUBS          = "news";
-    private static final String EXTRA_PAGE_TO = "PAGE_TO";
-    public View header;
-
-    public static Loader loader;
-    public static Map<String, String> newsSubToMap            = new HashMap<>();
-    public final  long                ANIMATE_DURATION        = 250; //duration of animations
-    private final long                ANIMATE_DURATION_OFFSET = 45;
     //offset for smoothing out the exit animations
-    public ToggleSwipeViewPager     pager;
-    public CaseInsensitiveArrayList usedArray;
-    public NewsPagerAdapter adapter;
-    public TabLayout                mTabLayout;
-    public String                   selectedSub; //currently selected subreddit
-    public boolean                  inNightMode;
-    boolean changed;
-    boolean currentlySubbed;
-    int     back;
-    private int headerHeight; //height of the header
-    public int reloadItemNumber = -2;
+    lateinit var pager: ToggleSwipeViewPager
+    var usedArray: CaseInsensitiveArrayList? = null
+    var adapter: NewsPagerAdapter? = null
+    lateinit var mTabLayout: TabLayout
+    lateinit var selectedSub: String //currently selected subreddit
+    var inNightMode = false
+    var changed = false
+    var currentlySubbed = false
+    var back = 0
+    private val headerHeight = 0 //height of the header
+    var reloadItemNumber = -2
 
-    @Override
-    public void onBackPressed() {
-        finish();
+    lateinit var networkStateReceiver: NetworkStateReceiver
+
+    override fun networkAvailable() {}
+
+    override fun networkUnavailable() {}
+
+    override fun onBackPressed() {
+        finish()
     }
 
-    @Override
-    public void onPause() {
-        super.onPause();
-        changed = false;
-        if (!SettingValues.synccitName.isEmpty()) {
-            new MySynccitUpdateTask().execute(
-                    SynccitRead.newVisited.toArray(new String[0]));
+    override fun onPause() {
+        super.onPause()
+        changed = false
+        if (!SettingValues.synccitName.isNullOrEmpty()) {
+            MySynccitUpdateTask().execute(
+                *SynccitRead.newVisited.toTypedArray<String>())
         }
-        if (Authentication.isLoggedIn
-                && Authentication.me != null
-                && Authentication.me.hasGold()
-                && !SynccitRead.newVisited.isEmpty()) {
-            new AsyncTask<Void, Void, Void>() {
-                @Override
-                protected Void doInBackground(Void... params) {
+        if (Authentication.isLoggedIn && Authentication.me != null && Authentication.me!!.hasGold()
+            && SynccitRead.newVisited.isNotEmpty()) {
+            object : AsyncTask<Void?, Void?, Void?>() {
+                override fun doInBackground(vararg params: Void?): Void? {
                     try {
-                        String[] returned = new String[SynccitRead.newVisited.size()];
-                        int i = 0;
-                        for (String s : SynccitRead.newVisited) {
-                            if (!s.contains("t3_")) {
-                                s = "t3_" + s;
-                            }
-                            returned[i] = s;
-                            i++;
+                        val returned = arrayOfNulls<String>(SynccitRead.newVisited.size)
+                        for ((i, s) in SynccitRead.newVisited.withIndex()) {
+                            returned[i] = if (!s.contains("t3_")) "t3_$s" else s
                         }
-                        new AccountManager(Authentication.reddit).storeVisits(returned);
-                        SynccitRead.newVisited = new ArrayList<>();
-                    } catch (Exception e) {
-                        e.printStackTrace();
+                        AccountManager(Authentication.reddit).storeVisits(*returned)
+                        SynccitRead.newVisited = ArrayList<String>()
+                    } catch (e: Exception) {
+                        e.printStackTrace()
                     }
-                    return null;
+                    return null
                 }
-            }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+            }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR)
         }
 
         //Upon leaving MainActivity--hide the toolbar search if it is visible
-        if (findViewById(R.id.toolbar_search).getVisibility() == View.VISIBLE) {
-            findViewById(R.id.close_search_toolbar).performClick();
+        if (findViewById<View>(R.id.toolbar_search).visibility == View.VISIBLE) {
+            findViewById<View>(R.id.close_search_toolbar).performClick()
         }
     }
 
-    @Override
-    public void onConfigurationChanged(Configuration newConfig) {
-        super.onConfigurationChanged(newConfig);
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
         if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-            changed = true;
+            changed = true
         } else if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT) {
-            changed = true;
+            changed = true
         }
     }
 
-    @Override
-    protected void onCreate(final Bundle savedInstanceState) {
-        inNightMode = SettingValues.isNight();
-        disableSwipeBackLayout();
-        super.onCreate(savedInstanceState);
-
-        applyColorTheme();
-
-        setContentView(R.layout.activity_news);
-
-        mToolbar = (Toolbar) findViewById(R.id.toolbar);
-        mToolbar.setPopupTheme(new ColorPreferences(this).getFontStyle().getBaseId());
-        setSupportActionBar(mToolbar);
-
-        Window window = this.getWindow();
-        window.setStatusBarColor(
-                Palette.getDarkerColor(Palette.getDarkerColor(Palette.getDefaultColor())));
-
-        mTabLayout = (TabLayout) findViewById(R.id.sliding_tabs);
-        header = findViewById(R.id.header);
-
-        pager = (ToggleSwipeViewPager)
-
-                findViewById(R.id.content_view);
-
-        mTabLayout = (TabLayout) findViewById(R.id.sliding_tabs);
-
-        UserSubscriptions.doNewsSubs(NewsActivity.this);
+    override fun onCreate(savedInstanceState: Bundle?) {
+        inNightMode = SettingValues.isNight
+        disableSwipeBackLayout()
+        super.onCreate(savedInstanceState)
+        applyColorTheme()
+        setContentView(R.layout.activity_news)
+        mToolbar = findViewById<Toolbar>(R.id.toolbar).apply {
+            popupTheme = ColorPreferences(this@NewsActivity).fontStyle.baseId
+        }
+        setSupportActionBar(mToolbar)
+        val window: Window = this.window
+        window.statusBarColor = Palette.getDarkerColor(Palette.getDarkerColor(Palette.getDefaultColor()))
+        mTabLayout = findViewById(R.id.sliding_tabs)
+        header = findViewById(R.id.header)
+        pager = findViewById(R.id.content_view)
+        mTabLayout = findViewById(R.id.sliding_tabs)
+        UserSubscriptions.doNewsSubs(this@NewsActivity)
         /**
          * int for the current base theme selected.
          * 0 = Dark, 1 = Light, 2 = AMOLED, 3 = Dark blue, 4 = AMOLED with contrast, 5 = Sepia
          */
-        SettingValues.currentTheme = new ColorPreferences(this).getFontStyle().getThemeType();
-        networkStateReceiver = new NetworkStateReceiver();
-        networkStateReceiver.addListener(this);
+        SettingValues.currentTheme = ColorPreferences(this).fontStyle.themeType
+        networkStateReceiver = NetworkStateReceiver().apply {
+            addListener(this@NewsActivity)
+        }
         try {
             this.registerReceiver(networkStateReceiver,
-                    new IntentFilter(android.net.ConnectivityManager.CONNECTIVITY_ACTION));
-        } catch (Exception e) {
-
+                IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION))
+        } catch (_: Exception) {
         }
     }
 
-    @Override
-    public void networkAvailable() {
-    }
-
-    NetworkStateReceiver networkStateReceiver;
-
-    @Override
-    public void networkUnavailable() {
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-
-        if (inNightMode != SettingValues.isNight()) {
-            restartTheme();
+    override fun onResume() {
+        super.onResume()
+        if (inNightMode != SettingValues.isNight) {
+            restartTheme()
         }
 
         //CrashReportHandler.reinstall()
     }
 
-    @Override
-    public void onDestroy() {
+    override fun onDestroy() {
         try {
-            unregisterReceiver(networkStateReceiver);
-        } catch (Exception ignored) {
-
+            unregisterReceiver(networkStateReceiver)
+        } catch (ignored: Exception) {
         }
-        Slide.hasStarted = false;
-        super.onDestroy();
+        Slide.hasStarted = false
+        super.onDestroy()
     }
 
-    String shouldLoad;
+    var shouldLoad: String? = null
 
-
-    public void restartTheme() {
-        Intent intent = this.getIntent();
-        int page = pager.getCurrentItem();
-        intent.putExtra(EXTRA_PAGE_TO, page);
-        finish();
-        startActivity(intent);
-        overridePendingTransition(R.anim.fade_in_real, R.anim.fading_out_real);
+    fun restartTheme() {
+        val intent: Intent = this.intent
+        val page = pager.currentItem
+        intent.putExtra(EXTRA_PAGE_TO, page)
+        finish()
+        startActivity(intent)
+        overridePendingTransition(R.anim.fade_in_real, R.anim.fading_out_real)
     }
 
-    public void scrollToTop() {
-        int pastVisiblesItems = 0;
-
-        if (((adapter.getCurrentFragment()) == null)) return;
-        int[] firstVisibleItems =
-                ((CatchStaggeredGridLayoutManager) (((NewsView) adapter.getCurrentFragment()).rv.getLayoutManager()))
-                        .findFirstVisibleItemPositions(null);
-        if (firstVisibleItems != null && firstVisibleItems.length > 0) {
-            for (int firstVisibleItem : firstVisibleItems) {
-                pastVisiblesItems = firstVisibleItem;
+    fun scrollToTop() {
+        var pastVisiblesItems = 0
+        if (adapter!!.currentFragment == null) return
+        val firstVisibleItems: IntArray? = ((adapter!!.currentFragment as NewsView?)?.rv?.layoutManager as CatchStaggeredGridLayoutManager)
+            .findFirstVisibleItemPositions(null)
+        if (firstVisibleItems != null && firstVisibleItems.isNotEmpty()) {
+            for (firstVisibleItem in firstVisibleItems) {
+                pastVisiblesItems = firstVisibleItem
             }
         }
         if (pastVisiblesItems > 8) {
-            ((NewsView) adapter.getCurrentFragment()).rv.scrollToPosition(0);
+            (adapter!!.currentFragment as NewsView?)?.rv?.scrollToPosition(0)
             header.animate()
-                    .translationY(header.getHeight())
-                    .setInterpolator(new LinearInterpolator())
-                    .setDuration(0);
+                .translationY(header.height.toFloat())
+                .setInterpolator(LinearInterpolator()).duration = 0
         } else {
-            ((NewsView) adapter.getCurrentFragment()).rv.smoothScrollToPosition(0);
+            (adapter!!.currentFragment as NewsView?)?.rv?.smoothScrollToPosition(0)
         }
-        ((NewsView) adapter.getCurrentFragment()).resetScroll();
+        (adapter!!.currentFragment as NewsView?)?.resetScroll()
     }
 
-    int toGoto;
+    var toGoto = 0
 
-    public void setDataSet(List<String> data) {
-        if (data != null && !data.isEmpty()) {
-            usedArray = new CaseInsensitiveArrayList(data);
+    fun setDataSet(data: List<String?>?) {
+        if (!data.isNullOrEmpty()) {
+            usedArray = CaseInsensitiveArrayList(data)
             if (adapter == null) {
-                adapter = new NewsPagerAdapter(getSupportFragmentManager());
+                adapter = NewsPagerAdapter(supportFragmentManager)
             } else {
-                adapter.notifyDataSetChanged();
+                adapter!!.notifyDataSetChanged()
             }
-            pager.setAdapter(adapter);
-
-            pager.setOffscreenPageLimit(1);
+            pager.adapter = adapter
+            pager.offscreenPageLimit = 1
             if (toGoto == -1) {
-                toGoto = 0;
+                toGoto = 0
             }
-            if (toGoto >= usedArray.size()) {
-                toGoto -= 1;
+            if (toGoto >= usedArray!!.size) {
+                toGoto -= 1
             }
-            shouldLoad = usedArray.get(toGoto);
-            selectedSub = (usedArray.get(toGoto));
-            themeSystemBars(usedArray.get(toGoto));
-
-            final String USEDARRAY_0 = usedArray.get(0);
-
+            shouldLoad = usedArray!![toGoto]
+            selectedSub = usedArray!![toGoto]
+            themeSystemBars(usedArray!![toGoto])
             mTabLayout.setSelectedTabIndicatorColor(
-                    new ColorPreferences(NewsActivity.this).getColor(USEDARRAY_0));
-            pager.setCurrentItem(toGoto);
-            mTabLayout.setupWithViewPager(pager);
-            if (mTabLayout != null) {
-                mTabLayout.setupWithViewPager(pager);
-                LayoutUtils.scrollToTabAfterLayout(mTabLayout, toGoto);
+                ColorPreferences(this@NewsActivity).getColor(usedArray!![0]))
+            pager.currentItem = toGoto
+            TabLayoutMediator(mTabLayout, pager) { tab, position ->
+                scrollToTop()
             }
-            setToolbarClick();
+            LayoutUtils.scrollToTabAfterLayout(mTabLayout, toGoto)
         } else if (NetworkUtil.isConnected(this)) {
-            UserSubscriptions.doNewsSubs(this);
+            UserSubscriptions.doNewsSubs(this)
         }
     }
 
-    public void setToolbarClick() {
-        if (mTabLayout != null) {
-            mTabLayout.addOnTabSelectedListener(
-                    new TabLayout.ViewPagerOnTabSelectedListener(pager) {
-                        @Override
-                        public void onTabReselected(TabLayout.Tab tab) {
-                            super.onTabReselected(tab);
-                            scrollToTop();
-                        }
-                    });
-        } else {
-            LogUtil.v("notnull");
-            mToolbar.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    scrollToTop();
-                }
-            });
-        }
+    fun updateMultiNameToSubs(subs: Map<String, String>) {
+        newsSubToMap = subs
     }
 
-
-    public void updateMultiNameToSubs(Map<String, String> subs) {
-        newsSubToMap = subs;
-    }
-
-    public void updateSubs(ArrayList<String> subs) {
+    fun updateSubs(subs: ArrayList<String?>) {
         if (subs.isEmpty() && !NetworkUtil.isConnected(this)) {
             //todo this
         } else {
-
             if (loader != null) {
-                header.setVisibility(View.VISIBLE);
-
-                setDataSet(subs);
+                header.visibility = View.VISIBLE
+                setDataSet(subs)
                 try {
-                    setDataSet(subs);
-                } catch (Exception ignored) {
-
+                    setDataSet(subs)
+                } catch (ignored: Exception) {
                 }
-                loader.finish();
-                loader = null;
+                loader!!.finish()
+                loader = null
             } else {
-                setDataSet(subs);
+                setDataSet(subs)
             }
         }
     }
 
-    private class NewsPagerAdapter extends FragmentStatePagerAdapter {
-        protected NewsView mCurrentFragment;
+    inner class NewsPagerAdapter internal constructor(fm: FragmentManager) : FragmentStateAdapter(fm, lifecycle) {
+        protected lateinit var mCurrentFragment: NewsView
 
-        NewsPagerAdapter(FragmentManager fm) {
-            super(fm, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT);
-
-            pager.clearOnPageChangeListeners();
-            pager.addOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
-                @Override
-                public void onPageScrolled(int position, float positionOffset,
-                        int positionOffsetPixels) {
-                    if (positionOffset == 0) {
+        private val pageChangeCallback: OnPageChangeCallback
+            = object : OnPageChangeCallback() {
+                override fun onPageScrolled(
+                    position: Int, positionOffset: Float,
+                    positionOffsetPixels: Int
+                ) {
+                    if (positionOffset == 0f) {
                         header.animate()
-                                .translationY(0)
-                                .setInterpolator(new LinearInterpolator())
-                                .setDuration(180);
+                            .translationY(0f)
+                            .setInterpolator(LinearInterpolator()).duration = 180
                     }
                 }
 
-                @Override
-                public void onPageSelected(final int position) {
-                    App.currentPosition = position;
-                    selectedSub = usedArray.get(position);
-                    NewsView page = (NewsView) adapter.getCurrentFragment();
-
-                    int colorFrom = ((ColorDrawable) header.getBackground()).getColor();
-                    int colorTo = Palette.getColor(selectedSub);
-
-                    ValueAnimator colorAnimation =
-                            ValueAnimator.ofObject(new ArgbEvaluator(), colorFrom, colorTo);
-
-                    colorAnimation.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-                        @Override
-                        public void onAnimationUpdate(ValueAnimator animator) {
-                            int color = (int) animator.getAnimatedValue();
-
-                            header.setBackgroundColor(color);
-
-                            getWindow().setStatusBarColor(Palette.getDarkerColor(color));
-                            if (SettingValues.colorNavBar) {
-                                getWindow().setNavigationBarColor(
-                                        Palette.getDarkerColor(color));
-                            }
+                override fun onPageSelected(position: Int) {
+                    App.currentPosition = position
+                    selectedSub = usedArray!![position]
+                    val page: NewsView? = adapter!!.currentFragment as NewsView?
+                    val colorFrom = (header.background as ColorDrawable).color
+                    val colorTo = Palette.getColor(selectedSub)
+                    val colorAnimation = ValueAnimator.ofObject(ArgbEvaluator(), colorFrom, colorTo)
+                    colorAnimation.addUpdateListener { animator ->
+                        val color = animator.animatedValue as Int
+                        header.setBackgroundColor(color)
+                        window.statusBarColor = Palette.getDarkerColor(color)
+                        if (SettingValues.colorNavBar) {
+                            window.navigationBarColor = Palette.getDarkerColor(color)
                         }
-                    });
-                    colorAnimation.setInterpolator(new AccelerateDecelerateInterpolator());
-                    colorAnimation.setDuration(200);
-                    colorAnimation.start();
-
-                    setRecentBar(selectedSub);
-
+                    }
+                    colorAnimation.interpolator = AccelerateDecelerateInterpolator()
+                    colorAnimation.duration = 200
+                    colorAnimation.start()
+                    setRecentBar(selectedSub)
                     mTabLayout.setSelectedTabIndicatorColor(
-                            new ColorPreferences(NewsActivity.this).getColor(selectedSub));
-                    if (page != null && page.adapter != null) {
-                        SubredditPostsRealm p = page.adapter.dataSet;
+                        ColorPreferences(this@NewsActivity).getColor(selectedSub))
+                    if (page?.adapter != null) {
+                        val p: SubredditPostsRealm = page.adapter!!.dataSet
                         if (p.offline) {
-                            p.doNewsActivityOffline(NewsActivity.this, p.displayer);
+                            p.doNewsActivityOffline(this@NewsActivity, p.displayer)
                         }
                     }
                 }
-            });
+            }
 
-            if (pager.getAdapter() != null) {
-                pager.getAdapter().notifyDataSetChanged();
-                pager.setCurrentItem(1);
-                pager.setCurrentItem(0);
+        init {
+            pager.registerOnPageChangeCallback(pageChangeCallback)
+
+            if (pager.adapter != null) {
+                pager.adapter!!.notifyDataSetChanged()
+                pager.currentItem = 1
+                pager.currentItem = 0
             }
         }
 
-        @Override
-        public int getCount() {
-            if (usedArray == null) {
-                return 1;
+        override fun getItemCount(): Int = if (usedArray == null) {
+            1
+        } else {
+            usedArray!!.size
+        }
+
+        override fun createFragment(i: Int): Fragment {
+            val f = NewsView()
+            val args = Bundle()
+            val name: String? = if (newsSubToMap.containsKey(usedArray!![i])) {
+                newsSubToMap[usedArray!![i]]
             } else {
-                return usedArray.size();
+                usedArray!![i]
             }
+            args.putString("id", name)
+            f.arguments = args
+            return f
         }
 
-        @NonNull
-        @Override
-        public Fragment getItem(int i) {
-            NewsView f = new NewsView();
-            Bundle args = new Bundle();
-            String name;
-            if (newsSubToMap.containsKey(usedArray.get(i))) {
-                name = newsSubToMap.get(usedArray.get(i));
-            } else {
-                name = usedArray.get(i);
-            }
-            args.putString("id", name);
-            f.setArguments(args);
-
-            return f;
-        }
-
-        @Override
-        public void setPrimaryItem(@NonNull ViewGroup container, int position, @NonNull Object object) {
+        fun setPrimaryItem(container: ViewGroup, position: Int, obj: Any) {
+            /*
             if (reloadItemNumber == position || reloadItemNumber < 0) {
-                super.setPrimaryItem(container, position, object);
-                if (usedArray.size() >= position) doSetPrimary(object, position);
+                super.setPrimaryItem(container, position, obj)
+                if (usedArray!!.size >= position) doSetPrimary(obj, position)
             } else {
-                shouldLoad = usedArray.get(reloadItemNumber);
-                if (newsSubToMap.containsKey(usedArray.get(reloadItemNumber))) {
-                    shouldLoad = newsSubToMap.get(usedArray.get(reloadItemNumber));
+                shouldLoad = usedArray!![reloadItemNumber]
+                shouldLoad = if (newsSubToMap.containsKey(usedArray!![reloadItemNumber])) {
+                    newsSubToMap[usedArray!![reloadItemNumber]]
                 } else {
-                    shouldLoad = usedArray.get(reloadItemNumber);
+                    usedArray!![reloadItemNumber]
+                }
+            }
+             */TODO("hmm")
+        }
+
+        fun doSetPrimary(obj: Any?, position: Int) {
+            if (obj != null && currentFragment !== obj && obj is NewsView) {
+                shouldLoad = usedArray!![position]
+                shouldLoad = if (newsSubToMap.containsKey(usedArray!![position])) {
+                    newsSubToMap[usedArray!![position]]
+                } else {
+                    usedArray!![position]
+                }
+                mCurrentFragment = obj
+                if (mCurrentFragment.posts == null && mCurrentFragment.isAdded) {
+                    mCurrentFragment.doAdapter()
                 }
             }
         }
 
-        @Override
-        public Parcelable saveState() {
-            return null;
-        }
+        val currentFragment: Fragment?
+            get() = mCurrentFragment
 
-        public void doSetPrimary(Object object, int position) {
-            if (object != null && getCurrentFragment() != object && object instanceof NewsView) {
-                shouldLoad = usedArray.get(position);
-                if (newsSubToMap.containsKey(usedArray.get(position))) {
-                    shouldLoad = newsSubToMap.get(usedArray.get(position));
-                } else {
-                    shouldLoad = usedArray.get(position);
-                }
-
-                mCurrentFragment = ((NewsView) object);
-                if (mCurrentFragment.posts == null && mCurrentFragment.isAdded()) {
-                    mCurrentFragment.doAdapter();
-
-                }
-            }
-        }
-
-        Fragment getCurrentFragment() {
-            return mCurrentFragment;
-        }
-
-        @Override
-        public CharSequence getPageTitle(int position) {
-            if (usedArray != null) {
-                return StringUtil.abbreviate(usedArray.get(position), 25);
+        fun getPageTitle(position: Int): CharSequence {
+            return if (usedArray != null) {
+                StringUtil.abbreviate(usedArray!![position], 25)
             } else {
-                return "";
+                ""
             }
         }
+    }
+
+    companion object {
+        const val IS_ONLINE = "online"
+
+        // Instance state keys
+        const val SUBS = "news"
+        private const val EXTRA_PAGE_TO = "PAGE_TO"
+        var loader: Loader? = null
+        var newsSubToMap: Map<String, String> = HashMap()
     }
 }

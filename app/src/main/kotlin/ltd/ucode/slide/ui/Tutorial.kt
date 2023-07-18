@@ -13,7 +13,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
-import androidx.fragment.app.FragmentStatePagerAdapter
+import androidx.viewpager2.adapter.FragmentStateAdapter
 import ltd.ucode.slide.App
 import ltd.ucode.slide.SettingValues
 import ltd.ucode.slide.databinding.ActivityTutorialBinding
@@ -244,11 +244,8 @@ class Tutorial : AppCompatActivity() {
      * A simple pager adapter that represents 5 ScreenSlidePageFragment objects, in
      * sequence.
      */
-    private class TutorialPagerAdapter internal constructor(fm: FragmentManager?) :
-        FragmentStatePagerAdapter(
-            fm!!, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT
-        ) {
-        override fun getItem(position: Int): Fragment {
+    private inner class TutorialPagerAdapter internal constructor(fm: FragmentManager) : FragmentStateAdapter(fm, lifecycle) {
+        override fun createFragment(position: Int): Fragment {
             return when (position) {
                 POS_WELCOME -> Welcome()
                 POS_PERSONALIZE -> Personalize()
@@ -256,7 +253,7 @@ class Tutorial : AppCompatActivity() {
             }
         }
 
-        override fun getCount(): Int {
+        override fun getItemCount(): Int {
             return NUM_PAGES
         }
     }

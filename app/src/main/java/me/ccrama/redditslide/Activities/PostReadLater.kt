@@ -1,53 +1,33 @@
-package me.ccrama.redditslide.Activities;
+package me.ccrama.redditslide.Activities
 
-import android.os.Bundle;
+import android.os.Bundle
+import android.view.View
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentManager
+import androidx.viewpager2.adapter.FragmentStateAdapter
+import androidx.viewpager2.widget.ViewPager2
+import ltd.ucode.slide.R
+import ltd.ucode.slide.ui.BaseActivityAnim
+import me.ccrama.redditslide.Fragments.ReadLaterView
+import me.ccrama.redditslide.Visuals.ColorPreferences
 
-import androidx.annotation.NonNull;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentStatePagerAdapter;
-import androidx.viewpager.widget.ViewPager;
-
-import ltd.ucode.slide.ui.BaseActivityAnim;
-import me.ccrama.redditslide.Fragments.ReadLaterView;
-import ltd.ucode.slide.R;
-import me.ccrama.redditslide.Visuals.ColorPreferences;
-
-/**
- * Created by ccrama on 9/17/2015.
- */
-public class PostReadLater extends BaseActivityAnim {
-
-    @Override
-    public void onCreate(Bundle savedInstance) {
-        overrideSwipeFromAnywhere();
-
-        super.onCreate(savedInstance);
-
-        applyColorTheme();
-        setContentView(R.layout.activity_read_later);
-        setupAppBar(R.id.toolbar, "Read later", true, true);
-        mToolbar.setPopupTheme(new ColorPreferences(this).getFontStyle().getBaseId());
-
-        ViewPager pager = (ViewPager) findViewById(R.id.content_view);
-        pager.setAdapter(new ReadLaterPagerAdapter(getSupportFragmentManager()));
+class PostReadLater : BaseActivityAnim() {
+    public override fun onCreate(savedInstance: Bundle?) {
+        overrideSwipeFromAnywhere()
+        super.onCreate(savedInstance)
+        applyColorTheme()
+        setContentView(R.layout.activity_read_later)
+        setupAppBar(R.id.toolbar, "Read later", true, true)
+        mToolbar!!.popupTheme = ColorPreferences(this).fontStyle.baseId
+        val pager = findViewById<View>(R.id.content_view) as ViewPager2
+        pager.adapter = ReadLaterPagerAdapter(supportFragmentManager)
     }
 
-    private static class ReadLaterPagerAdapter extends FragmentStatePagerAdapter {
-
-        ReadLaterPagerAdapter(FragmentManager fm) {
-            super(fm, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT);
+    private inner class ReadLaterPagerAdapter internal constructor(fm: FragmentManager) : FragmentStateAdapter(fm, lifecycle) {
+        override fun createFragment(i: Int): Fragment {
+            return ReadLaterView()
         }
 
-        @NonNull
-        @Override
-        public Fragment getItem(int i) {
-            return new ReadLaterView();
-        }
-
-        @Override
-        public int getCount() {
-            return 1;
-        }
+        override fun getItemCount(): Int = 1
     }
 }

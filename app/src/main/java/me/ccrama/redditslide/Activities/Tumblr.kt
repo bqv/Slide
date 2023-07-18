@@ -15,10 +15,10 @@ import android.view.WindowManager
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
-import androidx.fragment.app.FragmentStatePagerAdapter
+import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.recyclerview.widget.RecyclerView
-import androidx.viewpager.widget.ViewPager
-import androidx.viewpager.widget.ViewPager.SimpleOnPageChangeListener
+import androidx.viewpager2.widget.ViewPager2
+import androidx.viewpager2.widget.ViewPager2.OnPageChangeCallback
 import ltd.ucode.slide.R
 import ltd.ucode.slide.SettingValues.albumSwipe
 import ltd.ucode.slide.SettingValues.appRestart
@@ -139,14 +139,14 @@ class Tumblr : FullScreenActivity() {
 
         //Keep the screen on
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-        val pager: ViewPager = findViewById<View>(R.id.images) as ViewPager
+        val pager: ViewPager2 = findViewById<View>(R.id.images) as ViewPager2
         album = TumblrPagerAdapter(supportFragmentManager)
         pager.adapter = album
         pager.currentItem = 1
         if (intent.hasExtra(SUBREDDIT)) {
             subreddit = intent.getStringExtra(SUBREDDIT)
         }
-        pager.addOnPageChangeListener(object : SimpleOnPageChangeListener() {
+        pager.registerOnPageChangeCallback(object : OnPageChangeCallback() {
             override fun onPageScrolled(
                 position: Int, positionOffset: Float,
                 positionOffsetPixels: Int
@@ -181,13 +181,11 @@ class Tumblr : FullScreenActivity() {
         }
     }
 
-    class TumblrPagerAdapter constructor(fm: FragmentManager?) : FragmentStatePagerAdapter(
-        (fm)!!, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT
-    ) {
+    inner class TumblrPagerAdapter constructor(fm: FragmentManager) : FragmentStateAdapter(fm, lifecycle) {
         var blankPage: BlankFragment? = null
-        @JvmField
-        var album: AlbumFrag? = null
-        override fun getItem(i: Int): Fragment {
+        @JvmField var album: AlbumFrag? = null
+
+        override fun createFragment(i: Int): Fragment {
             if (i == 0) {
                 blankPage = BlankFragment()
                 return blankPage!!
@@ -197,7 +195,7 @@ class Tumblr : FullScreenActivity() {
             }
         }
 
-        override fun getCount(): Int {
+        override fun getItemCount(): Int {
             return 2
         }
     }

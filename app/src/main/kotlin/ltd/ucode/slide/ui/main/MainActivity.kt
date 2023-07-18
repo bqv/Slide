@@ -3,8 +3,6 @@ package ltd.ucode.slide.ui.main
 import android.Manifest
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
-import android.animation.ArgbEvaluator
-import android.animation.ValueAnimator
 import android.app.Activity
 import android.app.Dialog
 import android.app.NotificationManager
@@ -18,14 +16,12 @@ import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Point
-import android.graphics.drawable.ColorDrawable
 import android.net.ConnectivityManager
 import android.net.Uri
 import android.os.AsyncTask
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
-import android.os.Parcelable
 import android.text.Editable
 import android.util.Log
 import android.view.Gravity
@@ -34,7 +30,6 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.view.View.OnFocusChangeListener
-import android.view.ViewGroup
 import android.view.ViewStub
 import android.view.ViewTreeObserver.OnGlobalLayoutListener
 import android.view.WindowManager
@@ -71,12 +66,8 @@ import androidx.core.graphics.drawable.IconCompat
 import androidx.core.view.GravityCompat
 import androidx.customview.widget.ViewDragHelper
 import androidx.drawerlayout.widget.DrawerLayout
-import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentManager
-import androidx.fragment.app.FragmentStatePagerAdapter
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.viewpager.widget.ViewPager.SimpleOnPageChangeListener
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.WhichButton
 import com.afollestad.materialdialogs.actions.getActionButton
@@ -86,6 +77,7 @@ import com.afollestad.materialdialogs.list.listItems
 import com.afollestad.materialdialogs.list.listItemsSingleChoice
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.tabs.TabLayout
+import com.google.android.material.tabs.TabLayoutMediator
 import com.lusfold.androidkeyvaluestore.KVStore
 import dagger.hilt.android.AndroidEntryPoint
 import io.github.oshai.kotlinlogging.KLogger
@@ -101,6 +93,7 @@ import ltd.ucode.slide.R
 import ltd.ucode.slide.SettingValues
 import ltd.ucode.slide.data.value.Feed
 import ltd.ucode.slide.data.value.Sorting
+import ltd.ucode.slide.databinding.ActivityMainBinding
 import ltd.ucode.slide.repository.AccountRepository
 import ltd.ucode.slide.repository.CommentRepository
 import ltd.ucode.slide.repository.NetworkRepository
@@ -131,7 +124,6 @@ import me.ccrama.redditslide.Autocache.AutoCacheScheduler
 import me.ccrama.redditslide.CaseInsensitiveArrayList
 import me.ccrama.redditslide.CommentCacheAsync
 import me.ccrama.redditslide.ForceTouch.util.DensityUtils
-import me.ccrama.redditslide.Fragments.CommentPage
 import me.ccrama.redditslide.Fragments.DrawerItemsDialog.SettingsDrawerEnum
 import me.ccrama.redditslide.Fragments.SubmissionsView
 import me.ccrama.redditslide.HasSeen
@@ -166,6 +158,8 @@ import me.ccrama.redditslide.views.CommentOverflow
 import me.ccrama.redditslide.views.PreCachingLayoutManager
 import me.ccrama.redditslide.views.SidebarLayout
 import me.ccrama.redditslide.views.ToggleSwipeViewPager
+import me.ccrama.redditslide.views.setSwipeLeftOnly
+import me.ccrama.redditslide.views.setSwipingEnabled
 import net.dean.jraw.ApiException
 import net.dean.jraw.http.MultiRedditUpdateRequest
 import net.dean.jraw.http.NetworkException
@@ -196,7 +190,7 @@ class MainActivity : BaseActivity() {
     private val logger: KLogger = KotlinLogging.logger {}
     private val viewModel: MainViewModel by viewModels()
 
-    //private lateinit var binding: ActivityMainBinding
+    private lateinit var binding: ActivityMainBinding
     //private lateinit var adapter: MainAdapter
 
     var menu: Menu? = null
@@ -209,7 +203,7 @@ class MainActivity : BaseActivity() {
     @Inject lateinit var networkRepository: NetworkRepository
 
     val ANIMATE_DURATION: Long = 250 //duration of animations
-    private val ANIMATE_DURATION_OFFSET: Long = 45 //offset for smoothing out the exit animations
+    val ANIMATE_DURATION_OFFSET: Long = 45 //offset for smoothing out the exit animations
     @JvmField var singleMode = false
     @JvmField var pager: ToggleSwipeViewPager? = null
     @JvmField var usedArray: CaseInsensitiveArrayList? = null
@@ -246,7 +240,7 @@ class MainActivity : BaseActivity() {
     var caching: AsyncTask<*, *, *>? = null
     var currentlySubbed = false
     var back = 0
-    private var mAsyncGetSubreddit: AsyncGetSubreddit? = null
+    var mAsyncGetSubreddit: AsyncGetSubreddit? = null
     private var headerHeight = 0 //height of the header
     @JvmField var reloadItemNumber = -2
 
@@ -255,14 +249,15 @@ class MainActivity : BaseActivity() {
             var current = pager!!.currentItem
             if (commentPager && current == currentComment) current -= 1
             if (current < 0) current = 0
-            adapter = MainPagerAdapter(supportFragmentManager)
+            adapter = MainPagerAdapter(this,supportFragmentManager)
             pager!!.adapter = adapter
             pager!!.currentItem = current
             if (mTabLayout != null) {
-                mTabLayout!!.setupWithViewPager(pager)
+                TabLayoutMediator(mTabLayout!!, pager!!) { tab, position ->
+                    scrollToTop()
+                }
                 LayoutUtils.scrollToTabAfterLayout(mTabLayout, current)
             }
-            setToolbarClick()
         } else if ((requestCode == 2001 || requestCode == 2002) && resultCode == RESULT_OK) {
             if (SettingValues.subredditSearchMethod == me.ccrama.redditslide.Constants.SUBREDDIT_SEARCH_METHOD_DRAWER
                 || SettingValues.subredditSearchMethod
@@ -930,7 +925,8 @@ class MainActivity : BaseActivity() {
         }
         if (intent.getBooleanExtra("EXIT", false)) finish()
         applyColorTheme()
-        setContentView(R.layout.activity_overview)
+        setContentView(R.layout.activity_main)
+        binding = ActivityMainBinding.inflate(layoutInflater)
         mToolbar = findViewById<Toolbar>(R.id.toolbar)
         mToolbar!!.popupTheme = ColorPreferences(this).fontStyle.baseId
         setSupportActionBar(mToolbar)
@@ -1174,10 +1170,11 @@ class MainActivity : BaseActivity() {
             sideArrayAdapter!!.notifyDataSetChanged()
             datasetChanged = false
             if (mTabLayout != null) {
-                mTabLayout!!.setupWithViewPager(pager)
+                TabLayoutMediator(mTabLayout!!, pager!!) { tab, position ->
+                    scrollToTop()
+                }
                 LayoutUtils.scrollToTabAfterLayout(mTabLayout, pager!!.currentItem)
             }
-            setToolbarClick()
         }
 
         //Only refresh the view if a Setting was altered
@@ -1213,7 +1210,6 @@ class MainActivity : BaseActivity() {
             }
             SettingsThemeFragment.changed = false
             SettingsActivity.changed = false
-            setToolbarClick()
         }
     }
 
@@ -2983,22 +2979,23 @@ class MainActivity : BaseActivity() {
         reloadItemNumber = current
         if (adapter is MainPagerAdapterComment) {
             pager!!.adapter = null
-            adapter = MainPagerAdapterComment(supportFragmentManager)
+            adapter = MainPagerAdapterComment(this, supportFragmentManager)
         } else {
-            adapter = MainPagerAdapter(supportFragmentManager)
+            adapter = MainPagerAdapter(this, supportFragmentManager)
         }
         pager!!.adapter = adapter
         reloadItemNumber = -2
         shouldLoad = usedArray!![current]
         pager!!.currentItem = current
         if (mTabLayout != null) {
-            mTabLayout!!.setupWithViewPager(pager)
+            TabLayoutMediator(mTabLayout!!, pager!!) { tab, position ->
+                scrollToTop()
+            }
             LayoutUtils.scrollToTabAfterLayout(mTabLayout, current)
         }
         if (SettingValues.single) {
             supportActionBar!!.title = shouldLoad
         }
-        setToolbarClick()
         if (SettingValues.subredditSearchMethod == me.ccrama.redditslide.Constants.SUBREDDIT_SEARCH_METHOD_TOOLBAR
             || SettingValues.subredditSearchMethod == me.ccrama.redditslide.Constants.SUBREDDIT_SEARCH_METHOD_BOTH
         ) {
@@ -3012,13 +3009,14 @@ class MainActivity : BaseActivity() {
                 usedArray = CaseInsensitiveArrayList(
                     UserSubscriptions.getSubscriptions(this@MainActivity)
                 )
-                adapter = MainPagerAdapter(supportFragmentManager)
+                adapter = MainPagerAdapter(this,supportFragmentManager)
                 pager!!.adapter = adapter
                 if (mTabLayout != null) {
-                    mTabLayout!!.setupWithViewPager(pager)
+                    TabLayoutMediator(mTabLayout!!, pager!!) { tab, position ->
+                        scrollToTop()
+                    }
                     LayoutUtils.scrollToTabAfterLayout(mTabLayout, usedArray!!.indexOf(subToDo))
                 }
-                setToolbarClick()
                 pager!!.currentItem = usedArray!!.indexOf(subToDo)
                 val color = Palette.getColor(subToDo)
                 hea!!.setBackgroundColor(color)
@@ -3098,9 +3096,9 @@ class MainActivity : BaseActivity() {
             usedArray = CaseInsensitiveArrayList(data)
             if (adapter == null) {
                 adapter = if (commentPager && singleMode) {
-                    MainPagerAdapterComment(supportFragmentManager)
+                    MainPagerAdapterComment(this,supportFragmentManager)
                 } else {
-                    MainPagerAdapter(supportFragmentManager)
+                    MainPagerAdapter(this,supportFragmentManager)
                 }
             } else {
                 adapter!!.notifyDataSetChanged()
@@ -3129,16 +3127,14 @@ class MainActivity : BaseActivity() {
                     ColorPreferences(this@MainActivity).getColor(USEDARRAY_0)
                 )
                 pager!!.currentItem = toGoto
-                mTabLayout!!.setupWithViewPager(pager)
-                if (mTabLayout != null) {
-                    mTabLayout!!.setupWithViewPager(pager)
-                    LayoutUtils.scrollToTabAfterLayout(mTabLayout, toGoto)
+                TabLayoutMediator(mTabLayout!!, pager!!) { tab, position ->
+                    scrollToTop()
                 }
+                LayoutUtils.scrollToTabAfterLayout(mTabLayout, toGoto)
             } else {
                 supportActionBar!!.title = usedArray!![toGoto]
                 pager!!.currentItem = toGoto
             }
-            setToolbarClick()
             setRecentBar(usedArray!![toGoto])
             doSubSidebarNoLoad(usedArray!![toGoto])
         } else if (NetworkUtil.isConnected(this)) {
@@ -3257,21 +3253,6 @@ class MainActivity : BaseActivity() {
                 ) //remove the touch listener on the drawer search field
                 drawerSearch!!.visibility = View.GONE
             }
-        }
-    }
-
-    fun setToolbarClick() {
-        if (mTabLayout != null) {
-            mTabLayout!!.addOnTabSelectedListener(
-                object : TabLayout.ViewPagerOnTabSelectedListener(pager) {
-                    override fun onTabReselected(tab: TabLayout.Tab) {
-                        super.onTabReselected(tab)
-                        scrollToTop()
-                    }
-                })
-        } else {
-            LogUtil.v("TabLayout notnull")
-            mToolbar!!.setOnClickListener { scrollToTop() }
         }
     }
 
@@ -3861,299 +3842,6 @@ class MainActivity : BaseActivity() {
                 if (modBadge != null) modBadge.setVisibility(View.VISIBLE);
                 ((TextView) headerMain.findViewById(R.id.count)).setText(String.format(Locale.getDefault(), "%d", count));
             }*/
-        }
-    }
-
-    open inner class MainPagerAdapter(fm: FragmentManager?) : FragmentStatePagerAdapter(
-        fm!!, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT
-    ) {
-        protected var mCurrentFragment: SubmissionsView? = null
-
-        init {
-            pager!!.clearOnPageChangeListeners()
-            pager!!.addOnPageChangeListener(object : SimpleOnPageChangeListener() {
-                override fun onPageScrolled(
-                    position: Int, positionOffset: Float,
-                    positionOffsetPixels: Int
-                ) {
-                    if (positionOffset == 0f) {
-                        header!!.animate()
-                            .translationY(0f)
-                            .setInterpolator(LinearInterpolator()).duration = 180
-                        doSubSidebarNoLoad(usedArray!![position])
-                    }
-                }
-
-                override fun onPageSelected(position: Int) {
-                    App.currentPosition = position
-                    selectedSub = usedArray!![position]
-                    val page = adapter!!.currentFragment as SubmissionsView?
-                    if (hea != null) {
-                        hea!!.setBackgroundColor(Palette.getColor(selectedSub))
-                        if (accountsArea != null) {
-                            accountsArea!!.setBackgroundColor(Palette.getDarkerColor(selectedSub))
-                        }
-                    }
-                    val colorFrom = (header!!.background as ColorDrawable).color
-                    val colorTo = Palette.getColor(selectedSub)
-                    val colorAnimation = ValueAnimator.ofObject(ArgbEvaluator(), colorFrom, colorTo)
-                    colorAnimation.addUpdateListener { animator ->
-                        val color = animator.animatedValue as Int
-                        header!!.setBackgroundColor(color)
-                        run {
-                            window.statusBarColor = Palette.getDarkerColor(color)
-                            if (SettingValues.colorNavBar) {
-                                window.navigationBarColor = Palette.getDarkerColor(color)
-                            }
-                        }
-                    }
-                    colorAnimation.interpolator = AccelerateDecelerateInterpolator()
-                    colorAnimation.duration = 200
-                    colorAnimation.start()
-                    setRecentBar(selectedSub)
-                    if (SettingValues.single || mTabLayout == null) {
-                        //Smooth out the fading animation for the toolbar subreddit search UI
-                        if ((SettingValues.subredditSearchMethod
-                                    == me.ccrama.redditslide.Constants.SUBREDDIT_SEARCH_METHOD_TOOLBAR
-                                    || SettingValues.subredditSearchMethod
-                                    == me.ccrama.redditslide.Constants.SUBREDDIT_SEARCH_METHOD_BOTH)
-                            && findViewById<AutoCompleteTextView>(R.id.toolbar_search).visibility
-                            == View.VISIBLE
-                        ) {
-                            Handler().postDelayed(
-                                { supportActionBar!!.title = selectedSub },
-                                ANIMATE_DURATION + ANIMATE_DURATION_OFFSET
-                            )
-                        } else {
-                            supportActionBar!!.setTitle(selectedSub)
-                        }
-                    } else {
-                        mTabLayout!!.setSelectedTabIndicatorColor(
-                            ColorPreferences(this@MainActivity).getColor(selectedSub)
-                        )
-                    }
-                    if (page?.adapter != null) {
-                        val p = page.adapter!!.dataSet
-                        if (p.offline && !isRestart) {
-                            p.doMainActivityOffline(this@MainActivity, p.displayer)
-                        }
-                    }
-                }
-            })
-            if (pager!!.adapter != null) {
-                pager!!.adapter!!.notifyDataSetChanged()
-                pager!!.currentItem = 1
-                pager!!.currentItem = 0
-            }
-        }
-
-        override fun getCount(): Int {
-            return if (usedArray == null) {
-                1
-            } else {
-                usedArray!!.size
-            }
-        }
-
-        override fun getItem(i: Int): Fragment {
-            val f = SubmissionsView()
-            val args = Bundle()
-            val name: String? = if (multiNameToSubsMap.containsKey(usedArray!![i])) {
-                multiNameToSubsMap[usedArray!![i]]
-            } else {
-                usedArray!![i]
-            }
-            args.putString("id", name)
-            f.arguments = args
-            return f
-        }
-
-        override fun setPrimaryItem(container: ViewGroup, position: Int, `object`: Any) {
-            if (reloadItemNumber == position || reloadItemNumber < 0) {
-                super.setPrimaryItem(container, position, `object`)
-                if (usedArray!!.size >= position) doSetPrimary(`object`, position)
-            } else {
-                shouldLoad = usedArray!![reloadItemNumber]
-                if (multiNameToSubsMap.containsKey(usedArray!![reloadItemNumber])) {
-                    shouldLoad = multiNameToSubsMap[usedArray!![reloadItemNumber]]
-                } else {
-                    shouldLoad = usedArray!![reloadItemNumber]
-                }
-            }
-        }
-
-        override fun saveState(): Parcelable? {
-            return null
-        }
-
-        open fun doSetPrimary(`object`: Any?, position: Int) {
-            if (`object` != null && currentFragment !== `object` && position != toOpenComments && `object` is SubmissionsView) {
-                shouldLoad = usedArray!![position]
-                if (multiNameToSubsMap.containsKey(usedArray!![position])) {
-                    shouldLoad = multiNameToSubsMap[usedArray!![position]]
-                } else {
-                    shouldLoad = usedArray!![position]
-                }
-                mCurrentFragment = `object`
-                if (mCurrentFragment!!.posts == null && mCurrentFragment!!.isAdded) {
-                    mCurrentFragment!!.doAdapter()
-                }
-            }
-        }
-
-        open val currentFragment: Fragment?
-            get() = mCurrentFragment
-
-        override fun getPageTitle(position: Int): CharSequence? {
-            return if (usedArray != null) {
-                StringUtil.abbreviate(usedArray!![position], 25)
-            } else {
-                ""
-            }
-        }
-    }
-
-    inner class MainPagerAdapterComment(fm: FragmentManager?) : MainPagerAdapter(fm) {
-        @JvmField var size = usedArray!!.size
-        @JvmField var storedFragment: Fragment? = null
-        var mCurrentComments: CommentPage? = null
-
-        init {
-            pager!!.clearOnPageChangeListeners()
-            pager!!.addOnPageChangeListener(object : SimpleOnPageChangeListener() {
-                override fun onPageScrolled(
-                    position: Int, positionOffset: Float,
-                    positionOffsetPixels: Int
-                ) {
-                    if (positionOffset == 0f) {
-                        if (position != toOpenComments) {
-                            pager!!.setSwipeLeftOnly(true)
-                            header!!.setBackgroundColor(
-                                Palette.getColor(
-                                    usedArray!![position]
-                                )
-                            )
-                            doPageSelectedComments(position)
-                            if (position == toOpenComments - 1 && adapter != null && adapter!!.currentFragment != null) {
-                                val page = adapter!!.currentFragment as SubmissionsView?
-                                if (page?.adapter != null) {
-                                    page.adapter!!.refreshView()
-                                }
-                            }
-                        } else {
-                            if (mAsyncGetSubreddit != null) {
-                                mAsyncGetSubreddit!!.cancel(true)
-                            }
-                            if (header!!.translationY == 0f) {
-                                header!!.animate()
-                                    .translationY(-header!!.height * 1.5f)
-                                    .setInterpolator(LinearInterpolator()).duration = 180
-                            }
-                            pager!!.setSwipeLeftOnly(true)
-                            themeSystemBars(openingComments!!.groupName.lowercase())
-                            setRecentBar(openingComments!!.groupName.lowercase())
-                        }
-                    }
-                }
-
-                override fun onPageSelected(position: Int) {
-                    if (position == toOpenComments - 1 && adapter != null && adapter!!.currentFragment != null) {
-                        val page = adapter!!.currentFragment as SubmissionsView?
-                        if (page?.adapter != null) {
-                            page.adapter!!.refreshView()
-                            val p = page.adapter!!.dataSet
-                            if (p.offline && !isRestart) {
-                                p.doMainActivityOffline(this@MainActivity, p.displayer)
-                            }
-                        }
-                    } else {
-                        val page = adapter!!.currentFragment as SubmissionsView?
-                        if (page?.adapter != null) {
-                            val p = page.adapter!!.dataSet
-                            if (p.offline && !isRestart) {
-                                p.doMainActivityOffline(this@MainActivity, p.displayer)
-                            }
-                        }
-                    }
-                }
-            })
-            notifyDataSetChanged()
-        }
-
-        override fun getCount(): Int {
-            return if (usedArray == null) {
-                1
-            } else {
-                size
-            }
-        }
-
-        override fun getItem(i: Int): Fragment {
-            return if (openingComments == null || i != toOpenComments) {
-                val f = SubmissionsView()
-                val args = Bundle()
-                if (usedArray!!.size > i) {
-                    if (multiNameToSubsMap.containsKey(usedArray!![i])) {
-                        //if (usedArray.get(i).co
-                        args.putString("id", multiNameToSubsMap[usedArray!![i]])
-                    } else {
-                        args.putString("id", usedArray!![i])
-                    }
-                }
-                f.arguments = args
-                f
-            } else {
-                val f: Fragment = CommentPage()
-                val args = Bundle()
-                val name = openingComments!!.uri
-                args.putString("id", openingComments!!.rowId.toString())
-                args.putBoolean("archived", openingComments!!.isArchived)
-                args.putBoolean("contest", openingComments!!.isContest)
-                args.putBoolean("locked", openingComments!!.isLocked)
-                args.putInt("page", currentComment)
-                args.putString("subreddit", openingComments!!.groupName)
-                args.putString("baseSubreddit", subToDo)
-                f.arguments = args
-                f
-            }
-        }
-
-        override fun saveState(): Parcelable? {
-            return null
-        }
-
-        override fun doSetPrimary(obj: Any?, position: Int) {
-            if (position != toOpenComments) {
-                if (multiNameToSubsMap.containsKey(usedArray!![position])) {
-                    shouldLoad = multiNameToSubsMap[usedArray!![position]]
-                } else {
-                    shouldLoad = usedArray!![position]
-                }
-                if (currentFragment !== obj) {
-                    mCurrentFragment = obj as SubmissionsView?
-                    if (mCurrentFragment != null && mCurrentFragment!!.posts == null && mCurrentFragment!!.isAdded
-                    ) {
-                        mCurrentFragment!!.doAdapter()
-                    }
-                }
-            } else if (obj is CommentPage) {
-                mCurrentComments = obj
-            }
-        }
-
-        override val currentFragment: Fragment?
-            get() = mCurrentFragment
-
-        override fun getItemPosition(`object`: Any): Int {
-            return if (`object` !== storedFragment) POSITION_NONE else POSITION_UNCHANGED
-        }
-
-        override fun getPageTitle(position: Int): CharSequence? {
-            return if (usedArray != null && position != toOpenComments) {
-                StringUtil.abbreviate(usedArray!![position], 25)
-            } else {
-                ""
-            }
         }
     }
 

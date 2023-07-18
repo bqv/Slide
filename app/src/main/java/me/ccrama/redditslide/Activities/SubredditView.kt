@@ -32,9 +32,9 @@ import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
-import androidx.fragment.app.FragmentStatePagerAdapter
+import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.viewpager.widget.ViewPager.SimpleOnPageChangeListener
+import androidx.viewpager2.widget.ViewPager2.OnPageChangeCallback
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.input.input
 import com.afollestad.materialdialogs.list.listItems
@@ -83,6 +83,8 @@ import me.ccrama.redditslide.views.CommentOverflow
 import me.ccrama.redditslide.views.PreCachingLayoutManager
 import me.ccrama.redditslide.views.SidebarLayout
 import me.ccrama.redditslide.views.ToggleSwipeViewPager
+import me.ccrama.redditslide.views.setSwipeLeftOnly
+import me.ccrama.redditslide.views.setSwipingEnabled
 import net.dean.jraw.ApiException
 import net.dean.jraw.http.MultiRedditUpdateRequest
 import net.dean.jraw.http.NetworkException
@@ -1400,15 +1402,12 @@ class SubredditView : BaseActivity() {
         }
     }
 
-    open inner class SubredditPagerAdapter(fm: FragmentManager?) : FragmentStatePagerAdapter(
-        fm!!, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT
-    ) {
+    open inner class SubredditPagerAdapter(fm: FragmentManager) : FragmentStateAdapter(fm, lifecycle) {
         private var mCurrentFragment: SubmissionsView? = null
         private var blankPage: BlankFragment? = null
 
         init {
-            pager!!.clearOnPageChangeListeners()
-            pager!!.addOnPageChangeListener(object : SimpleOnPageChangeListener() {
+            pager!!.registerOnPageChangeCallback(object : OnPageChangeCallback() {
                 override fun onPageScrolled(
                     position: Int, positionOffset: Float,
                     positionOffsetPixels: Int
@@ -1438,11 +1437,11 @@ class SubredditView : BaseActivity() {
             }
         }
 
-        override fun getCount(): Int {
+        override fun getItemCount(): Int {
             return 2
         }
 
-        override fun getItem(i: Int): Fragment {
+        override fun createFragment(i: Int): Fragment {
             return if (i == 1) {
                 val f = SubmissionsView()
                 val args = Bundle()
@@ -1455,18 +1454,16 @@ class SubredditView : BaseActivity() {
             }
         }
 
-        override fun setPrimaryItem(container: ViewGroup, position: Int, `object`: Any) {
-            super.setPrimaryItem(container, position, `object`)
-            doSetPrimary(`object`, position)
+        fun setPrimaryItem(container: ViewGroup, position: Int, obj: Any) {
+            /*
+            super.setPrimaryItem(container, position, obj)
+            doSetPrimary(obj, position)
+             */TODO("hmm")
         }
 
-        override fun saveState(): Parcelable? {
-            return null
-        }
-
-        open fun doSetPrimary(`object`: Any?, position: Int) {
-            if ((`object` != null) && currentFragment !== `object` && position != 3 && `object` is SubmissionsView) {
-                mCurrentFragment = `object`
+        open fun doSetPrimary(obj: Any?, position: Int) {
+            if ((obj != null) && currentFragment !== obj && position != 3 && obj is SubmissionsView) {
+                mCurrentFragment = obj
                 if (mCurrentFragment!!.posts == null && mCurrentFragment!!.isAdded) {
                     mCurrentFragment!!.doAdapter()
                 }
@@ -1477,17 +1474,14 @@ class SubredditView : BaseActivity() {
             get() = mCurrentFragment
     }
 
-    inner class SubredditPagerAdapterComment(fm: FragmentManager?) : SubredditPagerAdapter(fm) {
-        @JvmField
-        var size = 2
-        @JvmField
-        var storedFragment: Fragment? = null
+    inner class SubredditPagerAdapterComment(fm: FragmentManager) : SubredditPagerAdapter(fm) {
+        @JvmField var size = 2
+        @JvmField var storedFragment: Fragment? = null
         var blankPage: BlankFragment? = null
         private var mCurrentFragment: SubmissionsView? = null
 
         init {
-            pager!!.clearOnPageChangeListeners()
-            pager!!.addOnPageChangeListener(object : SimpleOnPageChangeListener() {
+            pager!!.registerOnPageChangeCallback(object : OnPageChangeCallback() {
                 override fun onPageScrolled(
                     position: Int, positionOffset: Float,
                     positionOffsetPixels: Int
@@ -1531,17 +1525,13 @@ class SubredditView : BaseActivity() {
             }
         }
 
-        override fun saveState(): Parcelable? {
-            return null
-        }
-
         override val currentFragment: Fragment?
             get() = mCurrentFragment
 
-        override fun doSetPrimary(`object`: Any?, position: Int) {
+        override fun doSetPrimary(obj: Any?, position: Int) {
             if (position != 2 && position != 0) {
-                if (currentFragment !== `object`) {
-                    mCurrentFragment = (`object` as SubmissionsView?)
+                if (currentFragment !== obj) {
+                    mCurrentFragment = (obj as SubmissionsView?)
                     if ((mCurrentFragment != null
                                 ) && (mCurrentFragment!!.posts == null
                                 ) && mCurrentFragment!!.isAdded
@@ -1552,11 +1542,13 @@ class SubredditView : BaseActivity() {
             }
         }
 
-        override fun getItemPosition(`object`: Any): Int {
-            return if (`object` !== storedFragment) POSITION_NONE else POSITION_UNCHANGED
+        fun getItemPosition(obj: Any): Int {
+            /*
+            return if (obj !== storedFragment) POSITION_NONE else POSITION_UNCHANGED
+             */TODO("hmm")
         }
 
-        override fun getItem(i: Int): Fragment {
+        override fun createFragment(i: Int): Fragment {
             return if (i == 0) {
                 blankPage = BlankFragment()
                 blankPage!!
@@ -1585,7 +1577,7 @@ class SubredditView : BaseActivity() {
             }
         }
 
-        override fun getCount(): Int {
+        override fun getItemCount(): Int {
             return size
         }
     }
@@ -1619,9 +1611,7 @@ class SubredditView : BaseActivity() {
                         .setMessage(
                             """${getString(R.string.over18_desc)}
 
-""" + getString(
-                                if (Authentication.isLoggedIn) R.string.over18_desc_loggedin else R.string.over18_desc_loggedout
-                            )
+                            """.trimIndent() + getString(if (Authentication.isLoggedIn) R.string.over18_desc_loggedin else R.string.over18_desc_loggedout)
                         )
                         .setCancelable(false)
                         .setPositiveButton(R.string.misc_continue) { dialog: DialogInterface?, which: Int ->
