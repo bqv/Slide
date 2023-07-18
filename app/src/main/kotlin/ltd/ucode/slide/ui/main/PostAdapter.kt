@@ -6,7 +6,7 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import ltd.ucode.slide.data.entity.Post
 
-class MainAdapter(diffCallback: DiffUtil.ItemCallback<Post>) : PagingDataAdapter<Post, RecyclerView.ViewHolder>(diffCallback) {
+class PostAdapter(diffCallback: DiffUtil.ItemCallback<Post>) : PagingDataAdapter<Post, RecyclerView.ViewHolder>(diffCallback) {
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         TODO("Not yet implemented")
     }

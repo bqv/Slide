@@ -789,7 +789,9 @@ class MainActivity : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         inNightMode = SettingValues.isNight
         disableSwipeBackLayout()
+
         super.onCreate(savedInstanceState)
+
         if (intent.flags and Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT != 0) {
             // Activity was brought to front and not created
             finish()
@@ -925,8 +927,11 @@ class MainActivity : BaseActivity() {
         }
         if (intent.getBooleanExtra("EXIT", false)) finish()
         applyColorTheme()
-        setContentView(R.layout.activity_main)
+
         binding = ActivityMainBinding.inflate(layoutInflater)
+        val view = binding.root
+        setContentView(view)
+
         mToolbar = findViewById<Toolbar>(R.id.toolbar)
         mToolbar!!.popupTheme = ColorPreferences(this).fontStyle.baseId
         setSupportActionBar(mToolbar)
