@@ -24,13 +24,13 @@ import com.google.android.material.snackbar.Snackbar
 import com.mikepenz.itemanimators.AlphaInAnimator
 import com.mikepenz.itemanimators.SlideUpAlphaAnimator
 import dagger.hilt.android.AndroidEntryPoint
+import ltd.ucode.network.data.IPost
 import ltd.ucode.slide.App
 import ltd.ucode.slide.R
 import ltd.ucode.slide.SettingValues
 import ltd.ucode.slide.SettingValues.colours
 import ltd.ucode.slide.SettingValues.defaultCardView
 import ltd.ucode.slide.SettingValues.fabType
-import ltd.ucode.network.data.IPost
 import ltd.ucode.slide.repository.CommentRepository
 import ltd.ucode.slide.repository.PostRepository
 import me.ccrama.redditslide.Activities.Search
@@ -85,7 +85,7 @@ class MultiredditView : Fragment(), SubmissionDisplay {
         val mLayoutManager = createLayoutManager(
             LayoutUtils.getNumColumns(
                 resources.configuration.orientation,
-                activity
+                requireActivity()
             )
         )
         rv!!.setLayoutManager(mLayoutManager)
@@ -336,7 +336,7 @@ class MultiredditView : Fragment(), SubmissionDisplay {
         super.onConfigurationChanged(newConfig)
         val currentOrientation = newConfig.orientation
         val mLayoutManager = rv!!.layoutManager as CatchStaggeredGridLayoutManager?
-        mLayoutManager!!.spanCount = LayoutUtils.getNumColumns(currentOrientation, activity)
+        mLayoutManager!!.spanCount = LayoutUtils.getNumColumns(currentOrientation, requireActivity())
     }
 
     override fun updateSuccess(submissions: List<IPost>, startIndex: Int) {

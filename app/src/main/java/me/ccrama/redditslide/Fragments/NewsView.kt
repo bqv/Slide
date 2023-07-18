@@ -27,6 +27,7 @@ import com.google.android.material.snackbar.Snackbar
 import com.mikepenz.itemanimators.AlphaInAnimator
 import com.mikepenz.itemanimators.SlideUpAlphaAnimator
 import dagger.hilt.android.AndroidEntryPoint
+import ltd.ucode.network.data.IPost
 import ltd.ucode.slide.App
 import ltd.ucode.slide.R
 import ltd.ucode.slide.SettingValues
@@ -35,7 +36,6 @@ import ltd.ucode.slide.SettingValues.defaultCardView
 import ltd.ucode.slide.SettingValues.fabType
 import ltd.ucode.slide.SettingValues.single
 import ltd.ucode.slide.SettingValues.subredditSearchMethod
-import ltd.ucode.network.data.IPost
 import ltd.ucode.slide.repository.CommentRepository
 import ltd.ucode.slide.repository.PostRepository
 import ltd.ucode.slide.ui.BaseActivity
@@ -85,7 +85,7 @@ class NewsView : Fragment(), SubmissionDisplay {
         super.onConfigurationChanged(newConfig)
         val currentOrientation = newConfig.orientation
         val mLayoutManager = rv!!.layoutManager as CatchStaggeredGridLayoutManager?
-        mLayoutManager!!.spanCount = LayoutUtils.getNumColumns(currentOrientation, activity)
+        mLayoutManager!!.spanCount = LayoutUtils.getNumColumns(currentOrientation, requireActivity())
     }
 
     var mLongPressRunnable: Runnable? = null
@@ -107,7 +107,7 @@ class NewsView : Fragment(), SubmissionDisplay {
         rv = v.findViewById(R.id.vertical_content)
         rv!!.setHasFixedSize(true)
         val mLayoutManager = createLayoutManager(
-            LayoutUtils.getNumColumns(resources.configuration.orientation, activity)
+            LayoutUtils.getNumColumns(resources.configuration.orientation, requireActivity())
         )
         if (activity !is SubredditView) {
             v.findViewById<View>(R.id.back).background = null
