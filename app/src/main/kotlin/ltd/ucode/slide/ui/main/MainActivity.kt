@@ -67,6 +67,7 @@ import androidx.core.view.GravityCompat
 import androidx.customview.widget.ViewDragHelper
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.lifecycle.lifecycleScope
+import androidx.viewpager2.widget.ViewPager2
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.WhichButton
@@ -157,9 +158,8 @@ import me.ccrama.redditslide.views.CatchStaggeredGridLayoutManager
 import me.ccrama.redditslide.views.CommentOverflow
 import me.ccrama.redditslide.views.PreCachingLayoutManager
 import me.ccrama.redditslide.views.SidebarLayout
-import me.ccrama.redditslide.views.ToggleSwipeViewPager
-import me.ccrama.redditslide.views.setSwipeLeftOnly
-import me.ccrama.redditslide.views.setSwipingEnabled
+import me.ccrama.redditslide.views.ViewPager2Extensions.setSwipeLeftOnly
+import me.ccrama.redditslide.views.ViewPager2Extensions.setSwipingEnabled
 import net.dean.jraw.ApiException
 import net.dean.jraw.http.MultiRedditUpdateRequest
 import net.dean.jraw.http.NetworkException
@@ -205,7 +205,7 @@ class MainActivity : BaseActivity() {
     val ANIMATE_DURATION: Long = 250 //duration of animations
     val ANIMATE_DURATION_OFFSET: Long = 45 //offset for smoothing out the exit animations
     @JvmField var singleMode = false
-    @JvmField var pager: ToggleSwipeViewPager? = null
+    @JvmField var pager: ViewPager2? = null
     @JvmField var usedArray: CaseInsensitiveArrayList? = null
     @JvmField var drawerLayout: DrawerLayout? = null
     var hea: View? = null
@@ -951,7 +951,7 @@ class MainActivity : BaseActivity() {
                     }
                 })
         }
-        pager = findViewById<ToggleSwipeViewPager>(R.id.content_view)
+        pager = findViewById<ViewPager2>(R.id.content_view)
         singleMode = SettingValues.single
         if (singleMode) {
             commentPager = SettingValues.commentPager

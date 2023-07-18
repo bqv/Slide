@@ -8,7 +8,7 @@ import androidx.viewpager2.widget.ViewPager2
 import me.ccrama.redditslide.Fragments.CommentPage
 import me.ccrama.redditslide.Fragments.SubmissionsView
 import me.ccrama.redditslide.Visuals.Palette
-import me.ccrama.redditslide.views.setSwipeLeftOnly
+import me.ccrama.redditslide.views.ViewPager2Extensions.setSwipeLeftOnly
 
 class MainPagerAdapterComment(private val mainActivity: MainActivity,
                               fm: FragmentManager,

@@ -11,6 +11,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.viewpager2.adapter.FragmentStateAdapter
+import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 import ltd.ucode.slide.Authentication
@@ -20,13 +21,12 @@ import me.ccrama.redditslide.Fragments.WikiPage
 import me.ccrama.redditslide.Visuals.ColorPreferences
 import me.ccrama.redditslide.Visuals.Palette
 import me.ccrama.redditslide.util.LogUtil
-import me.ccrama.redditslide.views.ToggleSwipeViewPager
-import me.ccrama.redditslide.views.disableSwipingUntilRelease
+import me.ccrama.redditslide.views.ViewPager2Extensions.disableSwipingUntilRelease
 import net.dean.jraw.managers.WikiManager
 
 class Wiki : BaseActivityAnim(), WikiPage.WikiPageListener {
     private lateinit var tabs: TabLayout
-    private lateinit var pager: ToggleSwipeViewPager
+    private lateinit var pager: ViewPager2
     private lateinit var subreddit: String
     private var adapter: WikiPagerAdapter? = null
     private var pages: MutableList<String>? = null
@@ -52,7 +52,7 @@ class Wiki : BaseActivityAnim(), WikiPage.WikiPageListener {
         tabs = findViewById<TabLayout>(R.id.sliding_tabs)
         tabs.tabMode = TabLayout.MODE_SCROLLABLE
         tabs.setSelectedTabIndicatorColor(ColorPreferences(this@Wiki).getColor("no sub"))
-        pager = findViewById<ToggleSwipeViewPager>(R.id.content_view)
+        pager = findViewById<ViewPager2>(R.id.content_view)
         findViewById<View>(R.id.header).setBackgroundColor(Palette.getColor(subreddit))
         AsyncGetWiki().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR)
     }

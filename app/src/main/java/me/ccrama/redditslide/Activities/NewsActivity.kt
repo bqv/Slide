@@ -18,6 +18,7 @@ import androidx.appcompat.widget.Toolbar
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.viewpager2.adapter.FragmentStateAdapter
+import androidx.viewpager2.widget.ViewPager2
 import androidx.viewpager2.widget.ViewPager2.OnPageChangeCallback
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
@@ -40,7 +41,6 @@ import me.ccrama.redditslide.util.NetworkStateReceiver
 import me.ccrama.redditslide.util.NetworkUtil
 import me.ccrama.redditslide.util.StringUtil
 import me.ccrama.redditslide.views.CatchStaggeredGridLayoutManager
-import me.ccrama.redditslide.views.ToggleSwipeViewPager
 import net.dean.jraw.managers.AccountManager
 
 class NewsActivity : BaseActivity(), NetworkStateReceiver.NetworkStateReceiverListener {
@@ -49,7 +49,7 @@ class NewsActivity : BaseActivity(), NetworkStateReceiver.NetworkStateReceiverLi
     private val ANIMATE_DURATION_OFFSET: Long = 45
 
     //offset for smoothing out the exit animations
-    lateinit var pager: ToggleSwipeViewPager
+    lateinit var pager: ViewPager2
     var usedArray: CaseInsensitiveArrayList? = null
     var adapter: NewsPagerAdapter? = null
     lateinit var mTabLayout: TabLayout

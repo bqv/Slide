@@ -34,6 +34,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.viewpager2.widget.ViewPager2
 import androidx.viewpager2.widget.ViewPager2.OnPageChangeCallback
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.input.input
@@ -82,9 +83,8 @@ import me.ccrama.redditslide.views.CatchStaggeredGridLayoutManager
 import me.ccrama.redditslide.views.CommentOverflow
 import me.ccrama.redditslide.views.PreCachingLayoutManager
 import me.ccrama.redditslide.views.SidebarLayout
-import me.ccrama.redditslide.views.ToggleSwipeViewPager
-import me.ccrama.redditslide.views.setSwipeLeftOnly
-import me.ccrama.redditslide.views.setSwipingEnabled
+import me.ccrama.redditslide.views.ViewPager2Extensions.setSwipeLeftOnly
+import me.ccrama.redditslide.views.ViewPager2Extensions.setSwipingEnabled
 import net.dean.jraw.ApiException
 import net.dean.jraw.http.MultiRedditUpdateRequest
 import net.dean.jraw.http.NetworkException
@@ -112,7 +112,7 @@ class SubredditView : BaseActivity() {
     var adapter: SubredditPagerAdapter? = null
     var term: String? = null
     @JvmField
-    var pager: ToggleSwipeViewPager? = null
+    var pager: ViewPager2? = null
     @JvmField
     var singleMode = false
     @JvmField
@@ -188,7 +188,7 @@ class SubredditView : BaseActivity() {
         drawerLayout = findViewById<View>(R.id.drawer_layout) as DrawerLayout
         setResult(3)
         mToolbar!!.popupTheme = ColorPreferences(this).fontStyle.baseId
-        pager = findViewById<View>(R.id.content_view) as ToggleSwipeViewPager
+        pager = findViewById(R.id.content_view)
         singleMode = single
         commentPager = false
         if (singleMode) commentPager = SettingValues.commentPager
