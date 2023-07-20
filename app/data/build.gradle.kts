@@ -11,7 +11,7 @@ android {
     compileSdk = 33
 
     defaultConfig {
-        minSdk = 23
+        minSdk = 26
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
@@ -41,9 +41,12 @@ android {
 }
 
 dependencies {
+    api(project(mapOf("path" to ":app:data:common")))
+    api(project(mapOf("path" to ":app:data:lemmy")))
     implementation(project(mapOf("path" to ":app:util")))
     implementation(project(mapOf("path" to ":network")))
     implementation(project(mapOf("path" to ":util")))
+    ksp(project(mapOf("path" to ":util:ksp")))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)

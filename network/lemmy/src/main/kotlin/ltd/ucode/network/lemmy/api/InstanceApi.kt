@@ -14,6 +14,7 @@ import kotlinx.serialization.json.int
 import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonObject
 import ltd.ucode.network.Serializers
+import ltd.ucode.network.lemmy.api.KeepJsonConverterFactoryWrapper.Companion.keepJson
 import ltd.ucode.network.lemmy.api.request.CreateCommentLikeRequest
 import ltd.ucode.network.lemmy.api.request.CreatePostLikeRequest
 import ltd.ucode.network.lemmy.api.request.GetCommentsRequest
@@ -53,6 +54,7 @@ import retrofit2.Response
 import retrofit2.Retrofit
 import java.net.HttpCookie
 import kotlin.reflect.KFunction1
+
 
 open class InstanceApi (
     val instance: String,
@@ -385,14 +387,7 @@ open class InstanceApi (
                         response.errorBody()?.string().orEmpty())
                 }
                 else -> {
-                    val element = response.raw().body
-                        ?.run { source().peek().readUtf8() }
-
                     response.body()!!
-                        .apply {
-                            if (!element.isNullOrBlank())
-                                this.raw = json.parseToJsonElement(element)
-                        }
                 }
             }
         }
@@ -448,13 +443,12 @@ open class InstanceApi (
             .addConverterFactory(
                 Serializers.snakeCase.asConverterFactory(
                     "application/json".toMediaType()
-                )
+                ).keepJson()
             )
             .build()
 
         return retrofit.create(ILemmyHttpApi::class.java)
     }
-
 
     private val json: Json by lazy {
         Json { encodeDefaults = true }

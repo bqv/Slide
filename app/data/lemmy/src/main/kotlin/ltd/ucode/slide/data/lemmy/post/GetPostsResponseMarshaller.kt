@@ -2,12 +2,12 @@ package ltd.ucode.slide.data.lemmy.post
 
 import ltd.ucode.network.lemmy.api.response.GetPostsResponse
 import ltd.ucode.network.lemmy.data.type.PostView
-import ltd.ucode.slide.data.ContentDatabase
-import ltd.ucode.slide.data.entity.Post
+import ltd.ucode.slide.data.common.content.IContentDatabase
+import ltd.ucode.slide.data.common.entity.Post
 import ltd.ucode.slide.data.lemmy.post.GetPostResponseMarshaller.copy
 
 object GetPostsResponseMarshaller {
-    fun GetPostsResponse.toPosts(contentDatabase: ContentDatabase, domain: String): List<Post> {
+    fun GetPostsResponse.toPosts(contentDatabase: IContentDatabase, domain: String): List<Post> {
         return posts.map {
             it.toPost(
                 siteRowId = contentDatabase.sites.get(it.community.instanceId.id, domain),

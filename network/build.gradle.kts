@@ -1,7 +1,6 @@
 plugins {
     id(libs.plugins.java.library.get().pluginId)
     id(libs.plugins.kotlin.jvm.get().pluginId)
-    id(libs.plugins.kotlin.serialization.get().pluginId)
 }
 
 java {
@@ -10,11 +9,9 @@ java {
 }
 
 dependencies {
+    api(project(mapOf("path" to ":network:common")))
+    api(project(mapOf("path" to ":network:lemmy")))
+    api(project(mapOf("path" to ":network:reddit")))
+    api(project(mapOf("path" to ":network:stats")))
     implementation(project(mapOf("path" to ":util")))
-
-    implementation(libs.jraw)
-    implementation(libs.kotlinx.datetime)
-    implementation(libs.kotlinx.serialization)
-
-    implementation(libs.markdown)
 }

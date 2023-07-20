@@ -11,7 +11,7 @@ java {
 
 dependencies {
 
-    implementation(project(mapOf("path" to ":network")))
+    implementation(project(mapOf("path" to ":network:common")))
     implementation(libs.jraw)
 
     implementation(libs.okhttp)

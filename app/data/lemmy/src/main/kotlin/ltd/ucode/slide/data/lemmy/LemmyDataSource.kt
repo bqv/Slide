@@ -14,9 +14,10 @@ import ltd.ucode.network.lemmy.data.id.PostId
 import ltd.ucode.network.lemmy.data.type.PostListingType
 import ltd.ucode.network.lemmy.data.type.PostSortType
 import ltd.ucode.network.lemmy.data.type.jwt.Token
-import ltd.ucode.slide.data.ContentDatabase
 import ltd.ucode.slide.data.auth.Credential
-import ltd.ucode.slide.data.auth.CredentialDatabase
+import ltd.ucode.slide.data.common.auth.ICredentialDatabase
+import ltd.ucode.slide.data.common.content.IContentDatabase
+import ltd.ucode.slide.data.common.source.INetworkDataSource
 import ltd.ucode.slide.data.lemmy.post.GetPostResponseMarshaller.toPost
 import ltd.ucode.slide.data.lemmy.post.GetPostsResponseMarshaller.toPosts
 import ltd.ucode.slide.data.lemmy.post.PostListingTypeMarshaller.from
@@ -24,44 +25,47 @@ import ltd.ucode.slide.data.lemmy.post.PostSortTypeMarshaller.from
 import ltd.ucode.slide.data.lemmy.site.GetFederatedInstancesResponseExtensions.toSites
 import ltd.ucode.slide.data.lemmy.site.GetSiteResponseExtensions.toSite
 import ltd.ucode.slide.data.lemmy.site.TheFederationNodeExtensions.toSiteMetadataPartial
-import ltd.ucode.slide.data.source.INetworkDataSource
 import ltd.ucode.slide.data.value.Feed
 import ltd.ucode.slide.data.value.Period
 import ltd.ucode.slide.data.value.Sorting
+import ltd.ucode.util.ksp.locator.Locator
 import okhttp3.OkHttpClient
 
 class LemmyDataSource(
     private val okHttpClient: OkHttpClient,
     private val userAgent: String,
-    private val contentDatabase: ContentDatabase,
-    credentialDatabase: CredentialDatabase,
-) : INetworkDataSource("lemmy", credentialDatabase) {
-    companion object {
-        init {
-            INetworkDataSource += object : INetworkDataSourceFactory {
-                override fun create(
-                    okHttpClient: OkHttpClient,
-                    userAgent: String,
-                    contentDatabase: ContentDatabase,
-                    credentialDatabase: CredentialDatabase,
-                ): INetworkDataSource {
-                    return LemmyDataSource(okHttpClient, userAgent, contentDatabase, credentialDatabase)
-                }
-            }
+    private val contentDatabase: IContentDatabase,
+    credentialDatabase: ICredentialDatabase,
+) : INetworkDataSource(name, credentialDatabase) {
+    @Locator(INetworkDataSourceFactory::class)
+    companion object : INetworkDataSourceFactory {
+        const val name = "lemmy"
+
+        override fun create(
+            okHttpClient: OkHttpClient,
+            userAgent: String,
+            contentDatabase: IContentDatabase,
+            credentialDatabase: ICredentialDatabase,
+        ): INetworkDataSource {
+            return LemmyDataSource(okHttpClient, userAgent, contentDatabase, credentialDatabase)
         }
     }
 
     private val getApi: InstanceMap = InstanceMap(okHttpClient, userAgent) { username, domain ->
         val credential = getCredential(username, domain)
-        val uri = Uri.parse(credential.string)
+        try {
+            val uri = Uri.parse(credential.string)
+            assert(uri.host == domain) { "${uri.host} != $domain " }
+            assert(uri.userInfo == username) { "${uri.userInfo} != $username " }
+            val jwt = uri.getQueryParameter("jwt")
+                ?: throw IllegalArgumentException(
+                    "Names were: {${uri.queryParameterNames.joinToString(", ")}}")
 
-        assert(uri.host == domain) { "${uri.host} != $domain " }
-        assert(uri.userInfo == username) { "${uri.userInfo} != $username "}
-        val jwt = uri.getQueryParameter("jwt")
-            ?: throw IllegalArgumentException(
-                "Names were: {${uri.queryParameterNames.joinToString(", ")}}")
-
-        Token(jwt)
+            Token(jwt)
+        } catch (e: Exception) {
+            credentialDatabase.delete(username, domain)
+            throw e
+        }
     }
 
     override suspend fun login(username: String, domain: String, credential: Credential): Credential {

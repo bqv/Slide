@@ -12,13 +12,13 @@ import ltd.ucode.network.lemmy.data.id.PostId
 import ltd.ucode.network.lemmy.data.type.CommentListingType
 import ltd.ucode.network.lemmy.data.type.CommentSortType
 import ltd.ucode.network.lemmy.data.type.CommentView
-import ltd.ucode.slide.data.ContentDatabase
+import ltd.ucode.slide.data.content.ContentDatabase
 import javax.inject.Inject
 
 class CommentRepository @Inject constructor(
-        @ApplicationContext private val context: Context,
-        private val contentDatabase: ContentDatabase,
-        private val networkRepository: NetworkRepository,
+    @ApplicationContext private val context: Context,
+    private val contentDatabase: ContentDatabase,
+    private val networkRepository: NetworkRepository,
 ) {
     fun getComments(instance: String?,
                     communityId: CommunityId? = null,

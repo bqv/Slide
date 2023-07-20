@@ -4,22 +4,17 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.mapNotNull
-import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.onEmpty
-import kotlinx.coroutines.flow.onStart
-import kotlinx.coroutines.flow.single
-import ltd.ucode.slide.data.Constants.DEFAULT_PAGE_SIZE
-import ltd.ucode.slide.data.ContentDatabase
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
 import ltd.ucode.slide.data.auth.Credential
 import ltd.ucode.slide.data.auth.CredentialDatabase
-import ltd.ucode.slide.data.entity.Post
-import ltd.ucode.slide.data.entity.Site
-import ltd.ucode.slide.data.source.INetworkDataSource.Companion.each
+import ltd.ucode.slide.data.common.Constants.DEFAULT_PAGE_SIZE
+import ltd.ucode.slide.data.common.entity.Post
+import ltd.ucode.slide.data.common.entity.Site
+import ltd.ucode.slide.data.common.source.INetworkDataSource
+import ltd.ucode.slide.data.content.ContentDatabase
+import ltd.ucode.slide.data.lemmy.LemmyDataSource
 import ltd.ucode.slide.data.value.Feed
 import ltd.ucode.slide.data.value.Period
 import ltd.ucode.slide.data.value.Sorting
@@ -34,27 +29,33 @@ class NetworkDataSource(
     private val credentialDatabase: CredentialDatabase,
 ) : IDataSource {
     private val sources: SortedMap<String, out INetworkDataSource> by lazy {
-        INetworkDataSource.sources(okHttpClient, userAgent, contentDatabase, credentialDatabase)
+        sortedMapOf(
+            LemmyDataSource.name to LemmyDataSource.create(okHttpClient, userAgent, contentDatabase, credentialDatabase)
+        )
     }
 
     private fun domainSource(domain: String): Flow<INetworkDataSource> = flow {
+        coroutineScope {
+            sources.forEach {
+                launch {
+                    it.value.updateSite(domain)
+                }
+            }
+        }
+
         contentDatabase.sites.flow(domain)
             .mapNotNull { it.software }
             .distinctUntilChanged()
             .mapNotNull { sources[it] }
-            .onEmpty {
-                sources.each {
-                    updateSite(domain)
-                }
-            }
+            .let { emitAll(it) }
     }
 
     override suspend fun login(username: String, domain: String) {
-        domainSource(domain).single().login(username, domain)
+        domainSource(domain).first().login(username, domain)
     }
 
     override suspend fun login(username: String, domain: String, credential: Credential) {
-        domainSource(domain).single().login(username, domain, credential)
+        domainSource(domain).first().login(username, domain, credential)
     }
 
     override fun getSite(rowId: Int): Flow<Site> {
@@ -68,10 +69,13 @@ class NetworkDataSource(
     override fun getSite(domain: String): Flow<Site> {
         return domainSource(domain)
             .flatMapLatest { source ->
-                contentDatabase.sites.flow(name = domain).distinctUntilChanged()
-                    .onEmpty {
+                coroutineScope {
+                    launch {
                         source.updateSite(domain)
                     }
+                }
+
+                contentDatabase.sites.flow(name = domain).distinctUntilChanged()
                     .onEach { site ->
                         val source = site.software?.let { sources[it] }
                         source?.updateSite(site.name)
@@ -79,21 +83,29 @@ class NetworkDataSource(
             }
     }
 
-    override fun getSites(): Flow<List<Site>> {
-        return contentDatabase.sites.flowAll().distinctUntilChanged()
-            .onStart {
-                sources.each {
-                    updateSites()
+    override fun getSites(): Flow<List<Site>> = flow {
+        coroutineScope {
+            sources.forEach {
+                launch {
+                    it.value.updateSites()
                 }
             }
+        }
+
+        contentDatabase.sites.flowAll().distinctUntilChanged()
+            .let { emitAll(it) }
     }
 
-    override fun getSites(software: String): Flow<List<Site>> {
-        return contentDatabase.sites.flowAllBySoftware(software).distinctUntilChanged()
-            .onStart {
-                val source = sources[software]
+    override fun getSites(software: String): Flow<List<Site>> = flow {
+        coroutineScope {
+            val source = sources[software]
+            launch {
                 source?.updateSites()
             }
+        }
+
+        contentDatabase.sites.flowAllBySoftware(software).distinctUntilChanged()
+            .let { emitAll(it) }
     }
 
     override fun getPost(rowId: Int): Flow<Post> {
@@ -107,15 +119,18 @@ class NetworkDataSource(
     override fun getPost(domain: String, key: Int): Flow<Post> {
         return domainSource(domain)
             .flatMapLatest { source ->
+                source.updatePost(domain, key)
+
                 contentDatabase.posts.flow(postId = key, siteName = domain).distinctUntilChanged()
-                    .onEmpty {
-                        source.updatePost(domain, key)
-                    }
                     .onEach { post ->
                         post.site.software?.let {
                             assert(source == sources[it])
                         }
-                        source.updatePost(post.site.name, post.postId)
+                        coroutineScope {
+                            launch {
+                                source.updatePost(post.site.name, post.postId)
+                            }
+                        }
                     }
             }
     }
@@ -146,10 +161,13 @@ class NetworkDataSource(
 
         return domainSource(domain)
             .flatMapLatest { source ->
-                pager.flow.distinctUntilChanged()
-                    .onStart {
+                coroutineScope {
+                    launch {
                         source.updatePosts(domain, feed, period, order)
                     }
+                }
+
+                pager.flow.distinctUntilChanged()
             }
     }
 
@@ -178,10 +196,13 @@ class NetworkDataSource(
 
         return domainSource(domain)
             .flatMapLatest { source ->
-                dbFlow.distinctUntilChanged()
-                    .onStart {
+                coroutineScope {
+                    launch {
                         source.updatePosts(domain, feed, period, order)
                     }
+                }
+
+                dbFlow.distinctUntilChanged()
             }
     }
 }

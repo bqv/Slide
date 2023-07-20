@@ -61,7 +61,7 @@ class InstanceMap(
 
     suspend operator fun invoke(uri: Uri): InstanceApi {
         logger.trace { "Keys were ${
-            flattened.map { (key, value) -> "$key:${value.javaClass.simpleName}}" }
+            flattened.map { (key, value) -> "$key:${value.javaClass.simpleName}" }
         } for $uri" }
 
         val host = uri.host ?: throw IllegalArgumentException()

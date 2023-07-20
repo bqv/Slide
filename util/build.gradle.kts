@@ -9,6 +9,8 @@ java {
 }
 
 dependencies {
+    api(project(mapOf("path" to ":util:ksp")))
+
     implementation(libs.kotlinx.coroutines)
     implementation(libs.kotlinx.datetime)
 

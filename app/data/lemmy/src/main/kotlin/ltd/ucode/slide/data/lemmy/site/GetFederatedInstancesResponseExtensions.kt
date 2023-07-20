@@ -1,7 +1,7 @@
 package ltd.ucode.slide.data.lemmy.site
 
 import ltd.ucode.network.lemmy.api.response.GetFederatedInstancesResponse
-import ltd.ucode.slide.data.entity.Site
+import ltd.ucode.slide.data.common.entity.Site
 
 object GetFederatedInstancesResponseExtensions {
     fun GetFederatedInstancesResponse.toSites(software: String): List<Site> {

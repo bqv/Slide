@@ -10,7 +10,7 @@ java {
 }
 
 dependencies {
-    implementation(project(mapOf("path" to ":network")))
+    implementation(project(mapOf("path" to ":network:common")))
     implementation(project(mapOf("path" to ":util")))
 
     implementation(libs.kotlinx.coroutines)

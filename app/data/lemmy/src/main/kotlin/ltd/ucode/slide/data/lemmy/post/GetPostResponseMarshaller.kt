@@ -4,12 +4,12 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toInstant
 import ltd.ucode.network.lemmy.api.response.GetPostResponse
 import ltd.ucode.network.lemmy.data.type.PostAggregates
-import ltd.ucode.slide.data.ContentDatabase
-import ltd.ucode.slide.data.entity.Post
+import ltd.ucode.slide.data.common.content.IContentDatabase
+import ltd.ucode.slide.data.common.entity.Post
 import ltd.ucode.network.lemmy.data.type.Post as LemmyPost
 
 object GetPostResponseMarshaller {
-    fun GetPostResponse.toPost(contentDatabase: ContentDatabase, domain: String): Post {
+    fun GetPostResponse.toPost(contentDatabase: IContentDatabase, domain: String): Post {
         return toPost(
             siteRowId = contentDatabase.sites.get(this.postView.community.instanceId.id, domain),
             groupRowId = contentDatabase.groups.get(this.communityView.community.id.id, domain),

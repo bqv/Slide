@@ -4,9 +4,9 @@ import android.content.Context
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import ltd.ucode.network.lemmy.data.type.CommunityView
-import ltd.ucode.slide.data.ContentDatabase
-import ltd.ucode.slide.data.entity.Group
-import ltd.ucode.slide.data.entity.Site
+import ltd.ucode.slide.data.content.ContentDatabase
+import ltd.ucode.slide.data.common.entity.Group
+import ltd.ucode.slide.data.common.entity.Site
 import javax.inject.Inject
 
 class GroupRepository @Inject constructor(

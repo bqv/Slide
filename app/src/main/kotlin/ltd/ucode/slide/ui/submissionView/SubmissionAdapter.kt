@@ -22,7 +22,7 @@ import ltd.ucode.slide.Authentication
 import ltd.ucode.slide.R
 import ltd.ucode.slide.SettingValues.appRestart
 import ltd.ucode.slide.SettingValues.getLayoutSettings
-import ltd.ucode.slide.data.entity.Post
+import ltd.ucode.slide.data.common.entity.Post
 import ltd.ucode.slide.repository.CommentRepository
 import ltd.ucode.slide.repository.PostRepository
 import ltd.ucode.slide.ui.commentsScreen.CommentsScreen

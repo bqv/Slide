@@ -7,6 +7,7 @@ dependencyResolutionManagement {
             val graphql = version("graphql", "6.5.3")
             val ktor = version("ktor", "2.3.1")
             val hilt = version("hilt", "2.46.1")
+            val ksp = version("ksp", "1.8.22-1.0.11")
             library("gradle-android", "com.android.tools.build", "gradle").versionRef(gradle)
             library("gradle-kotlin-gradle", "org.jetbrains.kotlin", "kotlin-gradle-plugin").versionRef(kotlin)
             library("gradle-kotlin-serialization", "org.jetbrains.kotlin", "kotlin-serialization").versionRef(kotlin)
@@ -31,7 +32,7 @@ dependencyResolutionManagement {
 
             plugin("androidGitVersion", "com.gladed.androidgitversion").version("0.4.14")
             plugin("hilt", "dagger.hilt.android.plugin").versionRef(hilt)
-            plugin("ksp", "com.google.devtools.ksp").version("1.8.22-1.0.11")
+            plugin("ksp", "com.google.devtools.ksp").versionRef(ksp)
 
             plugin("androidCacheFix", "org.gradle.android.cache-fix").version("2.7.2")
             plugin("gradleDoctor", "com.osacky.doctor").version("0.8.1")
@@ -152,6 +153,8 @@ dependencyResolutionManagement {
             library("kotlinx-serialization", "org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.1")
             // Soon: https://github.com/Kotlin/kotlinx.serialization/commit/782b9f3be9970e0fd36215a86bf7fdba9f2bfe83
 
+            library("ksp-symbolProcessing", "com.google.devtools.ksp", "symbol-processing-api").versionRef(ksp)
+
             library("markdown", "org.jetbrains:markdown:0.2.2")
             library("material", "com.google.android.material:material:1.4.0")
 
@@ -213,11 +216,13 @@ include(":app")
 include(":app:bottompicker")
 include(":app:crash")
 include(":app:data")
+include(":app:data:common")
 include(":app:data:lemmy")
 include(":app:roboto")
 include(":app:util")
 include(":app:videoplugin")
 include(":network")
+include(":network:common")
 include(":network:lemmy")
 include(":network:lotide")
 include(":network:reddit")
@@ -225,3 +230,4 @@ include(":network:stats")
 include(":network:ycombinator")
 include(":readability")
 include(":util")
+include(":util:ksp")

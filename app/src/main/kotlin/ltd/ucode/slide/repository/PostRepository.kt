@@ -7,8 +7,8 @@ import kotlinx.coroutines.flow.Flow
 import ltd.ucode.network.SingleVote
 import ltd.ucode.network.lemmy.data.id.CommentId
 import ltd.ucode.network.lemmy.data.id.PostId
-import ltd.ucode.slide.data.ContentDatabase
-import ltd.ucode.slide.data.entity.Post
+import ltd.ucode.slide.data.content.ContentDatabase
+import ltd.ucode.slide.data.common.entity.Post
 import ltd.ucode.slide.data.value.Feed
 import ltd.ucode.slide.data.value.Period
 import ltd.ucode.slide.data.value.Sorting

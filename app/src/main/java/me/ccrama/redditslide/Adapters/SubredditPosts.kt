@@ -23,7 +23,7 @@ import ltd.ucode.slide.R
 import ltd.ucode.slide.SettingValues
 import ltd.ucode.slide.SettingValues.getSubmissionSort
 import ltd.ucode.slide.SettingValues.getSubmissionTimePeriod
-import ltd.ucode.slide.data.entity.Post
+import ltd.ucode.slide.data.common.entity.Post
 import ltd.ucode.slide.data.value.Feed
 import ltd.ucode.slide.data.value.Period
 import ltd.ucode.slide.data.value.Sorting

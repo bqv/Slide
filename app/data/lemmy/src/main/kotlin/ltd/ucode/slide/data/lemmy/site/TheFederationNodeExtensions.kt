@@ -1,7 +1,7 @@
 package ltd.ucode.slide.data.lemmy.site
 
 import info.the_federation.graphql.generated.getlemmyserversquery.thefederation_node
-import ltd.ucode.slide.data.partial.SiteMetadataPartial
+import ltd.ucode.slide.data.common.partial.SiteMetadataPartial
 
 object TheFederationNodeExtensions {
     fun thefederation_node.toSiteMetadataPartial(): SiteMetadataPartial {

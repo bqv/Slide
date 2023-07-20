@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import ltd.ucode.slide.App.Companion.appContext
 import ltd.ucode.slide.Authentication
-import ltd.ucode.slide.data.entity.Site
+import ltd.ucode.slide.data.common.entity.Site
 import ltd.ucode.slide.repository.NetworkRepository
 import ltd.ucode.slide.util.ExceptionExtensions.toast
 import org.acra.ktx.sendSilentlyWithAcra

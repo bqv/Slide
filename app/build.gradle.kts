@@ -121,13 +121,9 @@ dependencies {
     implementation(project(mapOf("path" to ":app:bottompicker")))
     implementation(project(mapOf("path" to ":app:crash")))
     implementation(project(mapOf("path" to ":app:data")))
-    implementation(project(mapOf("path" to ":app:data:lemmy")))
     implementation(project(mapOf("path" to ":app:roboto")))
     implementation(project(mapOf("path" to ":app:util")))
     implementation(project(mapOf("path" to ":network")))
-    implementation(project(mapOf("path" to ":network:lemmy")))
-    implementation(project(mapOf("path" to ":network:reddit")))
-    implementation(project(mapOf("path" to ":network:stats")))
     implementation(project(mapOf("path" to ":readability")))
     implementation(project(mapOf("path" to ":util")))
 

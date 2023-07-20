@@ -6,7 +6,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import ltd.ucode.slide.data.ContentDatabase
+import ltd.ucode.slide.data.content.ContentDatabase
 import ltd.ucode.slide.data.auth.CredentialDatabase
 import ltd.ucode.slide.repository.AccountRepository
 import ltd.ucode.slide.repository.CommentRepository

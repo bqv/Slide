@@ -7,7 +7,7 @@ import ltd.ucode.network.lemmy.api.response.GetSiteResponse
 import ltd.ucode.network.lemmy.data.type.LocalSite
 import ltd.ucode.network.lemmy.data.type.SiteAggregates
 import ltd.ucode.network.lemmy.data.type.SiteView
-import ltd.ucode.slide.data.entity.Site
+import ltd.ucode.slide.data.common.entity.Site
 import ltd.ucode.network.lemmy.data.type.Site as LemmySite
 
 object GetSiteResponseExtensions {

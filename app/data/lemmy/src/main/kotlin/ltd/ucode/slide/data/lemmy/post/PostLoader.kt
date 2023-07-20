@@ -6,7 +6,6 @@ import androidx.paging.PagingData
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import androidx.paging.cachedIn
-import androidx.room.withTransaction
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.runBlocking
 import ltd.ucode.network.lemmy.api.ApiResult
@@ -14,11 +13,12 @@ import ltd.ucode.network.lemmy.api.InstanceApi
 import ltd.ucode.network.lemmy.api.request.GetPostsRequest
 import ltd.ucode.network.lemmy.data.type.PostListingType
 import ltd.ucode.network.lemmy.data.type.PostSortType
-import ltd.ucode.slide.data.ContentDatabase
-import ltd.ucode.slide.data.entity.Post
+import ltd.ucode.slide.data.common.content.IContentDatabase
+import ltd.ucode.slide.data.common.content.withTransaction
+import ltd.ucode.slide.data.common.entity.Post
 
 class PostLoader(
-        private val database: ContentDatabase,
+        private val database: IContentDatabase,
         private val api: InstanceApi,
         private val block: PostRequestBuilder.() -> Unit,
 ) : PagingSource<Int, Post>() {
@@ -83,7 +83,7 @@ class PostLoader(
 }
 
 fun example(
-        database: ContentDatabase,
+        database: IContentDatabase,
         api: InstanceApi,
         block: PostLoader.PostRequestBuilder.() -> Unit,
 ): Flow<PagingData<Post>> {

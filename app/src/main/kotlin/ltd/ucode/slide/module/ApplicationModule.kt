@@ -11,9 +11,10 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.serialization.json.JsonPrimitive
 import ltd.ucode.slide.BuildConfig
-import ltd.ucode.slide.data.ContentDatabase
 import ltd.ucode.slide.data.auth.CredentialDatabase
+import ltd.ucode.slide.data.content.ContentDatabase
 import okhttp3.HttpUrl
 import okhttp3.OkHttpClient
 import okio.Buffer
@@ -37,15 +38,47 @@ object ApplicationModule {
             ContentDatabase::class.java, ContentDatabase.filename)
             .fallbackToDestructiveMigration()
             .setQueryCallback(object : RoomDatabase.QueryCallback {
+                private var transactionDepth = 0
+
                 override fun onQuery(sqlQuery: String, bindArgs: List<Any?>) {
-                    logger.debug { "SQL Query: $sqlQuery" }
+                    when (sqlQuery) {
+                        "BEGIN TRANSACTION" -> {
+                            transactionDepth++
+                            return
+                        }
+                        "BEGIN DEFERRED TRANSACTION" -> {
+                            transactionDepth++
+                            return
+                        }
+                        "TRANSACTION SUCCESSFUL" -> {
+                            return
+                        }
+                        "END TRANSACTION" -> {
+                            transactionDepth--
+                            return
+                        }
+                    }
+                    val indent = List(transactionDepth) { " " }
+                        .joinToString("")
+                    logger.debug { "SQL Query: $indent$sqlQuery" }
                     if (bindArgs.isNotEmpty())
-                        logger.debug { "Query Arg: $bindArgs" }
+                        logger.debug { "Query Arg: ${bindArgs.map {
+                            when (it ?: return@map "NULL") {
+                                is String -> JsonPrimitive(it as String).toString()
+                                is Array<*> -> "NULL" // idk but it works
+                                else -> it.toString()
+                            }
+                        }}" }
                 }
             }, Executors.newSingleThreadExecutor())
             .addCallback(object : RoomDatabase.Callback() {
                 override fun onCreate(db: SupportSQLiteDatabase) {
                     super.onCreate(db)
+                    logger.debug { "New DB" }
+                }
+
+                override fun onOpen(db: SupportSQLiteDatabase) {
+                    super.onOpen(db)
                     ContentDatabase.initScripts.forEach { sql ->
                         db.query(sql.value, emptyArray())
                     }

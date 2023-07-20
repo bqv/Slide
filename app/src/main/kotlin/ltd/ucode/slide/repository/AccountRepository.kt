@@ -3,7 +3,7 @@ package ltd.ucode.slide.repository
 import android.content.Context
 import dagger.hilt.android.qualifiers.ApplicationContext
 import ltd.ucode.slide.Authentication
-import ltd.ucode.slide.data.ContentDatabase
+import ltd.ucode.slide.data.content.ContentDatabase
 import ltd.ucode.slide.data.auth.CredentialDatabase
 import javax.inject.Inject
 

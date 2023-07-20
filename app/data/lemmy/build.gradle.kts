@@ -11,7 +11,7 @@ android {
     compileSdk = 33
 
     defaultConfig {
-        minSdk = 23
+        minSdk = 26
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
@@ -41,9 +41,9 @@ android {
 }
 
 dependencies {
-    implementation(project(mapOf("path" to ":app:data")))
+    implementation(project(mapOf("path" to ":app:data:common")))
     implementation(project(mapOf("path" to ":app:util")))
-    implementation(project(mapOf("path" to ":network")))
+    implementation(project(mapOf("path" to ":network:common")))
     implementation(project(mapOf("path" to ":network:lemmy")))
     implementation(project(mapOf("path" to ":network:stats")))
     implementation(project(mapOf("path" to ":util")))

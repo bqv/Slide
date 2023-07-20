@@ -3,8 +3,8 @@ package ltd.ucode.slide.data.source
 import androidx.paging.PagingData
 import kotlinx.coroutines.flow.Flow
 import ltd.ucode.slide.data.auth.Credential
-import ltd.ucode.slide.data.entity.Post
-import ltd.ucode.slide.data.entity.Site
+import ltd.ucode.slide.data.common.entity.Post
+import ltd.ucode.slide.data.common.entity.Site
 import ltd.ucode.slide.data.value.Feed
 import ltd.ucode.slide.data.value.Period
 import ltd.ucode.slide.data.value.Sorting

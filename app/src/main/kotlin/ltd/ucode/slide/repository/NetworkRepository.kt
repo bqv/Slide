@@ -6,10 +6,10 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.Flow
-import ltd.ucode.slide.data.ContentDatabase
+import ltd.ucode.slide.data.content.ContentDatabase
 import ltd.ucode.slide.data.auth.Credential
 import ltd.ucode.slide.data.auth.CredentialDatabase
-import ltd.ucode.slide.data.entity.Site
+import ltd.ucode.slide.data.common.entity.Site
 import ltd.ucode.slide.data.source.NetworkDataSource
 import ltd.ucode.slide.data.source.OfflineDataSource
 import okhttp3.OkHttpClient

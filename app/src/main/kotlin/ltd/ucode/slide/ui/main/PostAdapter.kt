@@ -4,7 +4,7 @@ import android.view.ViewGroup
 import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
-import ltd.ucode.slide.data.entity.Post
+import ltd.ucode.slide.data.common.entity.Post
 
 class PostAdapter(diffCallback: DiffUtil.ItemCallback<Post>) : PagingDataAdapter<Post, RecyclerView.ViewHolder>(diffCallback) {
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {

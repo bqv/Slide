@@ -20,7 +20,7 @@ data class LocalSite (
     @SerialName("enable_nsfw") val isNsfwEnabled: Boolean,
     @SerialName("federation_debug") val isFederationDebugMode: Boolean = false, // REMOVED in 0.18.0
     @SerialName("federation_enabled") val isFederationEnabled: Boolean,
-    @SerialName("federation_worker_count") val federationWorkerCount: Int,
+    @SerialName("federation_worker_count") val federationWorkerCount: Int? = 0, // REMOVED in 0.18.?
     @SerialName("hide_modlog_mod_names") val isHiddenModlogModNames: Boolean,
     val id: LocalSiteId,
     @SerialName("legal_information") val legalInformation: String? = null,

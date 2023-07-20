@@ -6,19 +6,19 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingState
 import androidx.paging.RemoteMediator
-import androidx.room.withTransaction
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import ltd.ucode.network.lemmy.api.InstanceApi
 import ltd.ucode.network.lemmy.api.request.GetPostsRequest
-import ltd.ucode.slide.data.ContentDatabase
-import ltd.ucode.slide.data.entity.Post
+import ltd.ucode.slide.data.common.content.IContentDatabase
+import ltd.ucode.slide.data.common.content.withTransaction
+import ltd.ucode.slide.data.common.entity.Post
 import kotlin.time.Duration.Companion.hours
 
 @OptIn(ExperimentalPagingApi::class)
 class PostMediator(
         private val postId: Int,
-        private val database: ContentDatabase,
+        private val database: IContentDatabase,
         private val api: InstanceApi,
 ) : RemoteMediator<Int, Post>() {
     val postDao = database.posts
@@ -84,7 +84,7 @@ class PostMediator(
 @OptIn(ExperimentalPagingApi::class)
 fun example(
         postId: Int,
-        contentDatabase: ContentDatabase,
+        contentDatabase: IContentDatabase,
         api: InstanceApi,
 ) {
     val pager = Pager(config = PagingConfig(pageSize = 50),
