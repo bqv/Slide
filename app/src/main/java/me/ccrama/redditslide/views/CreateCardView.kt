@@ -24,7 +24,7 @@ object CreateCardView {
     }
 
     @JvmStatic
-    fun CreateView(viewGroup: ViewGroup): View? {
+    fun CreateView(viewGroup: ViewGroup): View {
         val cardEnum = SettingValues.defaultCardView
         var v: View? = null
         when (cardEnum) {

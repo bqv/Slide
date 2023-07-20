@@ -47,6 +47,7 @@ import android.widget.RelativeLayout
 import android.widget.TextView
 import android.widget.TextView.OnEditorActionListener
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.result.contract.ActivityResultContracts.RequestPermission
 import androidx.activity.viewModels
 import androidx.annotation.DrawableRes
@@ -67,8 +68,9 @@ import androidx.core.view.GravityCompat
 import androidx.customview.widget.ViewDragHelper
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.lifecycle.lifecycleScope
-import androidx.viewpager2.widget.ViewPager2
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.viewbinding.ViewBinding
+import androidx.viewpager2.widget.ViewPager2
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.WhichButton
 import com.afollestad.materialdialogs.actions.getActionButton
@@ -95,6 +97,9 @@ import ltd.ucode.slide.SettingValues
 import ltd.ucode.slide.data.value.Feed
 import ltd.ucode.slide.data.value.Sorting
 import ltd.ucode.slide.databinding.ActivityMainBinding
+import ltd.ucode.slide.databinding.DrawerLoggedinBinding
+import ltd.ucode.slide.databinding.DrawerLoggedoutBinding
+import ltd.ucode.slide.databinding.DrawerOfflineBinding
 import ltd.ucode.slide.repository.AccountRepository
 import ltd.ucode.slide.repository.CommentRepository
 import ltd.ucode.slide.repository.NetworkRepository
@@ -103,6 +108,7 @@ import ltd.ucode.slide.ui.BaseActivity
 import ltd.ucode.slide.ui.Slide
 import ltd.ucode.slide.ui.Tutorial
 import ltd.ucode.slide.ui.login.LoginActivity
+import ltd.ucode.slide.ui.submissionView.SubmissionsViewFragment
 import ltd.ucode.util.extensions.CoroutineScopeExtensions.executeAsyncTask
 import me.ccrama.redditslide.Activities.Announcement
 import me.ccrama.redditslide.Activities.CancelSubNotifs
@@ -126,7 +132,6 @@ import me.ccrama.redditslide.CaseInsensitiveArrayList
 import me.ccrama.redditslide.CommentCacheAsync
 import me.ccrama.redditslide.ForceTouch.util.DensityUtils
 import me.ccrama.redditslide.Fragments.DrawerItemsDialog.SettingsDrawerEnum
-import me.ccrama.redditslide.Fragments.SubmissionsView
 import me.ccrama.redditslide.HasSeen
 import me.ccrama.redditslide.ImageFlairs
 import me.ccrama.redditslide.Notifications.CheckForMail
@@ -145,6 +150,7 @@ import me.ccrama.redditslide.ui.settings.SettingsActivity
 import me.ccrama.redditslide.ui.settings.SettingsGeneralFragment
 import me.ccrama.redditslide.ui.settings.SettingsSubAdapter
 import me.ccrama.redditslide.ui.settings.SettingsThemeFragment
+import me.ccrama.redditslide.util.AnimatorUtil
 import me.ccrama.redditslide.util.EditTextValidator
 import me.ccrama.redditslide.util.LayoutUtils
 import me.ccrama.redditslide.util.LogUtil
@@ -185,17 +191,23 @@ import java.util.concurrent.Executors
 import javax.inject.Inject
 import net.dean.jraw.paginators.Sorting as RedditSorting
 
+// TODO: split into fragments based on adapter
 @AndroidEntryPoint
 class MainActivity : BaseActivity() {
     private val logger: KLogger = KotlinLogging.logger {}
     private val viewModel: MainViewModel by viewModels()
 
     private lateinit var binding: ActivityMainBinding
-    //private lateinit var adapter: MainAdapter
+    var adapter: IMainPagerAdapter? = null
 
-    var menu: Menu? = null
+    lateinit var menu: Menu
+    override var mToolbar: Toolbar
+        get() = binding.toolbar
+        set(_) { throw UnsupportedOperationException() }
     var mTabLayout: TabLayout? = null
-    var drawerSubList: ListView? = null
+    private var drawerSubList: ListView
+        get() = binding.drawerlistview
+        set(_) { throw UnsupportedOperationException() }
 
     @Inject lateinit var postRepository: PostRepository
     @Inject lateinit var commentRepository: CommentRepository
@@ -205,14 +217,13 @@ class MainActivity : BaseActivity() {
     val ANIMATE_DURATION: Long = 250 //duration of animations
     val ANIMATE_DURATION_OFFSET: Long = 45 //offset for smoothing out the exit animations
     @JvmField var singleMode = false
-    @JvmField var pager: ViewPager2? = null
+    val pager: ViewPager2 get() = binding.contentView
     @JvmField var usedArray: CaseInsensitiveArrayList? = null
     @JvmField var drawerLayout: DrawerLayout? = null
-    var hea: View? = null
+    var headerBack: View? = null
     @JvmField var drawerSearch: EditText? = null
     var header: View? = null
     var subToDo: String? = null
-    @JvmField var adapter: MainPagerAdapter? = null
     var toGoto = 0
     var first = true
     @JvmField var selectedSub: String? = null //currently selected subreddit
@@ -230,7 +241,7 @@ class MainActivity : BaseActivity() {
     var inNightMode = false
     var changed = false
     var term: String? = null
-    var headerMain: View? = null
+    lateinit var headerMain: LinearLayout
     var d: MaterialDialog? = null
     var currentFlair: AsyncTask<View?, Void?, View?>? = null
     var sidebarBody: SpoilerRobotoTextView? = null
@@ -243,14 +254,15 @@ class MainActivity : BaseActivity() {
     var mAsyncGetSubreddit: AsyncGetSubreddit? = null
     private var headerHeight = 0 //height of the header
     @JvmField var reloadItemNumber = -2
+    lateinit var networkStateReceiver: NetworkStateReceiver
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        if (requestCode == SETTINGS_RESULT) {
+        if (requestCode == SETTINGS_RESULT) { // Returned from settings
             var current = pager!!.currentItem
             if (commentPager && current == currentComment) current -= 1
             if (current < 0) current = 0
             adapter = MainPagerAdapter(this,supportFragmentManager)
-            pager!!.adapter = adapter
+            pager!!.adapter = adapter!!
             pager!!.currentItem = current
             if (mTabLayout != null) {
                 TabLayoutMediator(mTabLayout!!, pager!!) { tab, position ->
@@ -258,7 +270,7 @@ class MainActivity : BaseActivity() {
                 }
                 LayoutUtils.scrollToTabAfterLayout(mTabLayout, current)
             }
-        } else if ((requestCode == 2001 || requestCode == 2002) && resultCode == RESULT_OK) {
+        } else if ((requestCode == SEARCH_RESULT || requestCode == GO_TO_SUB_RESULT) && resultCode == RESULT_OK) {
             if (SettingValues.subredditSearchMethod == me.ccrama.redditslide.Constants.SUBREDDIT_SEARCH_METHOD_DRAWER
                 || SettingValues.subredditSearchMethod
                 == me.ccrama.redditslide.Constants.SUBREDDIT_SEARCH_METHOD_BOTH
@@ -268,35 +280,33 @@ class MainActivity : BaseActivity() {
             }
 
             //clear the text from the toolbar search field
-            if (findViewById<AutoCompleteTextView>(R.id.toolbar_search) != null) {
-                findViewById<AutoCompleteTextView>(R.id.toolbar_search).setText("")
-            }
+            binding.toolbarSearch.setText("")
             val view = this@MainActivity.currentFocus
             if (view != null) {
                 me.ccrama.redditslide.util.KeyboardUtil.hideKeyboard(this, view.windowToken, 0)
             }
-        } else if (requestCode == 2002 && resultCode != RESULT_OK) {
-            mToolbar!!.performLongClick() //search was init from the toolbar, so return focus to the toolbar
-        } else if (requestCode == 423 && resultCode == RESULT_OK) {
-            (adapter as MainPagerAdapterComment?)!!.mCurrentComments!!.doResult(data)
-        } else if (requestCode == 940) {
+        } else if (requestCode == GO_TO_SUB_RESULT && resultCode != RESULT_OK) {
+            mToolbar.performLongClick() //search was init from the toolbar, so return focus to the toolbar
+        } else if (requestCode == COMMENT_SEARCH_RESULT && resultCode == RESULT_OK) {
+            (adapter!! as MainPagerAdapterComment).mCurrentComments!!.doResult(data)
+        } else if (requestCode == OPEN_POST_RESULT) {
             if (adapter != null && adapter!!.currentFragment != null) {
                 if (resultCode == RESULT_OK) {
                     val posts = data!!.getIntegerArrayListExtra("seen")
-                    (adapter!!.currentFragment as SubmissionsView?)!!.adapter!!.refreshView(posts!!)
+                    (adapter!!.currentFragment as SubmissionsViewFragment?)!!.adapter!!.refreshView(posts!!)
                     if (data.hasExtra("lastPage") && data.getIntExtra(
                             "lastPage",
                             0
-                        ) != 0 && (adapter!!.currentFragment as SubmissionsView?)!!.rv!!.layoutManager is LinearLayoutManager
+                        ) != 0 && (adapter!!.currentFragment as SubmissionsViewFragment?)!!.rv!!.layoutManager is LinearLayoutManager
                     ) {
-                        ((adapter!!.currentFragment as SubmissionsView?)!!.rv!!.layoutManager as LinearLayoutManager?)
+                        ((adapter!!.currentFragment as SubmissionsViewFragment?)!!.rv!!.layoutManager as LinearLayoutManager?)
                             ?.scrollToPositionWithOffset(
                                 data.getIntExtra("lastPage", 0) + 1,
-                                mToolbar!!.height
+                                mToolbar.height
                             )
                     }
                 } else {
-                    (adapter!!.currentFragment as SubmissionsView?)!!.adapter!!.refreshView()
+                    (adapter!!.currentFragment as SubmissionsViewFragment?)!!.adapter!!.refreshView()
                 }
             }
         } else if (requestCode == RESET_ADAPTER_RESULT) {
@@ -304,10 +314,7 @@ class MainActivity : BaseActivity() {
             setDrawerSubList()
         } else if (requestCode == TUTORIAL_RESULT) {
             UserSubscriptions.doMainActivitySubs(this)
-        } else if (requestCode == INBOX_RESULT) {
-            //update notification badge
-            AsyncNotificationBadge().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR)
-        } else if (requestCode == 3333) {
+        } else if (requestCode == CHOOSE_IMAGE_RESULT) {
             this.data = data
             if (doImage != null) {
                 val handler = Handler()
@@ -591,7 +598,7 @@ class MainActivity : BaseActivity() {
 
             R.id.action_refresh -> {
                 if (adapter != null && adapter!!.currentFragment != null) {
-                    (adapter!!.currentFragment as SubmissionsView?)!!.forceRefresh()
+                    (adapter!!.currentFragment as SubmissionsViewFragment?)!!.forceRefresh()
                 }
                 true
             }
@@ -655,14 +662,14 @@ class MainActivity : BaseActivity() {
 
             R.id.save -> {
                 saveOffline(
-                    (adapter!!.currentFragment as SubmissionsView?)!!.posts!!.posts,
-                    (adapter!!.currentFragment as SubmissionsView?)!!.posts!!.subreddit
+                    (adapter!!.currentFragment as SubmissionsViewFragment?)!!.posts!!.posts,
+                    (adapter!!.currentFragment as SubmissionsViewFragment?)!!.posts!!.subreddit
                 )
                 true
             }
 
             R.id.hide_posts -> {
-                (adapter!!.currentFragment as SubmissionsView?)!!.clearSeenPosts(false)
+                (adapter!!.currentFragment as SubmissionsViewFragment?)!!.clearSeenPosts(false)
                 true
             }
 
@@ -686,18 +693,18 @@ class MainActivity : BaseActivity() {
 
             R.id.gallery -> {
                 if (SettingValues.isPro) {
-                    val posts = (adapter!!.currentFragment as SubmissionsView?)!!.posts!!.posts
+                    val posts = (adapter!!.currentFragment as SubmissionsViewFragment?)!!.posts!!.posts
                     if (posts.isNotEmpty()) {
                         val i2 = Intent(this, Gallery::class.java)
                         i2.putExtra(
                             "offline",
-                            if ((adapter!!.currentFragment as SubmissionsView?)!!.posts!!.cached
+                            if ((adapter!!.currentFragment as SubmissionsViewFragment?)!!.posts!!.cached
                                 != null
-                            ) (adapter!!.currentFragment as SubmissionsView?)!!.posts!!.cached!!.time else 0L
+                            ) (adapter!!.currentFragment as SubmissionsViewFragment?)!!.posts!!.cached!!.time else 0L
                         )
                         i2.putExtra(
                             Gallery.EXTRA_SUBREDDIT,
-                            (adapter!!.currentFragment as SubmissionsView?)!!.posts!!.subreddit
+                            (adapter!!.currentFragment as SubmissionsViewFragment?)!!.posts!!.subreddit
                         )
                         startActivity(i2)
                     }
@@ -710,18 +717,18 @@ class MainActivity : BaseActivity() {
                         ) { dialog: DialogInterface?, which: Int ->
                             SettingValues.decreasePreviewsLeft()
                             val posts =
-                                (adapter!!.currentFragment as SubmissionsView?)!!.posts!!.posts
+                                (adapter!!.currentFragment as SubmissionsViewFragment?)!!.posts!!.posts
                             if (posts.isNotEmpty()) {
                                 val i2 = Intent(this@MainActivity, Gallery::class.java)
                                 i2.putExtra(
                                     "offline",
-                                    if ((adapter!!.currentFragment as SubmissionsView?)!!.posts!!.cached
+                                    if ((adapter!!.currentFragment as SubmissionsViewFragment?)!!.posts!!.cached
                                         != null
-                                    ) (adapter!!.currentFragment as SubmissionsView?)!!.posts!!.cached!!.time else 0L
+                                    ) (adapter!!.currentFragment as SubmissionsViewFragment?)!!.posts!!.cached!!.time else 0L
                                 )
                                 i2.putExtra(
                                     Gallery.EXTRA_SUBREDDIT,
-                                    (adapter!!.currentFragment as SubmissionsView?)!!.posts!!.subreddit
+                                    (adapter!!.currentFragment as SubmissionsViewFragment?)!!.posts!!.subreddit
                                 )
                                 startActivity(i2)
                             }
@@ -734,19 +741,19 @@ class MainActivity : BaseActivity() {
 
             R.id.action_shadowbox -> {
                 if (SettingValues.isPro) {
-                    val posts = (adapter!!.currentFragment as SubmissionsView?)!!.posts!!.posts
+                    val posts = (adapter!!.currentFragment as SubmissionsViewFragment?)!!.posts!!.posts
                     if (posts.isNotEmpty()) {
                         val i2 = Intent(this, Shadowbox::class.java)
                         i2.putExtra(Shadowbox.EXTRA_PAGE, currentPage)
                         i2.putExtra(
                             "offline",
-                            if ((adapter!!.currentFragment as SubmissionsView?)!!.posts!!.cached
+                            if ((adapter!!.currentFragment as SubmissionsViewFragment?)!!.posts!!.cached
                                 != null
-                            ) (adapter!!.currentFragment as SubmissionsView?)!!.posts!!.cached!!.time else 0L
+                            ) (adapter!!.currentFragment as SubmissionsViewFragment?)!!.posts!!.cached!!.time else 0L
                         )
                         i2.putExtra(
                             Shadowbox.EXTRA_SUBREDDIT,
-                            (adapter!!.currentFragment as SubmissionsView?)!!.posts!!.subreddit
+                            (adapter!!.currentFragment as SubmissionsViewFragment?)!!.posts!!.subreddit
                         )
                         startActivity(i2)
                     }
@@ -759,19 +766,19 @@ class MainActivity : BaseActivity() {
                         ) { dialog: DialogInterface?, which: Int ->
                             SettingValues.decreasePreviewsLeft()
                             val posts =
-                                (adapter!!.currentFragment as SubmissionsView?)!!.posts!!.posts
+                                (adapter!!.currentFragment as SubmissionsViewFragment?)!!.posts!!.posts
                             if (posts.isNotEmpty()) {
                                 val i2 = Intent(this@MainActivity, Shadowbox::class.java)
                                 i2.putExtra(Shadowbox.EXTRA_PAGE, currentPage)
                                 i2.putExtra(
                                     "offline",
-                                    if ((adapter!!.currentFragment as SubmissionsView?)!!.posts!!.cached
+                                    if ((adapter!!.currentFragment as SubmissionsViewFragment?)!!.posts!!.cached
                                         != null
-                                    ) (adapter!!.currentFragment as SubmissionsView?)!!.posts!!.cached!!.time else 0L
+                                    ) (adapter!!.currentFragment as SubmissionsViewFragment?)!!.posts!!.cached!!.time else 0L
                                 )
                                 i2.putExtra(
                                     Shadowbox.EXTRA_SUBREDDIT,
-                                    (adapter!!.currentFragment as SubmissionsView?)!!.posts!!.subreddit
+                                    (adapter!!.currentFragment as SubmissionsViewFragment?)!!.posts!!.subreddit
                                 )
                                 startActivity(i2)
                             }
@@ -932,17 +939,14 @@ class MainActivity : BaseActivity() {
         val view = binding.root
         setContentView(view)
 
-        mToolbar = findViewById<Toolbar>(R.id.toolbar)
-        mToolbar!!.popupTheme = ColorPreferences(this).fontStyle.baseId
+        mToolbar.popupTheme = ColorPreferences(this).fontStyle.baseId
         setSupportActionBar(mToolbar)
         if (intent != null && intent.hasExtra(EXTRA_PAGE_TO)) {
             toGoto = intent.getIntExtra(EXTRA_PAGE_TO, 0)
         }
-        run {
-            val window = this.window
-            window.statusBarColor =
-                Palette.getDarkerColor(Palette.getDarkerColor(Palette.getDefaultColor()))
-        }
+        val window = this.window
+        window.statusBarColor =
+            Palette.getDarkerColor(Palette.getDarkerColor(Palette.getDefaultColor()))
         mTabLayout = findViewById<TabLayout>(R.id.sliding_tabs)
         header = findViewById(R.id.header)
 
@@ -956,14 +960,13 @@ class MainActivity : BaseActivity() {
                     }
                 })
         }
-        pager = findViewById<ViewPager2>(R.id.content_view)
         singleMode = SettingValues.single
         if (singleMode) {
             commentPager = SettingValues.commentPager
         }
         // Inflate tabs if single mode is disabled
         if (!singleMode) {
-            mTabLayout = findViewById<ViewStub>(R.id.stub_tabs).inflate() as TabLayout?
+            mTabLayout = findViewById<ViewStub>(R.id.stub_tabs).inflate() as TabLayout
         }
         // Disable swiping if single mode is enabled
         if (singleMode) {
@@ -1093,20 +1096,21 @@ class MainActivity : BaseActivity() {
             )
         } catch (e: Exception) {
         }
-        LogUtil.v("Installed browsers")
-        val intent = Intent()
-        intent.action = Intent.ACTION_VIEW
-        intent.data = Uri.parse(Constants.TEST_URL)
-        val allApps = packageManager.queryIntentActivities(
-            intent,
+
+        packageManager.queryIntentActivities(
+            Intent().apply {
+                action = Intent.ACTION_VIEW
+                data = Uri.parse(Constants.TEST_URL)
+            },
             PackageManager.GET_DISABLED_COMPONENTS
-        )
-        for (i in allApps) {
-            if (i.activityInfo.isEnabled) LogUtil.v(i.activityInfo.packageName)
+        ).mapNotNull {
+            it.activityInfo.run {
+                if (isEnabled) packageName else null
+            }
+        }.apply {
+            logger.debug("Installed browsers: [${joinToString(", ")}]")
         }
     }
-
-    var networkStateReceiver: NetworkStateReceiver? = null
 
     fun checkClipboard() {
         try {
@@ -1120,7 +1124,7 @@ class MainActivity : BaseActivity() {
                         )
                     ) {
                         val snack = Snackbar.make(
-                            mToolbar!!, "Reddit link found in your clipboard",
+                            mToolbar, "Reddit link found in your clipboard",
                             Snackbar.LENGTH_LONG
                         )
                         snack.setAction("OPEN") {
@@ -1196,7 +1200,7 @@ class MainActivity : BaseActivity() {
                 if (SettingValues.subredditSearchMethod
                     == me.ccrama.redditslide.Constants.SUBREDDIT_SEARCH_METHOD_DRAWER
                 ) {
-                    mToolbar!!.setOnLongClickListener(
+                    mToolbar.setOnLongClickListener(
                         null
                     ) //remove the long click listener from the toolbar
                     findViewById<View>(R.id.drawer_divider).visibility = View.GONE
@@ -1236,19 +1240,19 @@ class MainActivity : BaseActivity() {
     }
 
     var accounts = HashMap<String, String>()
-    fun doDrawer() {
-        drawerSubList = findViewById<ListView>(R.id.drawerlistview)
-        drawerSubList!!.dividerHeight = 0
-        drawerSubList!!.descendantFocusability = ListView.FOCUS_BEFORE_DESCENDANTS
-        val inflater = layoutInflater
-        val header: View
+
+    private fun doDrawer() {
+        drawerSubList.dividerHeight = 0
+        drawerSubList.descendantFocusability = ListView.FOCUS_BEFORE_DESCENDANTS
+
+        val header: ViewBinding
         if (Authentication.isLoggedIn && Authentication.didOnline) {
-            header = inflater.inflate(R.layout.drawer_loggedin, drawerSubList, false)
-            headerMain = header
-            hea = header.findViewById(R.id.back)
-            drawerSubList!!.addHeaderView(header, null, false)
-            (header.findViewById<View>(R.id.name) as TextView?)!!.text = Authentication.name
-            header.findViewById<View>(R.id.multi)
+            header = DrawerLoggedinBinding.inflate(layoutInflater, drawerSubList, false)
+            headerMain = header.root
+            headerBack = header.back
+            drawerSubList.addHeaderView(header.root, null, false)
+            header.name.text = Authentication.name
+            header.multi
                 .setOnClickListener(object : me.ccrama.redditslide.util.OnSingleClickListener() {
                     override fun onSingleClick(view: View) {
                         if (runAfterLoad == null) {
@@ -1257,7 +1261,7 @@ class MainActivity : BaseActivity() {
                         }
                     }
                 })
-            header.findViewById<View>(R.id.multi).setOnLongClickListener {
+            header.multi.setOnLongClickListener {
                 MaterialDialog(this@MainActivity)
                     .input(getString(R.string.user_enter), waitForPositiveButton = false) { dialog, input ->
                         val editText = dialog.getInputField()
@@ -1283,14 +1287,14 @@ class MainActivity : BaseActivity() {
                     .show()
                 true
             }
-            header.findViewById<View>(R.id.discover)
+            header.discover
                 .setOnClickListener(object : me.ccrama.redditslide.util.OnSingleClickListener() {
                     override fun onSingleClick(view: View) {
                         val inte = Intent(this@MainActivity, Discover::class.java)
                         this@MainActivity.startActivity(inte)
                     }
                 })
-            header.findViewById<View>(R.id.prof_click)
+            header.profClick
                 .setOnClickListener(object : me.ccrama.redditslide.util.OnSingleClickListener() {
                     override fun onSingleClick(view: View) {
                         val inte = Intent(this@MainActivity, Profile::class.java)
@@ -1298,7 +1302,7 @@ class MainActivity : BaseActivity() {
                         this@MainActivity.startActivity(inte)
                     }
                 })
-            header.findViewById<View>(R.id.saved)
+            header.saved
                 .setOnClickListener(object : me.ccrama.redditslide.util.OnSingleClickListener() {
                     override fun onSingleClick(view: View) {
                         val inte = Intent(this@MainActivity, Profile::class.java)
@@ -1307,14 +1311,14 @@ class MainActivity : BaseActivity() {
                         this@MainActivity.startActivity(inte)
                     }
                 })
-            header.findViewById<View>(R.id.later)
+            header.later
                 .setOnClickListener(object : me.ccrama.redditslide.util.OnSingleClickListener() {
                     override fun onSingleClick(view: View) {
                         val inte = Intent(this@MainActivity, PostReadLater::class.java)
                         this@MainActivity.startActivity(inte)
                     }
                 })
-            header.findViewById<View>(R.id.history)
+            header.history
                 .setOnClickListener(object : me.ccrama.redditslide.util.OnSingleClickListener() {
                     override fun onSingleClick(view: View) {
                         val inte = Intent(this@MainActivity, Profile::class.java)
@@ -1323,7 +1327,7 @@ class MainActivity : BaseActivity() {
                         this@MainActivity.startActivity(inte)
                     }
                 })
-            header.findViewById<View>(R.id.commented)
+            header.commented
                 .setOnClickListener(object : me.ccrama.redditslide.util.OnSingleClickListener() {
                     override fun onSingleClick(view: View) {
                         val inte = Intent(this@MainActivity, Profile::class.java)
@@ -1332,7 +1336,7 @@ class MainActivity : BaseActivity() {
                         this@MainActivity.startActivity(inte)
                     }
                 })
-            header.findViewById<View>(R.id.submitted)
+            header.submitted
                 .setOnClickListener(object : me.ccrama.redditslide.util.OnSingleClickListener() {
                     override fun onSingleClick(view: View) {
                         val inte = Intent(this@MainActivity, Profile::class.java)
@@ -1341,7 +1345,7 @@ class MainActivity : BaseActivity() {
                         this@MainActivity.startActivity(inte)
                     }
                 })
-            header.findViewById<View>(R.id.upvoted)
+            header.upvoted
                 .setOnClickListener(object : me.ccrama.redditslide.util.OnSingleClickListener() {
                     override fun onSingleClick(view: View) {
                         val inte = Intent(this@MainActivity, Profile::class.java)
@@ -1355,20 +1359,20 @@ class MainActivity : BaseActivity() {
              * stop the UI from jumping
              */
             if (!UserSubscriptions.modOf.isNullOrEmpty() && Authentication.mod) {
-                header.findViewById<View>(R.id.mod).visibility = View.VISIBLE
+                header.mod.visibility = View.VISIBLE
             }
             //update notification badge
-            val profStuff = header.findViewById<LinearLayout>(R.id.accountsarea)
+            val profStuff = header.accountsarea
             profStuff.visibility = View.GONE
             findViewById<View>(R.id.back).setOnClickListener {
                 if (profStuff.visibility == View.GONE) {
                     expand(profStuff)
-                    header.contentDescription = resources.getString(R.string.btn_collapse)
-                    me.ccrama.redditslide.util.AnimatorUtil.flipAnimator(false, header.findViewById(R.id.headerflip)).start()
+                    headerMain.contentDescription = resources.getString(R.string.btn_collapse)
+                    AnimatorUtil.flipAnimator(false, header.headerflip).start()
                 } else {
                     collapse(profStuff)
-                    header.contentDescription = resources.getString(R.string.btn_expand)
-                    me.ccrama.redditslide.util.AnimatorUtil.flipAnimator(true, header.findViewById(R.id.headerflip)).start()
+                    headerMain.contentDescription = resources.getString(R.string.btn_expand)
+                    AnimatorUtil.flipAnimator(true, header.headerflip).start()
                 }
             }
             for (s in SettingValues.authentication.getStringSet("accounts", HashSet())!!) {
@@ -1381,7 +1385,7 @@ class MainActivity : BaseActivity() {
                 }
             }
             val keys = ArrayList(accounts.keys)
-            val accountList = header.findViewById<LinearLayout>(R.id.accountsarea)
+            val accountList = header.accountsarea
             for (accName in keys) {
                 LogUtil.v(accName)
                 val t = layoutInflater.inflate(
@@ -1494,21 +1498,21 @@ class MainActivity : BaseActivity() {
                 }
                 accountList.addView(t)
             }
-            header.findViewById<View>(R.id.godown).setOnClickListener { view ->
-                val body = header.findViewById<LinearLayout>(R.id.expand_profile)
+            header.godown.setOnClickListener { view ->
+                val body = header.expandProfile
                 if (body.visibility == View.GONE) {
                     expand(body)
-                    me.ccrama.redditslide.util.AnimatorUtil.flipAnimator(false, view).start()
+                    AnimatorUtil.flipAnimator(false, view).start()
                     view.findViewById<View>(R.id.godown).contentDescription =
                         resources.getString(R.string.btn_collapse)
                 } else {
                     collapse(body)
-                    me.ccrama.redditslide.util.AnimatorUtil.flipAnimator(true, view).start()
+                    AnimatorUtil.flipAnimator(true, view).start()
                     view.findViewById<View>(R.id.godown).contentDescription =
                         resources.getString(R.string.btn_expand)
                 }
             }
-            header.findViewById<View>(R.id.guest_mode)
+            header.guestMode
                 .setOnClickListener(object : me.ccrama.redditslide.util.OnSingleClickListener() {
                     override fun onSingleClick(v: View) {
                         Authentication.name = "LOGGEDOUT"
@@ -1521,48 +1525,49 @@ class MainActivity : BaseActivity() {
                         App.forceRestart(this@MainActivity, true)
                     }
                 })
-            header.findViewById<View>(R.id.add)
+            header.add
                 .setOnClickListener(object : me.ccrama.redditslide.util.OnSingleClickListener() {
                     override fun onSingleClick(view: View) {
                         val inte = Intent(this@MainActivity, LoginActivity::class.java)
                         this@MainActivity.startActivity(inte)
                     }
                 })
-            header.findViewById<View>(R.id.offline)
+            header.offline
                 .setOnClickListener(object : me.ccrama.redditslide.util.OnSingleClickListener() {
                     override fun onSingleClick(view: View) {
                         SettingValues.appRestart.edit().putBoolean("forceoffline", true).commit()
                         App.forceRestart(this@MainActivity, false)
                     }
                 })
-            header.findViewById<View>(R.id.inbox)
+            header.inbox
                 .setOnClickListener(object : me.ccrama.redditslide.util.OnSingleClickListener() {
                     override fun onSingleClick(view: View) {
-                        val inte = Intent(this@MainActivity, Inbox::class.java)
-                        this@MainActivity.startActivityForResult(inte, INBOX_RESULT)
+                        this@MainActivity.registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+                            //update notification badge
+                            AsyncNotificationBadge().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR)
+                        }.launch(Intent(this@MainActivity, Inbox::class.java))
                     }
                 })
-            headerMain = header
             if (runAfterLoad == null) {
                 AsyncNotificationBadge().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR)
             }
         } else if (Authentication.didOnline) {
-            header = inflater.inflate(R.layout.drawer_loggedout, drawerSubList, false)
-            drawerSubList!!.addHeaderView(header, null, false)
-            headerMain = header
-            hea = header.findViewById(R.id.back)
-            val profStuff = header.findViewById<LinearLayout>(R.id.accountsarea)
+            header = DrawerLoggedoutBinding.inflate(layoutInflater, drawerSubList, false)
+            drawerSubList!!.addHeaderView(header.root, null, false)
+            headerMain = header.root
+            headerBack = header.back
+            val profStuff = header.accountsarea
             profStuff.visibility = View.GONE
             findViewById<View>(R.id.back).setOnClickListener {
                 if (profStuff.visibility == View.GONE) {
                     expand(profStuff)
-                    me.ccrama.redditslide.util.AnimatorUtil.flipAnimator(false, header.findViewById(R.id.headerflip)).start()
-                    header.findViewById<View>(R.id.headerflip).contentDescription =
+                    AnimatorUtil.flipAnimator(false, header.headerflip).start()
+                    header.headerflip.contentDescription =
                         resources.getString(R.string.btn_collapse)
                 } else {
                     collapse(profStuff)
-                    me.ccrama.redditslide.util.AnimatorUtil.flipAnimator(true, header.findViewById(R.id.headerflip)).start()
-                    header.findViewById<View>(R.id.headerflip).contentDescription =
+                    AnimatorUtil.flipAnimator(true, header.headerflip).start()
+                    header.headerflip.contentDescription =
                         resources.getString(R.string.btn_expand)
                 }
             }
@@ -1577,7 +1582,7 @@ class MainActivity : BaseActivity() {
                 }
             }
             val keys = ArrayList(accounts.keys)
-            val accountList = header.findViewById<LinearLayout>(R.id.accountsarea)
+            val accountList = header.accountsarea
             for (accName in keys) {
                 LogUtil.v(accName)
                 val t = layoutInflater.inflate(
@@ -1675,22 +1680,21 @@ class MainActivity : BaseActivity() {
                 })
                 accountList.addView(t)
             }
-            header.findViewById<View>(R.id.add)
+            header.add
                 .setOnClickListener(object : me.ccrama.redditslide.util.OnSingleClickListener() {
                     override fun onSingleClick(view: View) {
                         val inte = Intent(this@MainActivity, LoginActivity::class.java)
                         this@MainActivity.startActivity(inte)
                     }
                 })
-            header.findViewById<View>(R.id.offline)
+            header.offline
                 .setOnClickListener(object : me.ccrama.redditslide.util.OnSingleClickListener() {
                     override fun onSingleClick(view: View) {
                         SettingValues.appRestart.edit().putBoolean("forceoffline", true).commit()
                         App.forceRestart(this@MainActivity, false)
                     }
                 })
-            headerMain = header
-            header.findViewById<View>(R.id.multi).setOnClickListener {
+            header.multi.setOnClickListener {
                 MaterialDialog(this@MainActivity)
                     .input(hintRes = R.string.user_enter, waitForPositiveButton = false) { dialog, input ->
                         val editText = dialog.getInputField()
@@ -1716,11 +1720,11 @@ class MainActivity : BaseActivity() {
                     .show()
             }
         } else {
-            header = inflater.inflate(R.layout.drawer_offline, drawerSubList, false)
-            headerMain = header
-            drawerSubList!!.addHeaderView(header, null, false)
-            hea = header.findViewById(R.id.back)
-            header.findViewById<View>(R.id.online)
+            header = DrawerOfflineBinding.inflate(layoutInflater, drawerSubList, false)
+            headerMain = header.root
+            drawerSubList!!.addHeaderView(header.root, null, false)
+            headerBack = header.back
+            header.online
                 .setOnClickListener(object : me.ccrama.redditslide.util.OnSingleClickListener() {
                     override fun onSingleClick(view: View) {
                         SettingValues.appRestart.edit().remove("forceoffline").commit()
@@ -1728,71 +1732,69 @@ class MainActivity : BaseActivity() {
                     }
                 })
         }
-        val expandSettings = header.findViewById<LinearLayout>(R.id.expand_settings)
-        header.findViewById<View>(R.id.godown_settings).setOnClickListener { v ->
+        val expandSettings = header.root.findViewById<LinearLayout>(R.id.expand_settings)
+        header.root.findViewById<View>(R.id.godown_settings).setOnClickListener { v ->
             if (expandSettings.visibility == View.GONE) {
                 expand(expandSettings)
-                header.findViewById<View>(R.id.godown_settings).contentDescription =
+                header.root.findViewById<View>(R.id.godown_settings).contentDescription =
                     resources.getString(R.string.btn_collapse)
-                me.ccrama.redditslide.util.AnimatorUtil.flipAnimator(false, v).start()
+                AnimatorUtil.flipAnimator(false, v).start()
             } else {
                 collapse(expandSettings)
-                header.findViewById<View>(R.id.godown_settings).contentDescription =
+                header.root.findViewById<View>(R.id.godown_settings).contentDescription =
                     resources.getString(R.string.btn_expand)
-                me.ccrama.redditslide.util.AnimatorUtil.flipAnimator(true, v).start()
+                AnimatorUtil.flipAnimator(true, v).start()
             }
         }
-        run {
-            // Set up quick setting toggles
-            val toggleNightMode = expandSettings.findViewById<SwitchCompat>(R.id.toggle_night_mode)
-            if (SettingValues.isPro) {
-                toggleNightMode.visibility = View.VISIBLE
-                toggleNightMode.isChecked = inNightMode
-                toggleNightMode.setOnCheckedChangeListener { buttonView, isChecked ->
-                    SettingValues.forcedNightModeState =
-                        if (isChecked) SettingValues.ForcedState.FORCED_ON else SettingValues.ForcedState.FORCED_OFF
-                    restartTheme()
-                }
-            }
-            val toggleImmersiveMode =
-                expandSettings.findViewById<SwitchCompat>(R.id.toggle_immersive_mode)
-            toggleImmersiveMode.isChecked = SettingValues.immersiveMode
-            toggleImmersiveMode.setOnCheckedChangeListener { buttonView, isChecked ->
-                SettingValues.immersiveMode = isChecked
-                if (isChecked) {
-                    hideDecor()
-                } else {
-                    showDecor()
-                }
-            }
-            val toggleNSFW = expandSettings.findViewById<SwitchCompat>(R.id.toggle_nsfw)
-            toggleNSFW.isChecked = SettingValues.showNSFWContent
-            toggleNSFW.setOnCheckedChangeListener { buttonView, isChecked ->
-                SettingValues.showNSFWContent = isChecked
-                reloadSubs()
-            }
-            val toggleRightThumbnails =
-                expandSettings.findViewById<SwitchCompat>(R.id.toggle_right_thumbnails)
-            toggleRightThumbnails.isChecked = SettingValues.switchThumb
-            toggleRightThumbnails.setOnCheckedChangeListener { buttonView, isChecked ->
-                SettingValues.switchThumb = isChecked
-                reloadSubs()
-            }
-            val toggleReaderMode =
-                expandSettings.findViewById<SwitchCompat>(R.id.toggle_reader_mode)
-            toggleReaderMode.isChecked = SettingValues.readerMode
-            toggleReaderMode.setOnCheckedChangeListener { buttonView, isChecked ->
-                SettingValues.readerMode = isChecked
-            }
-        }
-        header.findViewById<View>(R.id.manage).setOnClickListener(object : me.ccrama.redditslide.util.OnSingleClickListener() {
+        // Set up quick setting toggles
+        val toggleNightMode = expandSettings.findViewById<SwitchCompat>(R.id.toggle_night_mode)
+        if (SettingValues.isPro) {
+                             toggleNightMode.visibility = View.VISIBLE
+                             toggleNightMode.isChecked = inNightMode
+                             toggleNightMode.setOnCheckedChangeListener { buttonView, isChecked ->
+                             SettingValues.forcedNightModeState =
+                             if (isChecked) SettingValues.ForcedState.FORCED_ON else SettingValues.ForcedState.FORCED_OFF
+                             restartTheme()
+                             }
+                             }
+        val toggleImmersiveMode =
+            expandSettings.findViewById<SwitchCompat>(R.id.toggle_immersive_mode)
+        toggleImmersiveMode.isChecked = SettingValues.immersiveMode
+        toggleImmersiveMode.setOnCheckedChangeListener { buttonView, isChecked ->
+                                                   SettingValues.immersiveMode = isChecked
+                                                   if (isChecked) {
+                                                   hideDecor()
+                                                   } else {
+                                                   showDecor()
+                                                   }
+                                                   }
+        val toggleNSFW = expandSettings.findViewById<SwitchCompat>(R.id.toggle_nsfw)
+        toggleNSFW.isChecked = SettingValues.showNSFWContent
+        toggleNSFW.setOnCheckedChangeListener { buttonView, isChecked ->
+                                          SettingValues.showNSFWContent = isChecked
+                                          reloadSubs()
+                                          }
+        val toggleRightThumbnails =
+            expandSettings.findViewById<SwitchCompat>(R.id.toggle_right_thumbnails)
+        toggleRightThumbnails.isChecked = SettingValues.switchThumb
+        toggleRightThumbnails.setOnCheckedChangeListener { buttonView, isChecked ->
+                                                     SettingValues.switchThumb = isChecked
+                                                     reloadSubs()
+                                                     }
+        val toggleReaderMode =
+            expandSettings.findViewById<SwitchCompat>(R.id.toggle_reader_mode)
+        toggleReaderMode.isChecked = SettingValues.readerMode
+        toggleReaderMode.setOnCheckedChangeListener { buttonView, isChecked ->
+                                                SettingValues.readerMode = isChecked
+                                                }
+        header.root.findViewById<View>(R.id.manage).setOnClickListener(object : me.ccrama.redditslide.util.OnSingleClickListener() {
             override fun onSingleClick(view: View) {
                 val i = Intent(this@MainActivity, ManageOfflineContent::class.java)
                 startActivity(i)
             }
         })
         if (Authentication.didOnline) {
-            val support = header.findViewById<View>(R.id.support)
+            val support = header.root.findViewById<View>(R.id.support)
             if (SettingValues.isPro) {
                 support.visibility = View.GONE
             } else {
@@ -1804,7 +1806,7 @@ class MainActivity : BaseActivity() {
                     }
                 })
             }
-            header.findViewById<View>(R.id.prof).setOnClickListener {
+            header.root.findViewById<View>(R.id.prof).setOnClickListener {
                 MaterialDialog(this@MainActivity)
                     .input(hintRes = R.string.user_enter, waitForPositiveButton = false) { dialog, input ->
                         val editText = dialog.getInputField()
@@ -1825,7 +1827,7 @@ class MainActivity : BaseActivity() {
                     .show()
             }
         }
-        header.findViewById<View>(R.id.settings)
+        header.root.findViewById<View>(R.id.settings)
             .setOnClickListener(object : me.ccrama.redditslide.util.OnSingleClickListener() {
                 override fun onSingleClick(v: View) {
                     val i = Intent(this@MainActivity, SettingsActivity::class.java)
@@ -1836,13 +1838,6 @@ class MainActivity : BaseActivity() {
                 }
             })
 
-        /*  footer.findViewById(R.id.settings).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent inte = new Intent(Overview.this, Setting.class);
-                Overview.this.startActivityForResult(inte, 3);
-            }
-        });*/
         val toolbar = findViewById<Toolbar>(R.id.toolbar)
         val actionBarDrawerToggle: ActionBarDrawerToggle = object : ActionBarDrawerToggle(
             this@MainActivity,
@@ -1864,11 +1859,11 @@ class MainActivity : BaseActivity() {
                     }
                     val compare = usedArray!![current]
                     if (compare == "random" || compare == "myrandom" || compare == "randnsfw") {
-                        if (adapter != null && adapter!!.currentFragment != null && ((adapter!!.currentFragment as SubmissionsView?)!!.adapter!!.dataSet.subredditRandom
+                        if (adapter != null && adapter!!.currentFragment != null && ((adapter!!.currentFragment as SubmissionsViewFragment?)!!.adapter!!.dataSet.subredditRandom
                                     != null)
                         ) {
                             val sub =
-                                (adapter!!.currentFragment as SubmissionsView?)!!.adapter!!.dataSet.subredditRandom
+                                (adapter!!.currentFragment as SubmissionsViewFragment?)!!.adapter!!.dataSet.subredditRandom
                             doSubSidebarNoLoad(sub!!)
                             doSubSidebar(sub)
                         }
@@ -1885,8 +1880,8 @@ class MainActivity : BaseActivity() {
         }
         drawerLayout!!.addDrawerListener(actionBarDrawerToggle)
         actionBarDrawerToggle.syncState()
-        header.findViewById<View>(R.id.back).setBackgroundColor(Palette.getColor("alsdkfjasld"))
-        accountsArea = header.findViewById(R.id.accountsarea)
+        header.root.findViewById<View>(R.id.back).setBackgroundColor(Palette.getColor("alsdkfjasld"))
+        accountsArea = header.root.findViewById(R.id.accountsarea)
         if (accountsArea != null) {
             accountsArea!!.setBackgroundColor(Palette.getDarkerColor("alsdkfjasld"))
         }
@@ -1958,7 +1953,7 @@ class MainActivity : BaseActivity() {
         if (position + 1 != currentComment) {
             doSubSidebarNoLoad(usedArray!![position])
         }
-        val page = adapter!!.currentFragment as SubmissionsView?
+        val page = adapter!!.currentFragment as SubmissionsViewFragment?
         if (page?.adapter != null) {
             val p = page.adapter!!.dataSet
             if (p.offline && p.cached != null) {
@@ -1971,8 +1966,8 @@ class MainActivity : BaseActivity() {
                     .show()
             }
         }
-        if (hea != null) {
-            hea!!.setBackgroundColor(Palette.getColor(usedArray!![position]))
+        if (headerBack != null) {
+            headerBack!!.setBackgroundColor(Palette.getColor(usedArray!![position]))
             if (accountsArea != null) {
                 accountsArea!!.setBackgroundColor(
                     Palette.getDarkerColor(
@@ -2069,7 +2064,7 @@ class MainActivity : BaseActivity() {
                                         runOnUiThread {
                                             drawerLayout!!.closeDrawers()
                                             val s = Snackbar.make(
-                                                mToolbar!!,
+                                                mToolbar,
                                                 getString(
                                                     R.string.multi_subreddit_added,
                                                     multiName
@@ -2082,7 +2077,7 @@ class MainActivity : BaseActivity() {
                                         runOnUiThread {
                                             runOnUiThread {
                                                 Snackbar.make(
-                                                    mToolbar!!,
+                                                    mToolbar,
                                                     getString(
                                                         R.string.multi_error
                                                     ),
@@ -2097,7 +2092,7 @@ class MainActivity : BaseActivity() {
                                         runOnUiThread {
                                             runOnUiThread {
                                                 Snackbar.make(
-                                                    mToolbar!!,
+                                                    mToolbar,
                                                     getString(
                                                         R.string.multi_error
                                                     ),
@@ -2209,7 +2204,7 @@ class MainActivity : BaseActivity() {
                                                         true
                                                     ) // Force add the subscription
                                                     val s = Snackbar.make(
-                                                        mToolbar!!,
+                                                        mToolbar,
                                                         getString(R.string.misc_subscribed),
                                                         Snackbar.LENGTH_LONG
                                                     )
@@ -2242,7 +2237,7 @@ class MainActivity : BaseActivity() {
                             .setNeutralButton(R.string.btn_add_to_sublist) { dialog: DialogInterface?, which: Int ->
                                 changeSubscription(subreddit, true) // Force add the subscription
                                 val s = Snackbar.make(
-                                    mToolbar!!, R.string.sub_added,
+                                    mToolbar, R.string.sub_added,
                                     Snackbar.LENGTH_LONG
                                 )
                                 LayoutUtils.showSnackbar(s)
@@ -2271,7 +2266,7 @@ class MainActivity : BaseActivity() {
                                                         false
                                                     ) // Force add the subscription
                                                     val s = Snackbar.make(
-                                                        mToolbar!!,
+                                                        mToolbar,
                                                         getString(R.string.misc_unsubscribed),
                                                         Snackbar.LENGTH_LONG
                                                     )
@@ -2304,7 +2299,7 @@ class MainActivity : BaseActivity() {
                             .setNeutralButton(R.string.just_unsub) { dialog: DialogInterface?, which: Int ->
                                 changeSubscription(subreddit, false) // Force add the subscription
                                 val s = Snackbar.make(
-                                    mToolbar!!,
+                                    mToolbar,
                                     R.string.misc_unsubscribed,
                                     Snackbar.LENGTH_LONG
                                 )
@@ -2806,15 +2801,15 @@ class MainActivity : BaseActivity() {
             if (adapter!!.currentFragment == null) {
                 return 0
             }
-            if ((adapter!!.currentFragment as SubmissionsView?)!!.rv!!.layoutManager is LinearLayoutManager
+            if ((adapter!!.currentFragment as SubmissionsViewFragment?)!!.rv!!.layoutManager is LinearLayoutManager
                 && currentOrientation == Configuration.ORIENTATION_LANDSCAPE
             ) {
                 position =
-                    ((adapter!!.currentFragment as SubmissionsView?)!!.rv!!.layoutManager as LinearLayoutManager?)!!
+                    ((adapter!!.currentFragment as SubmissionsViewFragment?)!!.rv!!.layoutManager as LinearLayoutManager?)!!
                         .findFirstCompletelyVisibleItemPosition() - 1
-            } else if ((adapter!!.currentFragment as SubmissionsView?)!!.rv!!.layoutManager is CatchStaggeredGridLayoutManager) {
+            } else if ((adapter!!.currentFragment as SubmissionsViewFragment?)!!.rv!!.layoutManager is CatchStaggeredGridLayoutManager) {
                 var firstVisibleItems: IntArray? = null
-                firstVisibleItems = ((adapter!!.currentFragment as SubmissionsView?)!!.rv
+                firstVisibleItems = ((adapter!!.currentFragment as SubmissionsViewFragment?)!!.rv
                     !!.layoutManager as CatchStaggeredGridLayoutManager?)!!.findFirstCompletelyVisibleItemPositions(
                     firstVisibleItems
                 )
@@ -2823,7 +2818,7 @@ class MainActivity : BaseActivity() {
                 }
             } else {
                 position =
-                    ((adapter!!.currentFragment as SubmissionsView?)!!.rv!!.layoutManager as PreCachingLayoutManager?)!!
+                    ((adapter!!.currentFragment as SubmissionsViewFragment?)!!.rv!!.layoutManager as PreCachingLayoutManager?)!!
                         .findFirstCompletelyVisibleItemPosition() - 1
             }
             return position
@@ -2831,7 +2826,7 @@ class MainActivity : BaseActivity() {
 
     fun openPopup() {
         val popup = PopupMenu(this@MainActivity, findViewById(R.id.anchor), Gravity.RIGHT)
-        val id = ((pager!!.adapter as MainPagerAdapter?)!!.currentFragment as SubmissionsView?)!!.id
+        val id = ((pager!!.adapter as MainPagerAdapter?)!!.currentFragment as SubmissionsViewFragment?)!!.argument
         val base = SortingUtil.getSortingSpannables(id)
         for (s in base) {
             // Do not add option for "Best" in any subreddit except for the frontpage.
@@ -2852,7 +2847,7 @@ class MainActivity : BaseActivity() {
             when (i) {
                 0 -> {
                     SortingUtil.setSorting(
-                        ((pager!!.adapter as MainPagerAdapter?)!!.currentFragment as SubmissionsView?)!!.id,
+                        ((pager!!.adapter as MainPagerAdapter?)!!.currentFragment as SubmissionsViewFragment?)!!.argument,
                         RedditSorting.HOT
                     )
                     reloadSubs()
@@ -2860,7 +2855,7 @@ class MainActivity : BaseActivity() {
 
                 1 -> {
                     SortingUtil.setSorting(
-                        ((pager!!.adapter as MainPagerAdapter?)!!.currentFragment as SubmissionsView?)!!.id,
+                        ((pager!!.adapter as MainPagerAdapter?)!!.currentFragment as SubmissionsViewFragment?)!!.argument,
                         RedditSorting.NEW
                     )
                     reloadSubs()
@@ -2868,7 +2863,7 @@ class MainActivity : BaseActivity() {
 
                 2 -> {
                     SortingUtil.setSorting(
-                        ((pager!!.adapter as MainPagerAdapter?)!!.currentFragment as SubmissionsView?)!!.id,
+                        ((pager!!.adapter as MainPagerAdapter?)!!.currentFragment as SubmissionsViewFragment?)!!.argument,
                         RedditSorting.RISING
                     )
                     reloadSubs()
@@ -2876,7 +2871,7 @@ class MainActivity : BaseActivity() {
 
                 3 -> {
                     SortingUtil.setSorting(
-                        ((pager!!.adapter as MainPagerAdapter?)!!.currentFragment as SubmissionsView?)!!.id,
+                        ((pager!!.adapter as MainPagerAdapter?)!!.currentFragment as SubmissionsViewFragment?)!!.argument,
                         RedditSorting.TOP
                     )
                     openPopupTime()
@@ -2884,7 +2879,7 @@ class MainActivity : BaseActivity() {
 
                 4 -> {
                     SortingUtil.setSorting(
-                        ((pager!!.adapter as MainPagerAdapter?)!!.currentFragment as SubmissionsView?)!!.id,
+                        ((pager!!.adapter as MainPagerAdapter?)!!.currentFragment as SubmissionsViewFragment?)!!.argument,
                         RedditSorting.CONTROVERSIAL
                     )
                     openPopupTime()
@@ -2892,7 +2887,7 @@ class MainActivity : BaseActivity() {
 
                 5 -> {
                     SortingUtil.setSorting(
-                        ((pager!!.adapter as MainPagerAdapter?)!!.currentFragment as SubmissionsView?)!!.id,
+                        ((pager!!.adapter as MainPagerAdapter?)!!.currentFragment as SubmissionsViewFragment?)!!.argument,
                         RedditSorting.BEST
                     )
                     reloadSubs()
@@ -2905,7 +2900,7 @@ class MainActivity : BaseActivity() {
 
     fun openPopupTime() {
         val popup = PopupMenu(this@MainActivity, findViewById(R.id.anchor), Gravity.RIGHT)
-        val id = ((pager!!.adapter as MainPagerAdapter?)!!.currentFragment as SubmissionsView?)!!.id
+        val id = ((pager!!.adapter as MainPagerAdapter?)!!.currentFragment as SubmissionsViewFragment?)!!.argument
         val base = SortingUtil.getSortingTimesSpannables(id)
         for (s in base) {
             val m = popup.menu.add(s)
@@ -2922,7 +2917,7 @@ class MainActivity : BaseActivity() {
             when (i) {
                 0 -> {
                     SortingUtil.setTime(
-                        ((pager!!.adapter as MainPagerAdapter?)!!.currentFragment as SubmissionsView?)!!.id,
+                        ((pager!!.adapter as MainPagerAdapter?)!!.currentFragment as SubmissionsViewFragment?)!!.argument,
                         TimePeriod.HOUR
                     )
                     reloadSubs()
@@ -2930,7 +2925,7 @@ class MainActivity : BaseActivity() {
 
                 1 -> {
                     SortingUtil.setTime(
-                        ((pager!!.adapter as MainPagerAdapter?)!!.currentFragment as SubmissionsView?)!!.id,
+                        ((pager!!.adapter as MainPagerAdapter?)!!.currentFragment as SubmissionsViewFragment?)!!.argument,
                         TimePeriod.DAY
                     )
                     reloadSubs()
@@ -2938,7 +2933,7 @@ class MainActivity : BaseActivity() {
 
                 2 -> {
                     SortingUtil.setTime(
-                        ((pager!!.adapter as MainPagerAdapter?)!!.currentFragment as SubmissionsView?)!!.id,
+                        ((pager!!.adapter as MainPagerAdapter?)!!.currentFragment as SubmissionsViewFragment?)!!.argument,
                         TimePeriod.WEEK
                     )
                     reloadSubs()
@@ -2946,7 +2941,7 @@ class MainActivity : BaseActivity() {
 
                 3 -> {
                     SortingUtil.setTime(
-                        ((pager!!.adapter as MainPagerAdapter?)!!.currentFragment as SubmissionsView?)!!.id,
+                        ((pager!!.adapter as MainPagerAdapter?)!!.currentFragment as SubmissionsViewFragment?)!!.argument,
                         TimePeriod.MONTH
                     )
                     reloadSubs()
@@ -2954,7 +2949,7 @@ class MainActivity : BaseActivity() {
 
                 4 -> {
                     SortingUtil.setTime(
-                        ((pager!!.adapter as MainPagerAdapter?)!!.currentFragment as SubmissionsView?)!!.id,
+                        ((pager!!.adapter as MainPagerAdapter?)!!.currentFragment as SubmissionsViewFragment?)!!.argument,
                         TimePeriod.YEAR
                     )
                     reloadSubs()
@@ -2962,7 +2957,7 @@ class MainActivity : BaseActivity() {
 
                 5 -> {
                     SortingUtil.setTime(
-                        ((pager!!.adapter as MainPagerAdapter?)!!.currentFragment as SubmissionsView?)!!.id,
+                        ((pager!!.adapter as MainPagerAdapter?)!!.currentFragment as SubmissionsViewFragment?)!!.argument,
                         TimePeriod.ALL
                     )
                     reloadSubs()
@@ -2976,7 +2971,7 @@ class MainActivity : BaseActivity() {
     fun reloadSubs() {
         var current = pager!!.currentItem
         if (commentPager && current == currentComment) {
-            current = current - 1
+            current -= 1
         }
         if (current < 0) {
             current = 0
@@ -3015,7 +3010,7 @@ class MainActivity : BaseActivity() {
                     UserSubscriptions.getSubscriptions(this@MainActivity)
                 )
                 adapter = MainPagerAdapter(this,supportFragmentManager)
-                pager!!.adapter = adapter
+                pager!!.adapter = adapter!!
                 if (mTabLayout != null) {
                     TabLayoutMediator(mTabLayout!!, pager!!) { tab, position ->
                         scrollToTop()
@@ -3024,7 +3019,7 @@ class MainActivity : BaseActivity() {
                 }
                 pager!!.currentItem = usedArray!!.indexOf(subToDo)
                 val color = Palette.getColor(subToDo)
-                hea!!.setBackgroundColor(color)
+                headerBack!!.setBackgroundColor(color)
                 header!!.setBackgroundColor(color)
                 if (accountsArea != null) {
                     accountsArea!!.setBackgroundColor(Palette.getDarkerColor(color))
@@ -3078,7 +3073,7 @@ class MainActivity : BaseActivity() {
     fun scrollToTop() {
         var pastVisiblesItems = 0
         if (adapter!!.currentFragment == null) return
-        val firstVisibleItems = ((adapter!!.currentFragment as SubmissionsView?)!!.rv
+        val firstVisibleItems = ((adapter!!.currentFragment as SubmissionsViewFragment?)!!.rv
             !!.layoutManager as CatchStaggeredGridLayoutManager?)!!.findFirstVisibleItemPositions(null)
         if (firstVisibleItems?.isEmpty() == false) {
             for (firstVisibleItem in firstVisibleItems) {
@@ -3086,18 +3081,18 @@ class MainActivity : BaseActivity() {
             }
         }
         if (pastVisiblesItems > 8) {
-            (adapter!!.currentFragment as SubmissionsView?)!!.rv!!.scrollToPosition(0)
+            (adapter!!.currentFragment as SubmissionsViewFragment?)!!.rv!!.scrollToPosition(0)
             header!!.animate()
                 .translationY(header!!.height.toFloat())
                 .setInterpolator(LinearInterpolator()).duration = 0
         } else {
-            (adapter!!.currentFragment as SubmissionsView?)!!.rv!!.smoothScrollToPosition(0)
+            (adapter!!.currentFragment as SubmissionsViewFragment?)!!.rv!!.smoothScrollToPosition(0)
         }
-        (adapter!!.currentFragment as SubmissionsView?)!!.resetScroll()
+        (adapter!!.currentFragment as SubmissionsViewFragment?)!!.resetScroll()
     }
 
     fun setDataSet(data: List<String>?) {
-        if (data != null && !data.isEmpty()) {
+        if (!data.isNullOrEmpty()) {
             usedArray = CaseInsensitiveArrayList(data)
             if (adapter == null) {
                 adapter = if (commentPager && singleMode) {
@@ -3121,8 +3116,8 @@ class MainActivity : BaseActivity() {
             themeSystemBars(usedArray!![toGoto])
             val USEDARRAY_0 = usedArray!![0]
             header!!.setBackgroundColor(Palette.getColor(USEDARRAY_0))
-            if (hea != null) {
-                hea!!.setBackgroundColor(Palette.getColor(USEDARRAY_0))
+            if (headerBack != null) {
+                headerBack!!.setBackgroundColor(Palette.getColor(USEDARRAY_0))
                 if (accountsArea != null) {
                     accountsArea!!.setBackgroundColor(Palette.getDarkerColor(USEDARRAY_0))
                 }
@@ -3196,7 +3191,7 @@ class MainActivity : BaseActivity() {
                             SubredditView.EXTRA_SUBREDDIT,
                             drawerSearch!!.text.toString()
                         )
-                        this@MainActivity.startActivityForResult(inte, 2001)
+                        this@MainActivity.startActivityForResult(inte, SEARCH_RESULT)
                     } else {
                         if (commentPager && adapter is MainPagerAdapterComment) {
                             openingComments = null
@@ -3214,7 +3209,7 @@ class MainActivity : BaseActivity() {
                                 )
                             } else {
                                 doPageSelectedComments(
-                                    usedArray!!.indexOf(sideArrayAdapter!!.fitems[0])
+                                    usedArray!!.indexOf(sideArrayAdapter!!.fitems!![0])
                                 )
                             }
                         }
@@ -3226,7 +3221,7 @@ class MainActivity : BaseActivity() {
                                 drawerSearch!!.text.toString().lowercase()
                             )
                         } else {
-                            pager!!.currentItem = usedArray!!.indexOf(sideArrayAdapter!!.fitems[0])
+                            pager!!.currentItem = usedArray!!.indexOf(sideArrayAdapter!!.fitems!![0])
                         }
                         drawerLayout!!.closeDrawers()
                         drawerSearch!!.setText("")
@@ -3262,7 +3257,7 @@ class MainActivity : BaseActivity() {
     }
 
     fun updateColor(color: Int, subreddit: String?) {
-        hea!!.setBackgroundColor(color)
+        headerBack!!.setBackgroundColor(color)
         header!!.setBackgroundColor(color)
         if (accountsArea != null) {
             accountsArea!!.setBackgroundColor(Palette.getDarkerColor(color))
@@ -3431,7 +3426,7 @@ class MainActivity : BaseActivity() {
 
     private fun collapse(v: LinearLayout) {
         val finalHeight = v.height
-        val mAnimator = me.ccrama.redditslide.util.AnimatorUtil.slideAnimator(finalHeight, 0, v)
+        val mAnimator = AnimatorUtil.slideAnimator(finalHeight, 0, v)
         mAnimator.addListener(object : AnimatorListenerAdapter() {
             override fun onAnimationEnd(animator: Animator) {
                 v.visibility = View.GONE
@@ -3452,7 +3447,7 @@ class MainActivity : BaseActivity() {
         val widthSpec = View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
         val heightSpec = View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
         v.measure(widthSpec, heightSpec)
-        val mAnimator = me.ccrama.redditslide.util.AnimatorUtil.slideAnimator(0, v.measuredHeight, v)
+        val mAnimator = AnimatorUtil.slideAnimator(0, v.measuredHeight, v)
         mAnimator.start()
     }
 
@@ -3529,7 +3524,7 @@ class MainActivity : BaseActivity() {
                     TOOLBAR_SEARCH_SUGGEST_LIST.adapter = TOOLBAR_SEARCH_SUGGEST_ADAPTER
                 }
                 if (mToolbar != null) {
-                    mToolbar!!.setOnLongClickListener {
+                    mToolbar.setOnLongClickListener {
                         val GO_TO_SUB_FIELD =
                             findViewById<AutoCompleteTextView>(R.id.toolbar_search)
                         val CLOSE_BUTTON = findViewById<ImageView>(R.id.close_search_toolbar)
@@ -3600,9 +3595,7 @@ class MainActivity : BaseActivity() {
                                             GO_TO_SUB_FIELD.text
                                                 .toString()
                                         )
-                                        this@MainActivity.startActivityForResult(
-                                            intent, 2002
-                                        )
+                                        this@MainActivity.startActivityForResult(intent, GO_TO_SUB_RESULT)
                                     } else {
                                         if (commentPager
                                             && adapter is MainPagerAdapterComment
@@ -3627,9 +3620,7 @@ class MainActivity : BaseActivity() {
                                                 )
                                             } else {
                                                 doPageSelectedComments(
-                                                    usedArray!!.indexOf(
-                                                        sideArrayAdapter!!.fitems[0]
-                                                    )
+                                                    usedArray!!.indexOf(sideArrayAdapter!!.fitems!![0])
                                                 )
                                             }
                                         }
@@ -3645,9 +3636,7 @@ class MainActivity : BaseActivity() {
                                                     .lowercase()
                                             )
                                         } else {
-                                            pager!!.currentItem = usedArray!!.indexOf(
-                                                sideArrayAdapter!!.fitems[0]
-                                            )
+                                            pager!!.currentItem = usedArray!!.indexOf(sideArrayAdapter!!.fitems!![0])
                                         }
                                     }
                                     val view = this@MainActivity.currentFocus
@@ -3802,7 +3791,7 @@ class MainActivity : BaseActivity() {
                 val oldCount = SettingValues.appRestart.getInt("inbox", 0)
                 if (count > oldCount) {
                     val s = Snackbar.make(
-                        mToolbar!!,
+                        mToolbar,
                         resources.getQuantityString(
                             R.plurals.new_messages,
                             count - oldCount, count - oldCount
@@ -3859,9 +3848,13 @@ class MainActivity : BaseActivity() {
         const val LOGGED_IN = "loggedIn"
         const val USERNAME = "username"
         const val TUTORIAL_RESULT = 55
-        const val INBOX_RESULT = 66
         const val RESET_ADAPTER_RESULT = 3
         const val SETTINGS_RESULT = 2
+        const val SEARCH_RESULT = 2001
+        const val GO_TO_SUB_RESULT = 2002
+        const val COMMENT_SEARCH_RESULT = 423
+        const val OPEN_POST_RESULT = 940
+        const val CHOOSE_IMAGE_RESULT = 3333
         @JvmField var loader: Loader? = null
         var datasetChanged = false
         @JvmField var multiNameToSubsMap: MutableMap<String, String> = HashMap()

@@ -5,8 +5,13 @@ import android.os.AsyncTask
 import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.ActionBar
+import androidx.paging.PagingData
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.singleOrNull
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import ltd.ucode.network.data.IPost
 import ltd.ucode.network.lemmy.api.ApiException
 import ltd.ucode.network.lemmy.api.ApiResult
@@ -28,8 +33,9 @@ import ltd.ucode.slide.shim.PeriodExtensions.from
 import ltd.ucode.slide.shim.SortingExtensions.from
 import ltd.ucode.slide.ui.BaseActivity
 import ltd.ucode.slide.ui.main.MainActivity
+import ltd.ucode.slide.ui.submissionView.SubmissionsViewFragment
+import ltd.ucode.slide.util.ContextExtensions.lifecycleScope
 import me.ccrama.redditslide.Activities.SubredditView
-import me.ccrama.redditslide.Fragments.SubmissionsView
 import me.ccrama.redditslide.OfflineSubreddit
 import me.ccrama.redditslide.PostLoader
 import me.ccrama.redditslide.PostMatch
@@ -43,38 +49,37 @@ import java.util.Collections
 /**
  * This class is reponsible for loading subreddit specific submissions [] is implemented asynchronously.
  */
-class SubredditPosts @JvmOverloads constructor(
-    subreddit: String,
-    c: Context,
+class SubredditPosts constructor(
+    var subreddit: String,
+    var c: Context,
     private val postRepository: PostRepository,
-    force18: Boolean = false
+    var force18: Boolean = false
 ) : PostLoader {
     override var posts: MutableList<IPost> = mutableListOf()
+    lateinit var flow: Flow<PagingData<Post>>
 
-    @JvmField
-    var subreddit: String
     var subredditRandom: String? = null
-    @JvmField
     var nomore = false
-    @JvmField
     var offline = false
-    @JvmField
     var forced = false
-    @JvmField
     var loading = false
-    @JvmField
     var error = false
     private var paginator: PagedData<Post>? = null
-    @JvmField
     var cached: OfflineSubreddit? = null
-    var c: Context
-    var force18: Boolean
+
+    var all: ArrayList<String?>? = null
+    var authedOnce = false
+    var usedOffline = false
+    var currentid: Long = 0
+    var displayer: SubmissionDisplay? = null
 
     override fun loadMore(
         context: Context, display: SubmissionDisplay,
         reset: Boolean
     ) {
-        LoadData(context, display, reset).execute(subreddit)
+        context.lifecycleScope.launch {
+            LoadData(context, display, reset)(subreddit)
+        }
     }
 
     fun loadMore(
@@ -85,22 +90,8 @@ class SubredditPosts @JvmOverloads constructor(
         loadMore(context, display!!, reset)
     }
 
-    var all: ArrayList<String?>? = null
-
     override fun hasMore(): Boolean {
         return !nomore
-    }
-
-    var authedOnce = false
-    var usedOffline = false
-    var currentid: Long = 0
-    var displayer: SubmissionDisplay? = null
-
-    init {
-        posts = ArrayList()
-        this.subreddit = subreddit
-        this.c = c
-        this.force18 = force18
     }
 
     /**
@@ -113,6 +104,16 @@ class SubredditPosts @JvmOverloads constructor(
     ) : AsyncTask<String?, Void?, List<IPost?>?>() {
         val reset: Boolean
         var start = 0
+
+        suspend operator fun invoke(sub: String?) {
+            onPreExecute()
+            val result = withContext(Dispatchers.IO) {
+                // runs in background thread without blocking the Main Thread
+                doInBackground(sub)
+            }
+            onPostExecute(result)
+        }
+
         public override fun onPreExecute() {
             if (reset) {
                 posts.clear()
@@ -147,10 +148,10 @@ class SubredditPosts @JvmOverloads constructor(
                 }
                 success = false
             } else if (!submissions.isNullOrEmpty()) {
-                if (displayer is SubmissionsView
-                    && (displayer as SubmissionsView).adapter!!.isError
+                if (displayer is SubmissionsViewFragment
+                    && (displayer as SubmissionsViewFragment).adapter!!.hasError
                 ) {
-                    (displayer as SubmissionsView).adapter!!.undoSetError()
+                    (displayer as SubmissionsViewFragment).adapter!!.undoSetError()
                 }
                 val ids = arrayOfNulls<String>(submissions.size)
                 for ((i, s) in submissions.withIndex()) {
@@ -221,6 +222,7 @@ class SubredditPosts @JvmOverloads constructor(
                     sub = MainActivity.randomoverride!!
                     MainActivity.randomoverride = ""
                 }
+
                 val postFlow = if (sub == "subscribed") {
                     //SubredditPaginator(Authentication.reddit)
                     postRepository.getPosts(
@@ -267,6 +269,49 @@ class SubredditPosts @JvmOverloads constructor(
                         sort = Sorting.from(getSubmissionSort(subreddit)),
                     )
                 }
+
+                flow = if (sub == "subscribed") {
+                    //SubredditPaginator(Authentication.reddit)
+                    postRepository.getPosts(
+                        AccountRepository.currentAccount,
+                        feed = Feed.Subscribed,
+                        period = Period.from(getSubmissionTimePeriod(subreddit)),
+                        sort = Sorting.from(getSubmissionSort(subreddit)),
+                    )
+                } else if (sub == "local") {
+                    //SubredditPaginator(Authentication.reddit)
+                    postRepository.getPosts(
+                        AccountRepository.currentAccount,
+                        feed = Feed.Local,
+                        period = Period.from(getSubmissionTimePeriod(subreddit)),
+                        sort = Sorting.from(getSubmissionSort(subreddit)),
+                    )
+                } else if (sub == "all") {
+                    //SubredditPaginator(Authentication.reddit)
+                    postRepository.getPosts(
+                        AccountRepository.currentAccount,
+                        feed = Feed.All,
+                        period = Period.from(getSubmissionTimePeriod(subreddit)),
+                        sort = Sorting.from(getSubmissionSort(subreddit)),
+                    )
+                } else if (!sub.contains(".")) {
+                    //SubredditPaginator(Authentication.reddit, sub)
+                    postRepository.getPosts(
+                        AccountRepository.currentAccount,
+                        feed = Feed.Group(sub),
+                        period = Period.from(getSubmissionTimePeriod(subreddit)),
+                        sort = Sorting.from(getSubmissionSort(subreddit)),
+                    )
+                } else {
+                    //DomainPaginator(Authentication.reddit, sub)
+                    postRepository.getPosts(
+                        AccountRepository.currentAccount,
+                        feed = Feed.Group(sub),
+                        period = Period.from(getSubmissionTimePeriod(subreddit)),
+                        sort = Sorting.from(getSubmissionSort(subreddit)),
+                    )
+                }
+
                 paginator = postFlow.let {
                     runBlocking {
                         it.singleOrNull().orEmpty()
@@ -330,7 +375,7 @@ class SubredditPosts @JvmOverloads constructor(
                     for (s in adding) {
                         if (!PostMatch.doesMatch(
                                 s,
-                                "",//if (paginator is SubredditPaginator) (paginator as SubredditPaginator).subreddit else (paginator as DomainPaginator?)!!.domain,
+                                "",//if (paginator is SubredditPaginator) (paginator as SubredditPaginator).subreddit else (paginator!! as DomainPaginator).domain,
                                 force18
                             )
                         ) {

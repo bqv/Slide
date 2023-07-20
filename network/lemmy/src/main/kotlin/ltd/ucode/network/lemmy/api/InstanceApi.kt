@@ -3,7 +3,6 @@ package ltd.ucode.network.lemmy.api
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlin.reflect.KFunction1
 import kotlinx.coroutines.delay
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
@@ -37,6 +36,7 @@ import ltd.ucode.network.lemmy.api.response.GetPostResponse
 import ltd.ucode.network.lemmy.api.response.GetPostsResponse
 import ltd.ucode.network.lemmy.api.response.GetSiteResponse
 import ltd.ucode.network.lemmy.api.response.GetUnreadCountResponse
+import ltd.ucode.network.lemmy.api.response.IResponse
 import ltd.ucode.network.lemmy.api.response.ListCommunitiesResponse
 import ltd.ucode.network.lemmy.api.response.LoginResponse
 import ltd.ucode.network.lemmy.api.response.PostResponse
@@ -52,6 +52,7 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import retrofit2.Response
 import retrofit2.Retrofit
 import java.net.HttpCookie
+import kotlin.reflect.KFunction1
 
 open class InstanceApi (
     val instance: String,
@@ -360,7 +361,7 @@ open class InstanceApi (
     //    retryOnError { api.verifyEmail(request) }
 
 
-    protected open suspend fun <T> retryOnError(block: suspend () -> Response<T>): ApiResult<T> {
+    protected open suspend fun <T : IResponse> retryOnError(block: suspend () -> Response<T>): ApiResult<T> {
         val withCallerScope: KFunction1<Throwable.() -> Unit, Unit> = let {
             val t = Throwable("ApiCall")
             t::run
@@ -384,7 +385,14 @@ open class InstanceApi (
                         response.errorBody()?.string().orEmpty())
                 }
                 else -> {
+                    val element = response.raw().body
+                        ?.run { source().peek().readUtf8() }
+
                     response.body()!!
+                        .apply {
+                            if (!element.isNullOrBlank())
+                                this.raw = json.parseToJsonElement(element)
+                        }
                 }
             }
         }

@@ -16,7 +16,7 @@ import ltd.ucode.slide.ui.BaseActivity
 import me.ccrama.redditslide.Activities.NewsActivity
 import me.ccrama.redditslide.Activities.SubredditView
 import me.ccrama.redditslide.Constants
-import me.ccrama.redditslide.Fragments.SubmissionsView
+import ltd.ucode.slide.ui.submissionView.SubmissionsViewFragment
 import me.ccrama.redditslide.HasSeen
 import me.ccrama.redditslide.LastComments
 import me.ccrama.redditslide.OfflineSubreddit
@@ -138,10 +138,10 @@ class SubredditPostsRealm : PostLoader {
                 }
                 displayer!!.updateError()
             } else if (submissions != null && !submissions.isEmpty()) {
-                if (displayer is SubmissionsView
-                    && (displayer as SubmissionsView).adapter!!.isError
+                if (displayer is SubmissionsViewFragment
+                    && (displayer as SubmissionsViewFragment).adapter!!.hasError
                 ) {
-                    (displayer as SubmissionsView).adapter!!.undoSetError()
+                    (displayer as SubmissionsViewFragment).adapter!!.undoSetError()
                 }
                 val ids = arrayOfNulls<String>(submissions.size)
                 var i = 0
@@ -259,7 +259,7 @@ class SubredditPostsRealm : PostLoader {
                     for (s in adding) {
                         if (!PostMatch.doesMatch(
                                 s,
-                                if (paginator is SubredditPaginator) (paginator as SubredditPaginator).subreddit else (paginator as DomainPaginator?)!!.domain,
+                                if (paginator is SubredditPaginator) (paginator as SubredditPaginator).subreddit else (paginator!! as DomainPaginator).domain,
                                 force18
                             )
                         ) {

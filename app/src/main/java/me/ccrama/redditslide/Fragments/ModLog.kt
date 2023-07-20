@@ -36,7 +36,7 @@ class ModLog : Fragment() {
             Constants.TAB_HEADER_VIEW_OFFSET + Constants.PTR_OFFSET_BOTTOM)
         mSwipeRefreshLayout.post { mSwipeRefreshLayout.isRefreshing = true }
         posts = ModLogPosts()
-        adapter = ModLogAdapter(activity, posts, rv)
+        adapter = ModLogAdapter(requireActivity(), posts!!, rv)
         rv.adapter = adapter
         rv.addOnScrollListener(ToolbarScrollHideHandler((requireActivity() as ModQueue).mToolbar, requireActivity().findViewById(R.id.header)))
         posts!!.bindAdapter(adapter, mSwipeRefreshLayout)

@@ -4,21 +4,22 @@ import android.os.Bundle
 import android.view.animation.LinearInterpolator
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
-import androidx.viewpager2.widget.ViewPager2
+import androidx.viewpager2.widget.ViewPager2.OnPageChangeCallback
 import me.ccrama.redditslide.Fragments.CommentPage
-import me.ccrama.redditslide.Fragments.SubmissionsView
+import ltd.ucode.slide.ui.submissionView.SubmissionsViewFragment
 import me.ccrama.redditslide.Visuals.Palette
 import me.ccrama.redditslide.views.ViewPager2Extensions.setSwipeLeftOnly
 
 class MainPagerAdapterComment(private val mainActivity: MainActivity,
                               fm: FragmentManager,
-) : MainPagerAdapter(mainActivity, fm) {
+) : IMainPagerAdapter(fm, mainActivity.lifecycle) {
+    protected var mCurrentFragment: SubmissionsViewFragment? = null
     @JvmField var size = mainActivity.usedArray!!.size
     @JvmField var storedFragment: Fragment? = null
     var mCurrentComments: CommentPage? = null
 
     init {
-        mainActivity.pager!!.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
+        mainActivity.pager!!.registerOnPageChangeCallback(object : OnPageChangeCallback() {
             override fun onPageScrolled(
                 position: Int, positionOffset: Float,
                 positionOffsetPixels: Int
@@ -33,7 +34,7 @@ class MainPagerAdapterComment(private val mainActivity: MainActivity,
                         )
                         mainActivity.doPageSelectedComments(position)
                         if (position == mainActivity.toOpenComments - 1 && mainActivity.adapter != null && mainActivity.adapter!!.currentFragment != null) {
-                            val page = mainActivity.adapter!!.currentFragment as SubmissionsView?
+                            val page = mainActivity.adapter!!.currentFragment as SubmissionsViewFragment?
                             if (page?.adapter != null) {
                                 page.adapter!!.refreshView()
                             }
@@ -56,7 +57,7 @@ class MainPagerAdapterComment(private val mainActivity: MainActivity,
 
             override fun onPageSelected(position: Int) {
                 if (position == mainActivity.toOpenComments - 1 && mainActivity.adapter != null && mainActivity.adapter!!.currentFragment != null) {
-                    val page = mainActivity.adapter!!.currentFragment as SubmissionsView?
+                    val page = mainActivity.adapter!!.currentFragment as SubmissionsViewFragment?
                     if (page?.adapter != null) {
                         page.adapter!!.refreshView()
                         val p = page.adapter!!.dataSet
@@ -65,7 +66,7 @@ class MainPagerAdapterComment(private val mainActivity: MainActivity,
                         }
                     }
                 } else {
-                    val page = mainActivity.adapter!!.currentFragment as SubmissionsView?
+                    val page = mainActivity.adapter!!.currentFragment as SubmissionsViewFragment?
                     if (page?.adapter != null) {
                         val p = page.adapter!!.dataSet
                         if (p.offline && !MainActivity.isRestart) {
@@ -88,7 +89,7 @@ class MainPagerAdapterComment(private val mainActivity: MainActivity,
 
     override fun createFragment(i: Int): Fragment {
         return if (mainActivity.openingComments == null || i != mainActivity.toOpenComments) {
-            val f = SubmissionsView()
+            val f = SubmissionsViewFragment()
             val args = Bundle()
             if (mainActivity.usedArray!!.size > i) {
                 if (MainActivity.multiNameToSubsMap.containsKey(mainActivity.usedArray!![i])) {
@@ -124,7 +125,7 @@ class MainPagerAdapterComment(private val mainActivity: MainActivity,
                 MainActivity.shouldLoad = mainActivity.usedArray!![position]
             }
             if (currentFragment !== obj) {
-                mCurrentFragment = obj as SubmissionsView?
+                mCurrentFragment = obj as SubmissionsViewFragment?
                 if (mCurrentFragment != null && mCurrentFragment!!.posts == null && mCurrentFragment!!.isAdded
                 ) {
                     mCurrentFragment!!.doAdapter()

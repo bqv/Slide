@@ -6,7 +6,7 @@ import ltd.ucode.network.data.IPost
  * Interface to provide methods for updating an object when new submissions
  * have been loaded.
  */
-interface SubmissionDisplay {
+interface SubmissionDisplay { // Presenter?
     /**
      * Called when the update was done online.
      * @param submissions   the updated list of submissions

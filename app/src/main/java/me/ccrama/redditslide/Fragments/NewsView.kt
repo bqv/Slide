@@ -346,8 +346,8 @@ class NewsView : Fragment(), SubmissionDisplay {
     override fun updateSuccess(submissions: List<IPost>, startIndex: Int) {
         if (activity != null) {
             if (activity is MainActivity) {
-                if ((activity as MainActivity?)!!.runAfterLoad != null) {
-                    Handler().post((activity as MainActivity?)!!.runAfterLoad!!)
+                if ((activity!! as MainActivity).runAfterLoad != null) {
+                    Handler().post((activity!! as MainActivity).runAfterLoad!!)
                 }
             }
             requireActivity().runOnUiThread {
@@ -373,8 +373,8 @@ class NewsView : Fragment(), SubmissionDisplay {
 
     override fun updateOffline(submissions: List<IPost>, cacheTime: Long) {
         if (activity is MainActivity) {
-            if ((activity as MainActivity?)!!.runAfterLoad != null) {
-                Handler().post((activity as MainActivity?)!!.runAfterLoad!!)
+            if ((activity!! as MainActivity).runAfterLoad != null) {
+                Handler().post((activity!! as MainActivity).runAfterLoad!!)
             }
         }
         if (this.isAdded) {
@@ -387,8 +387,8 @@ class NewsView : Fragment(), SubmissionDisplay {
 
     override fun updateOfflineError() {
         if (activity is MainActivity) {
-            if ((activity as MainActivity?)!!.runAfterLoad != null) {
-                Handler().post((activity as MainActivity?)!!.runAfterLoad!!)
+            if ((activity!! as MainActivity).runAfterLoad != null) {
+                Handler().post((activity!! as MainActivity).runAfterLoad!!)
             }
         }
         mSwipeRefreshLayout!!.isRefreshing = false
@@ -397,8 +397,8 @@ class NewsView : Fragment(), SubmissionDisplay {
 
     override fun updateError() {
         if (activity is MainActivity) {
-            if ((activity as MainActivity?)!!.runAfterLoad != null) {
-                Handler().post((activity as MainActivity?)!!.runAfterLoad!!)
+            if ((activity!! as MainActivity).runAfterLoad != null) {
+                Handler().post((activity!! as MainActivity).runAfterLoad!!)
             }
         }
         mSwipeRefreshLayout!!.isRefreshing = false
@@ -426,7 +426,7 @@ class NewsView : Fragment(), SubmissionDisplay {
     fun resetScroll() {
         if (toolbarScroll == null) {
             toolbarScroll =
-                object : ToolbarScrollHideHandler((activity as BaseActivity?)!!.mToolbar, header) {
+                object : ToolbarScrollHideHandler((activity!! as BaseActivity).mToolbar, header) {
                     override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                         super.onScrolled(recyclerView, dx, dy)
                         if (!posts!!.loading
@@ -507,11 +507,11 @@ class NewsView : Fragment(), SubmissionDisplay {
                                     && (subredditSearchMethod
                                     == Constants.SUBREDDIT_SEARCH_METHOD_TOOLBAR
                                     || subredditSearchMethod
-                                    == Constants.SUBREDDIT_SEARCH_METHOD_BOTH)) && (context as MainActivity?)!!.findViewById<View>(
+                                    == Constants.SUBREDDIT_SEARCH_METHOD_BOTH)) && (context!! as MainActivity).findViewById<View>(
                                 R.id.toolbar_search
                             ).visibility == View.VISIBLE
                         ) {
-                            (context as MainActivity?)!!.findViewById<View>(
+                            (context!! as MainActivity).findViewById<View>(
                                 R.id.close_search_toolbar
                             ).performClick()
                         }

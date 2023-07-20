@@ -22,7 +22,7 @@ import ltd.ucode.slide.SettingValues.appRestart
 import ltd.ucode.slide.ui.BaseActivity
 import me.ccrama.redditslide.Adapters.RedditGalleryView
 import me.ccrama.redditslide.Fragments.BlankFragment
-import me.ccrama.redditslide.Fragments.SubmissionsView.Companion.datachanged
+import ltd.ucode.slide.ui.submissionView.SubmissionsViewFragment.Companion.datachanged
 import me.ccrama.redditslide.Notifications.ImageDownloadNotificationService
 import me.ccrama.redditslide.Visuals.ColorPreferences
 import me.ccrama.redditslide.Visuals.Palette
@@ -217,7 +217,7 @@ class RedditGallery : FullScreenActivity() {
             val galleryActivity = activity as RedditGallery?
             galleryActivity!!.images =
                 requireActivity().intent.getSerializableExtra(GALLERY_URLS) as ArrayList<GalleryImage>?
-            (activity as BaseActivity?)!!.shareUrl = galleryActivity.url
+            (activity!! as BaseActivity).shareUrl = galleryActivity.url
             galleryActivity.mToolbar = rootView!!.findViewById(R.id.toolbar)
             galleryActivity.mToolbar!!.setTitle(R.string.type_album)
             ToolbarColorizeHelper.colorizeToolbar(

@@ -187,9 +187,9 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == 423 && resultCode == Activity.RESULT_OK) {
+        if (requestCode == MainActivity.COMMENT_SEARCH_RESULT && resultCode == Activity.RESULT_OK) {
             doResult(data)
-        } else if (requestCode == 3333) {
+        } else if (requestCode == MainActivity.CHOOSE_IMAGE_RESULT) {
             for (fragment in requireFragmentManager().fragments) {
                 fragment.onActivityResult(requestCode, resultCode, data)
             }
@@ -611,7 +611,7 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
         }
         doAdapter(
             activity !is CommentsScreen
-                    || (activity as CommentsScreen?)!!.currentPage == page
+                    || (activity!! as CommentsScreen).currentPage == page
         )
         return v
     }
@@ -625,9 +625,9 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
                         DataShare.subAuthor = comments!!.submission!!.user.name
                         val i = Intent(activity, CommentSearch::class.java)
                         if (activity is MainActivity) {
-                            requireActivity().startActivityForResult(i, 423)
+                            requireActivity().startActivityForResult(i, MainActivity.COMMENT_SEARCH_RESULT)
                         } else {
-                            startActivityForResult(i, 423)
+                            startActivityForResult(i, MainActivity.COMMENT_SEARCH_RESULT)
                         }
                     }
                 }
@@ -1484,15 +1484,15 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
         if (load) doRefresh(true)
         if (load) loaded = true
         if ((!single && activity is CommentsScreen)
-            && (activity as CommentsScreen?)!!.subredditPosts != null
-            && Authentication.didOnline && (activity as CommentsScreen?)!!.currentPosts != null
-            && (activity as CommentsScreen?)!!.currentPosts!!.size > page) {
+            && (activity!! as CommentsScreen).subredditPosts != null
+            && Authentication.didOnline && (activity!! as CommentsScreen).currentPosts != null
+            && (activity!! as CommentsScreen).currentPosts!!.size > page) {
             comments = try {
                 SubmissionComments(fullname!!, this, mSwipeRefreshLayout!!)
             } catch (e: IndexOutOfBoundsException) {
                 return
             }
-            val s = (activity as CommentsScreen?)!!.currentPosts!![page]!!.submission
+            val s = (activity!! as CommentsScreen).currentPosts!![page]!!.submission
             if (s != null && s.dataNode.has("suggested_sort") && !s.dataNode["suggested_sort"]
                     .asText()
                     .equals("null", ignoreCase = true)
@@ -1510,7 +1510,7 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
             }
         } else if (activity is MainActivity) {
             if (Authentication.didOnline) {
-                val s = (activity as MainActivity?)!!.openingComments!!
+                val s = (activity!! as MainActivity).openingComments!!
                 comments = SubmissionComments(fullname!!, this, mSwipeRefreshLayout!!, s)
                 /*
                 if (s != null && s.dataNode.has("suggested_sort") && !s.dataNode["suggested_sort"]
@@ -1531,7 +1531,7 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
                     rv!!.adapter = adapter
                 }
             } else {
-                val s = (activity as MainActivity?)!!.openingComments!!
+                val s = (activity!! as MainActivity).openingComments!!
                 doRefresh(false)
                 comments = SubmissionComments(fullname!!, this, mSwipeRefreshLayout!!, s!!)
                 if (adapter == null) {
@@ -1599,7 +1599,7 @@ class CommentPage : Fragment(), Toolbar.OnMenuItemClickListener {
                     getContext(),
                     comments!!,
                     rv!!,
-                    if (activity is MainActivity) (activity as MainActivity?)!!.openingComments!! else comments!!.submission!!,
+                    if (activity is MainActivity) (activity!! as MainActivity).openingComments!! else comments!!.submission!!,
                     b
                 )
                 if (SettingValues.collapseCommentsDefault) {

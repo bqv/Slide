@@ -1,261 +1,193 @@
-package me.ccrama.redditslide.Adapters;
+package me.ccrama.redditslide.Adapters
 
-/**
- * Created by ccrama on 3/22/2015.
- */
+import android.app.Activity
+import android.graphics.Typeface
+import android.text.Spannable
+import android.text.SpannableStringBuilder
+import android.text.Spanned
+import android.text.style.ForegroundColorSpan
+import android.text.style.RelativeSizeSpan
+import android.text.style.StyleSpan
+import android.text.style.TypefaceSpan
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.widget.ImageView
+import android.widget.LinearLayout
+import androidx.core.content.res.ResourcesCompat
+import androidx.recyclerview.widget.RecyclerView
+import ltd.ucode.slide.Authentication
+import ltd.ucode.slide.R
+import ltd.ucode.slide.SettingValues
+import me.ccrama.redditslide.OpenRedditLink
+import me.ccrama.redditslide.SpoilerRobotoTextView
+import me.ccrama.redditslide.Visuals.Palette
+import me.ccrama.redditslide.util.TimeUtils
+import me.ccrama.redditslide.views.RoundedBackgroundSpan
 
-import android.app.Activity;
-import android.graphics.Typeface;
-import android.text.Spannable;
-import android.text.SpannableStringBuilder;
-import android.text.Spanned;
-import android.text.style.ForegroundColorSpan;
-import android.text.style.RelativeSizeSpan;
-import android.text.style.StyleSpan;
-import android.text.style.TypefaceSpan;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
+class ModLogAdapter(val mContext: Activity, var dataSet: ModLogPosts, private val listView: RecyclerView) : RecyclerView.Adapter<RecyclerView.ViewHolder>(), IFallibleAdapter {
+    private val SPACER = 6
 
-import androidx.core.content.res.ResourcesCompat;
-import androidx.recyclerview.widget.RecyclerView;
-
-import net.dean.jraw.models.ModAction;
-
-import java.util.Locale;
-
-import ltd.ucode.slide.Authentication;
-import me.ccrama.redditslide.OpenRedditLink;
-import ltd.ucode.slide.R;
-import ltd.ucode.slide.SettingValues;
-import me.ccrama.redditslide.SpoilerRobotoTextView;
-import me.ccrama.redditslide.views.RoundedBackgroundSpan;
-import me.ccrama.redditslide.Visuals.Palette;
-import me.ccrama.redditslide.util.TimeUtils;
-
-
-public class ModLogAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
-        implements BaseAdapter {
-
-    private final       int SPACER  = 6;
-    public static final int MESSAGE = 2;
-    public final  Activity     mContext;
-    private final RecyclerView listView;
-    public        ModLogPosts  dataSet;
-
-    public ModLogAdapter(Activity mContext, ModLogPosts dataSet, RecyclerView listView) {
-        this.mContext = mContext;
-        this.listView = listView;
-        this.dataSet = dataSet;
+    override fun setError(b: Boolean) {
+        listView.adapter = ErrorAdapter()
     }
 
-    @Override
-    public void setError(Boolean b) {
-        listView.setAdapter(new ErrorAdapter());
+    override fun undoSetError() {
+        listView.adapter = this
     }
 
-    @Override
-    public void undoSetError() {
-        listView.setAdapter(this);
-    }
-
-    @Override
-    public int getItemViewType(int position) {
-        if (position == 0 && !dataSet.posts.isEmpty()) {
-            return SPACER;
-        } else if (!dataSet.posts.isEmpty()) {
-            position -= 1;
+    override fun getItemViewType(position: Int): Int {
+        var position = position
+        if (position == 0 && !dataSet.posts.isNullOrEmpty()) {
+            return SPACER
+        } else if (!dataSet.posts.isNullOrEmpty()) {
+            position -= 1
         }
-        return MESSAGE;
+        return MESSAGE
     }
 
-    public static class SpacerViewHolder extends RecyclerView.ViewHolder {
-        public SpacerViewHolder(View itemView) {
-            super(itemView);
-        }
-    }
+    class SpacerViewHolder(itemView: View?) : RecyclerView.ViewHolder(itemView!!)
 
-    @Override
-    public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup viewGroup, int i) {
-        if (i == SPACER) {
-            View v = LayoutInflater.from(viewGroup.getContext())
-                    .inflate(R.layout.spacer, viewGroup, false);
-            return new SpacerViewHolder(v);
-
+    override fun onCreateViewHolder(viewGroup: ViewGroup, i: Int): RecyclerView.ViewHolder {
+        return if (i == SPACER) {
+            val v = LayoutInflater.from(viewGroup.context)
+                .inflate(R.layout.spacer, viewGroup, false)
+            SpacerViewHolder(v)
         } else {
-            View v = LayoutInflater.from(viewGroup.getContext())
-                    .inflate(R.layout.mod_action, viewGroup, false);
-            return new ModLogViewHolder(v);
+            val v = LayoutInflater.from(viewGroup.context)
+                .inflate(R.layout.mod_action, viewGroup, false)
+            ModLogViewHolder(v)
         }
     }
 
-    public static class ModLogViewHolder extends RecyclerView.ViewHolder {
+    class ModLogViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        var body: SpoilerRobotoTextView
+        var icon: ImageView
 
-        SpoilerRobotoTextView body;
-        ImageView             icon;
-
-        public ModLogViewHolder(View itemView) {
-            super(itemView);
-            body = itemView.findViewById(R.id.body);
-            icon = itemView.findViewById(R.id.action);
+        init {
+            body = itemView.findViewById(R.id.body)
+            icon = itemView.findViewById(R.id.action)
         }
     }
 
-    @Override
-    public void onBindViewHolder(final RecyclerView.ViewHolder firstHold, final int pos) {
-        int i = pos != 0 ? pos - 1 : pos;
-
-        if (firstHold instanceof ModLogViewHolder) {
-            ModLogViewHolder holder = (ModLogViewHolder) firstHold;
-            final ModAction a = dataSet.posts.get(i);
-            SpannableStringBuilder b = new SpannableStringBuilder();
-            SpannableStringBuilder titleString = new SpannableStringBuilder();
-
-            String spacer = mContext.getString(R.string.submission_properties_seperator);
-
-            String timeAgo = TimeUtils.getTimeAgo(a.getCreated().getTime(), mContext);
-            String time = ((timeAgo == null || timeAgo.isEmpty()) ? "just now"
-                    : timeAgo); //some users were crashing here
-            titleString.append(time);
-            titleString.append(spacer);
-
-            if (a.getSubreddit() != null) {
-                String subname = a.getSubreddit();
-                SpannableStringBuilder subreddit = new SpannableStringBuilder("/c/" + subname);
-                if ((SettingValues.colorSubName
-                        && Palette.getColor(subname) != Palette.getDefaultColor())) {
-                    subreddit.setSpan(new ForegroundColorSpan(Palette.getColor(subname)), 0,
-                            subreddit.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-                    subreddit.setSpan(new StyleSpan(Typeface.BOLD), 0, subreddit.length(),
-                            Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+    override fun onBindViewHolder(firstHold: RecyclerView.ViewHolder, pos: Int) {
+        val i = if (pos != 0) pos - 1 else pos
+        if (firstHold is ModLogViewHolder) {
+            val holder = firstHold
+            val a = dataSet.posts!![i]
+            val b = SpannableStringBuilder()
+            val titleString = SpannableStringBuilder()
+            val spacer = mContext.getString(R.string.submission_properties_seperator)
+            val timeAgo = TimeUtils.getTimeAgo(a.created.time, mContext)
+            val time = if (timeAgo == null || timeAgo.isEmpty()) "just now" else timeAgo //some users were crashing here
+            titleString.append(time)
+            titleString.append(spacer)
+            if (a.subreddit != null) {
+                val subname = a.subreddit
+                val subreddit = SpannableStringBuilder("/c/$subname")
+                if (SettingValues.colorSubName
+                    && Palette.getColor(subname) != Palette.getDefaultColor()) {
+                    subreddit.setSpan(ForegroundColorSpan(Palette.getColor(subname)), 0,
+                        subreddit.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                    subreddit.setSpan(StyleSpan(Typeface.BOLD), 0, subreddit.length,
+                        Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
                 }
-
-                titleString.append(subreddit);
+                titleString.append(subreddit)
             }
-
-            b.append(titleString);
-            b.append(spacer);
-            SpannableStringBuilder author = new SpannableStringBuilder(a.getModerator());
-            final int authorcolor = Palette.getFontColorUser(a.getModerator());
-
-            author.setSpan(new TypefaceSpan("sans-serif-condensed"), 0, author.length(),
-                    Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-            author.setSpan(new StyleSpan(Typeface.BOLD), 0, author.length(),
-                    Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-            if (Authentication.name != null && a.getModerator()
-                    .toLowerCase(Locale.ENGLISH)
-                    .equals(Authentication.name.toLowerCase(Locale.ENGLISH))) {
-                author.replace(0, author.length(), " " + a.getModerator() + " ");
-                author.setSpan(new RoundedBackgroundSpan(mContext, android.R.color.white,
-                                R.color.md_deep_orange_300, false), 0, author.length(),
-                        Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            b.append(titleString)
+            b.append(spacer)
+            val author = SpannableStringBuilder(a.moderator)
+            val authorcolor = Palette.getFontColorUser(a.moderator)
+            author.setSpan(TypefaceSpan("sans-serif-condensed"), 0, author.length,
+                Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+            author.setSpan(StyleSpan(Typeface.BOLD), 0, author.length,
+                Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+            if (Authentication.name != null && (a.moderator
+                    .lowercase()
+                    == Authentication.name!!.lowercase())) {
+                author.replace(0, author.length, " " + a.moderator + " ")
+                author.setSpan(RoundedBackgroundSpan(mContext, android.R.color.white,
+                    R.color.md_deep_orange_300, false), 0, author.length,
+                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
             } else if (authorcolor != 0) {
-                author.setSpan(new ForegroundColorSpan(authorcolor), 0, author.length(),
-                        Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                author.setSpan(ForegroundColorSpan(authorcolor), 0, author.length,
+                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
             }
-            author.setSpan(new RelativeSizeSpan(0.8f), 0, author.length(),
-                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-
-            b.append(author);
-            b.append("\n\n");
-            b.append(a.getAction()).append(" ").append(!a.getDataNode().get("target_title").isNull() ?
-                    "\""
-                            + a.getDataNode().get("target_title").asText()
-                            + "\"" : "").append(a.getTargetAuthor() != null ? " by /u/"
-                    + a.getTargetAuthor() : "");
-            if (a.getTargetPermalink() != null) {
-                holder.itemView.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        OpenRedditLink.openUrl(mContext, a.getTargetPermalink(), true);
-                    }
-                });
+            author.setSpan(RelativeSizeSpan(0.8f), 0, author.length,
+                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+            b.append(author)
+            b.append("\n\n")
+            b.append(a.action).append(" ").append(if (!a.dataNode["target_title"].isNull) ("\""
+                + a.dataNode["target_title"].asText()
+                + "\"") else "").append(if (a.targetAuthor != null) (" by /u/"
+                + a.targetAuthor) else "")
+            if (a.targetPermalink != null) {
+                holder.itemView.setOnClickListener { OpenRedditLink.openUrl(mContext, a.targetPermalink, true) }
             }
-
-            if (a.getDetails() != null) {
-                SpannableStringBuilder description =
-                        new SpannableStringBuilder(" (" + a.getDetails() + ")");
-                description.setSpan(new StyleSpan(Typeface.ITALIC), 0, description.length(),
-                        Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-                description.setSpan(new RelativeSizeSpan(0.8f), 0, description.length(),
-                        Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-                b.append(description);
+            if (a.details != null) {
+                val description = SpannableStringBuilder(" (" + a.details + ")")
+                description.setSpan(StyleSpan(Typeface.ITALIC), 0, description.length,
+                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                description.setSpan(RelativeSizeSpan(0.8f), 0, description.length,
+                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                b.append(description)
             }
+            holder.body.text = b
+            val action = a.action
+            when (action) {
+                "removelink" -> holder.icon.setImageDrawable(
+                    ResourcesCompat.getDrawable(mContext.resources, R.drawable.ic_close,
+                        null))
 
-            holder.body.setText(b);
+                "approvecomment", "approvelink" -> holder.icon.setImageDrawable(
+                    ResourcesCompat.getDrawable(mContext.resources, R.drawable.ic_thumb_up,
+                        null))
 
-            String action = a.getAction();
-            switch (action) {
-                case "removelink":
-                    holder.icon.setImageDrawable(
-                            ResourcesCompat.getDrawable(mContext.getResources(), R.drawable.ic_close,
-                                    null));
-                    break;
-                case "approvecomment":
-                case "approvelink":
-                    holder.icon.setImageDrawable(
-                            ResourcesCompat.getDrawable(mContext.getResources(), R.drawable.ic_thumb_up,
-                                    null));
-                    break;
-                case "removecomment":
-                    holder.icon.setImageDrawable(ResourcesCompat.getDrawable(mContext.getResources(),
-                            R.drawable.ic_forum, null));
-                    break;
-                case "editflair":
-                    holder.icon.setImageDrawable(
-                            ResourcesCompat.getDrawable(mContext.getResources(), R.drawable.ic_local_offer,
-                                    null));
-                    break;
-                case "distinguish":
-                    holder.icon.setImageDrawable(ResourcesCompat.getDrawable(mContext.getResources(),
-                            R.drawable.ic_star, null));
-                    break;
-                case "sticky":
-                case "unsticky":
-                    holder.icon.setImageDrawable(
-                            ResourcesCompat.getDrawable(mContext.getResources(), R.drawable.ic_lock,
-                                    null));
-                    break;
-                case "ignorereports":
-                    holder.icon.setImageDrawable(
-                            ResourcesCompat.getDrawable(mContext.getResources(), R.drawable.ic_notifications_off,
-                                    null));
-                    break;
-                case "unignorereports":
-                    holder.icon.setImageDrawable(
-                            ResourcesCompat.getDrawable(mContext.getResources(), R.drawable.ic_notifications_active,
-                                    null));
-                    break;
-                case "marknsfw":
-                case "unmarknsfw":
-                    holder.icon.setImageDrawable(
-                            ResourcesCompat.getDrawable(mContext.getResources(), R.drawable.ic_visibility_off,
-                                    null));
-                    break;
-                default:
-                    holder.icon.setImageDrawable(
-                            ResourcesCompat.getDrawable(mContext.getResources(), R.drawable.ic_verified_user, null));
-                    break;
+                "removecomment" -> holder.icon.setImageDrawable(ResourcesCompat.getDrawable(mContext.resources,
+                    R.drawable.ic_forum, null))
+
+                "editflair" -> holder.icon.setImageDrawable(
+                    ResourcesCompat.getDrawable(mContext.resources, R.drawable.ic_local_offer,
+                        null))
+
+                "distinguish" -> holder.icon.setImageDrawable(ResourcesCompat.getDrawable(mContext.resources,
+                    R.drawable.ic_star, null))
+
+                "sticky", "unsticky" -> holder.icon.setImageDrawable(
+                    ResourcesCompat.getDrawable(mContext.resources, R.drawable.ic_lock,
+                        null))
+
+                "ignorereports" -> holder.icon.setImageDrawable(
+                    ResourcesCompat.getDrawable(mContext.resources, R.drawable.ic_notifications_off,
+                        null))
+
+                "unignorereports" -> holder.icon.setImageDrawable(
+                    ResourcesCompat.getDrawable(mContext.resources, R.drawable.ic_notifications_active,
+                        null))
+
+                "marknsfw", "unmarknsfw" -> holder.icon.setImageDrawable(
+                    ResourcesCompat.getDrawable(mContext.resources, R.drawable.ic_visibility_off,
+                        null))
+
+                else -> holder.icon.setImageDrawable(
+                    ResourcesCompat.getDrawable(mContext.resources, R.drawable.ic_verified_user, null))
             }
-
         }
-        if (firstHold instanceof SpacerViewHolder) {
-            firstHold.itemView.findViewById(R.id.height)
-                    .setLayoutParams(new LinearLayout.LayoutParams(firstHold.itemView.getWidth(),
-                            mContext.findViewById(R.id.header).getHeight()));
+        if (firstHold is SpacerViewHolder) {
+            firstHold.itemView.findViewById<View>(R.id.height).layoutParams = LinearLayout.LayoutParams(firstHold.itemView.width,
+                mContext.findViewById<View>(R.id.header).height)
         }
     }
 
-    @Override
-    public int getItemCount() {
-        if (dataSet.posts == null || dataSet.posts.isEmpty()) {
-            return 0;
+    override fun getItemCount(): Int {
+        return if (dataSet.posts?.isNotEmpty() == true) {
+            0
         } else {
-            return dataSet.posts.size() + 1;
+            dataSet.posts!!.size + 1
         }
     }
 
-
+    companion object {
+        const val MESSAGE = 2
+    }
 }

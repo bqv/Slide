@@ -1,83 +1,56 @@
-package me.ccrama.redditslide.Adapters;
+package me.ccrama.redditslide.Adapters
 
-import android.os.AsyncTask;
+import android.os.AsyncTask
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import ltd.ucode.slide.Authentication
+import net.dean.jraw.models.ModAction
+import net.dean.jraw.paginators.ModLogPaginator
 
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
-
-import net.dean.jraw.models.ModAction;
-import net.dean.jraw.paginators.ModLogPaginator;
-
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
-
-import ltd.ucode.slide.Authentication;
-
-/**
- * Created by ccrama on 9/17/2015.
- */
-public class ModLogPosts {
-    public  ArrayList<ModAction> posts;
-    public  boolean              loading;
-    private SwipeRefreshLayout   refreshLayout;
-    private ModLogAdapter        adapter;
-    private ModLogPaginator      paginator;
-
-    public ModLogPosts() {
+class ModLogPosts {
+    var posts: ArrayList<ModAction>? = null
+    var loading = false
+    private var refreshLayout: SwipeRefreshLayout? = null
+    private var adapter: ModLogAdapter? = null
+    private var paginator: ModLogPaginator? = null
+    fun bindAdapter(a: ModLogAdapter?, layout: SwipeRefreshLayout?) {
+        adapter = a
+        refreshLayout = layout
+        loadMore(a)
     }
 
-    public void bindAdapter(ModLogAdapter a, SwipeRefreshLayout layout) {
-        this.adapter = a;
-        this.refreshLayout = layout;
-        loadMore(a);
+    fun loadMore(adapter: ModLogAdapter?) {
+        LoadData(true).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR)
     }
 
-    public void loadMore(ModLogAdapter adapter) {
-        new ModLogPosts.LoadData(true).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-    }
-
-    public class LoadData extends AsyncTask<String, Void, ArrayList<ModAction>> {
-        final boolean reset;
-
-        public LoadData(boolean reset) {
-            this.reset = reset;
-        }
-
-        @Override
-        public void onPostExecute(ArrayList<ModAction> subs) {
+    inner class LoadData(val reset: Boolean) : AsyncTask<String?, Void?, ArrayList<ModAction>?>() {
+        public override fun onPostExecute(subs: ArrayList<ModAction>?) {
             if (subs != null) {
-
-                if (reset || posts == null) {
-                    posts = new ArrayList<>(new LinkedHashSet(subs));
+                posts = if (reset || posts == null) {
+                    subs
                 } else {
-                    posts.addAll(subs);
-                    posts = new ArrayList<>(new LinkedHashSet(posts));
+                    posts!!.addAll(subs)
+                    posts
                 }
-                loading = false;
-                refreshLayout.setRefreshing(false);
-                adapter.dataSet = ModLogPosts.this;
-                adapter.notifyDataSetChanged();
+                loading = false
+                refreshLayout!!.isRefreshing = false
+                adapter!!.dataSet = this@ModLogPosts
+                adapter!!.notifyDataSetChanged()
             } else {
-                adapter.setError(true);
-                refreshLayout.setRefreshing(false);
-
+                adapter!!.setError(true)
+                refreshLayout!!.isRefreshing = false
             }
         }
 
-        @Override
-        protected ArrayList<ModAction> doInBackground(String... subredditPaginators) {
-            try {
+        override fun doInBackground(vararg subredditPaginators: String?): ArrayList<ModAction>? {
+            return try {
                 if (reset || paginator == null) {
-                    paginator = new ModLogPaginator(Authentication.reddit, "mod");
+                    paginator = ModLogPaginator(Authentication.reddit, "mod")
                 }
-
-                if (paginator.hasNext()) {
-
-                    return new ArrayList<>(paginator.next());
-
-                }
-                return null;
-            } catch (Exception e) {
-                return null;
+                if (paginator!!.hasNext()) {
+                    ArrayList(paginator!!.next())
+                } else null
+            } catch (e: Exception) {
+                null
             }
         }
     }

@@ -16,6 +16,7 @@ import ltd.ucode.network.lemmy.api.response.GetCommunityResponse
 import ltd.ucode.network.lemmy.api.response.GetPostsResponse
 import ltd.ucode.network.lemmy.api.response.GetSiteResponse
 import ltd.ucode.network.lemmy.api.response.GetUnreadCountResponse
+import ltd.ucode.network.lemmy.api.response.IResponse
 import ltd.ucode.network.lemmy.api.response.PostResponse
 import ltd.ucode.network.lemmy.api.response.UploadImageResponse
 import ltd.ucode.network.lemmy.data.type.jwt.Token
@@ -87,7 +88,7 @@ class AccountApi : InstanceApi {
             .success
     }
 
-    override suspend fun <T> retryOnError(block: suspend () -> Response<T>): ApiResult<T> {
+    override suspend fun <T : IResponse> retryOnError(block: suspend () -> Response<T>): ApiResult<T> {
         try {
             return super.retryOnError(block)
         } catch (e: ApiException) {

@@ -71,7 +71,7 @@ class Tutorial : AppCompatActivity() {
         ): View? {
             welcomeBinding = FragmentWelcomeBinding.inflate(inflater, container, false)
             welcomeBinding!!.welcomeGetStarted.setOnClickListener { v1: View? ->
-                (activity as Tutorial?)!!.binding!!.tutorialViewPager.currentItem = 1
+                (activity!! as Tutorial).binding!!.tutorialViewPager.currentItem = 1
             }
             return welcomeBinding!!.root
         }
@@ -88,7 +88,7 @@ class Tutorial : AppCompatActivity() {
             inflater: LayoutInflater, container: ViewGroup?,
             savedInstanceState: Bundle?
         ): View? {
-            (activity as Tutorial?)!!.back = ColorPreferences(context).fontStyle.themeType
+            (activity!! as Tutorial).back = ColorPreferences(context).fontStyle.themeType
             personalizeBinding = FragmentPersonalizeBinding.inflate(inflater, container, false)
             val getFontColor = requireActivity().resources.getColor(
                 ColorPreferences(context).fontStyle.color
@@ -173,7 +173,7 @@ class Tutorial : AppCompatActivity() {
                     var theme: ColorPreferences.Theme? = null
                     for (type in ColorPreferences.Theme.values()) {
                         if (ContextCompat.getColor(requireActivity(), type.color) == color
-                            && (activity as Tutorial?)!!.back == type.themeType
+                            && (activity!! as Tutorial).back == type.themeType
                         ) {
                             theme = type
                             break
@@ -204,7 +204,7 @@ class Tutorial : AppCompatActivity() {
                                 if (theme.toString().contains(newName)
                                     && theme.themeType == pair.second
                                 ) {
-                                    (activity as Tutorial?)!!.back = theme.themeType
+                                    (activity!! as Tutorial).back = theme.themeType
                                     ColorPreferences(activity).fontStyle = theme
                                     finishDialogLayout()
                                     break

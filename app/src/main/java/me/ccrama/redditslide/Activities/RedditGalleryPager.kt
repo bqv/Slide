@@ -30,7 +30,7 @@ import ltd.ucode.slide.SettingValues.imageDownloadButton
 import me.ccrama.redditslide.Activities.AlbumPager.Companion.loadImage
 import me.ccrama.redditslide.Adapters.ImageGridAdapter
 import me.ccrama.redditslide.Fragments.BlankFragment
-import me.ccrama.redditslide.Fragments.SubmissionsView.Companion.datachanged
+import ltd.ucode.slide.ui.submissionView.SubmissionsViewFragment.Companion.datachanged
 import me.ccrama.redditslide.Notifications.ImageDownloadNotificationService
 import me.ccrama.redditslide.Visuals.ColorPreferences
 import me.ccrama.redditslide.util.BlendModeUtil
@@ -40,7 +40,6 @@ import me.ccrama.redditslide.util.NetworkUtil
 import me.ccrama.redditslide.util.ShareUtil
 import me.ccrama.redditslide.views.ToolbarColorizeHelper
 import java.io.File
-import java.util.Arrays
 
 /**
  * This is an extension of RedditAlbum.java which utilizes a
@@ -289,7 +288,7 @@ class RedditGalleryPager : FullScreenActivity() {
                 container,
                 false
             ) as ViewGroup
-            val current = (activity as RedditGalleryPager?)!!.images!![i]
+            val current = (activity!! as RedditGalleryPager).images!![i]
             val url = current.url
             var lq = false
             if (SettingValues.loadImageLq && (SettingValues.lowResAlways || ((!NetworkUtil.isConnectedWifi(
@@ -304,7 +303,7 @@ class RedditGalleryPager : FullScreenActivity() {
                     rootView,
                     this,
                     lqurl,
-                    (activity as RedditGalleryPager?)!!.images!!.size == 1
+                    (activity!! as RedditGalleryPager).images!!.size == 1
                 )
                 lq = true
             } else {
@@ -312,13 +311,13 @@ class RedditGalleryPager : FullScreenActivity() {
                     rootView,
                     this,
                     url,
-                    (activity as RedditGalleryPager?)!!.images!!.size == 1
+                    (activity!! as RedditGalleryPager).images!!.size == 1
                 )
             }
             run {
                 rootView.findViewById<View>(ltd.ucode.slide.R.id.more)
                     .setOnClickListener {
-                        (activity as RedditGalleryPager?)!!.showBottomSheetImage(
+                        (activity!! as RedditGalleryPager).showBottomSheetImage(
                             url,
                             false,
                             i
@@ -327,7 +326,7 @@ class RedditGalleryPager : FullScreenActivity() {
                 run {
                     rootView.findViewById<View>(ltd.ucode.slide.R.id.save)
                         .setOnClickListener {
-                            (activity as RedditGalleryPager?)!!.doImageSave(
+                            (activity!! as RedditGalleryPager).doImageSave(
                                 false,
                                 url,
                                 i

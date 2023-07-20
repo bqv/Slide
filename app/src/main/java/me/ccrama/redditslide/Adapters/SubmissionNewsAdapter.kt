@@ -24,7 +24,7 @@ import ltd.ucode.slide.ui.main.MainPagerAdapterComment
 import me.ccrama.redditslide.Activities.SubredditView
 import me.ccrama.redditslide.Activities.SubredditView.SubredditPagerAdapterComment
 import me.ccrama.redditslide.Fragments.NewsView
-import me.ccrama.redditslide.Fragments.SubmissionsView.Companion.createLayoutManager
+import ltd.ucode.slide.ui.submissionView.SubmissionsViewFragment.Companion.createLayoutManager
 import me.ccrama.redditslide.SubmissionViews.PopulateNewsViewHolder
 import me.ccrama.redditslide.submission
 import me.ccrama.redditslide.util.LayoutUtils
@@ -37,7 +37,7 @@ import net.dean.jraw.models.Submission
 class SubmissionNewsAdapter(
     context: Activity, dataSet: SubredditPostsRealm,
     listView: RecyclerView?, subreddit: String, displayer: SubmissionDisplay
-) : RecyclerView.Adapter<RecyclerView.ViewHolder>(), BaseAdapter {
+) : RecyclerView.Adapter<RecyclerView.ViewHolder>(), IFallibleAdapter {
     val postRepository: PostRepository get() = when {
         displayer is NewsView -> { (displayer as NewsView).postRepository }
         context is MainActivity -> { (context as MainActivity).postRepository }
@@ -204,7 +204,7 @@ class SubmissionNewsAdapter(
                                 )
                                 i2.putExtra(CommentsScreen.EXTRA_SUBREDDIT, subreddit)
                                 i2.putExtra("fullname", submission.fullName)
-                                context.startActivityForResult(i2, 940)
+                                context.startActivityForResult(i2, MainActivity.OPEN_POST_RESULT)
                                 clicked = holder2.getBindingAdapterPosition()
                             }
                         } else if (context is SubredditView) {
@@ -233,7 +233,7 @@ class SubmissionNewsAdapter(
                                 )
                                 i2.putExtra(CommentsScreen.EXTRA_SUBREDDIT, subreddit)
                                 i2.putExtra("fullname", submission.fullName)
-                                context.startActivityForResult(i2, 940)
+                                context.startActivityForResult(i2, MainActivity.OPEN_POST_RESULT)
                                 clicked = holder2.getBindingAdapterPosition()
                             }
                         }

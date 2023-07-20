@@ -8,8 +8,8 @@ import ltd.ucode.slide.Authentication
 import ltd.ucode.slide.R
 import ltd.ucode.network.data.IPost
 import me.ccrama.redditslide.Activities.MediaView
-import me.ccrama.redditslide.Fragments.SubmissionsView.Companion.currentPosition
-import me.ccrama.redditslide.Fragments.SubmissionsView.Companion.currentSubmission
+import ltd.ucode.slide.ui.submissionView.SubmissionsViewFragment.Companion.currentPosition
+import ltd.ucode.slide.ui.submissionView.SubmissionsViewFragment.Companion.currentSubmission
 import me.ccrama.redditslide.submission
 import me.ccrama.redditslide.util.LayoutUtils
 import net.dean.jraw.ApiException

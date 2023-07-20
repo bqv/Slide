@@ -29,7 +29,13 @@ object LayoutUtils {
                 observer.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
                     override fun onGlobalLayout() {
                         tabLayout.viewTreeObserver.removeOnGlobalLayoutListener(this)
-                        tabLayout.getTabAt(tabPosition)?.select()
+                        try { // TODO: remove
+                            tabLayout.getTabAt(tabPosition)!!.select()
+                        } catch (e: NullPointerException) {
+                            SettingValues.single = true
+                            SettingValues.commentPager = true
+                            throw e
+                        }
                     }
                 })
             }

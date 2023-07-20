@@ -51,7 +51,7 @@ class Vote : AsyncTask<PublicContribution?, Void?, Void?> {
     }
 
     private fun createVoteSnackbar(i: Int) {
-        (c as Activity?)!!.runOnUiThread {
+        (c!! as Activity).runOnUiThread {
             try {
                 if (v != null && c != null && v!!.context != null) {
                     val snackbar = Snackbar.make(v!!, i, Snackbar.LENGTH_SHORT)

@@ -43,8 +43,8 @@ class TumblrFull : Fragment() {
         list!!.visibility = View.VISIBLE
         val layoutManager = LinearLayoutManager(activity)
         layoutManager.orientation = LinearLayoutManager.VERTICAL
-        (list as RecyclerView?)!!.layoutManager = layoutManager
-        (list as RecyclerView?)!!.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+        (list!! as RecyclerView).layoutManager = layoutManager
+        (list!! as RecyclerView).addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
                 var va: ValueAnimator? = null
@@ -106,7 +106,7 @@ class TumblrFull : Fragment() {
                             i2.putExtra(CommentsScreen.EXTRA_PAGE, i)
                             i2.putExtra(
                                 CommentsScreen.EXTRA_SUBREDDIT,
-                                (activity as Shadowbox?)!!.subreddit
+                                (activity!! as Shadowbox).subreddit
                             )
                             (activity)!!.startActivity(i2)
                         }
@@ -126,7 +126,7 @@ class TumblrFull : Fragment() {
         override fun doWithData(jsonElements: List<Photo>) {
             super.doWithData(jsonElements)
             val adapter = TumblrView(baseActivity, jsonElements, 0, s!!.subredditName)
-            (list as RecyclerView?)!!.adapter = adapter
+            (list!! as RecyclerView).adapter = adapter
         }
     }
 
@@ -134,8 +134,8 @@ class TumblrFull : Fragment() {
         super.onCreate(savedInstanceState)
         val bundle = this.arguments
         i = bundle!!.getInt("page", 0)
-        if (((activity as Shadowbox?)!!.subredditPosts == null
-                    || (activity as Shadowbox?)!!.subredditPosts!!.posts.size < bundle.getInt(
+        if (((activity!! as Shadowbox).subredditPosts == null
+                    || (activity!! as Shadowbox).subredditPosts!!.posts.size < bundle.getInt(
                 "page", 0
             ))
         ) {

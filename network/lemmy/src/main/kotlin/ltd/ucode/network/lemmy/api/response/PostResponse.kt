@@ -7,4 +7,4 @@ import ltd.ucode.network.lemmy.data.type.PostView
 @Serializable
 data class PostResponse(
     @SerialName("post_view") val postView: PostView,
-)
+) : IResponse()

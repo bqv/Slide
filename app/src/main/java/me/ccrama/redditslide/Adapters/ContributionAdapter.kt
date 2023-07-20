@@ -1,438 +1,353 @@
-package me.ccrama.redditslide.Adapters;
+package me.ccrama.redditslide.Adapters
 
-/**
- * Created by ccrama on 3/22/2015.
- */
+import android.app.Dialog
+import android.content.DialogInterface
+import android.content.Intent
+import android.graphics.Typeface
+import android.text.SpannableStringBuilder
+import android.text.Spanned
+import android.text.style.ForegroundColorSpan
+import android.text.style.StyleSpan
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.widget.ImageView
+import android.widget.LinearLayout
+import android.widget.TextView
+import androidx.activity.ComponentActivity
+import androidx.appcompat.app.AlertDialog
+import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.StaggeredGridLayoutManager
+import com.cocosw.bottomsheet.BottomSheet
+import com.devspark.robototextview.RobotoTypefaces
+import com.google.android.material.snackbar.Snackbar
+import ltd.ucode.network.reddit.data.RedditSubmission
+import ltd.ucode.slide.App.Companion.defaultShareText
+import ltd.ucode.slide.Authentication
+import ltd.ucode.slide.R
+import ltd.ucode.slide.SettingValues
+import me.ccrama.redditslide.ActionStates.getVoteDirection
+import me.ccrama.redditslide.Activities.Profile
+import me.ccrama.redditslide.Activities.SubredditView
+import me.ccrama.redditslide.Activities.Website
+import me.ccrama.redditslide.HasSeen.addSeen
+import me.ccrama.redditslide.Hidden.setHidden
+import me.ccrama.redditslide.Hidden.undoHidden
+import me.ccrama.redditslide.OpenRedditLink
+import me.ccrama.redditslide.SubmissionViews.PopulateSubmissionViewHolder
+import me.ccrama.redditslide.Visuals.FontPreferences
+import me.ccrama.redditslide.Visuals.Palette
+import me.ccrama.redditslide.util.CompatUtil
+import me.ccrama.redditslide.util.LayoutUtils.showSnackbar
+import me.ccrama.redditslide.util.LinkUtil
+import me.ccrama.redditslide.util.MiscUtil
+import me.ccrama.redditslide.util.SubmissionParser
+import me.ccrama.redditslide.util.TimeUtils
+import me.ccrama.redditslide.views.CatchStaggeredGridLayoutManager
+import me.ccrama.redditslide.views.CreateCardView.CreateView
+import me.ccrama.redditslide.views.CreateCardView.colorCard
+import me.ccrama.redditslide.views.CreateCardView.resetColorCard
+import net.dean.jraw.models.Comment
+import net.dean.jraw.models.Contribution
+import net.dean.jraw.models.Submission
+import net.dean.jraw.models.VoteDirection
+import java.util.Locale
 
-import android.app.Dialog;
-import android.content.Intent;
-import android.content.res.TypedArray;
-import android.graphics.Typeface;
-import android.text.SpannableStringBuilder;
-import android.text.Spanned;
-import android.text.style.ForegroundColorSpan;
-import android.text.style.StyleSpan;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.TextView;
+class ContributionAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>, IFallibleAdapter {
+    private val SPACER = 6
+    @JvmField val mContext: ComponentActivity
+    private val listView: RecyclerView
+    private val isHiddenPost: Boolean
+    var dataSet: GeneralPosts<Contribution>
 
-import androidx.activity.ComponentActivity;
-import androidx.appcompat.app.AlertDialog;
-import androidx.recyclerview.widget.RecyclerView;
-
-import com.cocosw.bottomsheet.BottomSheet;
-import com.devspark.robototextview.RobotoTypefaces;
-import com.google.android.material.snackbar.Snackbar;
-
-import net.dean.jraw.models.Comment;
-import net.dean.jraw.models.Contribution;
-import net.dean.jraw.models.Submission;
-import net.dean.jraw.models.VoteDirection;
-
-import java.util.Collections;
-import java.util.List;
-import java.util.Locale;
-
-import ltd.ucode.network.reddit.data.RedditSubmission;
-import me.ccrama.redditslide.ActionStates;
-import me.ccrama.redditslide.Activities.Profile;
-import me.ccrama.redditslide.Activities.SubredditView;
-import me.ccrama.redditslide.Activities.Website;
-import ltd.ucode.slide.Authentication;
-import me.ccrama.redditslide.HasSeen;
-import me.ccrama.redditslide.Hidden;
-import me.ccrama.redditslide.OpenRedditLink;
-import ltd.ucode.slide.R;
-import ltd.ucode.slide.App;
-import ltd.ucode.slide.SettingValues;
-import me.ccrama.redditslide.SubmissionViews.PopulateSubmissionViewHolder;
-import me.ccrama.redditslide.views.CatchStaggeredGridLayoutManager;
-import me.ccrama.redditslide.views.CreateCardView;
-import me.ccrama.redditslide.Visuals.FontPreferences;
-import me.ccrama.redditslide.Visuals.Palette;
-import me.ccrama.redditslide.util.CompatUtil;
-import me.ccrama.redditslide.util.LayoutUtils;
-import me.ccrama.redditslide.util.LinkUtil;
-import me.ccrama.redditslide.util.MiscUtil;
-import me.ccrama.redditslide.util.SubmissionParser;
-import me.ccrama.redditslide.util.TimeUtils;
-
-
-public class ContributionAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> implements BaseAdapter {
-
-    private final int SPACER = 6;
-    private static final int COMMENT = 1;
-    public final ComponentActivity mContext;
-    private final RecyclerView listView;
-    private final Boolean isHiddenPost;
-    public GeneralPosts dataSet;
-
-    public ContributionAdapter(ComponentActivity mContext, GeneralPosts dataSet, RecyclerView listView) {
-        this.mContext = mContext;
-        this.listView = listView;
-        this.dataSet = dataSet;
-
-        this.isHiddenPost = false;
+    constructor(mContext: ComponentActivity, dataSet: GeneralPosts<Contribution>, listView: RecyclerView) {
+        this.mContext = mContext
+        this.listView = listView
+        this.dataSet = dataSet
+        isHiddenPost = false
     }
 
-    public ContributionAdapter(ComponentActivity mContext, GeneralPosts dataSet, RecyclerView listView, Boolean isHiddenPost) {
-        this.mContext = mContext;
-        this.listView = listView;
-        this.dataSet = dataSet;
-
-        this.isHiddenPost = isHiddenPost;
+    constructor(mContext: ComponentActivity, dataSet: GeneralPosts<Contribution>, listView: RecyclerView, isHiddenPost: Boolean) {
+        this.mContext = mContext
+        this.listView = listView
+        this.dataSet = dataSet
+        this.isHiddenPost = isHiddenPost
     }
 
-    private final int LOADING_SPINNER = 5;
-    private final int NO_MORE = 3;
-
-    @Override
-    public int getItemViewType(int position) {
+    private val LOADING_SPINNER = 5
+    private val NO_MORE = 3
+    override fun getItemViewType(position: Int): Int {
+        var position = position
         if (position == 0 && !dataSet.posts.isEmpty()) {
-            return SPACER;
+            return SPACER
         } else if (!dataSet.posts.isEmpty()) {
-            position -= 1;
+            position -= 1
         }
-        if (position == dataSet.posts.size() && !dataSet.posts.isEmpty() && !dataSet.nomore) {
-            return LOADING_SPINNER;
-        } else if (position == dataSet.posts.size() && dataSet.nomore) {
-            return NO_MORE;
+        if (position == dataSet.posts.size && !dataSet.posts.isEmpty() && !dataSet.nomore) {
+            return LOADING_SPINNER
+        } else if (position == dataSet.posts.size && dataSet.nomore) {
+            return NO_MORE
         }
-        if (dataSet.posts.get(position) instanceof Comment)
-            return COMMENT;
-
-        return 2;
+        return if (dataSet.posts[position] is Comment) COMMENT else 2
     }
 
-    @Override
-    public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup viewGroup, int i) {
-
-        if (i == SPACER) {
-            View v = LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.spacer, viewGroup, false);
-            return new SpacerViewHolder(v);
-
+    override fun onCreateViewHolder(viewGroup: ViewGroup, i: Int): RecyclerView.ViewHolder {
+        return if (i == SPACER) {
+            val v = LayoutInflater.from(viewGroup.context).inflate(R.layout.spacer, viewGroup, false)
+            SpacerViewHolder(v)
         } else if (i == COMMENT) {
-            View v = LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.profile_comment, viewGroup, false);
-            return new ProfileCommentViewHolder(v);
+            val v = LayoutInflater.from(viewGroup.context).inflate(R.layout.profile_comment, viewGroup, false)
+            ProfileCommentViewHolder(v)
         } else if (i == LOADING_SPINNER) {
-            View v = LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.loadingmore, viewGroup, false);
-            return new SubmissionFooterViewHolder(v);
+            val v = LayoutInflater.from(viewGroup.context).inflate(R.layout.loadingmore, viewGroup, false)
+            SubmissionFooterViewHolder(v)
         } else if (i == NO_MORE) {
-            View v = LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.nomoreposts, viewGroup, false);
-            return new SubmissionFooterViewHolder(v);
+            val v = LayoutInflater.from(viewGroup.context).inflate(R.layout.nomoreposts, viewGroup, false)
+            SubmissionFooterViewHolder(v)
         } else {
-            View v = CreateCardView.CreateView(viewGroup);
-            return new SubmissionViewHolder(v);
-
-        }
-
-    }
-
-    public static class SubmissionFooterViewHolder extends RecyclerView.ViewHolder {
-        public SubmissionFooterViewHolder(View itemView) {
-            super(itemView);
+            val v = CreateView(viewGroup)
+            SubmissionViewHolder(v)
         }
     }
 
-    @Override
-    public void onBindViewHolder(final RecyclerView.ViewHolder firstHolder, final int pos) {
-        int i = pos != 0 ? pos - 1 : pos;
+    class SubmissionFooterViewHolder(itemView: View?) : RecyclerView.ViewHolder(itemView!!)
 
-        if (firstHolder instanceof SubmissionViewHolder) {
-            final SubmissionViewHolder holder = (SubmissionViewHolder) firstHolder;
-            final Submission submission = (Submission) dataSet.posts.get(i);
-            CreateCardView.resetColorCard(holder.itemView);
-            if (submission.getSubredditName() != null)
-                CreateCardView.colorCard(submission.getSubredditName().toLowerCase(Locale.ENGLISH), holder.itemView, "no_subreddit", false);
-            holder.itemView.setOnLongClickListener(v -> {
-                LayoutInflater inflater = mContext.getLayoutInflater();
-                final View dialoglayout = inflater.inflate(R.layout.postmenu, null);
-                final TextView title = dialoglayout.findViewById(R.id.title);
-                title.setText(CompatUtil.fromHtml(submission.getTitle()));
-
-                ((TextView) dialoglayout.findViewById(R.id.userpopup)).setText("/u/" + submission.getAuthor());
-                ((TextView) dialoglayout.findViewById(R.id.subpopup)).setText("/c/" + submission.getSubredditName());
-                dialoglayout.findViewById(R.id.sidebar).setOnClickListener(v16 -> {
-                    Intent i13 = new Intent(mContext, Profile.class);
-                    i13.putExtra(Profile.EXTRA_PROFILE, submission.getAuthor());
-                    mContext.startActivity(i13);
-                });
-
-
-                dialoglayout.findViewById(R.id.wiki).setOnClickListener(v15 -> {
-                    Intent i12 = new Intent(mContext, SubredditView.class);
-                    i12.putExtra(SubredditView.EXTRA_SUBREDDIT, submission.getSubredditName());
-                    mContext.startActivity(i12);
-                });
-
-                dialoglayout.findViewById(R.id.save).setOnClickListener(v13 -> {
-                    if (submission.isSaved()) {
-                        ((TextView) dialoglayout.findViewById(R.id.savedtext)).setText(R.string.submission_save);
+    override fun onBindViewHolder(firstHolder: RecyclerView.ViewHolder, pos: Int) {
+        val i = if (pos != 0) pos - 1 else pos
+        if (firstHolder is SubmissionViewHolder) {
+            val holder = firstHolder
+            val submission = dataSet.posts[i] as Submission
+            resetColorCard(holder.itemView)
+            if (submission.subredditName != null) colorCard(submission.subredditName.lowercase(), holder.itemView, "no_subreddit", false)
+            holder.itemView.setOnLongClickListener { v: View? ->
+                val inflater = mContext.layoutInflater
+                val dialoglayout = inflater.inflate(R.layout.postmenu, null)
+                val title = dialoglayout.findViewById<TextView>(R.id.title)
+                title.text = CompatUtil.fromHtml(submission.title)
+                (dialoglayout.findViewById<View>(R.id.userpopup) as TextView).text = "/u/" + submission.author
+                (dialoglayout.findViewById<View>(R.id.subpopup) as TextView).text = "/c/" + submission.subredditName
+                dialoglayout.findViewById<View>(R.id.sidebar).setOnClickListener { v16: View? ->
+                    val i13 = Intent(mContext, Profile::class.java)
+                    i13.putExtra(Profile.EXTRA_PROFILE, submission.author)
+                    mContext.startActivity(i13)
+                }
+                dialoglayout.findViewById<View>(R.id.wiki).setOnClickListener { v15: View? ->
+                    val i12 = Intent(mContext, SubredditView::class.java)
+                    i12.putExtra(SubredditView.EXTRA_SUBREDDIT, submission.subredditName)
+                    mContext.startActivity(i12)
+                }
+                dialoglayout.findViewById<View>(R.id.save).setOnClickListener { v13: View? ->
+                    if (submission.isSaved) {
+                        (dialoglayout.findViewById<View>(R.id.savedtext) as TextView).setText(R.string.submission_save)
                     } else {
-                        ((TextView) dialoglayout.findViewById(R.id.savedtext)).setText(R.string.submission_post_saved);
-
+                        (dialoglayout.findViewById<View>(R.id.savedtext) as TextView).setText(R.string.submission_post_saved)
                     }
-                    new AsyncSave(mContext, firstHolder.itemView).execute(submission);
-
-                });
-                dialoglayout.findViewById(R.id.copy).setVisibility(View.GONE);
-                if (submission.isSaved()) {
-                    ((TextView) dialoglayout.findViewById(R.id.savedtext)).setText(R.string.submission_post_saved);
+                    AsyncSave(mContext, firstHolder.itemView).execute(submission)
                 }
-                dialoglayout.findViewById(R.id.gild).setOnClickListener(v14 -> {
-                    String urlString = "https://reddit.com" + submission.getPermalink();
-                    Intent i1 = new Intent(mContext, Website.class);
-                    i1.putExtra(LinkUtil.EXTRA_URL, urlString);
-                    mContext.startActivity(i1);
-                });
-                dialoglayout.findViewById(R.id.share).setOnClickListener(v12 -> {
-                    if (submission.isSelfPost()){
-                        if(SettingValues.shareLongLink){
-                            App.defaultShareText("", "https://reddit.com" + submission.getPermalink(), mContext);
+                dialoglayout.findViewById<View>(R.id.copy).visibility = View.GONE
+                if (submission.isSaved) {
+                    (dialoglayout.findViewById<View>(R.id.savedtext) as TextView).setText(R.string.submission_post_saved)
+                }
+                dialoglayout.findViewById<View>(R.id.gild).setOnClickListener { v14: View? ->
+                    val urlString = "https://reddit.com" + submission.permalink
+                    val i1 = Intent(mContext, Website::class.java)
+                    i1.putExtra(LinkUtil.EXTRA_URL, urlString)
+                    mContext.startActivity(i1)
+                }
+                dialoglayout.findViewById<View>(R.id.share).setOnClickListener { v12: View? ->
+                    if (submission.isSelfPost) {
+                        if (SettingValues.shareLongLink) {
+                            defaultShareText("", "https://reddit.com" + submission.permalink, mContext)
                         } else {
-                            App.defaultShareText("", "https://redd.it/" + submission.getId(), mContext);
+                            defaultShareText("", "https://redd.it/" + submission.id, mContext)
                         }
-                    }
-                    else {
-                        new BottomSheet.Builder(mContext)
-                                .title(R.string.submission_share_title)
-                                .grid()
-                                .sheet(R.menu.share_menu)
-                                .listener((dialog, which) -> {
-                                    switch (which) {
-                                        case R.id.reddit_url:
-                                            if(SettingValues.shareLongLink){
-                                                App.defaultShareText(submission.getTitle(), "https://reddit.com" + submission.getPermalink(), mContext);
-                                            } else {
-                                                App.defaultShareText(submission.getTitle(), "https://redd.it/" + submission.getId(), mContext);
-                                            }
-                                            break;
-                                        case R.id.link_url:
-                                            App.defaultShareText(submission.getTitle(), submission.getUrl(), mContext);
-                                            break;
+                    } else {
+                        BottomSheet.Builder(mContext)
+                            .title(R.string.submission_share_title)
+                            .grid()
+                            .sheet(R.menu.share_menu)
+                            .listener { dialog: DialogInterface?, which: Int ->
+                                when (which) {
+                                    R.id.reddit_url -> if (SettingValues.shareLongLink) {
+                                        defaultShareText(submission.title, "https://reddit.com" + submission.permalink, mContext)
+                                    } else {
+                                        defaultShareText(submission.title, "https://redd.it/" + submission.id, mContext)
                                     }
-                                }).show();
+
+                                    R.id.link_url -> defaultShareText(submission.title, submission.url, mContext)
+                                }
+                            }.show()
                     }
-                });
+                }
                 if (!Authentication.isLoggedIn || !Authentication.didOnline) {
-                    dialoglayout.findViewById(R.id.save).setVisibility(View.GONE);
-                    dialoglayout.findViewById(R.id.gild).setVisibility(View.GONE);
-
+                    dialoglayout.findViewById<View>(R.id.save).visibility = View.GONE
+                    dialoglayout.findViewById<View>(R.id.gild).visibility = View.GONE
                 }
-                title.setBackgroundColor(Palette.getColor(submission.getSubredditName()));
-
-                final AlertDialog.Builder builder = new AlertDialog.Builder(mContext)
-                        .setView(dialoglayout);
-                final Dialog d = builder.show();
-                dialoglayout.findViewById(R.id.hide).setOnClickListener(v1 -> {
-                    final int pos12 = dataSet.posts.indexOf(submission);
-                    final Contribution old = dataSet.posts.get(pos12);
-                    dataSet.posts.remove(submission);
-                    notifyItemRemoved(pos12 + 1);
-                    d.dismiss();
-
-                    Hidden.setHidden(new RedditSubmission((Submission) old));
-
-                    Snackbar s = Snackbar.make(listView, R.string.submission_info_hidden, Snackbar.LENGTH_LONG).setAction(R.string.btn_undo, new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v1) {
-                            dataSet.posts.add(pos12, old);
-                            notifyItemInserted(pos12 + 1);
-                            Hidden.undoHidden(new RedditSubmission((Submission) old));
-
-                        }
-                    });
-                    LayoutUtils.showSnackbar(s);
-
-
-                });
-                return true;
-            });
-            new PopulateSubmissionViewHolder(null, null).populateSubmissionViewHolder(holder, new RedditSubmission(submission), mContext, false, false, /*dataSet.posts*/Collections.emptyList(), listView, false, false, null, null);
-
-            final ImageView hideButton = holder.itemView.findViewById(R.id.hide);
+                title.setBackgroundColor(Palette.getColor(submission.subredditName))
+                val builder = AlertDialog.Builder(mContext)
+                    .setView(dialoglayout)
+                val d: Dialog = builder.show()
+                dialoglayout.findViewById<View>(R.id.hide).setOnClickListener { v1: View? ->
+                    val pos12 = dataSet.posts.indexOf(submission)
+                    val old = dataSet.posts[pos12]
+                    dataSet.posts.remove(submission)
+                    notifyItemRemoved(pos12 + 1)
+                    d.dismiss()
+                    setHidden(RedditSubmission((old as Submission)))
+                    val s = Snackbar.make(listView, R.string.submission_info_hidden, Snackbar.LENGTH_LONG).setAction(R.string.btn_undo, View.OnClickListener {
+                        dataSet.posts.add(pos12, old)
+                        notifyItemInserted(pos12 + 1)
+                        undoHidden(RedditSubmission(old))
+                    })
+                    showSnackbar(s)
+                }
+                true
+            }
+            PopulateSubmissionViewHolder(TODO(), TODO())
+                .populateSubmissionViewHolder(holder, RedditSubmission(submission), mContext, false, false, mutableListOf(), listView, false, false, null, null)
+            val hideButton = holder.itemView.findViewById<ImageView>(R.id.hide)
             if (hideButton != null && isHiddenPost) {
-                hideButton.setOnClickListener(v -> {
-                    final int pos1 = dataSet.posts.indexOf(submission);
-                    final Contribution old = dataSet.posts.get(pos1);
-                    dataSet.posts.remove(submission);
-                    notifyItemRemoved(pos1 + 1);
-
-                    Hidden.undoHidden(new RedditSubmission((Submission) old));
-                });
-            }
-            holder.itemView.setOnClickListener(v -> {
-                String url = "www.reddit.com" + submission.getPermalink();
-                url = url.replace("?ref=search_posts", "");
-                OpenRedditLink.openUrl(mContext, url, true);
-                if (SettingValues.storeHistory) {
-                    if (SettingValues.storeNSFWHistory && submission.isNsfw() || !submission.isNsfw())
-                        HasSeen.addSeen(submission.getFullName());
+                hideButton.setOnClickListener { v: View? ->
+                    val pos1 = dataSet.posts.indexOf(submission)
+                    val old = dataSet.posts[pos1]
+                    dataSet.posts.remove(submission)
+                    notifyItemRemoved(pos1 + 1)
+                    undoHidden(RedditSubmission((old as Submission)))
                 }
-
-                notifyItemChanged(pos);
-            });
-
-        } else if (firstHolder instanceof ProfileCommentViewHolder) {
-            //IS COMMENT
-            ProfileCommentViewHolder holder = (ProfileCommentViewHolder) firstHolder;
-            final Comment comment = (Comment) dataSet.posts.get(i);
-
-            String scoreText;
-            if (comment.isScoreHidden()) {
-                scoreText = "[" + mContext.getString(R.string.misc_score_hidden).toUpperCase() + "]";
-            } else {
-                scoreText = String.format(Locale.getDefault(), "%d", comment.getScore());
             }
-
-            SpannableStringBuilder score = new SpannableStringBuilder(scoreText);
-
+            holder.itemView.setOnClickListener { v: View? ->
+                var url = "www.reddit.com" + submission.permalink
+                url = url.replace("?ref=search_posts", "")
+                OpenRedditLink.openUrl(mContext, url, true)
+                if (SettingValues.storeHistory) {
+                    if (SettingValues.storeNSFWHistory && submission.isNsfw || !submission.isNsfw) addSeen(submission.fullName)
+                }
+                notifyItemChanged(pos)
+            }
+        } else if (firstHolder is ProfileCommentViewHolder) {
+            //IS COMMENT
+            val holder = firstHolder
+            val comment = dataSet.posts[i] as Comment
+            val scoreText: String
+            scoreText = if (comment.isScoreHidden) {
+                "[" + mContext.getString(R.string.misc_score_hidden).uppercase(Locale.getDefault()) + "]"
+            } else {
+                String.format(Locale.getDefault(), "%d", comment.score)
+            }
+            var score = SpannableStringBuilder(scoreText)
             if (score == null || score.toString().isEmpty()) {
-                score = new SpannableStringBuilder("0");
+                score = SpannableStringBuilder("0")
             }
             if (!scoreText.contains("[")) {
-                score.append(String.format(Locale.getDefault(), " %s", mContext.getResources().getQuantityString(R.plurals.points, comment.getScore())));
+                score.append(String.format(Locale.getDefault(), " %s", mContext.resources.getQuantityString(R.plurals.points, comment.score)))
             }
-            holder.score.setText(score);
-
+            holder.score.text = score
             if (Authentication.isLoggedIn) {
-                if (ActionStates.getVoteDirection(comment) == VoteDirection.UPVOTE) {
-                    holder.score.setTextColor(mContext.getResources().getColor(R.color.md_orange_500));
-                } else if (ActionStates.getVoteDirection(comment) == VoteDirection.DOWNVOTE) {
-                    holder.score.setTextColor(mContext.getResources().getColor(R.color.md_blue_500));
+                if (getVoteDirection(comment) == VoteDirection.UPVOTE) {
+                    holder.score.setTextColor(mContext.resources.getColor(R.color.md_orange_500))
+                } else if (getVoteDirection(comment) == VoteDirection.DOWNVOTE) {
+                    holder.score.setTextColor(mContext.resources.getColor(R.color.md_blue_500))
                 } else {
-                    holder.score.setTextColor(holder.time.getCurrentTextColor());
+                    holder.score.setTextColor(holder.time.currentTextColor)
                 }
             }
-            String spacer = mContext.getString(R.string.submission_properties_seperator);
-            SpannableStringBuilder titleString = new SpannableStringBuilder();
-
-
-            String timeAgo = TimeUtils.getTimeAgo(comment.getCreated().getTime(), mContext);
-            String time = ((timeAgo == null || timeAgo.isEmpty()) ? "just now" : timeAgo); //some users were crashing here
-            time = time + (((comment.getEditDate() != null) ? " (edit " + TimeUtils.getTimeAgo(comment.getEditDate().getTime(), mContext) + ")" : ""));
-            titleString.append(time);
-            titleString.append(spacer);
-
-            if (comment.getSubredditName() != null) {
-                String subname = comment.getSubredditName();
-                SpannableStringBuilder subreddit = new SpannableStringBuilder("/c/" + subname);
-                if ((SettingValues.colorSubName && Palette.getColor(subname) != Palette.getDefaultColor())) {
-                    subreddit.setSpan(new ForegroundColorSpan(Palette.getColor(subname)), 0, subreddit.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-                    subreddit.setSpan(new StyleSpan(Typeface.BOLD), 0, subreddit.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            val spacer = mContext.getString(R.string.submission_properties_seperator)
+            val titleString = SpannableStringBuilder()
+            val timeAgo = TimeUtils.getTimeAgo(comment.created.time, mContext)
+            var time = if (timeAgo == null || timeAgo.isEmpty()) "just now" else timeAgo //some users were crashing here
+            time += if (comment.editDate != null) " (edit " + TimeUtils.getTimeAgo(comment.editDate.time, mContext) + ")" else ""
+            titleString.append(time)
+            titleString.append(spacer)
+            if (comment.subredditName != null) {
+                val subname = comment.subredditName
+                val subreddit = SpannableStringBuilder("/c/$subname")
+                if (SettingValues.colorSubName && Palette.getColor(subname) != Palette.getDefaultColor()) {
+                    subreddit.setSpan(ForegroundColorSpan(Palette.getColor(subname)), 0, subreddit.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                    subreddit.setSpan(StyleSpan(Typeface.BOLD), 0, subreddit.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
                 }
-
-                titleString.append(subreddit);
+                titleString.append(subreddit)
             }
-
-            holder.time.setText(titleString);
-            setViews(comment.getDataNode().get("body_html").asText(), comment.getSubredditName(), holder);
-
-            int type = new FontPreferences(mContext).getFontTypeComment().getTypeface();
-            Typeface typeface;
-            if (type >= 0) {
-                typeface = RobotoTypefaces.obtainTypeface(mContext, type);
+            holder.time.text = titleString
+            setViews(comment.dataNode["body_html"].asText(), comment.subredditName, holder)
+            val type = FontPreferences(mContext).fontTypeComment.typeface
+            val typeface: Typeface = if (type >= 0) {
+                RobotoTypefaces.obtainTypeface(mContext, type!!)
             } else {
-                typeface = Typeface.DEFAULT;
+                Typeface.DEFAULT
             }
-            holder.content.setTypeface(typeface);
-
-            ((TextView) holder.gild).setText("");
-            if (!SettingValues.hideCommentAwards && (comment.getTimesSilvered() > 0 || comment.getTimesGilded() > 0  || comment.getTimesPlatinized() > 0)) {
-                TypedArray a = mContext.obtainStyledAttributes(
-                        new FontPreferences(mContext).getPostFontStyle().getResId(),
-                        R.styleable.FontStyle);
-                int fontsize =
-                        (int) (a.getDimensionPixelSize(R.styleable.FontStyle_font_cardtitle, -1) * .75);
-                a.recycle();
-                holder.gild.setVisibility(View.VISIBLE);
+            holder.content.setTypeface(typeface)
+            (holder.gild as TextView).text = ""
+            if (!SettingValues.hideCommentAwards && (comment.timesSilvered > 0 || comment.timesGilded > 0 || comment.timesPlatinized > 0)) {
+                val a = mContext.obtainStyledAttributes(
+                    FontPreferences(mContext).postFontStyle.resId,
+                    R.styleable.FontStyle)
+                val fontsize = (a.getDimensionPixelSize(R.styleable.FontStyle_font_cardtitle, -1) * .75).toInt()
+                a.recycle()
+                holder.gild.setVisibility(View.VISIBLE)
                 // Add silver, gold, platinum icons and counts in that order
-                MiscUtil.addAwards(mContext, fontsize, holder, comment.getTimesSilvered(), R.drawable.silver);
-                MiscUtil.addAwards(mContext, fontsize, holder, comment.getTimesGilded(), R.drawable.gold);
-                MiscUtil.addAwards(mContext, fontsize, holder, comment.getTimesPlatinized(), R.drawable.platinum);
-            } else if (holder.gild.getVisibility() == View.VISIBLE)
-                holder.gild.setVisibility(View.GONE);
-
-            if (comment.getSubmissionTitle() != null)
-                holder.title.setText(CompatUtil.fromHtml(comment.getSubmissionTitle()));
-            else
-                holder.title.setText(CompatUtil.fromHtml(comment.getAuthor()));
-
-
-            holder.itemView.setOnClickListener(v -> OpenRedditLink.openUrl(mContext, comment.getSubmissionId(), comment.getSubredditName(), comment.getId()));
-            holder.content.setOnClickListener(v -> OpenRedditLink.openUrl(mContext, comment.getSubmissionId(), comment.getSubredditName(), comment.getId()));
-
-        } else if (firstHolder instanceof SpacerViewHolder) {
-            firstHolder.itemView.setLayoutParams(new LinearLayout.LayoutParams(firstHolder.itemView.getWidth(), mContext.findViewById(R.id.header).getHeight()));
-            if (listView.getLayoutManager() instanceof CatchStaggeredGridLayoutManager) {
-                CatchStaggeredGridLayoutManager.LayoutParams layoutParams = new CatchStaggeredGridLayoutManager.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, mContext.findViewById(R.id.header).getHeight());
-                layoutParams.setFullSpan(true);
-                firstHolder.itemView.setLayoutParams(layoutParams);
+                MiscUtil.addAwards(mContext, fontsize, holder, comment.timesSilvered, R.drawable.silver)
+                MiscUtil.addAwards(mContext, fontsize, holder, comment.timesGilded, R.drawable.gold)
+                MiscUtil.addAwards(mContext, fontsize, holder, comment.timesPlatinized, R.drawable.platinum)
+            } else if (holder.gild.getVisibility() == View.VISIBLE) holder.gild.setVisibility(View.GONE)
+            if (comment.submissionTitle != null) holder.title.text = CompatUtil.fromHtml(comment.submissionTitle) else holder.title.text = CompatUtil.fromHtml(comment.author)
+            holder.itemView.setOnClickListener { v: View? -> OpenRedditLink.openUrl(mContext, comment.submissionId, comment.subredditName, comment.id) }
+            holder.content.setOnClickListener { v: View? -> OpenRedditLink.openUrl(mContext, comment.submissionId, comment.subredditName, comment.id) }
+        } else if (firstHolder is SpacerViewHolder) {
+            firstHolder.itemView.layoutParams = LinearLayout.LayoutParams(firstHolder.itemView.width, mContext.findViewById<View>(R.id.header).height)
+            if (listView.layoutManager is CatchStaggeredGridLayoutManager) {
+                val layoutParams = StaggeredGridLayoutManager.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, mContext.findViewById<View>(R.id.header).height)
+                layoutParams.isFullSpan = true
+                firstHolder.itemView.layoutParams = layoutParams
             }
         }
     }
 
-    public static class SpacerViewHolder extends RecyclerView.ViewHolder {
-        public SpacerViewHolder(View itemView) {
-            super(itemView);
-        }
-    }
+    class SpacerViewHolder(itemView: View?) : RecyclerView.ViewHolder(itemView!!)
 
-    private void setViews(String rawHTML, String subredditName, ProfileCommentViewHolder holder) {
+    private fun setViews(rawHTML: String, subredditName: String, holder: ProfileCommentViewHolder) {
         if (rawHTML.isEmpty()) {
-            return;
+            return
         }
-
-        List<String> blocks = SubmissionParser.getBlocks(rawHTML);
-
-        int startIndex = 0;
+        val blocks = SubmissionParser.getBlocks(rawHTML)
+        var startIndex = 0
         // the <div class="md"> case is when the body contains a table or code block first
-        if (!blocks.get(0).equals("<div class=\"md\">")) {
-            holder.content.setVisibility(View.VISIBLE);
-            holder.content.setTextHtml(blocks.get(0), subredditName);
-            startIndex = 1;
+        if (blocks[0] != "<div class=\"md\">") {
+            holder.content.visibility = View.VISIBLE
+            holder.content.setTextHtml(blocks[0], subredditName)
+            startIndex = 1
         } else {
-            holder.content.setText("");
-            holder.content.setVisibility(View.GONE);
+            holder.content.text = ""
+            holder.content.visibility = View.GONE
         }
-
-        if (blocks.size() > 1) {
+        if (blocks.size > 1) {
             if (startIndex == 0) {
-                holder.overflow.setViews(blocks, subredditName);
+                holder.overflow.setViews(blocks, subredditName)
             } else {
-                holder.overflow.setViews(blocks.subList(startIndex, blocks.size()), subredditName);
+                holder.overflow.setViews(blocks.subList(startIndex, blocks.size), subredditName)
             }
         } else {
-            holder.overflow.removeAllViews();
+            holder.overflow.removeAllViews()
         }
     }
 
-
-    @Override
-    public int getItemCount() {
-        if (dataSet.posts == null || dataSet.posts.isEmpty()) {
-            return 0;
+    override fun getItemCount(): Int {
+        return if (dataSet.posts == null || dataSet.posts.isEmpty()) {
+            0
         } else {
-            return dataSet.posts.size() + 2;
+            dataSet.posts.size + 2
         }
     }
 
-    @Override
-    public void setError(Boolean b) {
-        listView.setAdapter(new ErrorAdapter());
+    override fun setError(b: Boolean) {
+        listView.adapter = ErrorAdapter()
     }
 
-    @Override
-    public void undoSetError() {
-        listView.setAdapter(this);
+    override fun undoSetError() {
+        listView.adapter = this
     }
 
-    public static class EmptyViewHolder extends RecyclerView.ViewHolder {
-        public EmptyViewHolder(View itemView) {
-            super(itemView);
-        }
+    class EmptyViewHolder(itemView: View?) : RecyclerView.ViewHolder(itemView!!)
+    companion object {
+        private const val COMMENT = 1
     }
 }

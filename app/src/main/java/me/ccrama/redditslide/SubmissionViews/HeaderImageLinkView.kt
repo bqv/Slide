@@ -460,7 +460,7 @@ class HeaderImageLinkView : RelativeLayout {
                 info!!.visibility = VISIBLE
             }
             if (SettingValues.smallTag && !full && !news) {
-                (title as TransparentTagTextView?)!!.init(context)
+                (title!! as TransparentTagTextView).init(context)
             }
             title!!.text = submission.contentDescription
             if (info != null) info!!.text = submission.domain

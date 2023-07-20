@@ -1,4 +1,4 @@
-package me.ccrama.redditslide.Adapters
+package ltd.ucode.slide.ui.submissionView
 
 import android.content.DialogInterface
 import android.content.Intent
@@ -10,23 +10,32 @@ import android.view.ViewGroup
 import android.widget.LinearLayout
 import androidx.activity.ComponentActivity
 import androidx.appcompat.app.AlertDialog
+import androidx.paging.PagingDataAdapter
+import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import com.google.android.material.snackbar.Snackbar
+import io.github.oshai.kotlinlogging.KLogger
+import io.github.oshai.kotlinlogging.KotlinLogging
 import ltd.ucode.network.data.IPost
 import ltd.ucode.slide.Authentication
 import ltd.ucode.slide.R
 import ltd.ucode.slide.SettingValues.appRestart
 import ltd.ucode.slide.SettingValues.getLayoutSettings
+import ltd.ucode.slide.data.entity.Post
 import ltd.ucode.slide.repository.CommentRepository
 import ltd.ucode.slide.repository.PostRepository
 import ltd.ucode.slide.ui.commentsScreen.CommentsScreen
 import ltd.ucode.slide.ui.main.MainActivity
 import ltd.ucode.slide.ui.main.MainPagerAdapterComment
-import ltd.ucode.slide.ui.submissionView.SubmissionsViewFragment
 import ltd.ucode.slide.ui.submissionView.SubmissionsViewFragment.Companion.createLayoutManager
 import me.ccrama.redditslide.Activities.SubredditView
 import me.ccrama.redditslide.Activities.SubredditView.SubredditPagerAdapterComment
+import me.ccrama.redditslide.Adapters.ErrorAdapter
+import me.ccrama.redditslide.Adapters.IFallibleAdapter
+import me.ccrama.redditslide.Adapters.SubmissionDisplay
+import me.ccrama.redditslide.Adapters.SubmissionViewHolder
+import me.ccrama.redditslide.Adapters.SubredditPosts
 import me.ccrama.redditslide.SubmissionViews.PopulateSubmissionViewHolder
 import me.ccrama.redditslide.submission
 import me.ccrama.redditslide.util.LayoutUtils
@@ -38,7 +47,9 @@ import me.ccrama.redditslide.views.CreateCardView.colorCard
 class SubmissionAdapter(
     var context: ComponentActivity, var dataSet: SubredditPosts, private val listView: RecyclerView?,
     subreddit: String, var displayer: SubmissionDisplay
-) : RecyclerView.Adapter<RecyclerView.ViewHolder>(), IFallibleAdapter {
+) : PagingDataAdapter<Post, SubmissionViewHolder>(diffCallback = PostComparator()), IFallibleAdapter {
+    private val logger: KLogger = KotlinLogging.logger {}
+
     val postRepository: PostRepository get() = when {
         displayer is SubmissionsViewFragment -> { (displayer as SubmissionsViewFragment).postRepository }
         context is MainActivity -> { (context as MainActivity).postRepository }
@@ -62,6 +73,7 @@ class SubmissionAdapter(
 
     init {
         MainActivity.randomoverride = ""
+        logger.trace { "Adapter created" }
     }
 
     var hasError = false
@@ -80,24 +92,6 @@ class SubmissionAdapter(
         listView.layoutManager = createLayoutManager(
             LayoutUtils.getNumColumns(context.resources.configuration.orientation, context)
         )
-    }
-
-    override fun getItemId(position: Int): Long {
-        var position = position
-        if (position <= 0 && dataSet.posts.isNotEmpty()) {
-            return SPACER.toLong()
-        } else if (dataSet.posts.isNotEmpty()) {
-            position -= 1
-        }
-        if (position == dataSet.posts.size && dataSet.posts.isNotEmpty()
-            && !dataSet.offline
-            && !dataSet.nomore
-        ) {
-            return LOADING_SPINNER.toLong()
-        } else if (position == dataSet.posts.size && (dataSet.offline || dataSet.nomore)) {
-            return NO_MORE.toLong()
-        }
-        return dataSet.posts[position].created.toEpochMilliseconds()
     }
 
     override fun getItemViewType(position: Int): Int {
@@ -120,23 +114,26 @@ class SubmissionAdapter(
     }
 
     var tag = 1
-    override fun onCreateViewHolder(viewGroup: ViewGroup, i: Int): RecyclerView.ViewHolder {
+    override fun onCreateViewHolder(viewGroup: ViewGroup, i: Int): SubmissionViewHolder {
         tag++
         return when (i) {
             SPACER -> {
                 val v = LayoutInflater.from(viewGroup.context)
                     .inflate(R.layout.spacer, viewGroup, false)
                 SpacerViewHolder(v)
+                TODO("remove")
             }
             LOADING_SPINNER -> {
                 val v = LayoutInflater.from(viewGroup.context)
                     .inflate(R.layout.loadingmore, viewGroup, false)
                 SubmissionFooterViewHolder(v)
+                TODO("remove")
             }
             NO_MORE -> {
                 val v = LayoutInflater.from(viewGroup.context)
                     .inflate(R.layout.nomoreposts, viewGroup, false)
                 SubmissionFooterViewHolder(v)
+                TODO("remove")
             }
             ERROR -> {
                 val v = LayoutInflater.from(viewGroup.context)
@@ -150,6 +147,7 @@ class SubmissionAdapter(
                     }
                 })
                 SubmissionFooterViewHolder(v)
+                TODO("remove")
             }
             else -> {
                 val v = CreateView(viewGroup)
@@ -174,7 +172,7 @@ class SubmissionAdapter(
         listView.postDelayed({ listView.itemAnimator = a }, 500)
     }
 
-    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, pos: Int) {
+    override fun onBindViewHolder(holder: SubmissionViewHolder, pos: Int) {
         val i = (pos - 1).coerceAtLeast(0)
         when (holder) {
             is SubmissionViewHolder -> {
@@ -198,9 +196,9 @@ class SubmissionAdapter(
                                     && a.adapter is MainPagerAdapterComment
                                 ) {
                                     if (true || a.openingComments == submission) {
-                                        clicked = holder.getBindingAdapterPosition()
+                                        clicked = holder.bindingAdapterPosition
                                         a.openingComments = submission
-                                        a.toOpenComments = a.pager!!.currentItem + 1
+                                        a.toOpenComments = a.pager.currentItem + 1
                                         a.currentComment = holder.bindingAdapterPosition - 1
                                         (a.adapter as MainPagerAdapterComment?)!!.storedFragment =
                                             a.adapter!!.currentFragment
@@ -211,9 +209,9 @@ class SubmissionAdapter(
                                         } catch (ignored: Exception) {
                                         }
                                     }
-                                    a.pager!!.postDelayed({
-                                        a.pager!!.setCurrentItem(
-                                            a.pager!!.currentItem + 1,
+                                    a.pager.postDelayed({
+                                        a.pager.setCurrentItem(
+                                            a.pager.currentItem + 1,
                                             true
                                         )
                                     }, 400)
@@ -221,19 +219,19 @@ class SubmissionAdapter(
                                     val i2 = Intent(context, CommentsScreen::class.java)
                                     i2.putExtra(
                                         CommentsScreen.EXTRA_PAGE,
-                                        holder.getBindingAdapterPosition() - 1
+                                        holder.bindingAdapterPosition - 1
                                     )
                                     i2.putExtra(CommentsScreen.EXTRA_SUBREDDIT, subreddit)
                                     i2.putExtra(CommentsScreen.EXTRA_FULLNAME, submission.uri)
                                     i2.putExtra(CommentsScreen.EXTRA_POSTID, submission.rowId)
                                     context.startActivityForResult(i2, MainActivity.OPEN_POST_RESULT)
-                                    clicked = holder.getBindingAdapterPosition()
+                                    clicked = holder.bindingAdapterPosition
                                 }
                             } else if (context is SubredditView) {
                                 val a = context as SubredditView
                                 if (a.singleMode && a.commentPager) {
                                     if (a.openingComments !== submission.submission) {
-                                        clicked = holder.getBindingAdapterPosition()
+                                        clicked = holder.bindingAdapterPosition
                                         a.openingComments = submission.submission
                                         a.currentComment = holder.bindingAdapterPosition - 1
                                         (a.adapter as SubredditPagerAdapterComment).storedFragment =
@@ -251,16 +249,16 @@ class SubmissionAdapter(
                                     val i2 = Intent(context, CommentsScreen::class.java)
                                     i2.putExtra(
                                         CommentsScreen.EXTRA_PAGE,
-                                        holder.getBindingAdapterPosition() - 1
+                                        holder.bindingAdapterPosition - 1
                                     )
                                     i2.putExtra(CommentsScreen.EXTRA_SUBREDDIT, subreddit)
                                     i2.putExtra(CommentsScreen.EXTRA_FULLNAME, submission.uri)
                                     i2.putExtra(CommentsScreen.EXTRA_POSTID, submission.rowId)
                                     i2.putParcelableArrayListExtra(
                                         CommentsScreen.EXTRA_POSTS,
-                                        ArrayList(dataSet.posts.mapNotNull { it as Parcelable }))
+                                        ArrayList(dataSet.posts.mapNotNull { it as Parcelable? }))
                                     context.startActivityForResult(i2, MainActivity.OPEN_POST_RESULT)
-                                    clicked = holder.getBindingAdapterPosition()
+                                    clicked = holder.bindingAdapterPosition
                                 }
                             }
                         } else {
@@ -305,7 +303,7 @@ class SubmissionAdapter(
                     dataSet.subreddit.lowercase(), null
                 )
             }
-            is SubmissionFooterViewHolder -> {
+            !is SubmissionViewHolder -> { //is SubmissionFooterViewHolder -> {
                 val handler = Handler()
                 val r = Runnable {
                     notifyItemChanged(
@@ -319,7 +317,7 @@ class SubmissionAdapter(
                         .setOnClickListener { (displayer as SubmissionsViewFragment).forceRefresh() }
                 }
             }
-            is SpacerViewHolder -> {
+            !is SubmissionViewHolder -> { //is SpacerViewHolder -> {
                 val header = context.findViewById<View>(R.id.header)
                 var height = header.height
                 if (height == 0) {
@@ -370,6 +368,36 @@ class SubmissionAdapter(
                     view.performClick()
                 }
             }
+        }
+    }
+
+    private class PostComparator : DiffUtil.ItemCallback<Post>() {
+        override fun areItemsTheSame(oldItem: Post, newItem: Post): Boolean {
+            return oldItem.postId == newItem.postId
+        }
+
+        override fun areContentsTheSame(oldItem: Post, newItem: Post): Boolean {
+            return oldItem == newItem
+        }
+
+        private fun SubmissionAdapter.getItemId(position: Int): Long { // TODO: do we still need this
+            var position = position
+            if (position <= 0 && dataSet.posts.isNotEmpty()) {
+                return SPACER.toLong()
+            }
+            if (dataSet.posts.isNotEmpty()) {
+                position -= 1
+            }
+            if (position == dataSet.posts.size && dataSet.posts.isNotEmpty()
+                && !dataSet.offline
+                && !dataSet.nomore
+            ) {
+                return LOADING_SPINNER.toLong()
+            }
+            if (position == dataSet.posts.size && (dataSet.offline || dataSet.nomore)) {
+                return NO_MORE.toLong()
+            }
+            return dataSet.posts[position].created.toEpochMilliseconds()
         }
     }
 }

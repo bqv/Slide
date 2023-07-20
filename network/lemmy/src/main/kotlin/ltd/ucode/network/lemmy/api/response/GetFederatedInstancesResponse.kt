@@ -7,4 +7,4 @@ import ltd.ucode.network.lemmy.data.type.FederatedInstances
 @Serializable
 data class GetFederatedInstancesResponse (
     @SerialName("federated_instances") val federatedInstances: FederatedInstances? = null,
-)
+) : IResponse()

@@ -12,20 +12,22 @@ import android.view.animation.LinearInterpolator
 import android.widget.AutoCompleteTextView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
-import androidx.viewpager2.adapter.FragmentStateAdapter
-import androidx.viewpager2.widget.ViewPager2
+import androidx.viewpager2.widget.ViewPager2.OnPageChangeCallback
 import ltd.ucode.slide.App
 import ltd.ucode.slide.R
 import ltd.ucode.slide.SettingValues
-import me.ccrama.redditslide.Fragments.SubmissionsView
+import ltd.ucode.slide.ui.submissionView.SubmissionsViewFragment
 import me.ccrama.redditslide.Visuals.ColorPreferences
 import me.ccrama.redditslide.Visuals.Palette
 import me.ccrama.redditslide.util.StringUtil
 
-open class MainPagerAdapter(private val mainActivity: MainActivity, fm: FragmentManager) : FragmentStateAdapter(fm, mainActivity.lifecycle) {
-    protected var mCurrentFragment: SubmissionsView? = null
-    private val pageChangeListener: ViewPager2.OnPageChangeCallback
-        = object : ViewPager2.OnPageChangeCallback() {
+open class MainPagerAdapter(private val mainActivity: MainActivity,
+                            fm: FragmentManager,
+) : IMainPagerAdapter(fm, mainActivity.lifecycle) {
+    protected var mCurrentFragment: SubmissionsViewFragment? = null
+
+    private val pageChangeListener: OnPageChangeCallback
+        = object : OnPageChangeCallback() {
             override fun onPageScrolled(
                 position: Int, positionOffset: Float,
                 positionOffsetPixels: Int
@@ -41,9 +43,9 @@ open class MainPagerAdapter(private val mainActivity: MainActivity, fm: Fragment
             override fun onPageSelected(position: Int) {
                 App.currentPosition = position
                 mainActivity.selectedSub = mainActivity.usedArray!![position]
-                val page = mainActivity.adapter!!.currentFragment as SubmissionsView?
-                if (mainActivity.hea != null) {
-                    mainActivity.hea!!.setBackgroundColor(Palette.getColor(mainActivity.selectedSub))
+                val page = mainActivity.adapter!!.currentFragment as SubmissionsViewFragment?
+                if (mainActivity.headerBack != null) {
+                    mainActivity.headerBack!!.setBackgroundColor(Palette.getColor(mainActivity.selectedSub))
                     if (mainActivity.accountsArea != null) {
                         mainActivity.accountsArea!!.setBackgroundColor(Palette.getDarkerColor(mainActivity.selectedSub))
                     }
@@ -114,7 +116,7 @@ open class MainPagerAdapter(private val mainActivity: MainActivity, fm: Fragment
     }
 
     override fun createFragment(i: Int): Fragment {
-        val f = SubmissionsView()
+        val f = SubmissionsViewFragment()
         val args = Bundle()
         val name: String? = if (MainActivity.multiNameToSubsMap.containsKey(mainActivity.usedArray!![i])) {
             MainActivity.multiNameToSubsMap[mainActivity.usedArray!![i]]
@@ -142,8 +144,8 @@ open class MainPagerAdapter(private val mainActivity: MainActivity, fm: Fragment
          */TODO("hmm")
     }
 
-    open fun doSetPrimary(obj: Any?, position: Int) {
-        if (obj != null && currentFragment !== obj && position != mainActivity.toOpenComments && obj is SubmissionsView) {
+    override fun doSetPrimary(obj: Any?, position: Int) {
+        if (obj != null && currentFragment !== obj && position != mainActivity.toOpenComments && obj is SubmissionsViewFragment) {
             MainActivity.shouldLoad = mainActivity.usedArray!![position]
             if (MainActivity.multiNameToSubsMap.containsKey(mainActivity.usedArray!![position])) {
                 MainActivity.shouldLoad = MainActivity.multiNameToSubsMap[mainActivity.usedArray!![position]]
@@ -157,7 +159,7 @@ open class MainPagerAdapter(private val mainActivity: MainActivity, fm: Fragment
         }
     }
 
-    open val currentFragment: Fragment?
+    open override val currentFragment: Fragment?
         get() = mCurrentFragment
 
     fun getPageTitle(position: Int): CharSequence? {

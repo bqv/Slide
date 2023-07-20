@@ -1,200 +1,167 @@
-package me.ccrama.redditslide.Adapters;
+package me.ccrama.redditslide.Adapters
 
-import android.app.Activity;
-import android.os.AsyncTask;
-import android.widget.Toast;
+import android.app.Activity
+import android.os.AsyncTask
+import android.widget.Toast
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import ltd.ucode.network.reddit.data.RedditSubmission
+import ltd.ucode.slide.Authentication
+import ltd.ucode.slide.R
+import me.ccrama.redditslide.Activities.MultiredditOverview
+import me.ccrama.redditslide.PostMatch.doesMatch
+import me.ccrama.redditslide.util.SortingUtil
+import net.dean.jraw.http.NetworkException
+import net.dean.jraw.models.PublicContribution
+import net.dean.jraw.models.Submission
+import net.dean.jraw.paginators.Paginator
+import net.dean.jraw.paginators.SubmissionSearchPaginator
+import net.dean.jraw.paginators.SubmissionSearchPaginatorMultireddit
+import net.dean.jraw.paginators.TimePeriod
+import java.net.UnknownHostException
 
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+class SubredditSearchPosts(subreddit: String?, term: String, parent: Activity, multireddit: Boolean) : GeneralPosts<PublicContribution>() {
+    private var term: String
+    private var subreddit = ""
+    var loading = false
+    private var paginator: Paginator<Submission>? = null
+    var refreshLayout: SwipeRefreshLayout? = null
+    private var adapter: ContributionAdapter? = null
+    var parent: Activity
 
-import net.dean.jraw.http.NetworkException;
-import net.dean.jraw.models.Contribution;
-import net.dean.jraw.models.Submission;
-import net.dean.jraw.paginators.Paginator;
-import net.dean.jraw.paginators.SubmissionSearchPaginator;
-import net.dean.jraw.paginators.SubmissionSearchPaginatorMultireddit;
-import net.dean.jraw.paginators.TimePeriod;
+    fun bindAdapter(a: ContributionAdapter?, layout: SwipeRefreshLayout?) {
+        adapter = a
+        refreshLayout = layout
+        loadMore(a, subreddit, term, true)
+    }
 
-import java.net.UnknownHostException;
-import java.util.ArrayList;
+    fun loadMore(a: ContributionAdapter?, subreddit: String, where: String, reset: Boolean) {
+        adapter = a
+        this.subreddit = subreddit
+        term = where
+        LoadData(reset).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR)
+    }
 
-import ltd.ucode.network.reddit.data.RedditSubmission;
-import me.ccrama.redditslide.Activities.MultiredditOverview;
-import ltd.ucode.slide.Authentication;
-import me.ccrama.redditslide.PostMatch;
-import ltd.ucode.slide.R;
-import me.ccrama.redditslide.util.SortingUtil;
+    fun loadMore(
+        a: ContributionAdapter?, subreddit: String, where: String, reset: Boolean,
+        multi: Boolean, time: TimePeriod
+    ) {
+        adapter = a
+        this.subreddit = subreddit
+        term = where
+        multireddit = multi
+        this.time = time
+        LoadData(reset).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR)
+    }
 
-/**
- * Created by ccrama on 9/17/2015.
- */
-public class SubredditSearchPosts extends GeneralPosts {
-    private String term;
-    private String subreddit = "";
-    public  boolean               loading;
-    private Paginator<Submission> paginator;
-    public  SwipeRefreshLayout    refreshLayout;
-    private ContributionAdapter   adapter;
+    var multireddit: Boolean
+    var time = TimePeriod.ALL
 
-    public Activity parent;
-
-    public SubredditSearchPosts(String subreddit, String term, Activity parent, boolean multireddit) {
+    init {
         if (subreddit != null) {
-            this.subreddit = subreddit;
+            this.subreddit = subreddit
         }
-        this.parent = parent;
-        this.term = term;
-        this.multireddit = multireddit;
+        this.parent = parent
+        this.term = term
+        this.multireddit = multireddit
     }
 
-    public void bindAdapter(ContributionAdapter a, SwipeRefreshLayout layout) {
-        this.adapter = a;
-        this.refreshLayout = layout;
-        loadMore(a, subreddit, term, true);
+    fun reset(time: TimePeriod) {
+        this.time = time
+        LoadData(true).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR)
     }
 
-    public void loadMore(ContributionAdapter a, String subreddit, String where, boolean reset) {
-        this.adapter = a;
-        this.subreddit = subreddit;
-        this.term = where;
-        new LoadData(reset).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-    }
-
-    public void loadMore(ContributionAdapter a, String subreddit, String where, boolean reset,
-            boolean multi, TimePeriod time) {
-        this.adapter = a;
-        this.subreddit = subreddit;
-        this.term = where;
-        this.multireddit = multi;
-        this.time = time;
-        new LoadData(reset).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-    }
-
-    boolean multireddit;
-    TimePeriod time = TimePeriod.ALL;
-
-    public void reset(TimePeriod time) {
-        this.time = time;
-        new LoadData(true).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-    }
-
-    public class LoadData extends AsyncTask<String, Void, ArrayList<Contribution>> {
-        final boolean reset;
-
-        public LoadData(boolean reset) {
-            this.reset = reset;
-        }
-
-        @Override
-        public void onPostExecute(ArrayList<Contribution> submissions) {
-            loading = false;
-
-            if(error != null){
-                if(error instanceof NetworkException){
-                    NetworkException e = (NetworkException)error;
-                    Toast.makeText(adapter.mContext,"Loading failed, " + e.getResponse().getStatusCode() + ": " + ((NetworkException) error).getResponse().getStatusMessage(), Toast.LENGTH_LONG).show();
+    inner class LoadData(val reset: Boolean) : AsyncTask<String?, Void?, ArrayList<PublicContribution>?>() {
+        public override fun onPostExecute(submissions: ArrayList<PublicContribution>?) {
+            loading = false
+            if (error != null) {
+                if (error is NetworkException) {
+                    val e = error as NetworkException
+                    Toast.makeText(adapter!!.mContext, "Loading failed, " + e.response.statusCode + ": " + (error as NetworkException).response.statusMessage, Toast.LENGTH_LONG).show()
                 }
-                if(error.getCause() instanceof UnknownHostException){
-                    Toast.makeText(adapter.mContext,"Loading failed, please check your internet connection", Toast.LENGTH_LONG).show();
+                if (error!!.cause is UnknownHostException) {
+                    Toast.makeText(adapter!!.mContext, "Loading failed, please check your internet connection", Toast.LENGTH_LONG).show()
                 }
             }
-
-            if (submissions != null && !submissions.isEmpty()) {
+            if (!submissions.isNullOrEmpty()) {
                 // new submissions found
-
-                int start = 0;
+                var start = 0
                 if (posts != null) {
-                    start = posts.size() + 1;
+                    start = posts.size + 1
                 }
-
-                ArrayList<Contribution> filteredSubmissions = new ArrayList<>();
-                for (Contribution c : submissions) {
-                    if (c instanceof Submission) {
-                        if (!PostMatch.doesMatch(new RedditSubmission((Submission) c))) {
-                            filteredSubmissions.add(c);
+                val filteredSubmissions = ArrayList<PublicContribution>()
+                for (c in submissions) {
+                    if (c is Submission) {
+                        if (!doesMatch(RedditSubmission((c as Submission?)!!))) {
+                            filteredSubmissions.add(c)
                         }
                     } else {
-                        filteredSubmissions.add(c);
+                        filteredSubmissions.add(c)
                     }
                 }
-
                 if (reset || posts == null) {
-                    posts = filteredSubmissions;
-                    start = -1;
+                    posts = filteredSubmissions
+                    start = -1
                 } else {
-                    posts.addAll(filteredSubmissions);
+                    posts.addAll(filteredSubmissions)
                 }
-
-                final int finalStart = start;
+                val finalStart = start
                 // update online
                 if (refreshLayout != null) {
-                    refreshLayout.setRefreshing(false);
+                    refreshLayout!!.isRefreshing = false
                 }
-
                 if (finalStart != -1) {
-                    adapter.notifyItemRangeInserted(finalStart + 1, posts.size());
+                    adapter!!.notifyItemRangeInserted(finalStart + 1, posts.size)
                 } else {
-                    adapter.notifyDataSetChanged();
+                    adapter!!.notifyDataSetChanged()
                 }
-
             } else if (submissions != null) {
                 // end of submissions
-                nomore = true;
-                adapter.notifyDataSetChanged();
+                nomore = true
+                adapter!!.notifyDataSetChanged()
                 if (reset) {
-                    Toast.makeText(adapter.mContext, R.string.no_posts_found, Toast.LENGTH_LONG).show();
+                    Toast.makeText(adapter!!.mContext, R.string.no_posts_found, Toast.LENGTH_LONG).show()
                 }
             } else if (!nomore) {
                 // error
-                adapter.setError(true);
+                adapter!!.setError(true)
             }
-            refreshLayout.setRefreshing(false);
+            refreshLayout!!.isRefreshing = false
         }
 
-        @Override
-        protected ArrayList<Contribution> doInBackground(String... subredditPaginators) {
-            ArrayList<Contribution> newSubmissions = new ArrayList<>();
-            try {
+        override fun doInBackground(vararg subredditPaginators: String?): ArrayList<PublicContribution>? {
+            val newSubmissions = ArrayList<PublicContribution>()
+            return try {
                 if (reset || paginator == null) {
                     if (multireddit) {
-                        paginator = new SubmissionSearchPaginatorMultireddit(Authentication.reddit,
-                                term);
-                        ((SubmissionSearchPaginatorMultireddit) paginator).setMultiReddit(
-                                MultiredditOverview.searchMulti);
-                        ((SubmissionSearchPaginatorMultireddit) paginator).setSearchSorting(
-                                SubmissionSearchPaginatorMultireddit.SearchSort.valueOf(
-                                        SortingUtil.search.toString()));
-                        ((SubmissionSearchPaginatorMultireddit) paginator).setSyntax(
-                                SubmissionSearchPaginatorMultireddit.SearchSyntax.LUCENE);
-
+                        paginator = SubmissionSearchPaginatorMultireddit(Authentication.reddit,
+                            term)
+                        (paginator as SubmissionSearchPaginatorMultireddit).multiReddit = MultiredditOverview.searchMulti
+                        (paginator as SubmissionSearchPaginatorMultireddit).searchSorting = SubmissionSearchPaginatorMultireddit.SearchSort.valueOf(
+                            SortingUtil.search.toString())
+                        (paginator as SubmissionSearchPaginatorMultireddit).syntax = SubmissionSearchPaginatorMultireddit.SearchSyntax.LUCENE
                     } else {
-                        paginator = new SubmissionSearchPaginator(Authentication.reddit, term);
+                        paginator = SubmissionSearchPaginator(Authentication.reddit, term)
                         if (!subreddit.isEmpty()) {
-                            ((SubmissionSearchPaginator) paginator).setSubreddit(subreddit);
+                            (paginator as SubmissionSearchPaginator).subreddit = subreddit
                         }
-                        ((SubmissionSearchPaginator) paginator).setSearchSorting(
-                                SortingUtil.search);
-                        ((SubmissionSearchPaginator) paginator).setSyntax(
-                                SubmissionSearchPaginator.SearchSyntax.LUCENE);
-
+                        (paginator as SubmissionSearchPaginator).searchSorting = SortingUtil.search
+                        (paginator as SubmissionSearchPaginator).syntax = SubmissionSearchPaginator.SearchSyntax.LUCENE
                     }
-                    paginator.setTimePeriod((time));
+                    paginator!!.timePeriod = time
                 }
-
-                if (!paginator.hasNext()) {
-                    nomore = true;
-                    return newSubmissions;
+                if (!paginator!!.hasNext()) {
+                    nomore = true
+                    return newSubmissions
                 }
-                newSubmissions.addAll(paginator.next());
-
-                return newSubmissions;
-            } catch (Exception e) {
-              error = e;
-                e.printStackTrace();
-                return null;
+                newSubmissions.addAll(paginator!!.next())
+                newSubmissions
+            } catch (e: Exception) {
+                error = e
+                e.printStackTrace()
+                null
             }
         }
-        Exception error;
 
+        var error: Exception? = null
     }
-
 }

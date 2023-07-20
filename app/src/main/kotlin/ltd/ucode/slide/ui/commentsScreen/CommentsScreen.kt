@@ -11,18 +11,18 @@ import android.view.ViewGroup
 import android.view.Window
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
-import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.recyclerview.widget.RecyclerView
+import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.viewpager2.widget.ViewPager2
 import androidx.viewpager2.widget.ViewPager2.OnPageChangeCallback
 import dagger.hilt.android.AndroidEntryPoint
+import ltd.ucode.network.data.IPost
 import ltd.ucode.network.lemmy.data.id.PostId
 import ltd.ucode.slide.Authentication
 import ltd.ucode.slide.R
 import ltd.ucode.slide.SettingValues
 import ltd.ucode.slide.SettingValues.appRestart
 import ltd.ucode.slide.SettingValues.fullCommentOverride
-import ltd.ucode.network.data.IPost
 import ltd.ucode.slide.repository.PostRepository
 import ltd.ucode.slide.ui.BaseActivityAnim
 import ltd.ucode.slide.ui.commentsScreen.CommentsScreen.CommentsScreenPagerAdapter
@@ -42,10 +42,8 @@ import javax.inject.Inject
  * This activity is responsible for the view when clicking on a post, showing the post and its
  * comments underneath with the slide left/right for the next post.
  *
- *
  * When the end of the currently loaded posts is being reached, more posts are loaded asynchronously
  * in [CommentsScreenPagerAdapter].
- *
  *
  * Comments are displayed in the [CommentPage] fragment.
  */

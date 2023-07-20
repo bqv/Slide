@@ -30,7 +30,8 @@ import java.util.Locale
  * of swiping, setting up the AppBar (toolbar), and coloring of applicable views.
  */
 open class BaseActivity : PeekViewActivity(), SwipeBackActivityBase {
-    @JvmField var mToolbar: Toolbar? = null
+    open lateinit var mToolbar: Toolbar
+        protected set
     protected var mHelper: SwipeBackActivityHelper? = null
     protected var overrideRedditSwipeAnywhere = false
     protected var enableSwipeBackLayout = true

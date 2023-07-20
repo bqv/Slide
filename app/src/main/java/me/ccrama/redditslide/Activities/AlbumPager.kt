@@ -48,10 +48,9 @@ import ltd.ucode.slide.SettingValues
 import ltd.ucode.slide.SettingValues.albumSwipe
 import ltd.ucode.slide.SettingValues.appRestart
 import ltd.ucode.slide.SettingValues.imageDownloadButton
-import me.ccrama.redditslide.Activities.Album
 import me.ccrama.redditslide.Adapters.ImageGridAdapter
 import me.ccrama.redditslide.Fragments.BlankFragment
-import me.ccrama.redditslide.Fragments.SubmissionsView.Companion.datachanged
+import ltd.ucode.slide.ui.submissionView.SubmissionsViewFragment.Companion.datachanged
 import me.ccrama.redditslide.ImgurAlbum.AlbumUtils.GetAlbumWithCallback
 import me.ccrama.redditslide.ImgurAlbum.Image
 import me.ccrama.redditslide.Notifications.ImageDownloadNotificationService
@@ -296,12 +295,12 @@ class AlbumPager : FullScreenActivity() {
             if (this.isVisible) {
                 if (!isVisibleToUser) // If we are becoming invisible, then...
                 {
-                    (gif as ExoVideoView?)!!.pause()
+                    (gif!! as ExoVideoView).pause()
                     gif!!.visibility = View.GONE
                 }
                 if (isVisibleToUser) // If we are becoming visible, then...
                 {
-                    (gif as ExoVideoView?)!!.play()
+                    (gif!! as ExoVideoView).play()
                     gif!!.visibility = View.VISIBLE
                 }
             }
@@ -320,7 +319,7 @@ class AlbumPager : FullScreenActivity() {
             gif!!.visibility = View.VISIBLE
             val v = gif as ExoVideoView?
             v!!.clearFocus()
-            val url = (activity as AlbumPager?)!!.images!![i].imageUrl
+            val url = (activity!! as AlbumPager).images!![i].imageUrl
             AsyncLoadGif(
                 requireActivity(),
                 rootView!!.findViewById(ltd.ucode.slide.R.id.gif),
@@ -330,11 +329,11 @@ class AlbumPager : FullScreenActivity() {
                 false,
                 true,
                 rootView!!.findViewById(ltd.ucode.slide.R.id.size),
-                (activity as AlbumPager?)!!.subreddit!!,
+                (activity!! as AlbumPager).subreddit!!,
                 requireActivity().intent.getStringExtra(ImageDownloadNotificationService.EXTRA_SUBMISSION_TITLE)
             ).execute(url)
             rootView!!.findViewById<View>(ltd.ucode.slide.R.id.more).setOnClickListener {
-                (activity as AlbumPager?)!!.showBottomSheetImage(
+                (activity!! as AlbumPager).showBottomSheetImage(
                     url,
                     true,
                     i
@@ -433,10 +432,10 @@ class AlbumPager : FullScreenActivity() {
                 container,
                 false
             ) as ViewGroup
-            if ((activity as AlbumPager?)!!.images == null) {
-                (activity as AlbumPager?)!!.pagerLoad!!.onError()
+            if ((activity!! as AlbumPager).images == null) {
+                (activity!! as AlbumPager).pagerLoad!!.onError()
             } else {
-                val current = (activity as AlbumPager?)!!.images!![i]
+                val current = (activity!! as AlbumPager).images!![i]
                 val url = current.imageUrl
                 var lq = false
                 if (SettingValues.loadImageLq && (SettingValues.lowResAlways || ((!NetworkUtil.isConnectedWifi(
@@ -447,10 +446,10 @@ class AlbumPager : FullScreenActivity() {
                     val lqurl = (url.substring(0, url.lastIndexOf("."))
                             + (if (SettingValues.lqLow) "m" else (if (SettingValues.lqMid) "l" else "h"))
                             + url.substring(url.lastIndexOf(".")))
-                    loadImage(rootView, this, lqurl, (activity as AlbumPager?)!!.images!!.size == 1)
+                    loadImage(rootView, this, lqurl, (activity!! as AlbumPager).images!!.size == 1)
                     lq = true
                 } else {
-                    loadImage(rootView, this, url, (activity as AlbumPager?)!!.images!!.size == 1)
+                    loadImage(rootView, this, url, (activity!! as AlbumPager).images!!.size == 1)
                 }
                 run {
                     rootView.findViewById<View>(ltd.ucode.slide.R.id.more)
@@ -541,7 +540,7 @@ class AlbumPager : FullScreenActivity() {
                         .setOnClickListener {
                             loadImage(
                                 rootView, this@ImageFullNoSubmission, url,
-                                (activity as AlbumPager?)!!.images!!.size == 1
+                                (activity!! as AlbumPager).images!!.size == 1
                             )
                             rootView.findViewById<View>(ltd.ucode.slide.R.id.hq).visibility =
                                 View.GONE

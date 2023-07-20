@@ -12,5 +12,5 @@ data class GetPostResponse(
     val moderators: List<CommunityModeratorView>,
     val online: Int = -1, // REMOVED in 0.18.0
     @SerialName("post_view") val postView: PostView,
-) {
+) : IResponse() {
 }

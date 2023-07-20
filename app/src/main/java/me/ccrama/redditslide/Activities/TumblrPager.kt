@@ -58,7 +58,7 @@ import ltd.ucode.slide.SettingValues.appRestart
 import ltd.ucode.slide.SettingValues.imageDownloadButton
 import me.ccrama.redditslide.Adapters.ImageGridAdapterTumblr
 import me.ccrama.redditslide.Fragments.BlankFragment
-import me.ccrama.redditslide.Fragments.SubmissionsView.Companion.datachanged
+import ltd.ucode.slide.ui.submissionView.SubmissionsViewFragment.Companion.datachanged
 import me.ccrama.redditslide.Notifications.ImageDownloadNotificationService
 import me.ccrama.redditslide.SpoilerRobotoTextView
 import me.ccrama.redditslide.Tumblr.Photo
@@ -288,12 +288,12 @@ class TumblrPager : FullScreenActivity() {
             if (isVisible) {
                 if (!isVisibleToUser) // If we are becoming invisible, then...
                 {
-                    (gif as ExoVideoView?)!!.pause()
+                    (gif!! as ExoVideoView).pause()
                     gif!!.visibility = View.GONE
                 }
                 if (isVisibleToUser) // If we are becoming visible, then...
                 {
-                    (gif as ExoVideoView?)!!.play()
+                    (gif!! as ExoVideoView).play()
                     gif!!.visibility = View.VISIBLE
                 }
             }
@@ -313,7 +313,7 @@ class TumblrPager : FullScreenActivity() {
             val v: ExoVideoView? = gif as ExoVideoView?
             v!!.clearFocus()
             val url: String =
-                (activity as TumblrPager?)!!.images!![i].originalSize.url
+                (activity!! as TumblrPager).images!![i].originalSize.url
             AsyncLoadGif(
                 requireActivity(),
                 rootView!!.findViewById(ltd.ucode.slide.R.id.gif),
@@ -323,12 +323,12 @@ class TumblrPager : FullScreenActivity() {
                 false,
                 true,
                 rootView!!.findViewById(ltd.ucode.slide.R.id.size),
-                (activity as TumblrPager?)!!.subreddit!!,
+                (activity!! as TumblrPager).subreddit!!,
                 null
             ).execute(url)
             rootView!!.findViewById<View>(ltd.ucode.slide.R.id.more)
                 .setOnClickListener {
-                    (activity as TumblrPager?)!!.showBottomSheetImage(
+                    (activity!! as TumblrPager).showBottomSheetImage(
                         url,
                         true,
                         i
@@ -417,7 +417,7 @@ class TumblrPager : FullScreenActivity() {
                 container,
                 false
             ) as ViewGroup
-            val current: Photo = (activity as TumblrPager?)!!.images!!.get(i)
+            val current: Photo = (activity!! as TumblrPager).images!!.get(i)
             val url: String = current.originalSize.url
             var lq: Boolean = false
             if (SettingValues.loadImageLq && ((SettingValues.lowResAlways
@@ -436,14 +436,14 @@ class TumblrPager : FullScreenActivity() {
                 rootView.findViewById<View>(ltd.ucode.slide.R.id.more)
                     .setOnClickListener(object : View.OnClickListener {
                         override fun onClick(v: View) {
-                            (activity as TumblrPager?)!!.showBottomSheetImage(url, false, i)
+                            (activity!! as TumblrPager).showBottomSheetImage(url, false, i)
                         }
                     })
                 run {
                     rootView.findViewById<View>(ltd.ucode.slide.R.id.save)
                         .setOnClickListener(object : View.OnClickListener {
                             override fun onClick(v2: View) {
-                                (activity as TumblrPager?)!!.doImageSave(false, url, i)
+                                (activity!! as TumblrPager).doImageSave(false, url, i)
                             }
                         })
                     if (!imageDownloadButton) {

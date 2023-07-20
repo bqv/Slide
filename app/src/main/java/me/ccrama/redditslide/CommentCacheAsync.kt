@@ -26,6 +26,7 @@ import ltd.ucode.slide.repository.AccountRepository
 import ltd.ucode.slide.repository.CommentRepository
 import ltd.ucode.slide.repository.PostRepository
 import ltd.ucode.slide.shim.FlowExtensions.items
+import ltd.ucode.slide.ui.main.MainActivity
 import ltd.ucode.slide.util.CommentSortTypeExtensions.from
 import me.ccrama.redditslide.util.GifUtils
 import me.ccrama.redditslide.util.LogUtil
@@ -207,7 +208,7 @@ class CommentCacheAsync : AsyncTask<Any?, Any?, Any?> {
             mBuilder!!.setContentText(context.getString(R.string.offline_caching_complete)) // Removes the progress bar
                 .setSubText(success.size.toString() + " subreddits cached").setProgress(0, 0, false)
             mBuilder!!.setOngoing(false)
-            mNotifyManager!!.notify(2001, mBuilder!!.build())
+            mNotifyManager!!.notify(MainActivity.SEARCH_RESULT, mBuilder!!.build())
         }
         return null
     }

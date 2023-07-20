@@ -26,7 +26,7 @@ import ltd.ucode.slide.SettingValues.appRestart
 import ltd.ucode.slide.ui.BaseActivity
 import me.ccrama.redditslide.Adapters.AlbumView
 import me.ccrama.redditslide.Fragments.BlankFragment
-import me.ccrama.redditslide.Fragments.SubmissionsView.Companion.datachanged
+import ltd.ucode.slide.ui.submissionView.SubmissionsViewFragment.Companion.datachanged
 import me.ccrama.redditslide.ImgurAlbum.AlbumUtils.GetAlbumWithCallback
 import me.ccrama.redditslide.ImgurAlbum.Image
 import me.ccrama.redditslide.Notifications.ImageDownloadNotificationService
@@ -223,21 +223,21 @@ class Album : FullScreenActivity() {
             val mLayoutManager = PreCachingLayoutManager(activity)
             recyclerView = rootView!!.findViewById(R.id.images)
             recyclerView!!.layoutManager = mLayoutManager
-            (activity as Album?)!!.url = requireActivity().intent.extras!!
+            (activity!! as Album).url = requireActivity().intent.extras!!
                 .getString(EXTRA_URL, "")
-            (activity as BaseActivity?)!!.shareUrl = (activity as Album?)!!.url
-            LoadIntoRecycler((activity as Album?)!!.url!!, requireActivity()).executeOnExecutor(
+            (activity!! as BaseActivity).shareUrl = (activity!! as Album).url
+            LoadIntoRecycler((activity!! as Album).url!!, requireActivity()).executeOnExecutor(
                 AsyncTask.THREAD_POOL_EXECUTOR
             )
-            (activity as Album?)!!.mToolbar = rootView!!.findViewById(R.id.toolbar)
-            (activity as Album?)!!.mToolbar!!.setTitle(R.string.type_album)
+            (activity!! as Album).mToolbar = rootView!!.findViewById(R.id.toolbar)
+            (activity!! as Album).mToolbar!!.setTitle(R.string.type_album)
             ToolbarColorizeHelper.colorizeToolbar(
-                (activity as Album?)!!.mToolbar, Color.WHITE,
+                (activity!! as Album).mToolbar, Color.WHITE,
                 activity
             )
-            (activity as Album?)!!.setSupportActionBar((activity as Album?)!!.mToolbar)
-            (activity as Album?)!!.supportActionBar!!.setDisplayHomeAsUpEnabled(true)
-            (activity as Album?)!!.mToolbar!!.popupTheme =
+            (activity!! as Album).setSupportActionBar((activity!! as Album).mToolbar)
+            (activity!! as Album).supportActionBar!!.setDisplayHomeAsUpEnabled(true)
+            (activity!! as Album).mToolbar!!.popupTheme =
                 ColorPreferences(activity).getDarkThemeSubreddit(
                     ColorPreferences.FONT_STYLE
                 )

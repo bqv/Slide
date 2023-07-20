@@ -8,5 +8,5 @@ data class GetUnreadCountResponse (
     val mentions: Int,
     @SerialName("private_messages") val privateMessages: Int,
     val replies: Int,
-) {
+) : IResponse() {
 }

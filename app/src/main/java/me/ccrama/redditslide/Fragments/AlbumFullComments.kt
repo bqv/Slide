@@ -45,8 +45,8 @@ class AlbumFullComments : Fragment() {
         list!!.setVisibility(View.VISIBLE)
         val layoutManager = LinearLayoutManager(activity)
         layoutManager.orientation = LinearLayoutManager.VERTICAL
-        (list as RecyclerView?)!!.layoutManager = layoutManager
-        (list as RecyclerView?)!!.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+        (list!! as RecyclerView).layoutManager = layoutManager
+        (list!! as RecyclerView).addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
                 var va: ValueAnimator? = null
@@ -134,7 +134,7 @@ class AlbumFullComments : Fragment() {
                 baseActivity, jsonElements, 0, s!!.subredditName,
                 s!!.comment.comment.submissionTitle
             )
-            (list as RecyclerView?)!!.adapter = adapter
+            (list!! as RecyclerView).adapter = adapter
         }
     }
 

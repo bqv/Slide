@@ -78,7 +78,7 @@ class ModeratorAdapter(
     val mContext: ComponentActivity,
     var dataSet: ModeratorPosts,
     private val listView: RecyclerView
-) : RecyclerView.Adapter<RecyclerView.ViewHolder>(), BaseAdapter {
+) : RecyclerView.Adapter<RecyclerView.ViewHolder>(), IFallibleAdapter {
     private val SPACER = 6
     override fun setError(b: Boolean) {
         listView.adapter = ErrorAdapter()

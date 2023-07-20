@@ -6,5 +6,5 @@ import ltd.ucode.network.lemmy.data.type.PostView
 @Serializable
 data class GetPostsResponse(
     val posts: List<PostView>,
-) {
+) : IResponse() {
 }

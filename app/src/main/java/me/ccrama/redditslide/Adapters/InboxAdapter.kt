@@ -1,561 +1,455 @@
-package me.ccrama.redditslide.Adapters;
+package me.ccrama.redditslide.Adapters
 
-/**
- * Created by ccrama on 3/22/2015.
- */
+import android.app.Activity
+import android.app.Dialog
+import android.content.Context
+import android.content.DialogInterface
+import android.content.Intent
+import android.graphics.Color
+import android.graphics.Typeface
+import android.graphics.drawable.Drawable
+import android.os.AsyncTask
+import android.text.SpannableStringBuilder
+import android.text.Spanned
+import android.text.style.ForegroundColorSpan
+import android.text.style.RelativeSizeSpan
+import android.text.style.StyleSpan
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.view.WindowManager
+import android.widget.EditText
+import android.widget.LinearLayout
+import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
+import androidx.recyclerview.widget.RecyclerView
+import com.cocosw.bottomsheet.BottomSheet
+import com.devspark.robototextview.RobotoTypefaces
+import com.google.android.material.snackbar.Snackbar
+import ltd.ucode.slide.Authentication
+import ltd.ucode.slide.R
+import ltd.ucode.slide.SettingValues
+import me.ccrama.redditslide.Activities.Inbox
+import me.ccrama.redditslide.Activities.Profile
+import me.ccrama.redditslide.Activities.SendMessage
+import me.ccrama.redditslide.Adapters.ContributionAdapter.EmptyViewHolder
+import me.ccrama.redditslide.DataShare
+import me.ccrama.redditslide.Drafts
+import me.ccrama.redditslide.OpenRedditLink
+import me.ccrama.redditslide.UserSubscriptions
+import me.ccrama.redditslide.UserTags
+import me.ccrama.redditslide.Visuals.FontPreferences
+import me.ccrama.redditslide.Visuals.Palette
+import me.ccrama.redditslide.util.BlendModeUtil
+import me.ccrama.redditslide.util.ClipboardUtil
+import me.ccrama.redditslide.util.CompatUtil
+import me.ccrama.redditslide.util.LayoutUtils.showSnackbar
+import me.ccrama.redditslide.util.SubmissionParser
+import me.ccrama.redditslide.util.TimeUtils
+import me.ccrama.redditslide.views.DoEditorActions.doActions
+import me.ccrama.redditslide.views.RoundedBackgroundSpan
+import net.dean.jraw.ApiException
+import net.dean.jraw.managers.AccountManager
+import net.dean.jraw.managers.InboxManager
+import net.dean.jraw.models.Captcha
+import net.dean.jraw.models.Message
+import net.dean.jraw.models.PrivateMessage
+import java.util.Arrays
 
-import android.app.Activity;
-import android.app.Dialog;
-import android.content.Context;
-import android.content.DialogInterface;
-import android.content.Intent;
-import android.content.res.TypedArray;
-import android.graphics.Color;
-import android.graphics.Typeface;
-import android.graphics.drawable.Drawable;
-import android.os.AsyncTask;
-import android.text.SpannableStringBuilder;
-import android.text.Spanned;
-import android.text.style.ForegroundColorSpan;
-import android.text.style.RelativeSizeSpan;
-import android.text.style.StyleSpan;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.view.WindowManager;
-import android.widget.EditText;
-import android.widget.LinearLayout;
-import android.widget.Toast;
+class InboxAdapter(val mContext: Context, var dataSet: InboxMessages, private val listView: RecyclerView) : RecyclerView.Adapter<RecyclerView.ViewHolder>(), IFallibleAdapter {
+    private val SPACER = 6
 
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.ContextCompat;
-import androidx.recyclerview.widget.RecyclerView;
-
-import com.cocosw.bottomsheet.BottomSheet;
-import com.devspark.robototextview.RobotoTypefaces;
-import com.google.android.material.snackbar.Snackbar;
-
-import net.dean.jraw.ApiException;
-import net.dean.jraw.managers.InboxManager;
-import net.dean.jraw.models.Captcha;
-import net.dean.jraw.models.Message;
-import net.dean.jraw.models.PrivateMessage;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.Locale;
-
-import me.ccrama.redditslide.Activities.Inbox;
-import me.ccrama.redditslide.Activities.Profile;
-import me.ccrama.redditslide.Activities.SendMessage;
-import ltd.ucode.slide.Authentication;
-import me.ccrama.redditslide.DataShare;
-import me.ccrama.redditslide.Drafts;
-import me.ccrama.redditslide.OpenRedditLink;
-import ltd.ucode.slide.R;
-import ltd.ucode.slide.SettingValues;
-import me.ccrama.redditslide.UserSubscriptions;
-import me.ccrama.redditslide.UserTags;
-import me.ccrama.redditslide.views.DoEditorActions;
-import me.ccrama.redditslide.views.RoundedBackgroundSpan;
-import me.ccrama.redditslide.Visuals.FontPreferences;
-import me.ccrama.redditslide.Visuals.Palette;
-import me.ccrama.redditslide.util.BlendModeUtil;
-import me.ccrama.redditslide.util.ClipboardUtil;
-import me.ccrama.redditslide.util.CompatUtil;
-import me.ccrama.redditslide.util.LayoutUtils;
-import me.ccrama.redditslide.util.SubmissionParser;
-import me.ccrama.redditslide.util.TimeUtils;
-
-
-public class InboxAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
-        implements BaseAdapter {
-
-    private static final int TOP_LEVEL = 1;
-    private final        int SPACER    = 6;
-    public final  Context       mContext;
-    private final RecyclerView  listView;
-    public        InboxMessages dataSet;
-
-    public InboxAdapter(Context mContext, InboxMessages dataSet, RecyclerView listView) {
-
-        this.mContext = mContext;
-        this.listView = listView;
-        this.dataSet = dataSet;
-
-        boolean isSame = false;
-
+    init {
+        val isSame = false
     }
 
-    @Override
-    public void setError(Boolean b) {
-        listView.setAdapter(new ErrorAdapter());
+    override fun setError(b: Boolean) {
+        listView.adapter = ErrorAdapter()
     }
 
-    @Override
-    public void undoSetError() {
-        listView.setAdapter(this);
+    override fun undoSetError() {
+        listView.adapter = this
     }
 
-    @Override
-    public int getItemViewType(int position) {
-        if (position == 0 && !dataSet.posts.isEmpty()
-                || position == dataSet.posts.size() + 1
-                && dataSet.nomore
-                && !dataSet.where.equalsIgnoreCase("where")) {
-            return SPACER;
+    override fun getItemViewType(position: Int): Int {
+        var position = position
+        if ((position == 0 && !dataSet.posts.isNullOrEmpty()
+                || ((position == dataSet.posts!!.size + 1
+                ) && dataSet.nomore
+                && !dataSet.where.equals("where", ignoreCase = true)))) {
+            return SPACER
         } else {
-            position -= 1;
+            position -= 1
         }
-        if (position == dataSet.posts.size() && !dataSet.posts.isEmpty() && !dataSet.nomore) {
-            return 5;
+        if ((position == dataSet.posts!!.size) && !dataSet.posts.isNullOrEmpty() && !dataSet.nomore) {
+            return 5
         }
-        if (dataSet.posts.get(position).getSubject().toLowerCase(Locale.ENGLISH).contains("re:")
-                && dataSet.where.equalsIgnoreCase("messages"))//IS COMMENT IN MESSAGES
-        {
-            return 2;
-        }
-
-        return TOP_LEVEL;
+        return if ((dataSet.posts[position].subject.orEmpty().lowercase().contains("re:")
+                && dataSet.where.equals("messages", ignoreCase = true))) {
+            2
+        } else TOP_LEVEL
     }
 
-    @Override
-    public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup viewGroup, int i) {
-        if (i == SPACER) {
-            View v = LayoutInflater.from(viewGroup.getContext())
-                    .inflate(R.layout.spacer, viewGroup, false);
-            return new SpacerViewHolder(v);
-        } else if (i == TOP_LEVEL) {
-            View v = LayoutInflater.from(viewGroup.getContext())
-                    .inflate(R.layout.top_level_message, viewGroup, false);
-            return new MessageViewHolder(v);
-        } else if (i == 5) {
-            View v = LayoutInflater.from(viewGroup.getContext())
-                    .inflate(R.layout.loadingmore, viewGroup, false);
-            return new ContributionAdapter.EmptyViewHolder(v);
-        } else {
-            View v = LayoutInflater.from(viewGroup.getContext())
-                    .inflate(R.layout.message_reply, viewGroup, false);
-            return new MessageViewHolder(v);
-
+    override fun onCreateViewHolder(viewGroup: ViewGroup, i: Int): RecyclerView.ViewHolder {
+        when (i) {
+            SPACER -> {
+                val v = LayoutInflater.from(viewGroup.context)
+                    .inflate(R.layout.spacer, viewGroup, false)
+                return SpacerViewHolder(v)
+            }
+            TOP_LEVEL -> {
+                val v = LayoutInflater.from(viewGroup.context)
+                    .inflate(R.layout.top_level_message, viewGroup, false)
+                return MessageViewHolder(v)
+            }
+            5 -> {
+                val v = LayoutInflater.from(viewGroup.context)
+                    .inflate(R.layout.loadingmore, viewGroup, false)
+                return EmptyViewHolder(v)
+            }
+            else -> {
+                val v = LayoutInflater.from(viewGroup.context)
+                    .inflate(R.layout.message_reply, viewGroup, false)
+                return MessageViewHolder(v)
+            }
         }
-
     }
 
-    @Override
-    public void onBindViewHolder(final RecyclerView.ViewHolder viewHolder, int pos) {
-        int i = pos != 0 ? pos - 1 : pos;
-
-        if (!(viewHolder instanceof ContributionAdapter.EmptyViewHolder)
-                && !(viewHolder instanceof SpacerViewHolder)) {
-            final MessageViewHolder messageViewHolder = (MessageViewHolder) viewHolder;
-
-            final Message comment = dataSet.posts.get(i);
-            messageViewHolder.time.setText(
-                    TimeUtils.getTimeAgo(comment.getCreated().getTime(), mContext));
-
-            SpannableStringBuilder titleString = new SpannableStringBuilder();
-            String author = comment.getAuthor();
-            String direction = "from ";
-            if (!dataSet.where.contains("mod")
-                    && comment.getDataNode().has("dest")
-                    && !Authentication.name.equalsIgnoreCase(
-                    comment.getDataNode().get("dest").asText())
-                    && !comment.getDataNode().get("dest").asText().equals("reddit")) {
-                author = comment.getDataNode().get("dest").asText().replace("#", "/c/");
-                direction = "to ";
+    override fun onBindViewHolder(viewHolder: RecyclerView.ViewHolder, pos: Int) {
+        val i = if (pos != 0) pos - 1 else pos
+        if ((viewHolder !is EmptyViewHolder
+                && viewHolder !is SpacerViewHolder)) {
+            val messageViewHolder = viewHolder as MessageViewHolder
+            val comment = dataSet.posts!![i]
+            messageViewHolder.time.text = TimeUtils.getTimeAgo(comment.created.time, mContext)
+            val titleString = SpannableStringBuilder()
+            var author = comment.author
+            var direction: String = "from "
+            if ((!dataSet.where.contains("mod")
+                    && comment.dataNode.has("dest")
+                    && !Authentication.name.equals(
+                    comment.dataNode["dest"].asText(), ignoreCase = true)
+                    && comment.dataNode.get("dest").asText() != "reddit")) {
+                author = comment.dataNode["dest"].asText().replace("#", "/c/")
+                direction = "to "
             }
-            if (comment.getDataNode().has("subreddit") && author == null || author.isEmpty()) {
-                direction = "via /c/" + comment.getSubreddit();
+            if (comment.dataNode.has("subreddit") && author == null || author!!.isEmpty()) {
+                direction = "via /c/" + comment.subreddit
             }
-            titleString.append(direction);
+            titleString.append(direction)
             if (author != null) {
-                titleString.append(author);
-                titleString.append(" ");
+                titleString.append(author)
+                titleString.append(" ")
                 if (UserTags.isUserTagged(author)) {
-                    SpannableStringBuilder pinned =
-                            new SpannableStringBuilder(" " + UserTags.getUserTag(author) + " ");
+                    val pinned = SpannableStringBuilder(" " + UserTags.getUserTag(author) + " ")
                     pinned.setSpan(
-                            new RoundedBackgroundSpan(mContext, android.R.color.white, R.color.md_blue_500,
-                                    false), 0, pinned.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-                    titleString.append(pinned);
-                    titleString.append(" ");
+                        RoundedBackgroundSpan(mContext, android.R.color.white, R.color.md_blue_500,
+                            false), 0, pinned.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                    titleString.append(pinned)
+                    titleString.append(" ")
                 }
-
-                if (UserSubscriptions.friends.contains(author)) {
-                    SpannableStringBuilder pinned = new SpannableStringBuilder(
-                            " " + mContext.getString(R.string.profile_friend) + " ");
-                    pinned.setSpan(new RoundedBackgroundSpan(mContext, android.R.color.white,
-                                    R.color.md_deep_orange_500, false), 0, pinned.length(),
-                            Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-                    titleString.append(pinned);
-                    titleString.append(" ");
+                if (UserSubscriptions.friends!!.contains(author)) {
+                    val pinned = SpannableStringBuilder(
+                        " " + mContext.getString(R.string.profile_friend) + " ")
+                    pinned.setSpan(RoundedBackgroundSpan(mContext, android.R.color.white,
+                        R.color.md_deep_orange_500, false), 0, pinned.length,
+                        Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                    titleString.append(pinned)
+                    titleString.append(" ")
                 }
             }
-            String spacer = mContext.getString(R.string.submission_properties_seperator);
-            if (comment.getDataNode().has("subreddit") && !comment.getDataNode()
-                    .get("subreddit")
-                    .isNull()) {
-                titleString.append(spacer);
-                String subname = comment.getDataNode().get("subreddit").asText();
-                SpannableStringBuilder subreddit = new SpannableStringBuilder("/c/" + subname);
-                if ((SettingValues.colorSubName
-                        && Palette.getColor(subname) != Palette.getDefaultColor())) {
-                    subreddit.setSpan(new ForegroundColorSpan(Palette.getColor(subname)), 0,
-                            subreddit.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-                    subreddit.setSpan(new StyleSpan(Typeface.BOLD), 0, subreddit.length(),
-                            Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            val spacer = mContext.getString(R.string.submission_properties_seperator)
+            if (comment.dataNode.has("subreddit") && !comment.dataNode["subreddit"]
+                    .isNull) {
+                titleString.append(spacer)
+                val subname = comment.dataNode["subreddit"].asText()
+                val subreddit = SpannableStringBuilder("/c/$subname")
+                if (((SettingValues.colorSubName
+                        && Palette.getColor(subname) != Palette.getDefaultColor()))) {
+                    subreddit.setSpan(ForegroundColorSpan(Palette.getColor(subname)), 0,
+                        subreddit.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                    subreddit.setSpan(StyleSpan(Typeface.BOLD), 0, subreddit.length,
+                        Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
                 }
-
-                titleString.append(subreddit);
+                titleString.append(subreddit)
             }
-
-            messageViewHolder.user.setText(titleString);
-            SpannableStringBuilder b = new SpannableStringBuilder();
-            if (mContext instanceof Inbox
-                    && comment.getCreated().getTime() > ((Inbox) mContext).last
-                    && !comment.isRead()) {
-                SpannableStringBuilder tagNew = new SpannableStringBuilder("\u00A0NEW\u00A0");
-                tagNew.setSpan(new RoundedBackgroundSpan(Color.WHITE,
-                                mContext.getResources().getColor(R.color.md_green_400), true, mContext), 0,
-                        tagNew.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-                b.append(tagNew);
-                b.append(" ");
+            messageViewHolder.user.text = titleString
+            val b = SpannableStringBuilder()
+            if ((mContext is Inbox
+                    && (comment.created.time > mContext.last
+                    ) && !comment.isRead)) {
+                val tagNew = SpannableStringBuilder("\u00A0NEW\u00A0")
+                tagNew.setSpan(RoundedBackgroundSpan(Color.WHITE,
+                    mContext.getResources().getColor(R.color.md_green_400), true, mContext), 0,
+                    tagNew.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                b.append(tagNew)
+                b.append(" ")
             }
-
-            b.append(comment.getSubject());
-
-            if (comment.getDataNode().has("link_title")) {
-                SpannableStringBuilder link = new SpannableStringBuilder(" "
-                        + CompatUtil.fromHtml(comment.getDataNode().get("link_title").asText())
-                        + " ");
-                link.setSpan(new StyleSpan(Typeface.BOLD_ITALIC), 0, link.length(),
-                        Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-                link.setSpan(new RelativeSizeSpan(0.8f), 0, link.length(),
-                        Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-
-                b.append(link);
+            b.append(comment.subject)
+            if (comment.dataNode.has("link_title")) {
+                val link = SpannableStringBuilder((" "
+                    + CompatUtil.fromHtml(comment.dataNode["link_title"].asText())
+                    + " "))
+                link.setSpan(StyleSpan(Typeface.BOLD_ITALIC), 0, link.length,
+                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                link.setSpan(RelativeSizeSpan(0.8f), 0, link.length,
+                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                b.append(link)
             }
-            messageViewHolder.title.setText(b);
-
-
-            if (comment.isRead()) {
+            messageViewHolder.title.text = b
+            if (comment.isRead) {
                 messageViewHolder.title.setTextColor(
-                        messageViewHolder.content.getCurrentTextColor());
+                    messageViewHolder.content.currentTextColor)
             } else {
                 messageViewHolder.title.setTextColor(
-                        ContextCompat.getColor(mContext, R.color.md_red_400));
+                    ContextCompat.getColor(mContext, R.color.md_red_400))
             }
-
-
-            messageViewHolder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
-                @Override
-                public boolean onLongClick(View v) {
-                    int[] attrs = new int[]{R.attr.tintColor};
-                    TypedArray ta = mContext.obtainStyledAttributes(attrs);
-
-                    final int color = ta.getColor(0, Color.WHITE);
-                    Drawable profile = mContext.getResources().getDrawable(R.drawable.ic_account_circle);
-                    final Drawable reply = mContext.getResources().getDrawable(R.drawable.ic_reply);
-                    Drawable unhide = mContext.getResources().getDrawable(R.drawable.ic_visibility);
-                    Drawable hide = mContext.getResources().getDrawable(R.drawable.ic_visibility_off);
-                    Drawable copy = mContext.getResources().getDrawable(R.drawable.ic_content_copy);
-                    Drawable reddit = mContext.getResources().getDrawable(R.drawable.ic_forum);
-
-                    final List<Drawable> drawableSet = Arrays.asList(
-                            profile, hide, copy, reddit, reply, unhide);
-                    BlendModeUtil.tintDrawablesAsSrcAtop(drawableSet, color);
-
-                    ta.recycle();
-
-                    BottomSheet.Builder b = new BottomSheet.Builder((Activity) mContext).title(
-                            CompatUtil.fromHtml(comment.getSubject()));
-
-                    String author = comment.getAuthor();
-                    if (!dataSet.where.contains("mod")
-                            && comment.getDataNode().has("dest")
-                            && !Authentication.name.equalsIgnoreCase(
-                            comment.getDataNode().get("dest").asText())
-                            && !comment.getDataNode().get("dest").asText().equals("reddit")) {
-                        author = comment.getDataNode().get("dest").asText().replace("#", "/c/");
+            messageViewHolder.itemView.setOnLongClickListener(object : View.OnLongClickListener {
+                override fun onLongClick(v: View): Boolean {
+                    val attrs = intArrayOf(R.attr.tintColor)
+                    val ta = mContext.obtainStyledAttributes(attrs)
+                    val color = ta.getColor(0, Color.WHITE)
+                    val profile = mContext.resources.getDrawable(R.drawable.ic_account_circle)
+                    val reply = mContext.resources.getDrawable(R.drawable.ic_reply)
+                    val unhide = mContext.resources.getDrawable(R.drawable.ic_visibility)
+                    val hide = mContext.resources.getDrawable(R.drawable.ic_visibility_off)
+                    val copy = mContext.resources.getDrawable(R.drawable.ic_content_copy)
+                    val reddit = mContext.resources.getDrawable(R.drawable.ic_forum)
+                    val drawableSet = Arrays.asList(
+                        profile, hide, copy, reddit, reply, unhide)
+                    BlendModeUtil.tintDrawablesAsSrcAtop(drawableSet, color)
+                    ta.recycle()
+                    val b = BottomSheet.Builder((mContext as Activity)).title(
+                        CompatUtil.fromHtml(comment.subject))
+                    var author = comment.author
+                    if ((!dataSet.where.contains("mod")
+                            && comment.dataNode.has("dest")
+                            && !Authentication.name.equals(
+                            comment.dataNode["dest"].asText(), ignoreCase = true)
+                            && comment.dataNode.get("dest").asText() != "reddit")) {
+                        author = comment.dataNode["dest"].asText().replace("#", "/c/")
                     }
-                    if (comment.getAuthor() != null) {
-                        b.sheet(1, profile, "/u/" + author);
+                    if (comment.author != null) {
+                        b.sheet(1, profile, "/u/$author")
                     }
+                    var read: String = mContext.getString(R.string.mail_mark_read)
+                    var rDrawable: Drawable? = hide
+                    if (comment.isRead) {
+                        read = mContext.getString(R.string.mail_mark_unread)
+                        rDrawable = unhide
+                    }
+                    b.sheet(2, (rDrawable)!!, (read))
+                    b.sheet(3, reply, mContext.getString(R.string.btn_reply))
+                    b.sheet(25, copy, mContext.getString(R.string.misc_copy_text))
+                    if (comment.isComment) {
+                        b.sheet(30, reddit, mContext.getString(R.string.mail_view_full_thread))
+                    }
+                    val finalAuthor = author
+                    b.listener(DialogInterface.OnClickListener { dialog, which ->
+                        when (which) {
+                            1 -> {
+                                val i = Intent(mContext, Profile::class.java)
+                                i.putExtra(Profile.EXTRA_PROFILE, finalAuthor)
+                                mContext.startActivity(i)
+                            }
 
-                    String read = mContext.getString(R.string.mail_mark_read);
-                    Drawable rDrawable = hide;
-                    if (comment.isRead()) {
-                        read = mContext.getString(R.string.mail_mark_unread);
-                        rDrawable = unhide;
-                    }
-                    b.sheet(2, rDrawable, read);
-                    b.sheet(3, reply, mContext.getString(R.string.btn_reply));
-                    b.sheet(25, copy, mContext.getString(R.string.misc_copy_text));
-                    if (comment.isComment()) {
-                        b.sheet(30, reddit, mContext.getString(R.string.mail_view_full_thread));
-                    }
-                    final String finalAuthor = author;
-                    b.listener(new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            switch (which) {
-                                case 1: {
-                                    Intent i = new Intent(mContext, Profile.class);
-                                    i.putExtra(Profile.EXTRA_PROFILE, finalAuthor);
-                                    mContext.startActivity(i);
+                            2 -> {
+                                if (comment.isRead) {
+                                    comment.read = false
+                                    AsyncSetRead(false).execute(comment)
+                                    messageViewHolder.title.setTextColor(
+                                        ContextCompat.getColor(mContext,
+                                            R.color.md_red_400))
+                                } else {
+                                    comment.read = true
+                                    AsyncSetRead(true).execute(comment)
+                                    messageViewHolder.title.setTextColor(
+                                        messageViewHolder.content.currentTextColor)
                                 }
-                                break;
-                                case 2: {
-                                    if (comment.isRead()) {
-                                        comment.read = false;
-                                        new AsyncSetRead(false).execute(comment);
-                                        messageViewHolder.title.setTextColor(
-                                                ContextCompat.getColor(mContext,
-                                                        R.color.md_red_400));
-                                    } else {
-                                        comment.read = true;
-                                        new AsyncSetRead(true).execute(comment);
-                                        messageViewHolder.title.setTextColor(
-                                                messageViewHolder.content.getCurrentTextColor());
-                                    }
-                                }
-                                break;
-                                case 3: {
-                                    doInboxReply(comment);
-                                }
-                                break;
-                                case 25: {
-                                    ClipboardUtil.copyToClipboard(mContext, "Message", comment.getBody());
-                                    Toast.makeText(mContext,
-                                            mContext.getString(R.string.mail_message_copied),
-                                            Toast.LENGTH_SHORT).show();
-                                }
-                                break;
-                                case 30: {
-                                    String context = comment.getDataNode().get("context").asText();
-                                    OpenRedditLink.openUrl(mContext,
-                                            "https://reddit.com" + context.substring(0,
-                                                    context.lastIndexOf("/")), true);
-                                }
-                                break;
+                            }
+
+                            3 -> {
+                                doInboxReply(comment)
+                            }
+
+                            25 -> {
+                                ClipboardUtil.copyToClipboard(mContext, "Message", comment.body)
+                                Toast.makeText(mContext,
+                                    mContext.getString(R.string.mail_message_copied),
+                                    Toast.LENGTH_SHORT).show()
+                            }
+
+                            30 -> {
+                                val context = comment.dataNode["context"].asText()
+                                OpenRedditLink.openUrl(mContext,
+                                    "https://reddit.com" + context.substring(0,
+                                        context.lastIndexOf("/")), true)
                             }
                         }
-                    }).show();
-                    return true;
+                    }).show()
+                    return true
                 }
-            });
-
-            messageViewHolder.itemView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    if (comment.isRead()) {
-                        if (comment instanceof PrivateMessage) {
-                            DataShare.sharedMessage = (PrivateMessage) comment;
-                            Intent i = new Intent(mContext, SendMessage.class);
-                            i.putExtra(SendMessage.EXTRA_NAME, comment.getAuthor());
-                            i.putExtra(SendMessage.EXTRA_REPLY, true);
-                            mContext.startActivity(i);
+            })
+            messageViewHolder.itemView.setOnClickListener(object : View.OnClickListener {
+                override fun onClick(v: View) {
+                    if (comment.isRead) {
+                        if (comment is PrivateMessage) {
+                            DataShare.sharedMessage = comment
+                            val i = Intent(mContext, SendMessage::class.java)
+                            i.putExtra(SendMessage.EXTRA_NAME, comment.getAuthor())
+                            i.putExtra(SendMessage.EXTRA_REPLY, true)
+                            mContext.startActivity(i)
                         } else {
                             OpenRedditLink.openUrl(mContext,
-                                    comment.getDataNode().get("context").asText(), true);
+                                comment.dataNode["context"].asText(), true)
                         }
                     } else {
-                        comment.read = true;
-                        new AsyncSetRead(true).execute(comment);
-
+                        comment.read = true
+                        AsyncSetRead(true).execute(comment)
                         messageViewHolder.title.setTextColor(
-                                messageViewHolder.content.getCurrentTextColor());
-                        {
-                            SpannableStringBuilder b =
-                                    new SpannableStringBuilder(comment.getSubject());
-
+                            messageViewHolder.content.currentTextColor)
+                        run {
+                            val b: SpannableStringBuilder = SpannableStringBuilder(comment.getSubject())
                             if (comment.getDataNode().has("link_title")) {
-                                SpannableStringBuilder link = new SpannableStringBuilder(
-                                        " "
-                                                + CompatUtil.fromHtml(
-                                                comment.getDataNode().get("link_title").asText())
-                                                + " ");
-                                link.setSpan(new StyleSpan(Typeface.BOLD_ITALIC), 0, link.length(),
-                                        Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-                                link.setSpan(new RelativeSizeSpan(0.8f), 0, link.length(),
-                                        Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-
-                                b.append(link);
+                                val link: SpannableStringBuilder = SpannableStringBuilder(
+                                    (" "
+                                        + CompatUtil.fromHtml(
+                                        comment.getDataNode().get("link_title").asText())
+                                        + " "))
+                                link.setSpan(StyleSpan(Typeface.BOLD_ITALIC), 0, link.length,
+                                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                                link.setSpan(RelativeSizeSpan(0.8f), 0, link.length,
+                                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                                b.append(link)
                             }
-                            messageViewHolder.title.setText(b);
+                            messageViewHolder.title.setText(b)
                         }
                     }
                 }
-            });            //Set typeface for body
-
-
-            int type = new FontPreferences(mContext).getFontTypeComment().getTypeface();
-            Typeface typeface;
-            if (type >= 0) {
-                typeface = RobotoTypefaces.obtainTypeface(mContext, type);
+            }) //Set typeface for body
+            val type = FontPreferences(mContext).fontTypeComment.typeface
+            val typeface: Typeface = if (type >= 0) {
+                RobotoTypefaces.obtainTypeface(mContext, type!!)
             } else {
-                typeface = Typeface.DEFAULT;
+                Typeface.DEFAULT
             }
-            messageViewHolder.content.setTypeface(typeface);
-
-
-            setViews(comment.getDataNode().get("body_html").asText(), "FORCE_LINK_CLICK",
-                    messageViewHolder);
+            messageViewHolder.content.typeface = typeface
+            setViews(comment.dataNode["body_html"].asText(), "FORCE_LINK_CLICK",
+                messageViewHolder)
         }
-
-        if (viewHolder instanceof SpacerViewHolder) {
-            viewHolder.itemView.findViewById(R.id.height)
-                    .setLayoutParams(new LinearLayout.LayoutParams(viewHolder.itemView.getWidth(),
-                            ((Activity) mContext).findViewById(R.id.header).getHeight()));
+        if (viewHolder is SpacerViewHolder) {
+            viewHolder.itemView.findViewById<View>(R.id.height).layoutParams = LinearLayout.LayoutParams(viewHolder.itemView.width,
+                (mContext as Activity).findViewById<View>(R.id.header).height)
         }
     }
 
-    private void doInboxReply(final Message replyTo) {
-        LayoutInflater inflater = ((Activity) mContext).getLayoutInflater();
-
-        final View dialoglayout = inflater.inflate(R.layout.edit_comment, null);
-
-        final EditText e = dialoglayout.findViewById(R.id.entry);
-
-        DoEditorActions.doActions(e, dialoglayout,
-                ((AppCompatActivity) mContext).getSupportFragmentManager(), (Activity) mContext,
-                replyTo.getBody(), null);
-
-        final AlertDialog.Builder builder = new AlertDialog.Builder(mContext)
-                .setView(dialoglayout);
-        final Dialog d = builder.create();
-        d.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
-
-        d.show();
-        dialoglayout.findViewById(R.id.cancel).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                d.dismiss();
+    private fun doInboxReply(replyTo: Message) {
+        val inflater = (mContext as Activity).layoutInflater
+        val dialoglayout = inflater.inflate(R.layout.edit_comment, null)
+        val e = dialoglayout.findViewById<EditText>(R.id.entry)
+        doActions(e, dialoglayout,
+            (mContext as AppCompatActivity).supportFragmentManager, (mContext as Activity),
+            replyTo.body, null)
+        val builder = AlertDialog.Builder(mContext)
+            .setView(dialoglayout)
+        val d: Dialog = builder.create()
+        d.window!!.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
+        d.show()
+        dialoglayout.findViewById<View>(R.id.cancel).setOnClickListener(object : View.OnClickListener {
+            override fun onClick(v: View) {
+                d.dismiss()
             }
-        });
-        dialoglayout.findViewById(R.id.submit).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                final String text = e.getText().toString();
-                new AsyncReplyTask(replyTo, text).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-                d.dismiss();
+        })
+        dialoglayout.findViewById<View>(R.id.submit).setOnClickListener(object : View.OnClickListener {
+            override fun onClick(v: View) {
+                val text = e.text.toString()
+                AsyncReplyTask(replyTo, text).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR)
+                d.dismiss()
             }
-        });
-
-
+        })
     }
 
-    private class AsyncReplyTask extends AsyncTask<Void, Void, Void> {
-        String trying;
-
-        Message replyTo;
-        String  text;
-
-        public AsyncReplyTask(Message replyTo, String text) {
-            this.replyTo = replyTo;
-            this.text = text;
+    private inner class AsyncReplyTask(var replyTo: Message, var text: String) : AsyncTask<Void?, Void?, Void?>() {
+        var trying: String? = null
+        override fun doInBackground(vararg voids: Void?): Void? {
+            sendMessage(null, null)
+            return null
         }
 
-        @Override
-        protected Void doInBackground(Void... voids) {
-            sendMessage(null, null);
-
-            return null;
-        }
-
-        boolean sent;
-
-        public void sendMessage(Captcha captcha, String captchaAttempt) {
+        var sent = false
+        fun sendMessage(captcha: Captcha?, captchaAttempt: String?) {
             try {
-                new net.dean.jraw.managers.AccountManager(Authentication.reddit).reply(replyTo,
-                        text);
-                sent = true;
-            } catch (ApiException e) {
-                sent = false;
-                e.printStackTrace();
+                AccountManager(Authentication.reddit).reply(replyTo,
+                    text)
+                sent = true
+            } catch (e: ApiException) {
+                sent = false
+                e.printStackTrace()
             }
         }
 
-        @Override
-        public void onPostExecute(Void voids) {
-            Snackbar s;
+        public override fun onPostExecute(voids: Void?) {
+            val s: Snackbar
             if (sent) {
-                s = Snackbar.make(listView, "Reply sent!", Snackbar.LENGTH_LONG);
-                LayoutUtils.showSnackbar(s);
+                s = Snackbar.make(listView, "Reply sent!", Snackbar.LENGTH_LONG)
+                showSnackbar(s)
             } else {
                 s = Snackbar.make(listView, "Sending failed! Reply saved as a draft.",
-                        Snackbar.LENGTH_LONG);
-                LayoutUtils.showSnackbar(s);
-                Drafts.addDraft(text);
-                sent = true;
+                    Snackbar.LENGTH_LONG)
+                showSnackbar(s)
+                Drafts.addDraft(text)
+                sent = true
             }
         }
     }
 
+    class SpacerViewHolder(itemView: View?) : RecyclerView.ViewHolder((itemView)!!)
 
-    public static class SpacerViewHolder extends RecyclerView.ViewHolder {
-        public SpacerViewHolder(View itemView) {
-            super(itemView);
-        }
-    }
-
-    private void setViews(String rawHTML, String subredditName, MessageViewHolder holder) {
+    private fun setViews(rawHTML: String, subredditName: String, holder: MessageViewHolder) {
         if (rawHTML.isEmpty()) {
-            return;
+            return
         }
-
-        List<String> blocks = SubmissionParser.getBlocks(rawHTML);
-
-        int startIndex = 0;
+        val blocks = SubmissionParser.getBlocks(rawHTML)
+        var startIndex = 0
         // the <div class="md"> case is when the body contains a table or code block first
-        if (!blocks.get(0).equals("<div class=\"md\">")) {
-            holder.content.setVisibility(View.VISIBLE);
-            holder.content.setTextHtml(blocks.get(0), subredditName);
-            startIndex = 1;
+        if (blocks.get(0) != "<div class=\"md\">") {
+            holder.content.visibility = View.VISIBLE
+            holder.content.setTextHtml(blocks[0], subredditName)
+            startIndex = 1
         } else {
-            holder.content.setText("");
-            holder.content.setVisibility(View.GONE);
+            holder.content.text = ""
+            holder.content.visibility = View.GONE
         }
-
-        if (blocks.size() > 1) {
+        if (blocks.size > 1) {
             if (startIndex == 0) {
-                holder.commentOverflow.setViews(blocks, subredditName);
+                holder.commentOverflow.setViews(blocks, subredditName)
             } else {
-                holder.commentOverflow.setViews(blocks.subList(startIndex, blocks.size()),
-                        subredditName);
+                holder.commentOverflow.setViews(blocks.subList(startIndex, blocks.size),
+                    subredditName)
             }
         } else {
-            holder.commentOverflow.removeAllViews();
+            holder.commentOverflow.removeAllViews()
         }
     }
 
-
-    @Override
-    public int getItemCount() {
-        if (dataSet.posts == null || dataSet.posts.isEmpty()) {
-            return 0;
+    override fun getItemCount(): Int {
+        return if (dataSet.posts == null || dataSet.posts.isEmpty()) {
+            0
         } else {
-            return dataSet.posts.size() + 2;
-
+            dataSet.posts.size + 2
         }
     }
 
-    private static class AsyncSetRead extends AsyncTask<Message, Void, Void> {
-
-        Boolean b;
-
-        public AsyncSetRead(Boolean b) {
-            this.b = b;
-        }
-
-        @Override
-        protected Void doInBackground(Message... params) {
-            new InboxManager(Authentication.reddit).setRead(b, params[0]);
-            return null;
+    private class AsyncSetRead(var b: Boolean) : AsyncTask<Message?, Void?, Void?>() {
+        override fun doInBackground(vararg params: Message?): Void? {
+            InboxManager(Authentication.reddit).setRead(b, params[0])
+            return null
         }
     }
 
-
+    companion object {
+        private val TOP_LEVEL = 1
+    }
 }

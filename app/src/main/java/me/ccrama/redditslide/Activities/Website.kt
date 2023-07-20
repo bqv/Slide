@@ -23,10 +23,7 @@ import ltd.ucode.slide.SettingValues
 import ltd.ucode.slide.SettingValues.albumSwipe
 import ltd.ucode.slide.SettingValues.cookies
 import ltd.ucode.slide.ui.BaseActivityAnim
-import me.ccrama.redditslide.Activities.Album
-import me.ccrama.redditslide.Activities.AlbumPager
-import me.ccrama.redditslide.Activities.MediaView
-import me.ccrama.redditslide.Fragments.SubmissionsView.Companion.datachanged
+import ltd.ucode.slide.ui.submissionView.SubmissionsViewFragment.Companion.datachanged
 import me.ccrama.redditslide.OpenRedditLink
 import me.ccrama.redditslide.PostMatch.openExternal
 import me.ccrama.redditslide.Visuals.ColorPreferences

@@ -34,7 +34,6 @@ import com.nostra13.universalimageloader.core.assist.FailReason
 import com.nostra13.universalimageloader.core.assist.ImageScaleType
 import com.nostra13.universalimageloader.core.imageaware.ImageViewAware
 import com.nostra13.universalimageloader.core.listener.ImageLoadingListener
-import com.nostra13.universalimageloader.core.listener.ImageLoadingProgressListener
 import ltd.ucode.slide.App
 import ltd.ucode.slide.App.Companion.defaultShareText
 import ltd.ucode.network.ContentType
@@ -49,7 +48,7 @@ import ltd.ucode.slide.R
 import ltd.ucode.slide.SettingValues
 import ltd.ucode.slide.SettingValues.appRestart
 import ltd.ucode.slide.SettingValues.imageDownloadButton
-import me.ccrama.redditslide.Fragments.SubmissionsView.Companion.datachanged
+import ltd.ucode.slide.ui.submissionView.SubmissionsViewFragment.Companion.datachanged
 import me.ccrama.redditslide.Notifications.ImageDownloadNotificationService
 import me.ccrama.redditslide.SecretConstants
 import me.ccrama.redditslide.SubmissionViews.OpenVRedditTask

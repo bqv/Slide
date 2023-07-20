@@ -1,293 +1,250 @@
-package me.ccrama.redditslide.Adapters;
+package me.ccrama.redditslide.Adapters
 
-import android.app.Activity;
-import android.content.Context;
-import android.content.Intent;
-import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.view.ViewTreeObserver;
-import android.widget.ArrayAdapter;
-import android.widget.AutoCompleteTextView;
-import android.widget.Filter;
-import android.widget.ImageView;
-import android.widget.ListView;
-import android.widget.TextView;
+import android.app.Activity
+import android.content.Context
+import android.content.Intent
+import android.util.Log
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.view.ViewTreeObserver
+import android.widget.ArrayAdapter
+import android.widget.AutoCompleteTextView
+import android.widget.Filter
+import android.widget.ImageView
+import android.widget.ListView
+import android.widget.TextView
+import androidx.cardview.widget.CardView
+import ltd.ucode.slide.R
+import ltd.ucode.slide.SettingValues.single
+import ltd.ucode.slide.SettingValues.subredditSearchMethod
+import ltd.ucode.slide.ui.main.MainActivity
+import ltd.ucode.slide.ui.main.MainPagerAdapterComment
+import me.ccrama.redditslide.Activities.SubredditView
+import me.ccrama.redditslide.CaseInsensitiveArrayList
+import me.ccrama.redditslide.Constants
+import me.ccrama.redditslide.UserSubscriptions.getMultiNameToSubs
+import me.ccrama.redditslide.Visuals.Palette
+import me.ccrama.redditslide.util.BlendModeUtil
+import me.ccrama.redditslide.util.KeyboardUtil
+import me.ccrama.redditslide.util.StringUtil
+import org.apache.commons.lang3.StringUtils
 
-import androidx.cardview.widget.CardView;
+class SideArrayAdapter(
+    context: Context?, objects: ArrayList<String?>?,
+    allSubreddits: ArrayList<String>?, view: ListView
+) : ArrayAdapter<String?>(context!!, 0, objects!!) {
+    private val objects: MutableList<String>
+    private var filter: Filter
+    var baseItems: CaseInsensitiveArrayList
+    var fitems: CaseInsensitiveArrayList?
+    var parentL: ListView
+    var openInSubView = true
 
-import org.apache.commons.lang3.StringUtils;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-
-import ltd.ucode.slide.ui.main.MainActivity;
-import ltd.ucode.slide.ui.main.MainPagerAdapterComment;
-import me.ccrama.redditslide.Activities.SubredditView;
-import me.ccrama.redditslide.CaseInsensitiveArrayList;
-import me.ccrama.redditslide.Constants;
-import ltd.ucode.slide.R;
-import ltd.ucode.slide.SettingValues;
-import me.ccrama.redditslide.UserSubscriptions;
-import me.ccrama.redditslide.Visuals.Palette;
-import me.ccrama.redditslide.util.BlendModeUtil;
-import me.ccrama.redditslide.util.KeyboardUtil;
-import me.ccrama.redditslide.util.StringUtil;
-
-
-/**
- * Created by ccrama on 8/17/2015.
- */
-public class SideArrayAdapter extends ArrayAdapter<String> {
-    private final List<String>             objects;
-    private       Filter                   filter;
-    public        CaseInsensitiveArrayList baseItems;
-    public        CaseInsensitiveArrayList fitems;
-    public        ListView                 parentL;
-    public boolean openInSubView = true;
-
-    public SideArrayAdapter(Context context, ArrayList<String> objects,
-            ArrayList<String> allSubreddits, ListView view) {
-        super(context, 0, objects);
-        this.objects = new ArrayList<>(allSubreddits);
-        filter = new SubFilter();
-        fitems = new CaseInsensitiveArrayList(objects);
-        baseItems = new CaseInsensitiveArrayList(objects);
-        parentL = view;
-        multiToMatch = UserSubscriptions.getMultiNameToSubs(true);
+    override fun isEnabled(position: Int): Boolean {
+        return false
     }
 
-    @Override
-    public boolean isEnabled(int position) {
-        return false;
+    override fun areAllItemsEnabled(): Boolean {
+        return false
     }
 
-    @Override
-    public boolean areAllItemsEnabled() {
-        return false;
-    }
-
-    @Override
-    public Filter getFilter() {
-
+    override fun getFilter(): Filter {
         if (filter == null) {
-            filter = new SubFilter();
+            filter = SubFilter()
         }
-        return filter;
+        return filter
     }
 
-    int                 height;
-    Map<String, String> multiToMatch;
+    var height = 0
+    var multiToMatch: Map<String, String>
 
-    private void hideSearchbarUI() {
+    init {
+        this.objects = ArrayList(allSubreddits)
+        filter = SubFilter()
+        fitems = CaseInsensitiveArrayList(objects)
+        baseItems = CaseInsensitiveArrayList(objects)
+        parentL = view
+        multiToMatch = getMultiNameToSubs(true)
+    }
+
+    private fun hideSearchbarUI() {
         try {
             //Hide the toolbar search UI without an animation because we're starting a new activity
-            if ((SettingValues.INSTANCE.getSubredditSearchMethod()
+            if ((subredditSearchMethod
                     == Constants.SUBREDDIT_SEARCH_METHOD_TOOLBAR
-                    || SettingValues.INSTANCE.getSubredditSearchMethod()
+                    || subredditSearchMethod
                     == Constants.SUBREDDIT_SEARCH_METHOD_BOTH)
-                    && ((MainActivity) getContext()).findViewById(R.id.toolbar_search)
-                    .getVisibility() == View.VISIBLE) {
-                ((MainActivity) getContext()).findViewById(
-                        R.id.toolbar_search_suggestions).setVisibility(View.GONE);
-                ((MainActivity) getContext()).findViewById(R.id.toolbar_search)
-                        .setVisibility(View.GONE);
-                ((MainActivity) getContext()).findViewById(R.id.close_search_toolbar)
-                        .setVisibility(View.GONE);
+                && (context as MainActivity).findViewById<View>(R.id.toolbar_search)
+                    .visibility == View.VISIBLE) {
+                (context as MainActivity).findViewById<View>(
+                    R.id.toolbar_search_suggestions).visibility = View.GONE
+                (context as MainActivity).findViewById<View>(R.id.toolbar_search).visibility = View.GONE
+                (context as MainActivity).findViewById<View>(R.id.close_search_toolbar).visibility = View.GONE
 
                 //Play the exit animations of the search toolbar UI to avoid the animations failing to animate upon the next time
                 //the search toolbar UI is called. Set animation to 0 because the UI is already hidden.
-                ((MainActivity) getContext()).exitAnimationsForToolbarSearch(0,
-                        ((CardView) ((MainActivity) getContext()).findViewById(
-                                R.id.toolbar_search_suggestions)),
-                        ((AutoCompleteTextView) ((MainActivity) getContext()).findViewById(
-                                R.id.toolbar_search)),
-                        ((ImageView) ((MainActivity) getContext()).findViewById(
-                                R.id.close_search_toolbar)));
-                if (SettingValues.INSTANCE.getSingle()) {
-                    ((MainActivity) getContext()).getSupportActionBar()
-                            .setTitle(((MainActivity) getContext()).selectedSub);
+                (context as MainActivity).exitAnimationsForToolbarSearch(0,
+                    ((context as MainActivity).findViewById<View>(
+                        R.id.toolbar_search_suggestions) as CardView),
+                    ((context as MainActivity).findViewById<View>(
+                        R.id.toolbar_search) as AutoCompleteTextView),
+                    ((context as MainActivity).findViewById<View>(
+                        R.id.close_search_toolbar) as ImageView))
+                if (single) {
+                    (context as MainActivity).supportActionBar!!.title = (context as MainActivity).selectedSub
                 } else {
-                    ((MainActivity) getContext()).getSupportActionBar()
-                            .setTitle(((MainActivity) getContext()).tabViewModeTitle);
+                    (context as MainActivity).supportActionBar!!.title = (context as MainActivity).tabViewModeTitle
                 }
             }
-        } catch (NullPointerException npe) {
-            Log.e(getClass().getName(), npe.getMessage());
+        } catch (npe: NullPointerException) {
+            Log.e(javaClass.name, npe.message!!)
         }
     }
 
-    @Override
-    public View getView(final int position, View convertView, ViewGroup parent) {
-        if (position < fitems.size()) {
-            convertView = LayoutInflater.from(getContext())
-                    .inflate(R.layout.subforsublist, parent, false);
-
-            final String sub;
-            final String base = fitems.get(position);
-            if (multiToMatch.containsKey(fitems.get(position)) && !fitems.get(position)
+    override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
+        var convertView = convertView
+        if (position < fitems!!.size) {
+            convertView = LayoutInflater.from(context)
+                .inflate(R.layout.subforsublist, parent, false)
+            val sub: String?
+            val base = fitems!![position]
+            sub = if (multiToMatch.containsKey(fitems!![position]) && !fitems!![position]
                     .contains("/m/")) {
-                sub = multiToMatch.get(fitems.get(position));
+                multiToMatch[fitems!![position]]
             } else {
-                sub = fitems.get(position);
+                fitems!![position]
             }
-            final TextView t = convertView.findViewById(R.id.name);
-            t.setText(sub);
-
+            val t = convertView.findViewById<TextView>(R.id.name)
+            t.text = sub
             if (height == 0) {
-                final View finalConvertView = convertView;
-                convertView.getViewTreeObserver()
-                        .addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
-                            @Override
-                            public void onGlobalLayout() {
-                                height = finalConvertView.getHeight();
-                                finalConvertView.getViewTreeObserver()
-                                        .removeOnGlobalLayoutListener(this);
-                            }
-                        });
+                val finalConvertView = convertView
+                convertView.viewTreeObserver
+                    .addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
+                        override fun onGlobalLayout() {
+                            height = finalConvertView!!.height
+                            finalConvertView.viewTreeObserver
+                                .removeOnGlobalLayoutListener(this)
+                        }
+                    })
             }
-
-            final String subreddit = (sub.contains("+") || sub.contains("/m/")) ? sub
-                    : StringUtil.sanitizeString(
-                            sub.replace(getContext().getString(R.string.search_goto) + " ", ""));
-
-            final View colorView = convertView.findViewById(R.id.color);
-            colorView.setBackgroundResource(R.drawable.circle);
-            BlendModeUtil.tintDrawableAsModulate(colorView.getBackground(), Palette.getColor(subreddit));
-            convertView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    if (base.startsWith(getContext().getString(R.string.search_goto) + " ")
-                            || !((MainActivity) getContext()).usedArray.contains(base)) {
-                        hideSearchbarUI();
-                        Intent inte = new Intent(getContext(), SubredditView.class);
-                        inte.putExtra(SubredditView.EXTRA_SUBREDDIT, subreddit);
-                        ((Activity) getContext()).startActivityForResult(inte, 2001);
+            val subreddit = if (sub!!.contains("+") || sub.contains("/m/")) sub else StringUtil.sanitizeString(
+                sub.replace(context.getString(R.string.search_goto) + " ", ""))
+            val colorView = convertView.findViewById<View>(R.id.color)
+            colorView.setBackgroundResource(R.drawable.circle)
+            BlendModeUtil.tintDrawableAsModulate(colorView.background, Palette.getColor(subreddit))
+            convertView.setOnClickListener(object : View.OnClickListener {
+                override fun onClick(view: View) {
+                    if (base.startsWith(context.getString(R.string.search_goto) + " ")
+                        || !(context as MainActivity).usedArray!!.contains(base)) {
+                        hideSearchbarUI()
+                        val inte = Intent(context, SubredditView::class.java)
+                        inte.putExtra(SubredditView.EXTRA_SUBREDDIT, subreddit)
+                        (context as Activity).startActivityForResult(inte, MainActivity.SEARCH_RESULT)
                     } else {
-                        if (((MainActivity) getContext()).commentPager
-                                && ((MainActivity) getContext()).adapter instanceof MainPagerAdapterComment) {
-                            ((MainActivity) getContext()).openingComments = null;
-                            ((MainActivity) getContext()).toOpenComments = -1;
-                            ((MainPagerAdapterComment) ((MainActivity) getContext()).adapter).size =
-                                    (((MainActivity) getContext()).usedArray.size() + 1);
-                            ((MainActivity) getContext()).reloadItemNumber =
-                                    ((MainActivity) getContext()).usedArray.indexOf(base);
-                            ((MainActivity) getContext()).adapter.notifyDataSetChanged();
-                            ((MainActivity) getContext()).doPageSelectedComments(
-                                    ((MainActivity) getContext()).usedArray.indexOf(base));
-                            ((MainActivity) getContext()).reloadItemNumber = -2;
+                        if ((context as MainActivity).commentPager
+                            && (context as MainActivity).adapter is MainPagerAdapterComment) {
+                            (context as MainActivity).openingComments = null
+                            (context as MainActivity).toOpenComments = -1
+                            ((context as MainActivity).adapter as MainPagerAdapterComment?)!!.size = (context as MainActivity).usedArray!!.size + 1
+                            (context as MainActivity).reloadItemNumber = (context as MainActivity).usedArray!!.indexOf(base)
+                            (context as MainActivity).adapter!!.notifyDataSetChanged()
+                            (context as MainActivity).doPageSelectedComments(
+                                (context as MainActivity).usedArray!!.indexOf(base))
+                            (context as MainActivity).reloadItemNumber = -2
                         }
                         try {
                             //Hide the toolbar search UI with an animation because we're just changing tabs
-                            if ((SettingValues.INSTANCE.getSubredditSearchMethod()
+                            if ((subredditSearchMethod
                                     == Constants.SUBREDDIT_SEARCH_METHOD_TOOLBAR
-                                    || SettingValues.INSTANCE.getSubredditSearchMethod()
+                                    || subredditSearchMethod
                                     == Constants.SUBREDDIT_SEARCH_METHOD_BOTH)
-                                    && ((MainActivity) getContext()).findViewById(
-                                    R.id.toolbar_search).getVisibility() == View.VISIBLE) {
-                                ((MainActivity) getContext()).findViewById(
-                                        R.id.close_search_toolbar).performClick();
+                                && (context as MainActivity).findViewById<View>(
+                                    R.id.toolbar_search).visibility == View.VISIBLE) {
+                                (context as MainActivity).findViewById<View>(
+                                    R.id.close_search_toolbar).performClick()
                             }
-                        } catch (NullPointerException npe) {
-                            Log.e(getClass().getName(), npe.getMessage());
+                        } catch (npe: NullPointerException) {
+                            Log.e(javaClass.name, npe.message!!)
                         }
-
-                        ((MainActivity) getContext()).pager.setCurrentItem(
-                                ((MainActivity) getContext()).usedArray.indexOf(base));
-                        ((MainActivity) getContext()).drawerLayout.closeDrawers();
-                        if (((MainActivity) getContext()).drawerSearch != null) {
-                            ((MainActivity) getContext()).drawerSearch.setText("");
+                        (context as MainActivity).pager.currentItem = (context as MainActivity).usedArray!!.indexOf(base)
+                        (context as MainActivity).drawerLayout!!.closeDrawers()
+                        if ((context as MainActivity).drawerSearch != null) {
+                            (context as MainActivity).drawerSearch!!.setText("")
                         }
                     }
-                    KeyboardUtil.hideKeyboard(getContext(), view.getWindowToken(), 0);
+                    KeyboardUtil.hideKeyboard(context, view.windowToken, 0)
                 }
-            });
-            convertView.setOnLongClickListener(new View.OnLongClickListener() {
-                @Override
-                public boolean onLongClick(View view) {
-                    hideSearchbarUI();
-                    Intent inte = new Intent(getContext(), SubredditView.class);
-                    inte.putExtra(SubredditView.EXTRA_SUBREDDIT, subreddit);
-                    ((Activity) getContext()).startActivityForResult(inte, 2001);
-
-                    KeyboardUtil.hideKeyboard(getContext(), view.getWindowToken(), 0);
-                    return true;
-                }
-            });
+            })
+            convertView.setOnLongClickListener(View.OnLongClickListener { view ->
+                hideSearchbarUI()
+                val inte = Intent(context, SubredditView::class.java)
+                inte.putExtra(SubredditView.EXTRA_SUBREDDIT, subreddit)
+                (context as Activity).startActivityForResult(inte, MainActivity.SEARCH_RESULT)
+                KeyboardUtil.hideKeyboard(context, view.windowToken, 0)
+                true
+            })
         } else {
-            convertView =
-                    LayoutInflater.from(getContext()).inflate(R.layout.spacer, parent, false);
-            ViewGroup.LayoutParams params =
-                    convertView.findViewById(R.id.height).getLayoutParams();
-            if ((fitems.size() * height) < parentL.getHeight()
-                    && (SettingValues.INSTANCE.getSubredditSearchMethod()
+            convertView = LayoutInflater.from(context).inflate(R.layout.spacer, parent, false)
+            val params = convertView.findViewById<View>(R.id.height).layoutParams
+            if (fitems!!.size * height < parentL.height
+                && (subredditSearchMethod
                     == Constants.SUBREDDIT_SEARCH_METHOD_DRAWER
-                    || SettingValues.INSTANCE.getSubredditSearchMethod()
+                    || subredditSearchMethod
                     == Constants.SUBREDDIT_SEARCH_METHOD_BOTH)) {
-                params.height = (parentL.getHeight() - (getCount() - 1) * height);
+                params.height = parentL.height - (count - 1) * height
             } else {
-                params.height = 0;
+                params.height = 0
             }
-            convertView.setLayoutParams(params);
+            convertView.layoutParams = params
         }
-        return convertView;
+        return convertView
     }
 
-    @Override
-    public int getCount() {
-        return fitems.size() + 1;
+    override fun getCount(): Int {
+        return fitems!!.size + 1
     }
 
-    public void updateHistory(ArrayList<String> history) {
-        for (String s : history) {
+    fun updateHistory(history: ArrayList<String>) {
+        for (s in history) {
             if (!objects.contains(s)) {
-                objects.add(s);
+                objects.add(s)
             }
         }
-        notifyDataSetChanged();
+        notifyDataSetChanged()
     }
 
-    private class SubFilter extends Filter {
-        @Override
-        protected FilterResults performFiltering(CharSequence constraint) {
-            FilterResults results = new FilterResults();
-            String prefix = constraint.toString().toLowerCase(Locale.ENGLISH);
-
+    private inner class SubFilter : Filter() {
+        override fun performFiltering(constraint: CharSequence): FilterResults {
+            val results = FilterResults()
+            val prefix = constraint.toString().lowercase()
             if (prefix == null || prefix.isEmpty()) {
-                CaseInsensitiveArrayList list = new CaseInsensitiveArrayList(baseItems);
-                results.values = list;
-                results.count = list.size();
+                val list = CaseInsensitiveArrayList(baseItems)
+                results.values = list
+                results.count = list.size
             } else {
-                openInSubView = true;
-                final CaseInsensitiveArrayList list = new CaseInsensitiveArrayList(objects);
-                final CaseInsensitiveArrayList nlist = new CaseInsensitiveArrayList();
-
-                for (String sub : list) {
-                    if (StringUtils.containsIgnoreCase(sub, prefix)) nlist.add(sub);
-                    if (sub.equals(prefix)) openInSubView = false;
+                openInSubView = true
+                val list = CaseInsensitiveArrayList(objects)
+                val nlist = CaseInsensitiveArrayList()
+                for (sub in list) {
+                    if (StringUtils.containsIgnoreCase(sub, prefix)) nlist.add(sub)
+                    if (sub == prefix) openInSubView = false
                 }
                 if (openInSubView) {
-                    nlist.add(getContext().getString(R.string.search_goto) + " " + prefix);
+                    nlist.add(context.getString(R.string.search_goto) + " " + prefix)
                 }
-
-                results.values = nlist;
-                results.count = nlist.size();
+                results.values = nlist
+                results.count = nlist.size
             }
-            return results;
+            return results
         }
 
-
-        @SuppressWarnings("unchecked")
-        @Override
-        protected void publishResults(CharSequence constraint, FilterResults results) {
-            fitems = (CaseInsensitiveArrayList) results.values;
-            clear();
+        override fun publishResults(constraint: CharSequence, results: FilterResults) {
+            fitems = results.values as CaseInsensitiveArrayList
+            clear()
             if (fitems != null) {
-                addAll(fitems);
-                notifyDataSetChanged();
+                addAll(fitems!!)
+                notifyDataSetChanged()
             }
         }
     }

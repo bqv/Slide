@@ -1,81 +1,54 @@
-package me.ccrama.redditslide.Adapters;
+package me.ccrama.redditslide.Adapters
 
-import net.dean.jraw.models.Contribution;
-import net.dean.jraw.models.Submission;
-import net.dean.jraw.paginators.UserSavedPaginator;
+import ltd.ucode.network.reddit.data.RedditSubmission
+import ltd.ucode.slide.Authentication
+import ltd.ucode.slide.SettingValues.getSubmissionSort
+import ltd.ucode.slide.SettingValues.getSubmissionTimePeriod
+import me.ccrama.redditslide.HasSeen.setHasSeenContrib
+import me.ccrama.redditslide.PostMatch.doesMatch
+import net.dean.jraw.models.Contribution
+import net.dean.jraw.models.Submission
+import net.dean.jraw.paginators.UserSavedPaginator
 
-import java.util.ArrayList;
-
-import ltd.ucode.network.reddit.data.RedditSubmission;
-import ltd.ucode.slide.Authentication;
-import me.ccrama.redditslide.HasSeen;
-import me.ccrama.redditslide.PostMatch;
-import ltd.ucode.slide.SettingValues;
-
-/**
- * Created by ccrama on 9/17/2015.
- */
-public class ContributionPostsSaved extends ContributionPosts {
-    private final String category;
-
-    public ContributionPostsSaved(String subreddit, String where, String category) {
-        super(subreddit, where);
-        this.category = category;
+class ContributionPostsSaved(subreddit: String?, where: String?, private val category: String?) : ContributionPosts(subreddit!!, where!!) {
+    var paginator: UserSavedPaginator? = null
+    override fun loadMore(adapter: ContributionAdapter?, subreddit: String?, reset: Boolean) {
+        LoadData(reset).execute(subreddit)
     }
 
-    UserSavedPaginator paginator;
-
-    @Override
-    public void loadMore(ContributionAdapter adapter, String subreddit, boolean reset) {
-        new LoadData(reset).execute(subreddit);
-    }
-
-    public class LoadData extends ContributionPosts.LoadData {
-
-        public LoadData(boolean reset) {
-            super(reset);
+    inner class LoadData(reset: Boolean) : ContributionPosts.LoadData(reset) {
+        override fun onPostExecute(submissions: ArrayList<Contribution>?) {
+            super.onPostExecute(submissions)
         }
 
-        @Override
-        public void onPostExecute(ArrayList<Contribution> submissions) {
-            super.onPostExecute(submissions);
-        }
-
-        @Override
-        protected ArrayList<Contribution> doInBackground(String... subredditPaginators) {
-            ArrayList<Contribution> newData = new ArrayList<>();
-            try {
+        override fun doInBackground(vararg subredditPaginators: String?): ArrayList<Contribution>? {
+            val newData = ArrayList<Contribution>()
+            return try {
                 if (reset || paginator == null) {
-                    paginator = new UserSavedPaginator(Authentication.reddit, where, subreddit);
-                    paginator.setSorting(SettingValues.getSubmissionSort(subreddit));
-                    paginator.setTimePeriod(SettingValues.getSubmissionTimePeriod(subreddit));
-                    if(category != null)
-                        paginator.setCategory(category);
+                    paginator = UserSavedPaginator(Authentication.reddit, where, subreddit)
+                    paginator!!.sorting = getSubmissionSort(subreddit)
+                    paginator!!.timePeriod = getSubmissionTimePeriod(subreddit)
+                    if (category != null) paginator!!.setCategory(category)
                 }
-
-                if (!paginator.hasNext()) {
-                    nomore = true;
-                    return new ArrayList<>();
+                if (!paginator!!.hasNext()) {
+                    nomore = true
+                    return ArrayList()
                 }
-                for (Contribution c : paginator.next()) {
-                    if (c instanceof Submission) {
-                        Submission s = (Submission) c;
-                        if (!PostMatch.doesMatch(new RedditSubmission(s))) {
-                            newData.add(s);
+                for (c in paginator!!.next()) {
+                    if (c is Submission) {
+                        val s = c
+                        if (!doesMatch(RedditSubmission(s))) {
+                            newData.add(s)
                         }
                     } else {
-                        newData.add(c);
+                        newData.add(c)
                     }
                 }
-
-                HasSeen.setHasSeenContrib(newData);
-
-                return newData;
-            } catch (Exception e) {
-                return null;
+                setHasSeenContrib(newData)
+                newData
+            } catch (e: Exception) {
+                null
             }
         }
-
     }
-
 }

@@ -46,8 +46,8 @@ class AlbumFull : Fragment() {
         list!!.visibility = View.VISIBLE
         val layoutManager = LinearLayoutManager(activity)
         layoutManager.orientation = LinearLayoutManager.VERTICAL
-        (list as RecyclerView?)!!.layoutManager = layoutManager
-        (list as RecyclerView?)!!.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+        (list!! as RecyclerView).layoutManager = layoutManager
+        (list!! as RecyclerView).addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
                 var va: ValueAnimator? = null
@@ -109,7 +109,7 @@ class AlbumFull : Fragment() {
                                 i2.putExtra(CommentsScreen.EXTRA_PAGE, i)
                                 i2.putExtra(
                                     CommentsScreen.EXTRA_SUBREDDIT,
-                                    (activity as Shadowbox?)!!.subreddit
+                                    (activity!! as Shadowbox).subreddit
                                 )
                                 activity!!.startActivity(i2)
                             }
@@ -134,7 +134,7 @@ class AlbumFull : Fragment() {
                 baseActivity, jsonElements, 0,
                 s!!.subredditName, s.title
             )
-            (list as RecyclerView?)!!.adapter = adapter
+            (list!! as RecyclerView).adapter = adapter
         }
     }
 
@@ -142,8 +142,8 @@ class AlbumFull : Fragment() {
         super.onCreate(savedInstanceState)
         val bundle = this.arguments
         i = bundle!!.getInt("page", 0)
-        if ((activity as Shadowbox?)!!.subredditPosts == null
-            || (activity as Shadowbox?)!!.subredditPosts!!.posts.size < bundle.getInt(
+        if ((activity!! as Shadowbox).subredditPosts == null
+            || (activity!! as Shadowbox).subredditPosts!!.posts.size < bundle.getInt(
                 "page", 0
             )
         ) {

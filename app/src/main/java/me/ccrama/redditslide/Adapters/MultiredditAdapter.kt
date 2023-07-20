@@ -15,6 +15,7 @@ import ltd.ucode.network.reddit.data.RedditSubmission
 import ltd.ucode.slide.Authentication
 import ltd.ucode.slide.R
 import ltd.ucode.slide.ui.commentsScreen.CommentsScreen
+import ltd.ucode.slide.ui.main.MainActivity
 import me.ccrama.redditslide.Fragments.MultiredditView
 import me.ccrama.redditslide.SubmissionViews.PopulateSubmissionViewHolder
 import me.ccrama.redditslide.submission
@@ -30,7 +31,7 @@ class MultiredditAdapter(
     private val listView: RecyclerView,
     refreshLayout: SwipeRefreshLayout,
     baseView: MultiredditView
-) : RecyclerView.Adapter<RecyclerView.ViewHolder>(), BaseAdapter {
+) : RecyclerView.Adapter<RecyclerView.ViewHolder>(), IFallibleAdapter {
     private val postRepository get() = baseView.postRepository
     private val commentRepository get() = baseView.commentRepository
 
@@ -129,7 +130,7 @@ class MultiredditAdapter(
                     val i2 = Intent(context, CommentsScreen::class.java)
                     i2.putExtra(CommentsScreen.EXTRA_PAGE, holder2.getBindingAdapterPosition() - 1)
                     i2.putExtra(CommentsScreen.EXTRA_MULTIREDDIT, dataSet.multiReddit!!.displayName)
-                    context.startActivityForResult(i2, 940)
+                    context.startActivityForResult(i2, MainActivity.OPEN_POST_RESULT)
                     i2.putExtra("fullname", submission.fullName)
                     clicked = holder2.getBindingAdapterPosition()
                 } else {

@@ -93,7 +93,7 @@ class Related : BaseActivityAnim() {
             Constants.SINGLE_HEADER_VIEW_OFFSET + Constants.PTR_OFFSET_BOTTOM)
         mSwipeRefreshLayout.post { mSwipeRefreshLayout.isRefreshing = true }
         posts = SubredditSearchPosts("", "url:$url", this, false)
-        adapter = ContributionAdapter(this, posts, rv)
+        adapter = ContributionAdapter(this, posts!!, rv)
         rv.adapter = adapter
         posts!!.bindAdapter(adapter, mSwipeRefreshLayout)
         //TODO catch errors

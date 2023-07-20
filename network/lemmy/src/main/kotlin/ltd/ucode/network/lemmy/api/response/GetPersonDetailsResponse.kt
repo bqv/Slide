@@ -13,5 +13,5 @@ data class GetPersonDetailsResponse (
     val comments: List<CommentView>,
     val posts: List<PostView>,
     val moderates: List<CommunityModeratorView>,
-) {
+) : IResponse() {
 }

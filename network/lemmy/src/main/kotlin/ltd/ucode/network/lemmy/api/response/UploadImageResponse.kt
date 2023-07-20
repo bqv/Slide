@@ -10,5 +10,5 @@ data class UploadImageResponse(
     val files: List<ImageFile>? = null,
     val msg: String,
     val url: String? = null,
-) {
+) : IResponse() {
 }

@@ -58,7 +58,7 @@ class SubredditListView : Fragment() {
     fun doAdapter() {
         mSwipeRefreshLayout.post { mSwipeRefreshLayout.isRefreshing = true }
         posts = SubredditNames(where, context, this@SubredditListView)
-        adapter = SubredditAdapter(activity, posts, rv, where, this)
+        adapter = SubredditAdapter(activity!!, posts!!, rv, where!!, this)
         rv.adapter = adapter
         posts!!.loadMore(mSwipeRefreshLayout.context, true, where)
         mSwipeRefreshLayout.setOnRefreshListener { refresh() }

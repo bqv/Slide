@@ -27,6 +27,7 @@ import gun0912.tedbottompicker.TedBottomPicker
 import gun0912.tedbottompicker.TedBottomSheetDialogFragment
 import ltd.ucode.slide.R
 import ltd.ucode.slide.SettingValues
+import ltd.ucode.slide.ui.main.MainActivity
 import me.ccrama.redditslide.Activities.Draw
 import me.ccrama.redditslide.Drafts
 import me.ccrama.redditslide.ImgurAlbum.UploadImgur
@@ -390,6 +391,7 @@ object DoEditorActions {
     var e: Editable? = null
     var sStart = 0
     var sEnd = 0
+
     fun doDraw(a: Activity?, editText: EditText, fm: FragmentManager) {
         val intent = Intent(a, Draw::class.java)
         KeyboardUtil.hideKeyboard(editText.context, editText.windowToken, 0)
@@ -404,7 +406,7 @@ object DoEditorActions {
                 sEnd = editText.selectionEnd
                 fm.beginTransaction().add(auxiliary, "IMAGE_UPLOAD").commit()
                 fm.executePendingTransactions()
-                auxiliary.startActivityForResult(intent, 3333)
+                auxiliary.startActivityForResult(intent, MainActivity.CHOOSE_IMAGE_RESULT)
             } //.setLayoutResource(R.layout.image_sheet_dialog)
             .setTitle("Choose a photo")
             .create()

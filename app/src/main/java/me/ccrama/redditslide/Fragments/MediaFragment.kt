@@ -263,9 +263,9 @@ class MediaFragment : Fragment() {
         super.onCreate(savedInstanceState)
         val bundle = this.arguments
         firstUrl = bundle!!.getString("firstUrl")
-        sub = (activity as Shadowbox?)!!.subreddit
+        sub = (activity!! as Shadowbox).subreddit
         i = bundle.getInt("page")
-        if ((activity as Shadowbox?)!!.subredditPosts!!.posts.size != 0) {
+        if ((activity!! as Shadowbox).subredditPosts!!.posts.size != 0) {
             //s = ((Shadowbox) getActivity()).subredditPosts.getPosts().get(i).getSubmission();
         } else {
             requireActivity().finish()

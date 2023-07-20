@@ -57,8 +57,8 @@ class Search : BaseActivityAnim() {
     }
 
     fun reloadSubs() {
-        posts!!.refreshLayout.isRefreshing = true
-        posts!!.reset(time)
+        posts!!.refreshLayout!!.isRefreshing = true
+        posts!!.reset(time!!)
     }
 
     fun openTimeFramePopup() {
@@ -257,7 +257,7 @@ class Search : BaseActivityAnim() {
                 }
                 if (!posts!!.loading && ((visibleItemCount + pastVisiblesItems) + 5 >= totalItemCount) && !posts!!.nomore) {
                     posts!!.loading = true
-                    posts!!.loadMore(adapter, subreddit, where, false, multireddit, time)
+                    posts!!.loadMore(adapter, subreddit!!, where!!, false, multireddit, time!!)
                 }
             }
         })
@@ -278,12 +278,12 @@ class Search : BaseActivityAnim() {
             }
         })
         posts = SubredditSearchPosts(subreddit, where!!.lowercase(), this, multireddit)
-        adapter = ContributionAdapter(this, posts, rv)
+        adapter = ContributionAdapter(this, posts!!, rv!!)
         rv!!.adapter = adapter
         posts!!.bindAdapter(adapter, mSwipeRefreshLayout)
         //TODO catch errors
         mSwipeRefreshLayout.setOnRefreshListener {
-            posts!!.loadMore(adapter, subreddit, where, true, multireddit, time)
+            posts!!.loadMore(adapter, subreddit!!, where!!, true, multireddit, time!!)
             //TODO catch errors
         }
     }

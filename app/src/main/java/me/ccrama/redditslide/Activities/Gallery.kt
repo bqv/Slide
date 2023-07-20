@@ -5,10 +5,10 @@ import android.os.Bundle
 import android.view.View
 import androidx.recyclerview.widget.RecyclerView
 import dagger.hilt.android.AndroidEntryPoint
-import ltd.ucode.slide.Authentication
 import ltd.ucode.network.ContentType
-import ltd.ucode.slide.R
 import ltd.ucode.network.data.IPost
+import ltd.ucode.slide.Authentication
+import ltd.ucode.slide.R
 import ltd.ucode.slide.repository.PostRepository
 import me.ccrama.redditslide.Adapters.GalleryView
 import me.ccrama.redditslide.Adapters.MultiredditPosts
@@ -90,16 +90,16 @@ class Gallery : FullScreenActivity(), SubmissionDisplay {
                 }
                 if (visibleItemCount + pastVisiblesItems + 5 >= totalItemCount) {
                     if (subredditPosts is SubredditPosts) {
-                        if (!(subredditPosts as SubredditPosts?)!!.loading) {
-                            (subredditPosts as SubredditPosts?)!!.loading = true
-                            (subredditPosts as SubredditPosts)!!.loadMore(
+                        if (!(subredditPosts!! as SubredditPosts).loading) {
+                            (subredditPosts!! as SubredditPosts).loading = true
+                            (subredditPosts as SubredditPosts).loadMore(
                                 this@Gallery, this@Gallery,
                                 false, subreddit!!
                             )
                         }
                     } else if (subredditPosts is MultiredditPosts) {
-                        if (!(subredditPosts as MultiredditPosts?)!!.loading) {
-                            (subredditPosts as MultiredditPosts?)!!.loading = true
+                        if (!(subredditPosts!! as MultiredditPosts).loading) {
+                            (subredditPosts!! as MultiredditPosts).loading = true
                             subredditPosts!!.loadMore(this@Gallery, this@Gallery, false)
                         }
                     }

@@ -9,7 +9,7 @@ data class LoginResponse(
     val jwt: String? = null,
     @SerialName("registration_created") val registrationCreated: Boolean,
     @SerialName("verify_email_sent") val verifyEmailSent: Boolean
-) {
+) : IResponse() {
     val result: Result
         get() = if (verifyEmailSent) {
             Result.EmailNotVerified

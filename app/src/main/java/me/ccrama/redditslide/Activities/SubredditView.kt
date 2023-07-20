@@ -9,7 +9,6 @@ import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.AsyncTask
 import android.os.Bundle
-import android.os.Parcelable
 import android.text.Spannable
 import android.util.Log
 import android.view.Gravity
@@ -58,10 +57,11 @@ import ltd.ucode.slide.SettingValues.setSubSorting
 import ltd.ucode.slide.SettingValues.showNSFWContent
 import ltd.ucode.slide.SettingValues.single
 import ltd.ucode.slide.ui.BaseActivity
+import ltd.ucode.slide.ui.main.MainActivity
 import me.ccrama.redditslide.Constants
 import me.ccrama.redditslide.Fragments.BlankFragment
 import me.ccrama.redditslide.Fragments.CommentPage
-import me.ccrama.redditslide.Fragments.SubmissionsView
+import ltd.ucode.slide.ui.submissionView.SubmissionsViewFragment
 import me.ccrama.redditslide.ImageFlairs
 import me.ccrama.redditslide.Notifications.CheckForMail
 import me.ccrama.redditslide.OfflineSubreddit
@@ -102,21 +102,14 @@ import net.dean.jraw.paginators.UserRecordPaginator
 @AndroidEntryPoint
 class SubredditView : BaseActivity() {
     var canSubmit = true
-    @JvmField
-    var subreddit: String? = null
-    @JvmField
-    var openingComments: Submission? = null
-    @JvmField
-    var currentComment = 0
-    @JvmField
-    var adapter: SubredditPagerAdapter? = null
+    @JvmField var subreddit: String? = null
+    @JvmField var openingComments: Submission? = null
+    @JvmField var currentComment = 0
+    @JvmField var adapter: SubredditPagerAdapter? = null
     var term: String? = null
-    @JvmField
-    var pager: ViewPager2? = null
-    @JvmField
-    var singleMode = false
-    @JvmField
-    var commentPager = false
+    @JvmField var pager: ViewPager2? = null
+    @JvmField var singleMode = false
+    @JvmField var commentPager = false
     var loaded = false
     var header: View? = null
     var sub: Subreddit? = null
@@ -130,24 +123,24 @@ class SubredditView : BaseActivity() {
             pager!!.adapter = SubredditPagerAdapter(supportFragmentManager)
         } else if (requestCode == 1) {
             restartTheme()
-        } else if (requestCode == 940) {
+        } else if (requestCode == MainActivity.OPEN_POST_RESULT) {
             if (adapter != null && adapter!!.currentFragment != null) {
                 if (resultCode == RESULT_OK) {
                     LogUtil.v("Doing hide posts")
                     val posts = data!!.getIntegerArrayListExtra("seen")
-                    (adapter!!.currentFragment as SubmissionsView?)!!.adapter!!.refreshView((posts)!!)
+                    (adapter!!.currentFragment as SubmissionsViewFragment?)!!.adapter!!.refreshView((posts)!!)
                     if ((data.hasExtra("lastPage")
                                 && (data.getIntExtra("lastPage", 0) != 0
-                                ) && (adapter!!.currentFragment as SubmissionsView?)!!.rv!!.layoutManager is LinearLayoutManager)
+                                ) && (adapter!!.currentFragment as SubmissionsViewFragment?)!!.rv!!.layoutManager is LinearLayoutManager)
                     ) {
-                        ((adapter!!.currentFragment as SubmissionsView?)!!.rv!!.layoutManager as LinearLayoutManager?)!!
+                        ((adapter!!.currentFragment as SubmissionsViewFragment?)!!.rv!!.layoutManager as LinearLayoutManager?)!!
                             .scrollToPositionWithOffset(
                                 data.getIntExtra("lastPage", 0) + 1,
                                 mToolbar!!.height
                             )
                     }
                 } else {
-                    (adapter!!.currentFragment as SubmissionsView?)!!.adapter!!.refreshView()
+                    (adapter!!.currentFragment as SubmissionsViewFragment?)!!.adapter!!.refreshView()
                 }
             }
         } else {
@@ -203,7 +196,7 @@ class SubredditView : BaseActivity() {
         pager!!.currentItem = 1
         mToolbar!!.setOnClickListener {
             var pastVisiblesItems = 0
-            val firstVisibleItems = (((adapter!!.currentFragment) as SubmissionsView?)!!.rv!!
+            val firstVisibleItems = (((adapter!!.currentFragment) as SubmissionsViewFragment?)!!.rv!!
                 .getLayoutManager() as CatchStaggeredGridLayoutManager?)!!.findFirstVisibleItemPositions(
                 null
             )
@@ -213,14 +206,14 @@ class SubredditView : BaseActivity() {
                 }
             }
             if (pastVisiblesItems > 8) {
-                ((adapter!!.currentFragment) as SubmissionsView?)!!.rv!!.scrollToPosition(0)
+                ((adapter!!.currentFragment) as SubmissionsViewFragment?)!!.rv!!.scrollToPosition(0)
                 header!!.animate()
                     .translationY(header!!.height.toFloat())
                     .setInterpolator(LinearInterpolator()).duration = 180
             } else {
-                ((adapter!!.currentFragment) as SubmissionsView?)!!.rv!!.smoothScrollToPosition(0)
+                ((adapter!!.currentFragment) as SubmissionsViewFragment?)!!.rv!!.smoothScrollToPosition(0)
             }
-            ((adapter!!.currentFragment) as SubmissionsView?)!!.resetScroll()
+            ((adapter!!.currentFragment) as SubmissionsViewFragment?)!!.resetScroll()
         }
         if (subreddit != "random"
             && subreddit != "all"
@@ -303,7 +296,7 @@ class SubredditView : BaseActivity() {
 
             R.id.action_refresh -> {
                 if (adapter != null && adapter!!.currentFragment != null) {
-                    (adapter!!.currentFragment as SubmissionsView?)!!.forceRefresh()
+                    (adapter!!.currentFragment as SubmissionsViewFragment?)!!.forceRefresh()
                 }
                 return true
             }
@@ -323,18 +316,18 @@ class SubredditView : BaseActivity() {
 
             R.id.gallery -> {
                 if (SettingValues.isPro) {
-                    val posts = (adapter!!.currentFragment as SubmissionsView?)!!.posts!!.posts
+                    val posts = (adapter!!.currentFragment as SubmissionsViewFragment?)!!.posts!!.posts
                     if (posts != null && !posts.isEmpty()) {
                         val i2 = Intent(this, Gallery::class.java)
                         i2.putExtra(
                             "offline",
-                            if (((adapter!!.currentFragment as SubmissionsView?)!!.posts!!.cached
+                            if (((adapter!!.currentFragment as SubmissionsViewFragment?)!!.posts!!.cached
                                         != null)
-                            ) (adapter!!.currentFragment as SubmissionsView?)!!.posts!!.cached!!.time else 0L
+                            ) (adapter!!.currentFragment as SubmissionsViewFragment?)!!.posts!!.cached!!.time else 0L
                         )
                         i2.putExtra(
                             Gallery.EXTRA_SUBREDDIT,
-                            (adapter!!.currentFragment as SubmissionsView?)!!.posts!!.subreddit
+                            (adapter!!.currentFragment as SubmissionsViewFragment?)!!.posts!!.subreddit
                         )
                         startActivity(i2)
                     }
@@ -386,20 +379,20 @@ class SubredditView : BaseActivity() {
             }
 
             R.id.hide_posts -> {
-                (adapter!!.currentFragment as SubmissionsView?)!!.clearSeenPosts(false)
+                (adapter!!.currentFragment as SubmissionsViewFragment?)!!.clearSeenPosts(false)
                 return true
             }
 
             R.id.action_shadowbox -> {
                 if (SettingValues.isPro) {
                     val posts =
-                        ((pager!!.adapter as SubredditPagerAdapter?)!!.currentFragment as SubmissionsView?)!!.posts!!.posts
+                        ((pager!!.adapter as SubredditPagerAdapter?)!!.currentFragment as SubmissionsViewFragment?)!!.posts!!.posts
                     if (posts != null && !posts.isEmpty()) {
                         val i2 = Intent(this, Shadowbox::class.java)
                         i2.putExtra(Shadowbox.EXTRA_PAGE, currentPage)
                         i2.putExtra(
                             Shadowbox.EXTRA_SUBREDDIT,
-                            (adapter!!.currentFragment as SubmissionsView?)!!.posts!!.subreddit
+                            (adapter!!.currentFragment as SubmissionsViewFragment?)!!.posts!!.subreddit
                         )
                         startActivity(i2)
                     }
@@ -439,7 +432,7 @@ class SubredditView : BaseActivity() {
         pager!!.setSwipeLeftOnly(false)
         App.currentPosition = position
         if ((position == 1 && adapter != null) && adapter!!.currentFragment != null) {
-            (adapter!!.currentFragment as SubmissionsView?)!!.adapter!!.refreshView()
+            (adapter!!.currentFragment as SubmissionsViewFragment?)!!.adapter!!.refreshView()
         }
     }
 
@@ -725,15 +718,15 @@ class SubredditView : BaseActivity() {
         get() {
             var position = 0
             val currentOrientation = resources.configuration.orientation
-            if ((adapter!!.currentFragment as SubmissionsView?)!!.rv!!.layoutManager is LinearLayoutManager
+            if ((adapter!!.currentFragment as SubmissionsViewFragment?)!!.rv!!.layoutManager is LinearLayoutManager
                 && currentOrientation == Configuration.ORIENTATION_LANDSCAPE
             ) {
                 position =
-                    ((adapter!!.currentFragment as SubmissionsView?)!!.rv!!.layoutManager as LinearLayoutManager?)!!
+                    ((adapter!!.currentFragment as SubmissionsViewFragment?)!!.rv!!.layoutManager as LinearLayoutManager?)!!
                         .findFirstCompletelyVisibleItemPosition() - 1
-            } else if ((adapter!!.currentFragment as SubmissionsView?)!!.rv!!.layoutManager is CatchStaggeredGridLayoutManager) {
+            } else if ((adapter!!.currentFragment as SubmissionsViewFragment?)!!.rv!!.layoutManager is CatchStaggeredGridLayoutManager) {
                 var firstVisibleItems: IntArray? = null
-                firstVisibleItems = ((adapter!!.currentFragment as SubmissionsView?)!!.rv!!
+                firstVisibleItems = ((adapter!!.currentFragment as SubmissionsViewFragment?)!!.rv!!
                     .getLayoutManager() as CatchStaggeredGridLayoutManager?)!!.findFirstCompletelyVisibleItemPositions(
                     firstVisibleItems
                 )
@@ -742,7 +735,7 @@ class SubredditView : BaseActivity() {
                 }
             } else {
                 position =
-                    ((adapter!!.currentFragment as SubmissionsView?)!!.rv!!.layoutManager as PreCachingLayoutManager?)!!
+                    ((adapter!!.currentFragment as SubmissionsViewFragment?)!!.rv!!.layoutManager as PreCachingLayoutManager?)!!
                         .findFirstCompletelyVisibleItemPosition() - 1
             }
             return position
@@ -1403,7 +1396,7 @@ class SubredditView : BaseActivity() {
     }
 
     open inner class SubredditPagerAdapter(fm: FragmentManager) : FragmentStateAdapter(fm, lifecycle) {
-        private var mCurrentFragment: SubmissionsView? = null
+        private var mCurrentFragment: SubmissionsViewFragment? = null
         private var blankPage: BlankFragment? = null
 
         init {
@@ -1443,7 +1436,7 @@ class SubredditView : BaseActivity() {
 
         override fun createFragment(i: Int): Fragment {
             return if (i == 1) {
-                val f = SubmissionsView()
+                val f = SubmissionsViewFragment()
                 val args = Bundle()
                 args.putString("id", subreddit)
                 f.arguments = args
@@ -1462,7 +1455,7 @@ class SubredditView : BaseActivity() {
         }
 
         open fun doSetPrimary(obj: Any?, position: Int) {
-            if ((obj != null) && currentFragment !== obj && position != 3 && obj is SubmissionsView) {
+            if ((obj != null) && currentFragment !== obj && position != 3 && obj is SubmissionsViewFragment) {
                 mCurrentFragment = obj
                 if (mCurrentFragment!!.posts == null && mCurrentFragment!!.isAdded) {
                     mCurrentFragment!!.doAdapter()
@@ -1478,7 +1471,7 @@ class SubredditView : BaseActivity() {
         @JvmField var size = 2
         @JvmField var storedFragment: Fragment? = null
         var blankPage: BlankFragment? = null
-        private var mCurrentFragment: SubmissionsView? = null
+        private var mCurrentFragment: SubmissionsViewFragment? = null
 
         init {
             pager!!.registerOnPageChangeCallback(object : OnPageChangeCallback() {
@@ -1531,7 +1524,7 @@ class SubredditView : BaseActivity() {
         override fun doSetPrimary(obj: Any?, position: Int) {
             if (position != 2 && position != 0) {
                 if (currentFragment !== obj) {
-                    mCurrentFragment = (obj as SubmissionsView?)
+                    mCurrentFragment = (obj as SubmissionsViewFragment?)
                     if ((mCurrentFragment != null
                                 ) && (mCurrentFragment!!.posts == null
                                 ) && mCurrentFragment!!.isAdded
@@ -1553,7 +1546,7 @@ class SubredditView : BaseActivity() {
                 blankPage = BlankFragment()
                 blankPage!!
             } else if (openingComments == null || i != 2) {
-                val f = SubmissionsView()
+                val f = SubmissionsViewFragment()
                 val args = Bundle()
                 args.putString("id", subreddit)
                 f.arguments = args
@@ -1615,9 +1608,7 @@ class SubredditView : BaseActivity() {
                         )
                         .setCancelable(false)
                         .setPositiveButton(R.string.misc_continue) { dialog: DialogInterface?, which: Int ->
-                            (adapter!!.currentFragment as SubmissionsView?)!!.doAdapter(
-                                true
-                            )
+                            (adapter!!.currentFragment as SubmissionsViewFragment?)!!.doAdapter(true)
                         }
                         .setNeutralButton(R.string.btn_go_back) { dialog: DialogInterface?, which: Int ->
                             finish()

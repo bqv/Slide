@@ -33,6 +33,7 @@ import ltd.ucode.slide.R
 import ltd.ucode.slide.SettingValues
 import ltd.ucode.slide.SettingValues.decreasePreviewsLeft
 import ltd.ucode.slide.ui.BaseActivityAnim
+import ltd.ucode.slide.ui.main.MainActivity
 import me.ccrama.redditslide.CaseInsensitiveArrayList
 import me.ccrama.redditslide.Fragments.MultiredditView
 import me.ccrama.redditslide.UserSubscriptions
@@ -685,7 +686,7 @@ class MultiredditOverview : BaseActivityAnim() {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == 940 && adapter != null && adapter!!.currentFragment != null) {
+        if (requestCode == MainActivity.OPEN_POST_RESULT && adapter != null && adapter!!.currentFragment != null) {
             if (resultCode == RESULT_OK) {
                 LogUtil.v("Doing hide posts")
                 val posts = data!!.getIntegerArrayListExtra("seen")!!

@@ -6,5 +6,5 @@ import ltd.ucode.network.lemmy.data.type.CommunityView
 @Serializable
 data class ListCommunitiesResponse(
     val communities: List<CommunityView>,
-) {
+) : IResponse() {
 }

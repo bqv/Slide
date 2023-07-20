@@ -20,7 +20,7 @@ data class GetSiteResponse (
     @SerialName("all_languages") val allLanguages: List<Language>,
     @SerialName("discussion_languages") val discussionLanguages: List<Int>,
     val taglines: List<Tagline>? = null,
-) {
+) : IResponse() {
     val domain: String
         get() = siteView.site.actorId.host
 }

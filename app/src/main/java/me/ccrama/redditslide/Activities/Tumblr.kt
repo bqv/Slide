@@ -25,7 +25,7 @@ import ltd.ucode.slide.SettingValues.appRestart
 import ltd.ucode.slide.ui.BaseActivity
 import me.ccrama.redditslide.Adapters.TumblrView
 import me.ccrama.redditslide.Fragments.BlankFragment
-import me.ccrama.redditslide.Fragments.SubmissionsView.Companion.datachanged
+import ltd.ucode.slide.ui.submissionView.SubmissionsViewFragment.Companion.datachanged
 import me.ccrama.redditslide.Notifications.ImageDownloadNotificationService
 import me.ccrama.redditslide.Tumblr.Photo
 import me.ccrama.redditslide.Tumblr.TumblrUtils.GetTumblrPostWithCallback
@@ -212,21 +212,21 @@ class Tumblr : FullScreenActivity() {
             val mLayoutManager = PreCachingLayoutManager(activity)
             recyclerView = rootView!!.findViewById(R.id.images)
             recyclerView!!.layoutManager = mLayoutManager
-            (activity as Tumblr?)!!.url = requireActivity().intent.extras!!
+            (activity!! as Tumblr).url = requireActivity().intent.extras!!
                 .getString(EXTRA_URL, "")
-            (activity as BaseActivity?)!!.shareUrl = (activity as Tumblr?)!!.url
-            LoadIntoRecycler((activity as Tumblr?)!!.url!!, requireActivity()).executeOnExecutor(
+            (activity!! as BaseActivity).shareUrl = (activity!! as Tumblr).url
+            LoadIntoRecycler((activity!! as Tumblr).url!!, requireActivity()).executeOnExecutor(
                 AsyncTask.THREAD_POOL_EXECUTOR
             )
-            (activity as Tumblr?)!!.mToolbar = rootView!!.findViewById(R.id.toolbar)
-            (activity as Tumblr?)!!.mToolbar!!.setTitle(R.string.type_album)
+            (activity!! as Tumblr).mToolbar = rootView!!.findViewById(R.id.toolbar)
+            (activity!! as Tumblr).mToolbar!!.setTitle(R.string.type_album)
             ToolbarColorizeHelper.colorizeToolbar(
-                (activity as Tumblr?)!!.mToolbar, Color.WHITE,
+                (activity!! as Tumblr).mToolbar, Color.WHITE,
                 (activity)
             )
-            (activity as Tumblr?)!!.setSupportActionBar((activity as Tumblr?)!!.mToolbar)
-            (activity as Tumblr?)!!.supportActionBar!!.setDisplayHomeAsUpEnabled(true)
-            (activity as Tumblr?)!!.mToolbar!!.popupTheme = ColorPreferences(activity).getDarkThemeSubreddit(
+            (activity!! as Tumblr).setSupportActionBar((activity!! as Tumblr).mToolbar)
+            (activity!! as Tumblr).supportActionBar!!.setDisplayHomeAsUpEnabled(true)
+            (activity!! as Tumblr).mToolbar!!.popupTheme = ColorPreferences(activity).getDarkThemeSubreddit(
                 ColorPreferences.FONT_STYLE
             )
             return rootView
@@ -247,12 +247,12 @@ class Tumblr : FullScreenActivity() {
                 super.doWithData(jsonElements)
                 if (activity != null) {
                     activity!!.findViewById<View>(R.id.progress).visibility = View.GONE
-                    (activity as Tumblr?)!!.images = ArrayList(jsonElements)
+                    (activity!! as Tumblr).images = ArrayList(jsonElements)
                     val adapter: TumblrView = TumblrView(
                         baseActivity,
-                        (activity as Tumblr?)!!.images,
+                        (activity!! as Tumblr).images,
                         activity!!.findViewById<View>(R.id.toolbar).height,
-                        (activity as Tumblr?)!!.subreddit
+                        (activity!! as Tumblr).subreddit
                     )
                     recyclerView!!.adapter = adapter
                 }
