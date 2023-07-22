@@ -16,8 +16,8 @@ open class LemmyPost(val instance: String, val data: PostView) : IPost() {
     override val postId: Int
         get() = data.post.id.id
 
-    override val rowId: Int
-        get() = data.post.id.id
+    override val rowId: Long
+        get() = data.post.id.id.toLong() // ow
 
     override val title: String
         get() = data.post.name
@@ -40,8 +40,8 @@ open class LemmyPost(val instance: String, val data: PostView) : IPost() {
 
     override val groupName: String
         get() = data.community.name
-    override val groupRowId: Int
-        get() = data.community.id.id
+    override val groupRowId: Long
+        get() = data.community.id.id.toLong() // ow
 
     override val uri: String
         get() = data.post.apId

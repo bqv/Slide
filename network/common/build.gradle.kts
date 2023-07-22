@@ -17,4 +17,6 @@ dependencies {
     implementation(libs.kotlinx.serialization)
 
     implementation(libs.markdown)
+
+    implementation(libs.cache4k)
 }

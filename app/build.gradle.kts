@@ -85,6 +85,7 @@ android {
         disable += "StaticFieldLeak"
         disable += "ClickableViewAccessibility"
         disable += "NotSibling"
+        disable += "RedundantProjection"
     }
 
     testOptions {
@@ -128,6 +129,8 @@ dependencies {
     implementation(project(mapOf("path" to ":util")))
 
     coreLibraryDesugaring(libs.android.desugar)
+    debugImplementation(libs.debugger)
+    releaseImplementation(libs.debugger.noop)
 
     // Misc
     implementation(libs.jraw)
@@ -233,10 +236,6 @@ dependencies {
 
     // Application restarting
     implementation("com.jakewharton:process-phoenix:2.1.2")
-
-    // KV store based on SQLite
-    //  equal to 0.1.0, but we can"t use jcenter
-    implementation("com.github.lusfold:AndroidKeyValueStore:620c363")
 
     // Helper utilities for the java.lang API
     implementation("org.apache.commons:commons-lang3:3.12.0")

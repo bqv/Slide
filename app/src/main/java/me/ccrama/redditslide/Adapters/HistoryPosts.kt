@@ -2,8 +2,8 @@ package me.ccrama.redditslide.Adapters
 
 import android.os.AsyncTask
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-import com.lusfold.androidkeyvaluestore.KVStore
 import ltd.ucode.network.reddit.data.RedditSubmission
+import ltd.ucode.slide.App
 import ltd.ucode.slide.Authentication
 import me.ccrama.redditslide.PostMatch.doesMatch
 import net.dean.jraw.models.PublicContribution
@@ -85,9 +85,9 @@ class HistoryPosts : GeneralPosts<PublicContribution> {
                     val ids = ArrayList<String>()
                     val idsSorted = HashMap<Long, String>()
                     val values: Map<String, String> = if (prefix.isEmpty()) {
-                        KVStore.getInstance().getByContains("")
+                        App.contentDatabase.seen.getByContains("")
                     } else {
-                        KVStore.getInstance().getByPrefix(prefix)
+                        App.contentDatabase.seen.getByPrefix(prefix)
                     }
                     for (entry in values.entries) {
                         var done: Any

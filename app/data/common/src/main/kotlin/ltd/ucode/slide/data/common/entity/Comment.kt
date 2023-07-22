@@ -11,7 +11,7 @@ import kotlinx.datetime.Instant
 import ltd.ucode.network.SingleVote
 import ltd.ucode.network.data.IComment
 
-@Entity(tableName = "comments", indices = [
+@Entity(tableName = "_comment", indices = [
     Index(value = ["uri"], unique = true)
 ], foreignKeys = [
     ForeignKey(entity = Site::class,
@@ -19,19 +19,19 @@ import ltd.ucode.network.data.IComment
         childColumns = ["site_rowid"])
 ])
 data class Comment(
-        @PrimaryKey(autoGenerate = true) @ColumnInfo(name = "rowid") override val rowId: Int = -1,
-        @ColumnInfo(name = "site_rowid") val siteRowId: Int, // home instance
-        @ColumnInfo(name = "group_rowid") val groupRowId: Int,
-        @ColumnInfo(name = "post_rowid") val postRowId: Int,
-        @ColumnInfo(name = "user_rowid") val userRowId: Int,
-        @ColumnInfo(name = "language_rowid") val languageRowId: Int,
+        @PrimaryKey(autoGenerate = true) @ColumnInfo(name = "rowid") override val rowId: Long = 0,
+        @ColumnInfo(name = "site_rowid") val siteRowId: Long, // home instance
+        @ColumnInfo(name = "group_rowid") val groupRowId: Long,
+        @ColumnInfo(name = "post_rowid") val postRowId: Long,
+        @ColumnInfo(name = "user_rowid") val userRowId: Long,
+        @ColumnInfo(name = "language_rowid") val languageRowId: Long,
         @ColumnInfo(name = "comment_id") override val commentId: Int, // home instance
 
         @ColumnInfo(name = "uri") override val uri: String,
 
         @ColumnInfo(name = "content") override val content: String = "",
         @ColumnInfo(name = "parent_id") override val parentId: Int? = null,
-        @ColumnInfo(name = "parent_rowid") override val parentRowId: Int? = null,
+        @ColumnInfo(name = "parent_rowid") override val parentRowId: Long? = null,
 
         @ColumnInfo(name = "is_removed") override val isRemoved: Boolean = false,
         @ColumnInfo(name = "is_deleted") override val isDeleted: Boolean = false,
@@ -55,11 +55,11 @@ data class Comment(
     @Ignore lateinit var votes: Map<out Account, out PostVote>
     @Ignore lateinit var children: List<out Comment>
 
-    @Entity(tableName = "comment_images")
+    @Entity(tableName = "_comment_image")
     data class Image(
-        @PrimaryKey(autoGenerate = true) @ColumnInfo(name = "rowid") val id: Int = -1,
-        @ColumnInfo(name = "post_rowid") val postRowId: Int, // imaged post
-        @ColumnInfo(name = "site_rowid") val siteRowId: Int,
+        @PrimaryKey(autoGenerate = true) @ColumnInfo(name = "rowid") val rowId: Long = 0,
+        @ColumnInfo(name = "post_rowid") val postRowId: Long, // imaged post
+        @ColumnInfo(name = "site_rowid") val siteRowId: Long,
         @ColumnInfo(name = "post_id") val postId: Int,
 
         @ColumnInfo(name = "parent_id") val parentId: Int? = null,

@@ -10,6 +10,7 @@ java {
 
 dependencies {
     api(project(mapOf("path" to ":network:common")))
+    api(project(mapOf("path" to ":network:kbin")))
     api(project(mapOf("path" to ":network:lemmy")))
     api(project(mapOf("path" to ":network:reddit")))
     api(project(mapOf("path" to ":network:stats")))

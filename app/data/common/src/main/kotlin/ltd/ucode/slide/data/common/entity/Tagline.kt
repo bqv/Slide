@@ -8,7 +8,7 @@ import androidx.room.PrimaryKey
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 
-@Entity(tableName = "taglines", indices = [
+@Entity(tableName = "_tagline", indices = [
     Index(value = ["site_rowid", "tagline_id"], unique = true),
 ], foreignKeys = [
     ForeignKey(entity = Site::class,
@@ -16,8 +16,8 @@ import kotlinx.datetime.Instant
         childColumns = ["site_rowid"])
 ])
 data class Tagline(
-        @PrimaryKey(autoGenerate = true) @ColumnInfo(name = "rowid") val rowId: Int = -1,
-        @ColumnInfo(name = "site_rowid") val siteRowId: Int,
+        @PrimaryKey(autoGenerate = true) @ColumnInfo(name = "rowid") val rowId: Long = 0,
+        @ColumnInfo(name = "site_rowid") val siteRowId: Long,
         @ColumnInfo(name = "tagline_id") val taglineId: Int,
         val content: String,
         val discovered: Instant = Clock.System.now(),

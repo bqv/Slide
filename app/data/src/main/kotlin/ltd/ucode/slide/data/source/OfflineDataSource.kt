@@ -21,7 +21,7 @@ class OfflineDataSource(private val contentDatabase: ContentDatabase) : IDataSou
     override suspend fun login(username: String, domain: String, credential: Credential)
         = throw UnsupportedOperationException("offline")
 
-    override fun getSite(rowId: Int): Flow<Site> {
+    override fun getSite(rowId: Long): Flow<Site> {
         return contentDatabase.sites.flow(rowId).distinctUntilChanged()
     }
 
@@ -37,7 +37,7 @@ class OfflineDataSource(private val contentDatabase: ContentDatabase) : IDataSou
         return contentDatabase.sites.flowAllBySoftware(software).distinctUntilChanged()
     }
 
-    override fun getPost(rowId: Int): Flow<Post> {
+    override fun getPost(rowId: Long): Flow<Post> {
         return contentDatabase.posts.flow(rowId).distinctUntilChanged()
     }
 

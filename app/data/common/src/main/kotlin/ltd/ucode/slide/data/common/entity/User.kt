@@ -10,7 +10,7 @@ import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import ltd.ucode.network.data.IUser
 
-@Entity(tableName = "users", indices = [
+@Entity(tableName = "_user", indices = [
     Index(value = ["name"], unique = true)
 ], foreignKeys = [
     ForeignKey(entity = Site::class,
@@ -18,9 +18,9 @@ import ltd.ucode.network.data.IUser
         childColumns = ["site_rowid"])
 ])
 data class User(
-        @PrimaryKey(autoGenerate = true) @ColumnInfo(name = "rowid") val rowId: Int = -1,
+        @PrimaryKey(autoGenerate = true) @ColumnInfo(name = "rowid") val rowId: Long = 0,
         override val name: String,
-        @ColumnInfo(name = "site_rowid") val siteRowId: Int, // home instance
+        @ColumnInfo(name = "site_rowid") val siteRowId: Long, // home instance
         @ColumnInfo(name = "person_id") val personId: Int, // home instance
 
         @ColumnInfo(name = "uri") override val uri: String,
@@ -47,13 +47,13 @@ data class User(
 ) : IUser() {
     @Ignore override lateinit var site: Site
 
-    @Entity(tableName = "user_images", indices = [
+    @Entity(tableName = "_user_image", indices = [
         Index(value = ["user_rowid", "site_rowid"], unique = true)
     ])
     data class Image(
-            @PrimaryKey(autoGenerate = true) @ColumnInfo(name = "rowid") val id: Int = -1,
-            @ColumnInfo(name = "user_rowid") val userRowId: Int,
-            @ColumnInfo(name = "site_rowid") val siteRowId: Int, // imaged instance
+            @PrimaryKey(autoGenerate = true) @ColumnInfo(name = "rowid") val rowId: Long = 0,
+            @ColumnInfo(name = "user_rowid") val userRowId: Long,
+            @ColumnInfo(name = "site_rowid") val siteRowId: Long, // imaged instance
             @ColumnInfo(name = "person_id") val personId: Int,
 
             @ColumnInfo(name = "uri") val uri: String,

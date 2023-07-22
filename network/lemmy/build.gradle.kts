@@ -18,6 +18,7 @@ dependencies {
     implementation(libs.jraw)
 
     implementation(libs.bundles.okhttp)
+    implementation(libs.cache4k)
 
     implementation(libs.bundles.retrofit)
     implementation(libs.kotlinx.serialization)

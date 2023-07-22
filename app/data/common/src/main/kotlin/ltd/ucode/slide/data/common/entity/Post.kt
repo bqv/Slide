@@ -11,7 +11,7 @@ import kotlinx.datetime.Instant
 import ltd.ucode.network.SingleVote
 import ltd.ucode.network.data.IPost
 
-@Entity(tableName = "posts", indices = [
+@Entity(tableName = "_post", indices = [
     Index(value = ["uri"], unique = true)
 ], foreignKeys = [
     ForeignKey(entity = Site::class,
@@ -19,11 +19,11 @@ import ltd.ucode.network.data.IPost
         childColumns = ["site_rowid"])
 ])
 data class Post(
-    @PrimaryKey(autoGenerate = true) @ColumnInfo(name = "rowid") override val rowId: Int = -1,
-    @ColumnInfo(name = "site_rowid") val siteRowId: Int, // home instance
-    @ColumnInfo(name = "group_rowid") override val groupRowId: Int,
-    @ColumnInfo(name = "user_rowid") val userRowId: Int,
-    @ColumnInfo(name = "language_rowid") val languageRowId: Int,
+    @PrimaryKey(autoGenerate = true) @ColumnInfo(name = "rowid") override val rowId: Long = 0,
+    @ColumnInfo(name = "site_rowid") val siteRowId: Long, // home instance
+    @ColumnInfo(name = "group_rowid") override val groupRowId: Long,
+    @ColumnInfo(name = "user_rowid") val userRowId: Long,
+    @ColumnInfo(name = "language_rowid") val languageRowId: Long,
     @ColumnInfo(name = "post_id") override val postId: Int, // home instance
 
     @ColumnInfo(name = "uri") override val uri: String,
@@ -57,13 +57,13 @@ data class Post(
 
     @Ignore lateinit var votes: Map<out Account, out PostVote>
 
-    @Entity(tableName = "post_images", indices = [
+    @Entity(tableName = "_post_image", indices = [
         Index(value = ["post_rowid", "site_rowid"], unique = true)
     ])
     data class Image(
-            @PrimaryKey(autoGenerate = true) @ColumnInfo(name = "rowid") val id: Int = -1,
-            @ColumnInfo(name = "post_rowid") val postRowId: Int, // imaged post
-            @ColumnInfo(name = "site_rowid") val siteRowId: Int,
+            @PrimaryKey(autoGenerate = true) @ColumnInfo(name = "rowid") val rowId: Long = 0,
+            @ColumnInfo(name = "post_rowid") val postRowId: Long, // imaged post
+            @ColumnInfo(name = "site_rowid") val siteRowId: Long,
             @ColumnInfo(name = "post_id") val postId: Int,
 
             @ColumnInfo(name = "is_nsfw") val isNsfw: Boolean = false,

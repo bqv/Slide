@@ -8,7 +8,7 @@ import androidx.room.PrimaryKey
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 
-@Entity(tableName = "post_votes", indices = [
+@Entity(tableName = "_post_vote", indices = [
     Index(value = ["post_rowid"])
 ], foreignKeys = [
     ForeignKey(entity = Account::class,
@@ -16,9 +16,9 @@ import kotlinx.datetime.Instant
         childColumns = ["account_rowid"])
 ])
 data class PostVote(
-    @PrimaryKey(autoGenerate = true) @ColumnInfo(name = "rowid") val rowId: Int = -1,
-    @ColumnInfo(name = "account_rowid") val accountRowId: Int,
-    @ColumnInfo(name = "post_rowid") val postRowId: Int,
+    @PrimaryKey(autoGenerate = true) @ColumnInfo(name = "rowid") val rowId: Long = 0,
+    @ColumnInfo(name = "account_rowid") val accountRowId: Long,
+    @ColumnInfo(name = "post_rowid") val postRowId: Long,
     @ColumnInfo(name = "vote") val vote: Int, // -1, 0, +1
 
     val discovered: Instant = Clock.System.now(),

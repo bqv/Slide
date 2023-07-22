@@ -90,11 +90,17 @@ dependencyResolutionManagement {
 
             library("blurhash", "com.vanniktech:blurhash:0.1.0")
 
+            library("cache4k", "io.github.reactivecircus.cache4k:cache4k:0.11.0")
+
             val commonmark = version("commonmark", "0.21.0") // TODO: update
             library("commonmark-annotations", "org.commonmark", "commonmark").versionRef(commonmark)
             library("commonmark-extension-strikethrough", "org.commonmark", "commonmark-ext-gfm-strikethrough").versionRef(commonmark)
             library("commonmark-extension-tables", "org.commonmark", "commonmark-ext-gfm-tables").versionRef(commonmark)
             bundle("commonmark", listOf("commonmark-annotations", "commonmark-extension-strikethrough", "commonmark-extension-tables"))
+
+            val debugger = version("debugger", "1.1.2")
+            library("debugger", "com.github.zerobranch.android-remote-debugger", "debugger").versionRef(debugger)
+            library("debugger.noop", "com.github.zerobranch.android-remote-debugger", "noop").versionRef(debugger)
 
             val exoplayer = version("exoPlayer", "2.19.0") // TODO: https://github.com/androidx/media/releases/tag/1.1.0
             library("exoplayer-core", "com.google.android.exoplayer", "exoplayer-core").versionRef(exoplayer)
@@ -217,12 +223,14 @@ include(":app:bottompicker")
 include(":app:crash")
 include(":app:data")
 include(":app:data:common")
+include(":app:data:kbin")
 include(":app:data:lemmy")
 include(":app:roboto")
 include(":app:util")
 include(":app:videoplugin")
 include(":network")
 include(":network:common")
+include(":network:kbin")
 include(":network:lemmy")
 include(":network:lotide")
 include(":network:reddit")

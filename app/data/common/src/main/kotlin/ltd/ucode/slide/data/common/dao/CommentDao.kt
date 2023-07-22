@@ -10,21 +10,21 @@ import ltd.ucode.slide.data.common.entity.Comment
 
 @Dao
 interface CommentDao {
-    @Query("SELECT * FROM comments " +
+    @Query("SELECT * FROM _comment " +
             "WHERE rowid = :rowId ")
-    fun get(rowId: Int): Comment
+    fun get(rowId: Long): Comment?
 
-    @Query("SELECT * FROM comments " +
+    @Query("SELECT * FROM _comment " +
             "WHERE rowid = :rowid ")
-    suspend fun query(rowid: Int): Comment
+    suspend fun query(rowid: Long): Comment?
 
-    @Query("SELECT * FROM comments AS c " +
-            "INNER JOIN sites AS s ON s.rowid = c.site_rowid " +
+    @Query("SELECT * FROM _comment AS c " +
+            "INNER JOIN _site AS s ON s.rowid = c.site_rowid " +
             "WHERE c.rowid = :commentId AND s.name LIKE :instanceName ")
     fun get(commentId: Int, instanceName: String): List<Comment>
 
-    @Query("SELECT * FROM comments AS c " +
-            "INNER JOIN sites AS s ON s.rowid = c.site_rowid " +
+    @Query("SELECT * FROM _comment AS c " +
+            "INNER JOIN _site AS s ON s.rowid = c.site_rowid " +
             "WHERE c.rowid = :commentId AND s.name LIKE :instanceName ")
     suspend fun query(commentId: Int, instanceName: String): List<Comment>
 

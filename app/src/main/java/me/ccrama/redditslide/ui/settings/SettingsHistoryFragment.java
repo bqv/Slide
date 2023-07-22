@@ -6,8 +6,7 @@ import android.widget.RelativeLayout;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.SwitchCompat;
 
-import com.lusfold.androidkeyvaluestore.KVStore;
-
+import ltd.ucode.slide.App;
 import ltd.ucode.slide.R;
 import ltd.ucode.slide.SettingValues;
 import me.ccrama.redditslide.UserSubscriptions;
@@ -66,7 +65,7 @@ public class SettingsHistoryFragment {
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //* Clear history */
         clearPostsLayout.setOnClickListener(v -> {
-            KVStore.getInstance().clearTable();
+            App.Companion.getContentDatabase().getSeen().clearTable();
             showHistoryClearedDialog();
         });
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

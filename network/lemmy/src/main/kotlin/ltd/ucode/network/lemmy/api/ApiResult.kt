@@ -1,5 +1,8 @@
 package ltd.ucode.network.lemmy.api
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+
 sealed interface ApiResult<T> {
     val instance: String
 
@@ -29,7 +32,7 @@ sealed interface ApiResult<T> {
     suspend fun onSuccess(block: suspend (T) -> Unit): ApiResult<T> {
         when (this) {
             is Failed -> { }
-            is Success -> { block(this.data) }
+            is Success -> withContext(Dispatchers.IO) { block(this@ApiResult.data) }
         }
         return this
     }
@@ -44,7 +47,7 @@ sealed interface ApiResult<T> {
     suspend fun <R> bindSuccess(block: suspend Success<T>.() -> ApiResult<R>): ApiResult<R> {
         return when (this) {
             is Failed -> { this.cast() }
-            is Success -> { block(this) }
+            is Success -> withContext(Dispatchers.IO) { block(this@ApiResult) }
         }
     }
 
@@ -58,7 +61,7 @@ sealed interface ApiResult<T> {
 
     suspend fun onFailure(block: suspend Failed<T>.() -> Unit): ApiResult<T> {
         when (this) {
-            is Failed -> { block(this) }
+            is Failed -> withContext(Dispatchers.IO) { block(this@ApiResult) }
             is Success -> { }
         }
         return this
@@ -73,7 +76,7 @@ sealed interface ApiResult<T> {
 
     suspend fun or(block: suspend Failed<T>.() -> ApiResult<T>): ApiResult<T> {
         return when (this) {
-            is Failed -> { block(this) }
+            is Failed -> withContext(Dispatchers.IO) { block(this@ApiResult) }
             is Success -> { this }
         }
     }

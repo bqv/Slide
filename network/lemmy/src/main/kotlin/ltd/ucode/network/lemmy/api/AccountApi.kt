@@ -24,11 +24,13 @@ import okhttp3.OkHttpClient
 import retrofit2.Response
 
 class AccountApi : InstanceApi {
-    private val logger: KLogger = KotlinLogging.logger("ADS:${
-        instance
-            .split(".")
-            .joinToString("") { it.replaceFirstChar(Char::titlecase) }
-    }")
+    private val logger: KLogger by lazy {
+        KotlinLogging.logger("lemmy:$username@${
+            instance
+                .split(".")
+                .joinToString("") { it.replaceFirstChar(Char::titlecase) }
+        }")
+    }
 
     val username: String
     private var password: String? = null

@@ -81,7 +81,6 @@ import com.afollestad.materialdialogs.list.listItemsSingleChoice
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
-import com.lusfold.androidkeyvaluestore.KVStore
 import dagger.hilt.android.AndroidEntryPoint
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -1001,7 +1000,7 @@ class MainActivity : BaseActivity() {
                     .cancelable(false)
                 d!!.show()
             }, {
-                val m = KVStore.getInstance()
+                val m = App.contentDatabase.seen
                 val values = SettingValues.seen.all
                 for ((key, value) in values) {
                     if (key.length == 6 && value is Boolean) {

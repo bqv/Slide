@@ -6,23 +6,23 @@ import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
 
-@Entity(tableName = "languages", indices = [
+@Entity(tableName = "_language", indices = [
     Index(value = ["name"], unique = true)
 ])
 data class Language(
-    @PrimaryKey(autoGenerate = true) @ColumnInfo(name = "rowid") val rowId: Int = -1,
+    @PrimaryKey(autoGenerate = true) @ColumnInfo(name = "rowid") val rowId: Long = 0,
     @ColumnInfo(name = "code") val code: String,
     @ColumnInfo(name = "name") val name: String,
 ) {
-    @Entity(tableName = "language_images", foreignKeys = [
+    @Entity(tableName = "_language_image", foreignKeys = [
         ForeignKey(entity = Site::class,
             parentColumns = ["rowid"],
             childColumns = ["site_rowid"])
     ])
     data class Image(
-        @PrimaryKey(autoGenerate = true) @ColumnInfo(name = "rowid") val id: Int = -1,
-        @ColumnInfo(name = "language_rowid") val languageRowId: Int = -1,
-        @ColumnInfo(name = "site_rowid") val siteRowId: Int,
+        @PrimaryKey(autoGenerate = true) @ColumnInfo(name = "rowid") val rowId: Long = 0,
+        @ColumnInfo(name = "language_rowid") val languageRowId: Long = 0,
+        @ColumnInfo(name = "site_rowid") val siteRowId: Long,
         @ColumnInfo(name = "language_id") val languageId: Int,
     )
 

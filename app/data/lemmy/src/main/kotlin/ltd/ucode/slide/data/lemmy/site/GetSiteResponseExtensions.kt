@@ -7,10 +7,27 @@ import ltd.ucode.network.lemmy.api.response.GetSiteResponse
 import ltd.ucode.network.lemmy.data.type.LocalSite
 import ltd.ucode.network.lemmy.data.type.SiteAggregates
 import ltd.ucode.network.lemmy.data.type.SiteView
+import ltd.ucode.network.lemmy.data.type.webfinger.NodeInfo
 import ltd.ucode.slide.data.common.entity.Site
 import ltd.ucode.network.lemmy.data.type.Site as LemmySite
 
 object GetSiteResponseExtensions {
+    fun GetSiteResponse.toSite(nodeInfo: NodeInfo): Site {
+        return Site(
+            name = this.domain,
+            software = nodeInfo.software.name,
+        )
+            .copy(this)
+    }
+
+    fun GetSiteResponse.toSiteImage(site: Site): Site.Image {
+        return Site.Image(
+            localSiteRowId = site.rowId,
+            remoteSiteRowId = site.rowId,
+            remoteSiteId = site.ownSiteId!!,
+        )
+    }
+
     fun GetSiteResponse.toSite(): Site {
         return Site(name = this.domain)
             .copy(this)

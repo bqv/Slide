@@ -9,11 +9,11 @@ import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import ltd.ucode.network.data.ISite
 
-@Entity(tableName = "sites", indices = [
+@Entity(tableName = "_site", indices = [
     Index(value = ["name"], unique = true)
 ])
 data class Site(
-    @PrimaryKey(autoGenerate = true) @ColumnInfo(name = "rowid") val rowId: Int = -1,
+    @PrimaryKey(autoGenerate = true) @ColumnInfo(name = "rowid") val rowId: Long = 0,
     @ColumnInfo(collate = ColumnInfo.NOCASE) override val name: String,
     @ColumnInfo(collate = ColumnInfo.NOCASE) override val software: String? = null,
     @ColumnInfo(collate = ColumnInfo.NOCASE) override val version: String? = null,
@@ -41,18 +41,18 @@ data class Site(
     override val taglines: List<String>
         get() = _taglines.map { it.content }
 
-    @Entity(tableName = "site_images", indices = [
+    @Entity(tableName = "_site_image", indices = [
         Index(value = ["local_site_rowid", "remote_site_rowid"], unique = true),
         Index(value = ["local_site_rowid", "remote_site_id"], unique = true),
     ])
     data class Image(
-        @PrimaryKey(autoGenerate = true) @ColumnInfo(name = "rowid") val rowId: Int = -1,
-        @ColumnInfo(name = "local_site_rowid") val localSiteRowId: Int,
-        @ColumnInfo(name = "remote_site_rowid") val remoteSiteRowId: Int,
+        @PrimaryKey(autoGenerate = true) @ColumnInfo(name = "rowid") val rowId: Long = 0,
+        @ColumnInfo(name = "local_site_rowid") val localSiteRowId: Long,
+        @ColumnInfo(name = "remote_site_rowid") val remoteSiteRowId: Long,
         @ColumnInfo(name = "remote_site_id") val remoteSiteId: Int,
 
-        val discovered: Instant = Clock.System.now(),
-        val updated: Instant? = null,
+        @ColumnInfo(defaultValue = "(CURRENT_TIMESTAMP * 1000)") val discovered: Instant = Clock.System.now(),
+        @ColumnInfo(defaultValue = "NULL") val updated: Instant? = null,
     )
 }
 

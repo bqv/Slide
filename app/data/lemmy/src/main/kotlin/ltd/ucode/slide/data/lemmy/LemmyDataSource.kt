@@ -18,12 +18,12 @@ import ltd.ucode.slide.data.auth.Credential
 import ltd.ucode.slide.data.common.auth.ICredentialDatabase
 import ltd.ucode.slide.data.common.content.IContentDatabase
 import ltd.ucode.slide.data.common.source.INetworkDataSource
-import ltd.ucode.slide.data.lemmy.post.GetPostResponseMarshaller.toPost
-import ltd.ucode.slide.data.lemmy.post.GetPostsResponseMarshaller.toPosts
+import ltd.ucode.slide.data.lemmy.post.GetPostsResponseMarshaller.toPost
 import ltd.ucode.slide.data.lemmy.post.PostListingTypeMarshaller.from
 import ltd.ucode.slide.data.lemmy.post.PostSortTypeMarshaller.from
 import ltd.ucode.slide.data.lemmy.site.GetFederatedInstancesResponseExtensions.toSites
 import ltd.ucode.slide.data.lemmy.site.GetSiteResponseExtensions.toSite
+import ltd.ucode.slide.data.lemmy.site.GetSiteResponseExtensions.toSiteImage
 import ltd.ucode.slide.data.lemmy.site.TheFederationNodeExtensions.toSiteMetadataPartial
 import ltd.ucode.slide.data.value.Feed
 import ltd.ucode.slide.data.value.Period
@@ -103,21 +103,57 @@ class LemmyDataSource(
     }
 
     override suspend fun updateSite(domain: String) {
-        getApi(domain).getSite(GetSiteRequest())
-            .onSuccess { data: GetSiteResponse ->
-                contentDatabase.sites.upsert(data.toSite())
-                data.myUser // TODO: handle user
-                data.admins // TODO: handle users
-                contentDatabase.languages.ensureAll(emptyList()) //data.allLanguages // TODO: handle languages
-                data.taglines // TODO: handle taglines
-                data.federatedInstances // TODO: handle sites
+        with (getApi(domain)) {
+            getNodeInfo().bindSuccess {
+                val nodeInfo = data.nodeInfo
+                require(nodeInfo.software.name == name) { "expected $name, found ${nodeInfo.software.name}" }
+
+                getSite(GetSiteRequest())
+                    .onSuccess { data: GetSiteResponse ->
+                        val site = data.toSite(nodeInfo).run {
+                            copy(rowId = contentDatabase.sites.upsert(this))
+                        }
+                        val siteImage = data.toSiteImage(site).run {
+                            copy(rowId = contentDatabase.sites.upsert(this))
+                        }
+                        data.myUser // TODO: handle user
+                        data.admins // TODO: handle users
+                        contentDatabase.languages.ensureAll(emptyList()) //data.allLanguages // TODO: handle languages
+                        data.taglines // TODO: handle taglines
+                        data.federatedInstances // TODO: handle sites
+                    }
             }
+        }
+    }
+
+    override suspend fun updateSite(domain: String, siteId: Int) {
+        with (getApi(domain)) {
+            getNodeInfo().bindSuccess {
+                val nodeInfo = data.nodeInfo
+                require(nodeInfo.software.name == name) { "expected $name, found ${nodeInfo.software.name}" }
+
+                getSite(GetSiteRequest())
+                    .onSuccess { data: GetSiteResponse ->
+                        val site = data.toSite(nodeInfo).run {
+                            copy(rowId = contentDatabase.sites.upsert(this))
+                        }
+                        val siteImage = data.toSiteImage(site).run {
+                            copy(rowId = contentDatabase.sites.upsert(this))
+                        }
+                        data.myUser // TODO: handle user
+                        data.admins // TODO: handle users
+                        contentDatabase.languages.ensureAll(emptyList()) //data.allLanguages // TODO: handle languages
+                        data.taglines // TODO: handle taglines
+                        data.federatedInstances // TODO: handle sites
+                    }
+            }
+        }
     }
 
     override suspend fun updateSites(domain: String) {
         getApi(domain).getFederatedInstances(GetFederatedInstancesRequest())
             .onSuccess { data: GetFederatedInstancesResponse ->
-                data.toSites(this.name).let {
+                val sites = data.toSites(this.name).let {
                     contentDatabase.sites.ensureAll(it)
                 }
             }
@@ -126,10 +162,12 @@ class LemmyDataSource(
     override suspend fun updateSites() {
         val limit: Int? = null
         val nodeList = FediverseStats.getLemmyServers(userAgent, limit)
-            ?.thefederation_node.orEmpty()
+            ?.thefederation_node
 
-        nodeList.forEach { node ->
-            contentDatabase.sites.upsert(node.toSiteMetadataPartial())
+        nodeList?.forEach { node ->
+            val site = node.toSiteMetadataPartial().run {
+                copy(rowId = contentDatabase.sites.upsert(this))
+            }
         }
     }
 
@@ -138,7 +176,14 @@ class LemmyDataSource(
             id = PostId(postId),
         ))
             .onSuccess { data: GetPostResponse ->
-                contentDatabase.posts.upsert(data.toPost(contentDatabase, domain))
+                val site = contentDatabase.sites.get(data.postView.community.instanceId.id, domain)!!
+                val group = contentDatabase.groups.get(data.postView.community.id.id, domain)!!
+                val user = contentDatabase.users.get(data.postView.creator.id.id, domain)!!
+                val language = contentDatabase.languages.get(data.postView.post.languageId.id, domain)!!
+
+                val post = data.postView.toPost(site, group, user, language).run {
+                    copy(rowId = contentDatabase.posts.upsert(this))
+                }
                 // TODO: also, a PostVote
             }
     }
@@ -149,8 +194,15 @@ class LemmyDataSource(
             type = PostListingType.from(feed),
         ))
             .onSuccess { data: GetPostsResponse ->
-                data.toPosts(contentDatabase, domain).forEach {
-                    contentDatabase.posts.upsert(it)
+                data.posts.forEach {
+                    val site = contentDatabase.sites.get(it.community.instanceId.id, domain)!! // no! update.
+                    val group = contentDatabase.groups.get(it.community.id.id, domain)!!
+                    val user = contentDatabase.users.get(it.creator.id.id, domain)!!
+                    val language = contentDatabase.languages.get(it.post.languageId.id, domain)!!
+
+                    val post = it.toPost(site, group, user, language).run {
+                        copy(rowId = contentDatabase.posts.upsert(this))
+                    }
                     // TODO: also, a PostVote
                 }
             }

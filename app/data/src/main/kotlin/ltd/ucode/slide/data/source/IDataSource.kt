@@ -13,13 +13,13 @@ interface IDataSource {
     suspend fun login(username: String, domain: String)
     suspend fun login(username: String, domain: String, credential: Credential)
 
-    fun getSite(rowId: Int): Flow<Site>
+    fun getSite(rowId: Long): Flow<Site>
     fun getSite(domain: String): Flow<Site>
 
     fun getSites(): Flow<List<Site>>
     fun getSites(software: String): Flow<List<Site>>
 
-    fun getPost(rowId: Int): Flow<Post>
+    fun getPost(rowId: Long): Flow<Post>
     fun getPost(domain: String, key: Int): Flow<Post>
 
     fun getPosts(domain: String, feed: Feed, period: Period, order: Sorting): Flow<PagingData<Post>>

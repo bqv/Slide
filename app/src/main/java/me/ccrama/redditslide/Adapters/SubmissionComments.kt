@@ -168,7 +168,7 @@ class SubmissionComments {
 
             val paginator = commentRepository.getComments(
                 AccountRepository.currentAccount,
-                communityId = submission?.groupRowId?.let(::CommunityId),
+                communityId = submission?.groupRowId?.toInt()?.let(::CommunityId),
                 //communityName = null,
                 //parentId = context?.toInt()?.let(::CommentId),
                 postId = PostId(fullName.split("/").last().toInt()),

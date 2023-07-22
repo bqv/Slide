@@ -1,4 +1,4 @@
-package ltd.ucode
+package ltd.ucode.slide
 
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
@@ -36,7 +36,7 @@ class Experiment {
     @ExperimentalSerializationApi
     fun testRealToken() {
         val account = try {
-            val path = "/srv/code/slide/app/src/test/java/ltd/ucode/LoginRequest.json"
+            val path = "/srv/code/slide/app/src/test/java/ltd/ucode/slide/LoginRequest.json"
             val resource = File(path).inputStream()
             val request = Json.decodeFromStream<LoginRequest>(resource)
             with(request) { LoginRequest(usernameOrEmail, password) }

@@ -1,5 +1,6 @@
 package ltd.ucode.slide.module
 
+import android.app.Application
 import android.content.Context
 import androidx.room.Room
 import androidx.room.RoomDatabase
@@ -12,11 +13,14 @@ import dagger.hilt.components.SingletonComponent
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.serialization.json.JsonPrimitive
+import ltd.ucode.slide.App
 import ltd.ucode.slide.BuildConfig
 import ltd.ucode.slide.data.auth.CredentialDatabase
 import ltd.ucode.slide.data.content.ContentDatabase
 import okhttp3.HttpUrl
+import okhttp3.Interceptor
 import okhttp3.OkHttpClient
+import okhttp3.Response
 import okio.Buffer
 import java.util.concurrent.Executors
 import javax.inject.Named
@@ -25,7 +29,8 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object ApplicationModule {
-    private val logger: KLogger = KotlinLogging.logger {}
+    @Provides
+    fun providesAppInstance(application: Application): App = application as App
 
     @Provides
     @Named("buildFlavor")
@@ -38,6 +43,8 @@ object ApplicationModule {
             ContentDatabase::class.java, ContentDatabase.filename)
             .fallbackToDestructiveMigration()
             .setQueryCallback(object : RoomDatabase.QueryCallback {
+                private val logger: KLogger = KotlinLogging.logger("SQL")
+
                 private var transactionDepth = 0
 
                 override fun onQuery(sqlQuery: String, bindArgs: List<Any?>) {
@@ -60,9 +67,9 @@ object ApplicationModule {
                     }
                     val indent = List(transactionDepth) { " " }
                         .joinToString("")
-                    logger.debug { "SQL Query: $indent$sqlQuery" }
+                    logger.debug { "$indent$sqlQuery" }
                     if (bindArgs.isNotEmpty())
-                        logger.debug { "Query Arg: ${bindArgs.map {
+                        logger.trace { " $indent${bindArgs.map {
                             when (it ?: return@map "NULL") {
                                 is String -> JsonPrimitive(it as String).toString()
                                 is Array<*> -> "NULL" // idk but it works
@@ -72,6 +79,8 @@ object ApplicationModule {
                 }
             }, Executors.newSingleThreadExecutor())
             .addCallback(object : RoomDatabase.Callback() {
+                private val logger: KLogger = KotlinLogging.logger("Room")
+
                 override fun onCreate(db: SupportSQLiteDatabase) {
                     super.onCreate(db)
                     logger.debug { "New DB" }
@@ -101,28 +110,33 @@ object ApplicationModule {
     @Provides
     @Singleton
     fun providesOkHttpClient(@Named("userAgent") userAgent: String): OkHttpClient = OkHttpClient.Builder()
-        .addInterceptor { chain ->
-            fun HttpUrl.safe(): HttpUrl {
-                return this.newBuilder().removeAllQueryParameters("auth").build()
-            }
+        .addInterceptor(App.networkDebugger)
+        .addInterceptor(object {
+            private val logger: KLogger = KotlinLogging.logger("OkHttp")
 
-            val request = chain.request()
-            if (BuildConfig.DEBUG) {
-                logger.debug("OkHttp: ${request.method} ${request.url.safe()}")
-                val body = request.body?.let { Buffer().also(it::writeTo).readUtf8() }
-                if (request.body != null) logger.trace { "  Body: $body" }
-            }
+            operator fun invoke(chain: Interceptor.Chain): Response {
+                fun HttpUrl.safe(): HttpUrl {
+                    return this.newBuilder().removeAllQueryParameters("auth").build()
+                }
 
-            val response = chain.proceed(request.newBuilder()
-                .header("User-Agent", userAgent)
-                .build())
-            if (BuildConfig.DEBUG) {
-                logger.debug("OkHttp: ${request.method} ${request.url.safe()} returned ${response.code}")
-                val body = response.peekBody(Long.MAX_VALUE).string()
-                logger.trace { "  Body: $body" }
-            }
+                val request = chain.request()
+                if (BuildConfig.DEBUG) {
+                    logger.debug("${request.method} ${request.url.safe()}")
+                    val body = request.body?.let { Buffer().also(it::writeTo).readUtf8() }
+                    if (request.body != null) logger.trace { "  Body: $body" }
+                }
 
-            response
-        }
+                val response = chain.proceed(request.newBuilder()
+                    .header("User-Agent", userAgent)
+                    .build())
+                if (BuildConfig.DEBUG) {
+                    logger.debug("${request.method} ${request.url.safe()} returned ${response.code}")
+                    val body = response.peekBody(Long.MAX_VALUE).string()
+                    logger.trace { "  Body: $body" }
+                }
+
+                return response
+            }
+        }::invoke)
         .build()
 }

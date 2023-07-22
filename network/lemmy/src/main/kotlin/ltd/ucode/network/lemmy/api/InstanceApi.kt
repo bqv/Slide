@@ -60,11 +60,13 @@ open class InstanceApi (
     val instance: String,
     private val okHttpClient: OkHttpClient,
 ) {
-    private val logger: KLogger = KotlinLogging.logger("IDS:${
-        instance
-            .split(".")
-            .joinToString("") { it.replaceFirstChar(Char::titlecase) }
-    }")
+    private val logger: KLogger by lazy {
+        KotlinLogging.logger("lemmy:${
+            instance
+                .split(".")
+                .joinToString("") { it.replaceFirstChar(Char::titlecase) }
+        }")
+    }
 
     init {
         logger.info { "Creating ${InstanceApi::class.simpleName}: $instance"}

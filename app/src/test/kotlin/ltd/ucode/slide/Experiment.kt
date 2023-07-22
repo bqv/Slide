@@ -1,4 +1,4 @@
-package ltd.ucode
+package ltd.ucode.slide
 
 import ltd.ucode.network.lemmy.data.type.jwt.Token
 import ltd.ucode.util.extensions.InstantExtensions.ago

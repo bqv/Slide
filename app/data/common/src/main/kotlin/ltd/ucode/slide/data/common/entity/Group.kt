@@ -10,7 +10,7 @@ import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import ltd.ucode.network.data.IGroup
 
-@Entity(tableName = "groups", indices = [
+@Entity(tableName = "_group", indices = [
     Index(value = ["name"], unique = true)
 ], foreignKeys = [
     ForeignKey(entity = Site::class,
@@ -18,9 +18,9 @@ import ltd.ucode.network.data.IGroup
         childColumns = ["site_rowid"])
 ])
 data class Group(
-    @PrimaryKey(autoGenerate = true) @ColumnInfo(name = "rowid") val rowId: Int = -1,
+    @PrimaryKey(autoGenerate = true) @ColumnInfo(name = "rowid") val rowId: Long = 0,
     override val name: String,
-    @ColumnInfo(name = "site_rowid") val siteRowId: Int, // home instance
+    @ColumnInfo(name = "site_rowid") val siteRowId: Long, // home instance
     @ColumnInfo(name = "group_id") val groupId: Int, // home instance
 
     @ColumnInfo(name = "uri") override val uri: String,
@@ -54,13 +54,13 @@ data class Group(
     @Ignore override lateinit var mods: MutableList<out User>
     @Ignore lateinit var subscriptions: MutableList<out GroupSubscription>
 
-    @Entity(tableName = "group_images", indices = [
+    @Entity(tableName = "_group_image", indices = [
         Index(value = ["group_rowid", "site_rowid"], unique = true)
     ])
     data class Image(
-        @PrimaryKey(autoGenerate = true) @ColumnInfo(name = "rowid") val id: Int = -1,
-        @ColumnInfo(name = "group_rowid") val groupRowId: Int,
-        @ColumnInfo(name = "site_rowid") val siteRowId: Int, // imaged instance
+        @PrimaryKey(autoGenerate = true) @ColumnInfo(name = "rowid") val rowId: Long = 0,
+        @ColumnInfo(name = "group_rowid") val groupRowId: Long,
+        @ColumnInfo(name = "site_rowid") val siteRowId: Long, // imaged instance
         @ColumnInfo(name = "group_id") val groupId: Int,
 
         @ColumnInfo(name = "is_hidden") val isHidden: Boolean = false,

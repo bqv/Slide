@@ -2,29 +2,21 @@ package ltd.ucode.slide.data.lemmy.post
 
 import ltd.ucode.network.lemmy.api.response.GetPostsResponse
 import ltd.ucode.network.lemmy.data.type.PostView
-import ltd.ucode.slide.data.common.content.IContentDatabase
+import ltd.ucode.slide.data.common.entity.Group
+import ltd.ucode.slide.data.common.entity.Language
 import ltd.ucode.slide.data.common.entity.Post
+import ltd.ucode.slide.data.common.entity.Site
+import ltd.ucode.slide.data.common.entity.User
 import ltd.ucode.slide.data.lemmy.post.GetPostResponseMarshaller.copy
 
 object GetPostsResponseMarshaller {
-    fun GetPostsResponse.toPosts(contentDatabase: IContentDatabase, domain: String): List<Post> {
-        return posts.map {
-            it.toPost(
-                siteRowId = contentDatabase.sites.get(it.community.instanceId.id, domain),
-                groupRowId = contentDatabase.groups.get(it.community.id.id, domain),
-                userRowId = contentDatabase.users.get(it.creator.id.id, domain),
-                languageRowId = contentDatabase.languages.get(it.post.languageId.id, domain),
-            )
-        }
-    }
-
-    fun GetPostsResponse.toPosts(siteRowId: Int, groupRowId: Int, userRowId: Int, languageRowId: Int): List<Post> {
+    fun GetPostsResponse.toPosts(site: Site, group: Group, user: User, language: Language): List<Post> {
         return posts.map {
             Post(
-                siteRowId = siteRowId,
-                groupRowId = groupRowId,
-                userRowId = userRowId,
-                languageRowId = languageRowId,
+                siteRowId = site.rowId,
+                groupRowId = group.rowId,
+                userRowId = user.rowId,
+                languageRowId = language.rowId,
                 postId = it.post.id.id,
                 uri = it.post.apId,
             )
@@ -33,12 +25,12 @@ object GetPostsResponseMarshaller {
         }
     }
 
-    fun PostView.toPost(siteRowId: Int, groupRowId: Int, userRowId: Int, languageRowId: Int): Post {
+    fun PostView.toPost(site: Site, group: Group, user: User, language: Language): Post {
         return Post(
-            siteRowId = siteRowId,
-            groupRowId = groupRowId,
-            userRowId = userRowId,
-            languageRowId = languageRowId,
+            siteRowId = site.rowId,
+            groupRowId = group.rowId,
+            userRowId = user.rowId,
+            languageRowId = language.rowId,
             postId = this.post.id.id,
             uri = this.post.apId,
         )

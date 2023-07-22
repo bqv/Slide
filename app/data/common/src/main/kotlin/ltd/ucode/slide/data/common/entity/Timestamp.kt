@@ -5,7 +5,7 @@ import androidx.room.PrimaryKey
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 
-@Entity(tableName = "timestamps")
+@Entity(tableName = "_timestamp")
 data class Timestamp(
     @PrimaryKey val table: String, // just to be difficult :)
     val stamp: Instant = Clock.System.now(),

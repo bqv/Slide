@@ -4,7 +4,7 @@ import androidx.room.DatabaseView
 
 @DatabaseView("""
     SELECT 1 one
-""", viewName = "one")
+""", viewName = "_one")
 data class One(
     val one: Int
 )

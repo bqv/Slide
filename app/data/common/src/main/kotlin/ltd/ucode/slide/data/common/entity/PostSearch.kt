@@ -6,12 +6,12 @@ import androidx.room.Fts4
 import androidx.room.FtsOptions.TOKENIZER_UNICODE61
 import androidx.room.PrimaryKey
 
-@Entity(tableName = "post_search")
+@Entity(tableName = "_post_search")
 @Fts4(contentEntity = Post::class,
     tokenizer = TOKENIZER_UNICODE61,
     tokenizerArgs = ["tokenchars=._-=#@&"])
 data class PostSearch(
-    @PrimaryKey @ColumnInfo(name = "rowid") val rowId: Int = -1,
+    @PrimaryKey @ColumnInfo(name = "rowid") val rowId: Long = 0,
     @ColumnInfo(name = "uri") val uri: String,
     @ColumnInfo(name = "title") val title: String,
     @ColumnInfo(name = "link") val link: String,

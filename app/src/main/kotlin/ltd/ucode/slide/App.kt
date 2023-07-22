@@ -5,8 +5,10 @@ import android.app.ActivityManager
 import android.app.Application
 import android.app.Application.ActivityLifecycleCallbacks
 import android.app.UiModeManager
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.ServiceConnection
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.content.pm.PackageManager.NameNotFoundException
@@ -14,23 +16,28 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
+import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationChannelCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 import com.google.android.exoplayer2.database.DatabaseProvider
-import com.google.android.exoplayer2.database.ExoDatabaseProvider
+import com.google.android.exoplayer2.database.StandaloneDatabaseProvider
 import com.google.android.exoplayer2.upstream.cache.Cache
 import com.google.android.exoplayer2.upstream.cache.LeastRecentlyUsedCacheEvictor
 import com.google.android.exoplayer2.upstream.cache.SimpleCache
 import com.jakewharton.processphoenix.ProcessPhoenix
-import com.lusfold.androidkeyvaluestore.KVStore
 import com.nostra13.universalimageloader.core.ImageLoader
+import dagger.hilt.EntryPoint
+import dagger.hilt.EntryPoints
+import dagger.hilt.InstallIn
 import dagger.hilt.android.HiltAndroidApp
+import dagger.hilt.components.SingletonComponent
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
 import ltd.ucode.network.ContentType
+import ltd.ucode.slide.data.content.ContentDatabase
 import ltd.ucode.slide.ui.main.MainActivity
 import me.ccrama.redditslide.Autocache.AutoCacheScheduler
 import me.ccrama.redditslide.ImageFlairs
@@ -61,18 +68,23 @@ import org.acra.ktx.initAcra
 import org.apache.commons.lang3.tuple.Triple
 import org.apache.commons.text.StringEscapeUtils
 import org.slf4j.impl.HandroidLoggerAdapter
+import zerobranch.androidremotedebugger.AndroidRemoteDebugger
+import zerobranch.androidremotedebugger.logging.NetLoggingInterceptor
 import java.io.File
 import java.net.Inet4Address
 import java.net.InetAddress
 import java.net.UnknownHostException
 import java.util.Calendar
 import java.util.Locale
+import kotlin.math.max
 
 @HiltAndroidApp
 class App : Application(), ActivityLifecycleCallbacks {
     private val logger: KLogger = KotlinLogging.logger {}
 
     init {
+        mApplication = this
+
         if (BuildConfig.DEBUG) {
             HandroidLoggerAdapter.DEBUG = BuildConfig.DEBUG
             HandroidLoggerAdapter.ANDROID_API_LEVEL = Build.VERSION.SDK_INT
@@ -83,6 +95,12 @@ class App : Application(), ActivityLifecycleCallbacks {
         logger.info { "Booting" }
         logger.debug { "Booting" }
         logger.trace { "Booting" }
+    }
+
+    @EntryPoint
+    @InstallIn(SingletonComponent::class)
+    interface AppEntryPoint {
+        fun contentDatabase(): ContentDatabase
     }
 
     override fun attachBaseContext(base: Context?) {
@@ -140,7 +158,7 @@ class App : Application(), ActivityLifecycleCallbacks {
         }
 
     override fun onActivityResumed(activity: Activity) {
-        doLanguages()
+        setupLanguages()
         if (client == null) {
             val builder = OkHttpClient.Builder()
             builder.dns(GfycatIpv4Dns())
@@ -162,7 +180,7 @@ class App : Application(), ActivityLifecycleCallbacks {
     override fun onActivityStopped(activity: Activity) {}
 
     override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
-        doLanguages()
+        setupLanguages()
     }
 
     override fun onActivityStarted(activity: Activity) {}
@@ -171,24 +189,38 @@ class App : Application(), ActivityLifecycleCallbacks {
 
     override fun onCreate() {
         super.onCreate()
-        mApplication = this
+        if (true)
+        AndroidRemoteDebugger.init(
+            AndroidRemoteDebugger.Builder(applicationContext)
+                .enabled(true)
+                .excludeUncaughtException()
+                .build()
+        )
+        else
+            Intent(this, DebugService::class.java).also {
+                bindService(it, object : ServiceConnection {
+                    override fun onServiceConnected(className: ComponentName?, service: IBinder?) {
+                    }
+
+                    override fun onServiceDisconnected(className: ComponentName?) {
+                    }
+                }, Context.BIND_AUTO_CREATE)
+            }
         //  LeakCanary.install(this);
         if (ProcessPhoenix.isPhoenixProcess(this)) {
-            return
+            // ?
+        } else {
+            val resolvedCacheDir = if (Environment.getExternalStorageState() == Environment.MEDIA_MOUNTED && externalCacheDir != null) externalCacheDir else cacheDir
+            val videoCacheDir = File(resolvedCacheDir.toString() + File.separator + "video-cache")
+            val evictor = LeastRecentlyUsedCacheEvictor((256 * 1024 * 1024).toLong())
+            val databaseProvider: DatabaseProvider = StandaloneDatabaseProvider(appContext)
+            videoCache = SimpleCache(videoCacheDir, evictor, databaseProvider) // 256MB
+            UpgradeUtil.upgrade(applicationContext)
+            main()
         }
-        val dir = if (Environment.getExternalStorageState() == Environment.MEDIA_MOUNTED && externalCacheDir != null) {
-                File(externalCacheDir.toString() + File.separator + "video-cache")
-            } else {
-                File(cacheDir.toString() + File.separator + "video-cache")
-            }
-        val evictor = LeastRecentlyUsedCacheEvictor((256 * 1024 * 1024).toLong())
-        val databaseProvider: DatabaseProvider = ExoDatabaseProvider(appContext)
-        videoCache = SimpleCache(dir, evictor, databaseProvider) // 256MB
-        UpgradeUtil.upgrade(applicationContext)
-        doMainStuff()
     }
 
-    fun doMainStuff() {
+    fun main() {
         Log.v(LogUtil.getTag(), "ON CREATED AGAIN")
         if (client == null) {
             client = OkHttpClient()
@@ -221,8 +253,7 @@ class App : Application(), ActivityLifecycleCallbacks {
         SettingValues.initialize()
         SortingUtil.defaultSorting = SettingValues.defaultSorting
         SortingUtil.timePeriod = SettingValues.timePeriod
-        KVStore.init(this, "seen.db") // TODO: replace with room
-        doLanguages()
+        setupLanguages()
         lastPosition = ArrayList()
         if (SettingValues.appRestart.contains("startScreen")) {
             SettingValues.appRestart.edit().remove("startScreen").apply()
@@ -238,7 +269,7 @@ class App : Application(), ActivityLifecycleCallbacks {
         fabClear = SettingValues.colours.getBoolean(SettingValues.PREF_FAB_CLEAR, false)
         val widthDp = this.resources.configuration.screenWidthDp
         val heightDp = this.resources.configuration.screenHeightDp
-        var fina = Math.max(widthDp, heightDp)
+        var fina = max(widthDp, heightDp)
         fina += 99
         dpWidth = if (SettingValues.colours.contains("tabletOVERRIDE")) {
             SettingValues.colours.getInt("tabletOVERRIDE", fina / 300)
@@ -256,7 +287,7 @@ class App : Application(), ActivityLifecycleCallbacks {
         setupNotificationChannels()
     }
 
-    fun doLanguages() {
+    private fun setupLanguages() {
         if (SettingValues.overrideLanguage) {
             val locale = Locale("en_US")
             Locale.setDefault(locale)
@@ -279,7 +310,7 @@ class App : Application(), ActivityLifecycleCallbacks {
             return false
         }
 
-    fun setupNotificationChannels() {
+    private fun setupNotificationChannels() {
         // Each triple contains the channel ID, name, and importance level
         val notificationTripleList: List<Triple<String, String?, Int>> =
             object : ArrayList<Triple<String, String?, Int>>() {
@@ -366,7 +397,13 @@ class App : Application(), ActivityLifecycleCallbacks {
     }
 
     companion object {
-        private var mApplication: Application? = null
+        private lateinit var mApplication: App
+
+        val contentDatabase: ContentDatabase by lazy {
+            EntryPoints.get(this, AppEntryPoint::class.java).contentDatabase()
+        }
+
+        val networkDebugger: NetLoggingInterceptor by lazy { NetLoggingInterceptor() }
 
         const val EMPTY_STRING = "NOTHING"
         const val enter_animation_time_original: Long = 600
@@ -467,7 +504,7 @@ class App : Application(), ActivityLifecycleCallbacks {
 
         @JvmStatic
         val appContext: Context
-            get() = mApplication!!.applicationContext
+            get() = mApplication.applicationContext
 
         private fun setCanUseNightModeAuto() {
             val uiModeManager = appContext.getSystemService(

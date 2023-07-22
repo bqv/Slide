@@ -51,10 +51,11 @@ abstract class INetworkDataSource(
 
     abstract suspend fun login(username: String, domain: String, credential: Credential): Credential
     abstract suspend fun updateSite(domain: String)
+    abstract suspend fun updateSite(domain: String, siteId: Int)
     abstract suspend fun updateSites(domain: String)
     abstract suspend fun updateSites()
     abstract suspend fun updatePost(domain: String, key: Int)
-    abstract suspend fun updatePosts(domain: String, feed: Feed, period: Period, order: Sorting)
+    abstract suspend fun updatePosts(domain: String, feed: Feed, period: Period, sorting: Sorting)
 
     @OptIn(DelicateCoroutinesApi::class)
     companion object {

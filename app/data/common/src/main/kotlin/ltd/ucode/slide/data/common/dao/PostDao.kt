@@ -14,53 +14,53 @@ import ltd.ucode.slide.data.common.entity.Post
 
 @Dao
 interface PostDao {
-    @Query("SELECT * FROM posts " +
+    @Query("SELECT * FROM _post " +
             "WHERE rowid = :rowId ")
-    fun flow(rowId: Int): Flow<Post>
+    fun flow(rowId: Long): Flow<Post>
 
-    @Query("SELECT * FROM posts " +
+    @Query("SELECT * FROM _post " +
             "WHERE rowid = :rowId ")
-    fun get(rowId: Int): Post
+    fun get(rowId: Long): Post?
 
-    @Query("SELECT * FROM posts " +
+    @Query("SELECT * FROM _post " +
             "WHERE rowid = :rowid ")
-    suspend fun query(rowid: Int): Post
+    suspend fun query(rowid: Long): Post?
 
-    @Query("SELECT * FROM post_images AS pi " +
-            "INNER JOIN posts AS p ON p.rowid = pi.post_rowid " +
-            "INNER JOIN sites AS s ON s.rowid = p.site_rowid " +
+    @Query("SELECT * FROM _post_image AS pi " +
+            "INNER JOIN _post AS p ON p.rowid = pi.post_rowid " +
+            "INNER JOIN _site AS s ON s.rowid = p.site_rowid " +
             "WHERE pi.post_id = :postId AND s.name LIKE :siteName ")
     fun flow(postId: Int, siteName: String): Flow<Post>
 
-    @Query("SELECT * FROM posts AS p " +
-            "INNER JOIN sites AS s ON s.rowid = p.site_rowid " +
+    @Query("SELECT * FROM _post AS p " +
+            "INNER JOIN _site AS s ON s.rowid = p.site_rowid " +
             "WHERE p.rowid = :postId AND s.name LIKE :siteName ")
     fun get(postId: Int, siteName: String): List<Post>
 
-    @Query("SELECT * FROM posts AS p " +
-            "INNER JOIN sites AS s ON s.rowid = p.site_rowid " +
+    @Query("SELECT * FROM _post AS p " +
+            "INNER JOIN _site AS s ON s.rowid = p.site_rowid " +
             "WHERE p.rowid = :postId AND s.name LIKE :siteName ")
     suspend fun query(postId: Int, siteName: String): List<Post>
 
-    @Query("SELECT * FROM sites AS s " +
-            "INNER JOIN posts AS p ON p.site_rowid = s.rowid " +
+    @Query("SELECT * FROM _site AS s " +
+            "INNER JOIN _post AS p ON p.site_rowid = s.rowid " +
             "WHERE s.name LIKE :siteName " +
             "AND (:before IS NULL OR p.created <= :before) " +
             "AND (:after IS NULL OR p.created >= :after) " +
             "ORDER BY p.created DESC ")
     fun pagingSourceNew(siteName: String, before: Instant? = null, after: Instant? = null): PagingSource<Int, Post>
 
-    @Query("SELECT * FROM sites AS s " +
-            "INNER JOIN posts AS p ON p.site_rowid = s.rowid " +
+    @Query("SELECT * FROM _site AS s " +
+            "INNER JOIN _post AS p ON p.site_rowid = s.rowid " +
             "WHERE s.name LIKE :siteName " +
             "AND (:before IS NULL OR p.created <= :before) " +
             "AND (:after IS NULL OR p.created >= :after) " +
             "ORDER BY p.created ASC ")
     fun pagingSourceOld(siteName: String, before: Instant? = null, after: Instant? = null): PagingSource<Int, Post>
 
-    @Query("SELECT * FROM sites AS s " +
-            "INNER JOIN posts AS p ON p.site_rowid = s.rowid " +
-            "INNER JOIN comments AS c ON c.post_rowid = p.rowid " + // TODO: add lastComment timestamp
+    @Query("SELECT * FROM _site AS s " +
+            "INNER JOIN _post AS p ON p.site_rowid = s.rowid " +
+            "INNER JOIN _comment AS c ON c.post_rowid = p.rowid " + // TODO: add lastComment timestamp
             "WHERE s.name LIKE :siteName " +
             "AND (:before IS NULL OR p.created <= :before) " +
             "AND (:after IS NULL OR p.created >= :after) " +
@@ -68,8 +68,8 @@ interface PostDao {
             "ORDER BY max(c.created) DESC ")
     fun pagingSourceNewComments(siteName: String, before: Instant? = null, after: Instant? = null): PagingSource<Int, Post>
 
-    @Query("SELECT * FROM sites AS s " +
-            "INNER JOIN posts AS p ON p.site_rowid = s.rowid " +
+    @Query("SELECT * FROM _site AS s " +
+            "INNER JOIN _post AS p ON p.site_rowid = s.rowid " +
             "WHERE s.name LIKE :siteName " +
             "AND (:before IS NULL OR p.created <= :before) " +
             "AND (:after IS NULL OR p.created >= :after) " +
@@ -79,8 +79,8 @@ interface PostDao {
             "END ASC ")
     fun pagingSourceControversial(siteName: String, before: Instant? = null, after: Instant? = null): PagingSource<Int, Post>
 
-    @Query("SELECT * FROM sites AS s " +
-            "INNER JOIN posts AS p ON p.site_rowid = s.rowid " +
+    @Query("SELECT * FROM _site AS s " +
+            "INNER JOIN _post AS p ON p.site_rowid = s.rowid " +
             "WHERE s.name LIKE :siteName " +
             "AND (:before IS NULL OR p.created <= :before) " +
             "AND (:after IS NULL OR p.created >= :after) " +
@@ -88,32 +88,32 @@ interface PostDao {
     fun pagingSourceMostComments(siteName: String, before: Instant? = null, after: Instant? = null): PagingSource<Int, Post>
 
 
-    @Query("SELECT * FROM sites AS s " +
-            "INNER JOIN posts AS p ON p.site_rowid = s.rowid " +
+    @Query("SELECT * FROM _site AS s " +
+            "INNER JOIN _post AS p ON p.site_rowid = s.rowid " +
             "WHERE s.name LIKE :siteName " +
             "AND (:before IS NULL OR p.created <= :before) " +
             "AND (:after IS NULL OR p.created >= :after) " +
             "ORDER BY p.score DESC ")
     fun pagingSourceTop(siteName: String, before: Instant? = null, after: Instant? = null): PagingSource<Int, Post>
 
-    @Query("SELECT * FROM sites AS s " +
-            "INNER JOIN posts AS p ON p.site_rowid = s.rowid " +
+    @Query("SELECT * FROM _site AS s " +
+            "INNER JOIN _post AS p ON p.site_rowid = s.rowid " +
             "WHERE s.name LIKE :siteName " +
             "AND (:before IS NULL OR p.created <= :before) " +
             "AND (:after IS NULL OR p.created >= :after) " +
             "ORDER BY p.hot_rank DESC ")
     fun pagingSourceHot(siteName: String, before: Instant? = null, after: Instant? = null): PagingSource<Int, Post>
 
-    @Query("SELECT * FROM sites AS s " +
-            "INNER JOIN posts AS p ON p.site_rowid = s.rowid " +
+    @Query("SELECT * FROM _site AS s " +
+            "INNER JOIN _post AS p ON p.site_rowid = s.rowid " +
             "WHERE s.name LIKE :siteName " +
             "AND (:before IS NULL OR p.created <= :before) " +
             "AND (:after IS NULL OR p.created >= :after) " +
             "ORDER BY p.active_rank DESC ")
     fun pagingSourceActive(siteName: String, before: Instant? = null, after: Instant? = null): PagingSource<Int, Post>
 
-    @Query("SELECT * FROM sites AS s " +
-        "INNER JOIN posts AS p ON p.site_rowid = s.rowid " +
+    @Query("SELECT * FROM _site AS s " +
+        "INNER JOIN _post AS p ON p.site_rowid = s.rowid " +
         "WHERE s.name LIKE :siteName " +
         "AND (:before IS NULL OR p.created <= :before) " +
         "AND (:after IS NULL OR p.created >= :after) " +
@@ -121,8 +121,8 @@ interface PostDao {
         "LIMIT :limit ")
     fun flowNew(limit: Int, siteName: String, before: Instant? = null, after: Instant? = null): Flow<List<Post>>
 
-    @Query("SELECT * FROM sites AS s " +
-        "INNER JOIN posts AS p ON p.site_rowid = s.rowid " +
+    @Query("SELECT * FROM _site AS s " +
+        "INNER JOIN _post AS p ON p.site_rowid = s.rowid " +
         "WHERE s.name LIKE :siteName " +
         "AND (:before IS NULL OR p.created <= :before) " +
         "AND (:after IS NULL OR p.created >= :after) " +
@@ -130,9 +130,9 @@ interface PostDao {
         "LIMIT :limit ")
     fun flowOld(limit: Int, siteName: String, before: Instant? = null, after: Instant? = null): Flow<List<Post>>
 
-    @Query("SELECT * FROM sites AS s " +
-        "INNER JOIN posts AS p ON p.site_rowid = s.rowid " +
-        "INNER JOIN comments AS c ON c.post_rowid = p.rowid " + // TODO: add lastComment timestamp
+    @Query("SELECT * FROM _site AS s " +
+        "INNER JOIN _post AS p ON p.site_rowid = s.rowid " +
+        "INNER JOIN _comment AS c ON c.post_rowid = p.rowid " + // TODO: add lastComment timestamp
         "WHERE s.name LIKE :siteName " +
         "AND (:before IS NULL OR p.created <= :before) " +
         "AND (:after IS NULL OR p.created >= :after) " +
@@ -141,8 +141,8 @@ interface PostDao {
         "LIMIT :limit ")
     fun flowNewComments(limit: Int, siteName: String, before: Instant? = null, after: Instant? = null): Flow<List<Post>>
 
-    @Query("SELECT * FROM sites AS s " +
-        "INNER JOIN posts AS p ON p.site_rowid = s.rowid " +
+    @Query("SELECT * FROM _site AS s " +
+        "INNER JOIN _post AS p ON p.site_rowid = s.rowid " +
         "WHERE s.name LIKE :siteName " +
         "AND (:before IS NULL OR p.created <= :before) " +
         "AND (:after IS NULL OR p.created >= :after) " +
@@ -153,8 +153,8 @@ interface PostDao {
         "LIMIT :limit ")
     fun flowControversial(limit: Int, siteName: String, before: Instant? = null, after: Instant? = null): Flow<List<Post>>
 
-    @Query("SELECT * FROM sites AS s " +
-        "INNER JOIN posts AS p ON p.site_rowid = s.rowid " +
+    @Query("SELECT * FROM _site AS s " +
+        "INNER JOIN _post AS p ON p.site_rowid = s.rowid " +
         "WHERE s.name LIKE :siteName " +
         "AND (:before IS NULL OR p.created <= :before) " +
         "AND (:after IS NULL OR p.created >= :after) " +
@@ -163,8 +163,8 @@ interface PostDao {
     fun flowMostComments(limit: Int, siteName: String, before: Instant? = null, after: Instant? = null): Flow<List<Post>>
 
 
-    @Query("SELECT * FROM sites AS s " +
-        "INNER JOIN posts AS p ON p.site_rowid = s.rowid " +
+    @Query("SELECT * FROM _site AS s " +
+        "INNER JOIN _post AS p ON p.site_rowid = s.rowid " +
         "WHERE s.name LIKE :siteName " +
         "AND (:before IS NULL OR p.created <= :before) " +
         "AND (:after IS NULL OR p.created >= :after) " +
@@ -172,8 +172,8 @@ interface PostDao {
         "LIMIT :limit ")
     fun flowTop(limit: Int, siteName: String, before: Instant? = null, after: Instant? = null): Flow<List<Post>>
 
-    @Query("SELECT * FROM sites AS s " +
-        "INNER JOIN posts AS p ON p.site_rowid = s.rowid " +
+    @Query("SELECT * FROM _site AS s " +
+        "INNER JOIN _post AS p ON p.site_rowid = s.rowid " +
         "WHERE s.name LIKE :siteName " +
         "AND (:before IS NULL OR p.created <= :before) " +
         "AND (:after IS NULL OR p.created >= :after) " +
@@ -181,8 +181,8 @@ interface PostDao {
         "LIMIT :limit ")
     fun flowHot(limit: Int, siteName: String, before: Instant? = null, after: Instant? = null): Flow<List<Post>>
 
-    @Query("SELECT * FROM sites AS s " +
-        "INNER JOIN posts AS p ON p.site_rowid = s.rowid " +
+    @Query("SELECT * FROM _site AS s " +
+        "INNER JOIN _post AS p ON p.site_rowid = s.rowid " +
         "WHERE s.name LIKE :siteName " +
         "AND (:before IS NULL OR p.created <= :before) " +
         "AND (:after IS NULL OR p.created >= :after) " +
@@ -200,7 +200,7 @@ interface PostDao {
     suspend fun addAll(posts: List<Post>)
 
     @Upsert
-    suspend fun upsert(post: Post)
+    suspend fun upsert(post: Post): Long
 
     @Update
     suspend fun update(post: Post)
@@ -208,6 +208,6 @@ interface PostDao {
     @Delete
     suspend fun delete(post: Post)
 
-    @Query("DELETE FROM posts")
+    @Query("DELETE FROM _post")
     suspend fun deleteAll(): Int
 }

@@ -1,11 +1,9 @@
 package me.ccrama.redditslide
 
-import com.lusfold.androidkeyvaluestore.KVStore
-import com.lusfold.androidkeyvaluestore.core.KVManagerImpl
-import com.lusfold.androidkeyvaluestore.core.KVManger
-import com.lusfold.androidkeyvaluestore.utils.CursorUtils
 import ltd.ucode.network.SingleVote
 import ltd.ucode.network.data.IPost
+import ltd.ucode.slide.App
+import ltd.ucode.slide.data.common.dao.SeenDao
 import me.ccrama.redditslide.OpenRedditLink.RedditLinkType
 import me.ccrama.redditslide.Synccit.SynccitRead
 import net.dean.jraw.models.Contribution
@@ -21,7 +19,7 @@ object HasSeen {
             hasSeen = HashSet()
             seenTimes = HashMap()
         }
-        val m = KVStore.getInstance()
+        val m = App.contentDatabase.seen
         for (s in submissions) {
             if (s is Submission) {
                 historyContains(s, m)
@@ -34,23 +32,19 @@ object HasSeen {
             hasSeen = HashSet()
             seenTimes = HashMap()
         }
-        val m = KVStore.getInstance()
+        val m = App.contentDatabase.seen
         for (s in submissions) {
             historyContains(s, m)
         }
     }
 
-    @JvmStatic private fun historyContains(s: Contribution, m: KVManger) {
+    @JvmStatic private fun historyContains(s: Contribution, m: SeenDao) {
         var fullname = s.fullName
         if (fullname.contains("t3_")) {
             fullname = fullname.substring(3)
         }
 
-        // Check if KVStore has a key containing the fullname
-        // This is necessary because the KVStore library is limited and Carlos didn't realize the performance impact
-        val cur = m.execQuery("SELECT * FROM ? WHERE ? LIKE '%?%' LIMIT 1", arrayOf(KVManagerImpl.TABLE_NAME, KVManagerImpl.COLUMN_KEY, fullname))
-        val contains = cur != null && cur.count > 0
-        CursorUtils.closeCursorQuietly(cur)
+        val contains = App.contentDatabase.seen.has(fullname)
         if (contains) {
             hasSeen!!.add(fullname)
             val value = m[fullname]
@@ -138,7 +132,7 @@ object HasSeen {
             seenTimes!![fullname]!!
         } else {
             try {
-                KVStore.getInstance()[fullname].toLong()
+                App.contentDatabase.seen[fullname].toLong()
             } catch (e: NumberFormatException) {
                 0
             }
@@ -158,9 +152,9 @@ object HasSeen {
         }
         hasSeen!!.add(fullname)
         seenTimes!![fullname] = System.currentTimeMillis()
-        val result = KVStore.getInstance().insert(fullname, System.currentTimeMillis().toString())
+        val result = App.contentDatabase.seen.insert(fullname, System.currentTimeMillis().toString())
         if (result == -1L) {
-            KVStore.getInstance().update(fullname, System.currentTimeMillis().toString())
+            App.contentDatabase.seen.update(fullname, System.currentTimeMillis().toString())
         }
         if (!fullname.contains("t1_")) {
             SynccitRead.newVisited.add(fullname)
@@ -181,7 +175,7 @@ object HasSeen {
         }
         hasSeen!!.add(fullname)
         seenTimes!![fullname] = System.currentTimeMillis()
-        KVStore.getInstance().insert(fullname, System.currentTimeMillis().toString())
+        App.contentDatabase.seen.insert(fullname, System.currentTimeMillis().toString())
         if (!fullname.contains("t1_")) {
             SynccitRead.newVisited.add(fullname)
             SynccitRead.visitedIds.add(fullname)

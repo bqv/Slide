@@ -3056,7 +3056,7 @@ class PopulateSubmissionViewHolder(private val postRepository: PostRepository,
             withContext(Dispatchers.IO) {
                 postRepository.likePost(
                     (submission as LemmyPost).instance,
-                    PostId(submission.rowId),
+                    PostId(submission.rowId.toInt()),
                     direction
                 )
             }

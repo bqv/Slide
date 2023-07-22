@@ -42,6 +42,7 @@ android {
 
 dependencies {
     api(project(mapOf("path" to ":app:data:common")))
+    api(project(mapOf("path" to ":app:data:kbin")))
     api(project(mapOf("path" to ":app:data:lemmy")))
     implementation(project(mapOf("path" to ":app:util")))
     implementation(project(mapOf("path" to ":network")))
@@ -58,6 +59,7 @@ dependencies {
 
     implementation(libs.androidx.room.ktx)
     //ksp(libs.androidx.room.compiler)
+    annotationProcessor(libs.androidx.room.compiler)
     kapt(libs.androidx.room.compiler)
     implementation(libs.androidx.room.paging)
     implementation(libs.androidx.sqlite)

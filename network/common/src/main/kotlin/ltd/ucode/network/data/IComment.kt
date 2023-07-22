@@ -3,9 +3,9 @@ package ltd.ucode.network.data
 import ltd.ucode.network.trait.IVotable
 
 abstract class IComment : IVotable {
-    abstract val rowId: Int
+    abstract val rowId: Long
     abstract val commentId: Int
-    abstract val parentRowId: Int?
+    abstract val parentRowId: Long?
     abstract val parentId: Int?
 
     abstract val content: String

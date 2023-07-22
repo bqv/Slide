@@ -3,10 +3,12 @@ package ltd.ucode.slide.data
 import androidx.room.TypeConverter
 import kotlinx.datetime.Instant
 
-class Converters {
+object Converters {
     @TypeConverter
-    fun fetchInstant(value: Long): Instant = value.let(Instant::fromEpochMilliseconds)
+    @JvmStatic
+    fun fetchInstant(value: Long?): Instant? = value?.let(Instant::fromEpochMilliseconds)
 
     @TypeConverter
-    fun storeInstant(value: Instant): Long = value.toEpochMilliseconds()
+    @JvmStatic
+    fun storeInstant(value: Instant?): Long? = value?.toEpochMilliseconds()
 }

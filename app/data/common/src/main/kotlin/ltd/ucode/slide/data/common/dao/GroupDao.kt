@@ -11,28 +11,28 @@ import ltd.ucode.slide.data.common.entity.Group
 
 @Dao
 interface GroupDao {
-    @Query("SELECT * FROM groups " +
+    @Query("SELECT * FROM _group " +
             "WHERE rowid = :rowId ")
-    fun get(rowId: Int): Group
+    fun get(rowId: Long): Group?
 
-    @Query("SELECT * FROM groups " +
+    @Query("SELECT * FROM _group " +
             "WHERE rowid = :rowid ")
-    suspend fun query(rowid: Int): Group
+    suspend fun query(rowid: Long): Group?
 
-    @Query("SELECT * FROM group_images AS gi " +
-            "INNER JOIN groups AS g ON g.rowid = gi.group_rowid " +
-            "INNER JOIN sites AS s ON s.rowid = gi.site_rowid " +
+    @Query("SELECT * FROM _group_image AS gi " +
+            "INNER JOIN _group AS g ON g.rowid = gi.group_rowid " +
+            "INNER JOIN _site AS s ON s.rowid = gi.site_rowid " +
             "WHERE gi.group_id = :groupId AND s.rowid = :siteRowId ")
-    fun flow(groupId: Int, siteRowId: Int): Flow<Group>
+    fun flow(groupId: Int, siteRowId: Long): Flow<Group>
 
-    @Query("SELECT g.rowid FROM group_images AS gi " +
-            "INNER JOIN groups AS g ON g.rowid = gi.group_rowid " +
-            "INNER JOIN sites AS s ON s.rowid = gi.site_rowid " +
+    @Query("SELECT g.* FROM _group_image AS gi " +
+            "INNER JOIN _group AS g ON g.rowid = gi.group_rowid " +
+            "INNER JOIN _site AS s ON s.rowid = gi.site_rowid " +
             "WHERE gi.group_id = :groupId AND s.name LIKE :siteName ")
-    fun get(groupId: Int, siteName: String): Int
+    fun get(groupId: Int, siteName: String): Group?
 
-    @Query("SELECT * FROM groups AS g " +
-            "INNER JOIN sites AS s ON s.rowid = g.site_rowid " +
+    @Query("SELECT * FROM _group AS g " +
+            "INNER JOIN _site AS s ON s.rowid = g.site_rowid " +
             "WHERE g.rowid = :groupId AND s.name LIKE :instanceName ")
     suspend fun query(groupId: Int, instanceName: String): List<Group>
 

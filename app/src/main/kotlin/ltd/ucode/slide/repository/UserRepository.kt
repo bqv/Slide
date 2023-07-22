@@ -13,7 +13,7 @@ class UserRepository @Inject constructor(
     private val contentDatabase: ContentDatabase,
     private val networkRepository: NetworkRepository,
 ) {
-    fun getUser(userRowId: Int,
+    fun getUser(userRowId: Long,
     ): Flow<User> {
         /*
         return networkRepository.dataSource

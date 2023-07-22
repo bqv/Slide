@@ -58,7 +58,7 @@ class NetworkDataSource(
         domainSource(domain).first().login(username, domain, credential)
     }
 
-    override fun getSite(rowId: Int): Flow<Site> {
+    override fun getSite(rowId: Long): Flow<Site> {
         return contentDatabase.sites.flow(rowId).distinctUntilChanged()
             .onEach { site ->
                 val source = site.software?.let { sources[it] }
@@ -108,7 +108,7 @@ class NetworkDataSource(
             .let { emitAll(it) }
     }
 
-    override fun getPost(rowId: Int): Flow<Post> {
+    override fun getPost(rowId: Long): Flow<Post> {
         return contentDatabase.posts.flow(rowId).distinctUntilChanged()
             .onEach { post ->
                 val source = post.site.software?.let { sources[it] }

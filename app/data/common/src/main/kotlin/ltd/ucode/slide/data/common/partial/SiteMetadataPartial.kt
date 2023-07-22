@@ -14,6 +14,7 @@ data class SiteMetadataPartial(
     @ColumnInfo(name = "users_semiannually") val usersHalfYear: Int?,
     @ColumnInfo(name = "users_monthly") val usersMonthly: Int?,
     @ColumnInfo(name = "users_weekly") val usersWeekly: Int?,
+    @ColumnInfo(name = "rowid") val rowId: Long = 0,
 ) {
     companion object {
         fun of(other: Site): SiteMetadataPartial {

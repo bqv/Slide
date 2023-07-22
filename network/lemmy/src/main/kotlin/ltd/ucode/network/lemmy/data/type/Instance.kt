@@ -6,8 +6,8 @@ import ltd.ucode.network.lemmy.data.id.InstanceId
 
 @Serializable
 data class Instance (
-    val id: InstanceId,
     val domain: String,
+    val id: InstanceId,
     val published: LocalDateTime,
     val updated: LocalDateTime? = null,
     val software: String? = null,

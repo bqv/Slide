@@ -4,12 +4,14 @@ import androidx.room.Database
 import androidx.room.Query
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import androidx.sqlite.db.SupportSQLiteDatabase
 import ltd.ucode.slide.data.Converters
 import ltd.ucode.slide.data.common.content.IContentDatabase
 import ltd.ucode.slide.data.common.dao.CommentDao
 import ltd.ucode.slide.data.common.dao.GroupDao
 import ltd.ucode.slide.data.common.dao.LanguageDao
 import ltd.ucode.slide.data.common.dao.PostDao
+import ltd.ucode.slide.data.common.dao.SeenDao
 import ltd.ucode.slide.data.common.dao.SiteDao
 import ltd.ucode.slide.data.common.dao.TimestampDao
 import ltd.ucode.slide.data.common.dao.UserDao
@@ -22,6 +24,7 @@ import ltd.ucode.slide.data.common.entity.Language
 import ltd.ucode.slide.data.common.entity.Post
 import ltd.ucode.slide.data.common.entity.PostSearch
 import ltd.ucode.slide.data.common.entity.PostVote
+import ltd.ucode.slide.data.common.entity.Seen
 import ltd.ucode.slide.data.common.entity.Site
 import ltd.ucode.slide.data.common.entity.Tagline
 import ltd.ucode.slide.data.common.entity.Timestamp
@@ -49,15 +52,19 @@ import ltd.ucode.slide.data.common.view.One
         Language::class,
         Language.Image::class,
         Timestamp::class,
+        Seen::class,
     ],
     views = [
         One::class,
     ],
     autoMigrations = [
     ],
-    exportSchema = true)
+    exportSchema = true
+)
 @TypeConverters(Converters::class)
 abstract class ContentDatabase : RoomDatabase(), IContentDatabase {
+    val database: SupportSQLiteDatabase? get() = mDatabase
+
     abstract override val sites: SiteDao
     abstract override val users: UserDao
     abstract override val groups: GroupDao
@@ -65,6 +72,7 @@ abstract class ContentDatabase : RoomDatabase(), IContentDatabase {
     abstract override val comments: CommentDao
     abstract override val languages: LanguageDao
     abstract override val timestamps: TimestampDao
+    abstract override val seen: SeenDao
 
     companion object {
         const val filename: String = "content.db"

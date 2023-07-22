@@ -33,7 +33,7 @@ class RedditSubmission(val data: Submission) : IPost() {
 
     override val groupName: String
         get() = data.subredditName
-    override val groupRowId: Int
+    override val groupRowId: Long
         get() = TODO("Not yet implemented")
 
     override val uri: String

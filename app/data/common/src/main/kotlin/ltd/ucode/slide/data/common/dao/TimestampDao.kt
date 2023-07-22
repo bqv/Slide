@@ -13,15 +13,15 @@ import kotlin.reflect.KClass
 
 @Dao
 abstract class TimestampDao(val database: RoomDatabase) {
-    @Query("SELECT * FROM timestamps t " +
+    @Query("SELECT * FROM _timestamp t " +
             "INNER JOIN sqlite_master m ON m.name = t.[table] AND m.type = 'table' " +
             "WHERE t.[table] = :table ")
-    protected abstract fun get(table: String): Timestamp
+    protected abstract fun get(table: String): Timestamp?
 
-    @Query("SELECT * FROM timestamps t " +
+    @Query("SELECT * FROM _timestamp t " +
             "INNER JOIN sqlite_master m ON m.name = t.[table] AND m.type = 'table' " +
             "WHERE t.[table] = :table ")
-    protected abstract suspend fun query(table: String): Timestamp
+    protected abstract suspend fun query(table: String): Timestamp?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     protected abstract fun add(timestamp: Timestamp)
@@ -29,9 +29,9 @@ abstract class TimestampDao(val database: RoomDatabase) {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     protected abstract suspend fun insert(timestamp: Timestamp)
 
-    var post: Instant
-        get() = get(Post::class.entityAnnotation!!.tableName).stamp
-        set(value) = add(Timestamp(Post::class.entityAnnotation!!.tableName, value))
+    var post: Instant?
+        get() = get(Post::class.entityAnnotation!!.tableName)?.stamp
+        set(value) = add(Timestamp(Post::class.entityAnnotation!!.tableName, value!!))
 
     private val <T : Any> KClass<T>.entityAnnotation: Entity?
         get() = this.annotations.find { it.annotationClass == Entity::class } as? Entity

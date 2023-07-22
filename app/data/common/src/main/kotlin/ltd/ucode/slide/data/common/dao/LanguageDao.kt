@@ -12,29 +12,29 @@ import ltd.ucode.slide.data.common.entity.Language
 
 @Dao
 interface LanguageDao {
-    @Query("SELECT * FROM languages " +
+    @Query("SELECT * FROM _language " +
             "WHERE rowid = :rowId ")
-    fun get(rowId: Int): Language
+    fun get(rowId: Long): Language?
 
-    @Query("SELECT * FROM languages " +
+    @Query("SELECT * FROM _language " +
             "WHERE rowid = :rowid ")
-    suspend fun query(rowid: Int): Language
+    suspend fun query(rowid: Long): Language?
 
-    @Query("SELECT * FROM language_images AS li " +
-            "INNER JOIN languages AS l ON l.rowid = li.language_rowid " +
-            "INNER JOIN sites AS s ON s.rowid = li.site_rowid " +
+    @Query("SELECT * FROM _language_image AS li " +
+            "INNER JOIN _language AS l ON l.rowid = li.language_rowid " +
+            "INNER JOIN _site AS s ON s.rowid = li.site_rowid " +
             "WHERE li.language_id = :languageId AND s.rowid = :siteRowId ")
-    fun flow(languageId: Int, siteRowId: Int): Flow<Language>
+    fun flow(languageId: Int, siteRowId: Long): Flow<Language>
 
-    @Query("SELECT l.rowid FROM language_images AS li " +
-            "INNER JOIN languages AS l ON l.rowid = li.language_rowid " +
-            "INNER JOIN sites AS s ON s.rowid = li.site_rowid " +
+    @Query("SELECT l.* FROM _language_image AS li " +
+            "INNER JOIN _language AS l ON l.rowid = li.language_rowid " +
+            "INNER JOIN _site AS s ON s.rowid = li.site_rowid " +
             "WHERE li.language_id = :languageId AND s.name LIKE :siteName ")
-    fun get(languageId: Int, siteName: String): Int
+    fun get(languageId: Int, siteName: String): Language?
 
-    @Query("SELECT * FROM language_images AS li " +
-            "INNER JOIN languages AS l ON l.rowid = li.language_rowid " +
-            "INNER JOIN sites AS s ON s.rowid = li.site_rowid " +
+    @Query("SELECT * FROM _language_image AS li " +
+            "INNER JOIN _language AS l ON l.rowid = li.language_rowid " +
+            "INNER JOIN _site AS s ON s.rowid = li.site_rowid " +
             "WHERE li.language_id = :languageId AND s.name LIKE :siteName ")
     suspend fun query(languageId: Int, siteName: String): List<Language>
 

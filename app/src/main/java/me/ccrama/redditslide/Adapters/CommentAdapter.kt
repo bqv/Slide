@@ -34,7 +34,6 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.devspark.robototextview.RobotoTypefaces
-import com.lusfold.androidkeyvaluestore.KVStore
 import com.mikepenz.itemanimators.AlphaInAnimator
 import com.mikepenz.itemanimators.SlideRightAlphaAnimator
 import kotlinx.coroutines.Dispatchers
@@ -249,7 +248,7 @@ class CommentAdapter(
                 fullname = fullname.substring(3)
             }
             HasSeen.seenTimes!![fullname] = System.currentTimeMillis()
-            KVStore.getInstance().insert(fullname, System.currentTimeMillis().toString())
+            App.contentDatabase.seen.insert(fullname, System.currentTimeMillis().toString())
         }
         if (submission != null) {
             if (SettingValues.storeHistory) {

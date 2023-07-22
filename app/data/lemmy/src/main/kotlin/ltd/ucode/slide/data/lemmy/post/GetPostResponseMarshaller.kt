@@ -4,26 +4,20 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toInstant
 import ltd.ucode.network.lemmy.api.response.GetPostResponse
 import ltd.ucode.network.lemmy.data.type.PostAggregates
-import ltd.ucode.slide.data.common.content.IContentDatabase
+import ltd.ucode.slide.data.common.entity.Group
+import ltd.ucode.slide.data.common.entity.Language
 import ltd.ucode.slide.data.common.entity.Post
+import ltd.ucode.slide.data.common.entity.Site
+import ltd.ucode.slide.data.common.entity.User
 import ltd.ucode.network.lemmy.data.type.Post as LemmyPost
 
 object GetPostResponseMarshaller {
-    fun GetPostResponse.toPost(contentDatabase: IContentDatabase, domain: String): Post {
-        return toPost(
-            siteRowId = contentDatabase.sites.get(this.postView.community.instanceId.id, domain),
-            groupRowId = contentDatabase.groups.get(this.communityView.community.id.id, domain),
-            userRowId = contentDatabase.users.get(this.postView.creator.id.id, domain),
-            languageRowId = contentDatabase.languages.get(this.postView.post.languageId.id, domain),
-        )
-    }
-
-    fun GetPostResponse.toPost(siteRowId: Int, groupRowId: Int, userRowId: Int, languageRowId: Int): Post {
+    fun GetPostResponse.toPost(site: Site, group: Group, user: User, language: Language): Post {
         return Post(
-            siteRowId = siteRowId,
-            groupRowId = groupRowId,
-            userRowId = userRowId,
-            languageRowId = languageRowId,
+            siteRowId = site.rowId,
+            groupRowId = group.rowId,
+            userRowId = user.rowId,
+            languageRowId = language.rowId,
             postId = this.postView.post.id.id,
             uri = this.postView.post.apId,
         )

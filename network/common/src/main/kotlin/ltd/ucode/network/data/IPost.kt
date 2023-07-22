@@ -23,7 +23,7 @@ abstract class IPost : IVotable {
     abstract val isLocked: Boolean
     abstract val isNsfw: Boolean
     abstract val groupName: String
-    abstract val groupRowId: Int
+    abstract val groupRowId: Long
     abstract override val uri: String
     abstract override val discovered: Instant
     abstract override val created: Instant
@@ -40,8 +40,8 @@ abstract class IPost : IVotable {
         get() = link.ifBlank{null}?.let { URL(it).host }
     val extension: String?
         get() = link.ifBlank{null}?.let { Path(URL(it).path).extension }
-    open val rowId: Int
-        get() = postId
+    open val rowId: Long
+        get() = postId.toLong()
     @delegate:Transient open val bodyHtml: String by lazy {
         Markdown.parseToHtml(body)
     }
