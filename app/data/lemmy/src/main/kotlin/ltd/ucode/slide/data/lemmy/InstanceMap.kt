@@ -3,7 +3,6 @@ package ltd.ucode.slide.data.lemmy
 import android.net.Uri
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
-import ltd.ucode.network.lemmy.api.AccountApi
 import ltd.ucode.network.lemmy.api.InstanceApi
 import ltd.ucode.network.lemmy.data.type.jwt.Token
 import okhttp3.OkHttpClient
@@ -91,7 +90,7 @@ class InstanceMap(
         }.verifyOr { remove(instance) }
     }
 
-    suspend fun getAccount(username: String, domain: String): AccountApi {
+    suspend fun getAccount(username: String, domain: String): InstanceApi {
         return synchronized(store) {
             val key = "$username@$domain"
 
@@ -99,34 +98,34 @@ class InstanceMap(
                 ?: HashMap<Username?, InstanceApi>()
                     .also { store[domain] = it }
 
-            instanceStore[username] as AccountApi?
+            instanceStore[username] as InstanceApi?
                 ?: run {
                     val token = getToken(username, domain).token
 
-                    AccountApi(username, token, domain, okHttpClient)
+                    InstanceApi(username, token, domain, okHttpClient)
                         .also { value -> instanceStore[username] = value }
                 }
         }.verifyOr { remove(username, domain) }
     }
 
-    suspend fun getOrCreateAccount(username: String, token: String, instance: String): AccountApi {
+    suspend fun getOrCreateAccount(username: String, token: String, instance: String): InstanceApi {
         return synchronized(store) {
             val instanceStore = store[instance]
                 ?: HashMap<Username?, InstanceApi>()
                     .also { store[instance] = it }
 
-            AccountApi(username, token, instance, okHttpClient)
+            InstanceApi(username, token, instance, okHttpClient)
                 .also { value -> instanceStore[username] = value }
         }.verifyOr { remove(username, instance) }
     }
 
-    suspend fun getOrCreateAccount(username: String, password: String, totp: String?, instance: String): AccountApi {
+    suspend fun getOrCreateAccount(username: String, password: String, totp: String?, instance: String): InstanceApi {
         return synchronized(store) {
             val instanceStore = store[instance]
                 ?: HashMap<Username?, InstanceApi>()
                     .also { store[instance] = it }
 
-            AccountApi(username, password, totp, instance, okHttpClient)
+            InstanceApi(username, password, totp, instance, okHttpClient)
                 .also { value -> instanceStore[username] = value }
         }.verifyOr { remove(username, instance) }
     }
@@ -155,7 +154,7 @@ class InstanceMap(
             block(exception.upcast())
         }
 
-        if (this is AccountApi) {
+        if (this.isAuthenticated) {
             this.getUnreadCount().onFailure {
                 block(exception.upcast())
             }

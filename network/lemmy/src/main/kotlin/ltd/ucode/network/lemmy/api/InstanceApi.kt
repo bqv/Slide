@@ -3,6 +3,9 @@ package ltd.ucode.network.lemmy.api
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.github.reactivecircus.cache4k.Cache
+import io.github.reactivecircus.cache4k.CacheEvent
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
@@ -14,7 +17,11 @@ import kotlinx.serialization.json.int
 import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonObject
 import ltd.ucode.network.Serializers
-import ltd.ucode.network.lemmy.api.KeepJsonConverterFactoryWrapper.Companion.keepJson
+import ltd.ucode.network.lemmy.api.ApiCache.cached
+import ltd.ucode.network.lemmy.api.ApiCache.cachedUnit
+import ltd.ucode.network.lemmy.api.ApiCache.cachedWithDefault
+import ltd.ucode.network.lemmy.api.KeepJson.ConverterFactoryWrapper.Companion.keepJson
+import ltd.ucode.network.lemmy.api.request.Authenticated
 import ltd.ucode.network.lemmy.api.request.CreateCommentLikeRequest
 import ltd.ucode.network.lemmy.api.request.CreatePostLikeRequest
 import ltd.ucode.network.lemmy.api.request.GetCommentsRequest
@@ -28,22 +35,9 @@ import ltd.ucode.network.lemmy.api.request.GetUnreadCountRequest
 import ltd.ucode.network.lemmy.api.request.ListCommunitiesRequest
 import ltd.ucode.network.lemmy.api.request.LoginRequest
 import ltd.ucode.network.lemmy.api.request.UploadImageRequest
-import ltd.ucode.network.lemmy.api.response.CommentResponse
-import ltd.ucode.network.lemmy.api.response.GetCommentsResponse
-import ltd.ucode.network.lemmy.api.response.GetCommunityResponse
-import ltd.ucode.network.lemmy.api.response.GetFederatedInstancesResponse
-import ltd.ucode.network.lemmy.api.response.GetPersonDetailsResponse
-import ltd.ucode.network.lemmy.api.response.GetPostResponse
-import ltd.ucode.network.lemmy.api.response.GetPostsResponse
-import ltd.ucode.network.lemmy.api.response.GetSiteResponse
-import ltd.ucode.network.lemmy.api.response.GetUnreadCountResponse
 import ltd.ucode.network.lemmy.api.response.IResponse
-import ltd.ucode.network.lemmy.api.response.ListCommunitiesResponse
-import ltd.ucode.network.lemmy.api.response.LoginResponse
-import ltd.ucode.network.lemmy.api.response.PostResponse
-import ltd.ucode.network.lemmy.api.response.UploadImageResponse
 import ltd.ucode.network.lemmy.data.type.NodeInfoResult
-import ltd.ucode.network.lemmy.data.type.webfinger.NodeInfo
+import ltd.ucode.network.lemmy.data.type.jwt.Token
 import ltd.ucode.network.lemmy.data.type.webfinger.Resource
 import ltd.ucode.network.lemmy.data.type.webfinger.Uri
 import okhttp3.MediaType.Companion.toMediaType
@@ -54,42 +48,73 @@ import retrofit2.Response
 import retrofit2.Retrofit
 import java.net.HttpCookie
 import kotlin.reflect.KFunction1
-
+import kotlin.time.Duration.Companion.ZERO
 
 open class InstanceApi (
     val instance: String,
     private val okHttpClient: OkHttpClient,
 ) {
     private val logger: KLogger by lazy {
-        KotlinLogging.logger("lemmy:${
-            instance
-                .split(".")
-                .joinToString("") { it.replaceFirstChar(Char::titlecase) }
-        }")
+        val domain = instance
+            .split(".")
+            .joinToString("") { it.replaceFirstChar(Char::titlecase) }
+        if (username == null)
+            KotlinLogging.logger("lemmy:$domain")
+        else
+            KotlinLogging.logger("lemmy:$username@$domain")
     }
 
     init {
-        logger.info { "Creating ${InstanceApi::class.simpleName}: $instance"}
+        logger.info { "Creating Lemmy API: ${username?.let { "$it@" }.orEmpty()}$instance"}
     }
 
     protected val api: ILemmyHttpApi by lazy { createApi() }
-    private val pictrs: String = "https://$instance/pictrs/image"
+    private val pictrs: String by lazy { "https://$instance/pictrs/image" }
+
+    val isAuthenticated: Boolean get() = username != null
+    var username: String? = null
+        private set
+    protected var password: String? = null
+    private var totp: String? = null
+    private var jwt: Token? = null
+    val token: Token
+        get() = jwt!!
+
+    constructor(username: String,
+                password: String,
+                totp: String?,
+                instance: String,
+                okHttpClient: OkHttpClient,
+    ) : this(instance, okHttpClient) {
+        this.username = username
+        this.password = password
+        this.totp = totp
+    }
+
+    constructor(username: String,
+                jwt: String,
+                instance: String,
+                okHttpClient: OkHttpClient
+    ) : this(instance, okHttpClient) {
+        this.username = username
+        this.jwt = Token(jwt)
+    }
 
     companion object {
+        private const val SECONDS: Long = 1000
         const val MAX_RETRIES: Int = 3
-        const val SECONDS: Long = 1000
         const val RETRY_DELAY: Long = 3 * SECONDS
         const val RETRY_BACKOFF: Float = 2f
         const val DELAY_MAX: Long = 60 * SECONDS
     }
 
-    suspend fun nodeInfo(): ApiResult<Resource> =
-        retryOnError { api.nodeInfo() }
-    suspend fun nodeInfo20(url: Uri): ApiResult<NodeInfo> =
-        retryOnError { api.nodeInfo20(url) }
+    val nodeInfo by cachedUnit(timeToLive = null) {
+        retryOnError { api.nodeInfo() } }
+    val nodeInfo20 by cached(timeToLive = null) { url: Uri ->
+        retryOnError { api.nodeInfo20(url) } }
 
     suspend fun getNodeInfo(): ApiResult<NodeInfoResult> {
-        return nodeInfo().bindSuccess {
+        return nodeInfo(Unit).bindSuccess {
             data.let { resource: Resource ->
                 val url = resource.links.first().href
                 nodeInfo20(url) // lets hope
@@ -100,272 +125,274 @@ open class InstanceApi (
         }
     }
 
-    //open suspend fun addAdmin(request: AddAdminRequest): ApiResult<AddAdminResponse> =
-    //    retryOnError { api.addAdmin(request) }
+    //val addAdmin by cached() { request: AddAdminRequest ->
+    //    retryOnError { api.addAdmin(authenticated(request)) } }
 
-    //open suspend fun addModToCommunity(request: AddModToCommunityRequest): ApiResult<AddModToCommunityResponse> =
-    //    retryOnError { api.addModToCommunity(request) }
+    //val addModToCommunity by cached() { request: AddModToCommunityRequest ->
+    //    retryOnError { api.addModToCommunity(authenticated(request)) } }
 
-    //open suspend fun approveRegistrationApplication(request: ApproveRegistrationApplicationRequest): ApiResult<RegistrationApplicationResponse> =
-    //    retryOnError { api.approveRegistrationApplication(request) }
+    //val approveRegistrationApplication by cached() { request: ApproveRegistrationApplicationRequest ->
+    //    retryOnError { api.approveRegistrationApplication(authenticated(request)) } }
 
-    //open suspend fun banFromCommunity(request: BanFromCommunityRequest): ApiResult<BanFromCommunityResponse> =
-    //    retryOnError { api.banFromCommunity(request) }
+    //val banFromCommunity by cached() { request: BanFromCommunityRequest ->
+    //    retryOnError { api.banFromCommunity(authenticated(request)) } }
 
-    //open suspend fun banPerson(request: BanPersonRequest): ApiResult<BanPersonResponse> =
-    //    retryOnError { api.banPerson(request) }
+    //val banPerson by cached() { request: BanPersonRequest ->
+    //    retryOnError { api.banPerson(authenticated(request)) } }
 
-    //open suspend fun blockCommunity(request: BlockCommunityRequest): ApiResult<BlockCommunityResponse> =
-    //    retryOnError { api.blockCommunity(request) }
+    //val blockCommunity by cached() { request: BlockCommunityRequest ->
+    //    retryOnError { api.blockCommunity(authenticated(request)) } }
 
-    //open suspend fun blockPerson(request: BlockPersonRequest): ApiResult<BlockPersonResponse> =
-    //    retryOnError { api.blockPerson(request) }
+    //val blockPerson by cached() { request: BlockPersonRequest ->
+    //    retryOnError { api.blockPerson(authenticated(request)) } }
 
-    //open suspend fun changePassword(request: ChangePasswordRequest): ApiResult<LoginResponse> =
-    //    retryOnError { api.changePassword(request) }
+    //val changePassword by cached() { request: ChangePasswordRequest ->
+    //    retryOnError { api.changePassword(authenticated(request)) } }
 
-    //open suspend fun createComment(request: CreateCommentRequest): ApiResult<CommentResponse> =
-    //    retryOnError { api.createComment(request) }
+    //val createComment by cached() { request: CreateCommentRequest ->
+    //    retryOnError { api.createComment(authenticated(request)) } }
 
-    //open suspend fun createCommentReport(request: CreateCommentReportRequest): ApiResult<CommentReportResponse> =
-    //    retryOnError { api.createCommentReport(request) }
+    //val createCommentReport by cached() { request: CreateCommentReportRequest ->
+    //    retryOnError { api.createCommentReport(authenticated(request)) } }
 
-    //open suspend fun createCommunity(request: CreateCommunityRequest): ApiResult<CommunityResponse> =
-    //    retryOnError { api.createCommunity(request) }
+    //val createCommunity by cached() { request: CreateCommunityRequest ->
+    //    retryOnError { api.createCommunity(authenticated(request)) } }
 
-    //open suspend fun createCustomEmoji(request: CreateCustomEmojiRequest): ApiResult<CustomEmojiResponse> =
-    //    retryOnError { api.createCustomEmoji(request) }
+    //val createCustomEmoji by cached() { request: CreateCustomEmojiRequest ->
+    //    retryOnError { api.createCustomEmoji(authenticated(request)) } }
 
-    //open suspend fun createPost(request: CreatePostRequest): ApiResult<PostResponse> =
-    //    retryOnError { api.createPost(request) }
+    //val createPost by cached() { request: CreatePostRequest ->
+    //    retryOnError { api.createPost(authenticated(request)) } }
 
-    //open suspend fun createPostReport(request: CreatePostReportRequest): ApiResult<PostReportResponse> =
-    //    retryOnError { api.createPostReport(request) }
+    //val createPostReport by cached() { request: CreatePostReportRequest ->
+    //    retryOnError { api.createPostReport(authenticated(request)) } }
 
-    //open suspend fun createPrivateMessage(request: CreatePrivateMessageRequest): ApiResult<PrivateMessageResponse> =
-    //    retryOnError { api.createPrivateMessage(request) }
+    //val createPrivateMessage by cached() { request: CreatePrivateMessageRequest ->
+    //    retryOnError { api.createPrivateMessage(authenticated(request)) } }
 
-    //open suspend fun createPrivateMessageReport(request: CreatePrivateMessageReportRequest): ApiResult<PrivateMessageReportResponse> =
-    //    retryOnError { api.createPrivateMessageReport(request) }
+    //val createPrivateMessageReport by cached() { request: CreatePrivateMessageReportRequest ->
+    //    retryOnError { api.createPrivateMessageReport(authenticated(request)) } }
 
-    //open suspend fun createSite(request: CreateSiteRequest): ApiResult<SiteResponse> =
-    //    retryOnError { api.createSite(request) }
+    //val createSite by cached() { request: CreateSiteRequest ->
+    //    retryOnError { api.createSite(authenticated(request)) } }
 
-    //open suspend fun deleteAccount(request: DeleteAccountRequest): ApiResult<Unit> =
-    //    retryOnError { api.deleteAccount(request) }
+    //val deleteAccount by cached() { request: DeleteAccountRequest ->
+    //    retryOnError { api.deleteAccount(authenticated(request)) } }
 
-    //open suspend fun deleteComment(request: DeleteCommentRequest): ApiResult<CommentResponse> =
-    //    retryOnError { api.deleteComment(request) }
+    //val deleteComment by cached() { request: DeleteCommentRequest ->
+    //    retryOnError { api.deleteComment(authenticated(request)) } }
 
-    //open suspend fun deleteCommunity(request: DeleteCommunityRequest): ApiResult<CommunityResponse> =
-    //    retryOnError { api.deleteCommunity(request) }
+    //val deleteCommunity by cached() { request: DeleteCommunityRequest ->
+    //    retryOnError { api.deleteCommunity(authenticated(request)) } }
 
-    //open suspend fun deleteCustomEmoji(request: DeleteCustomEmojiRequest): ApiResult<DeleteCustomEmojiResponse> =
-    //    retryOnError { api.deleteCustomEmoji(request) }
+    //val deleteCustomEmoji by cached() { request: DeleteCustomEmojiRequest ->
+    //    retryOnError { api.deleteCustomEmoji(authenticated(request)) } }
 
-    //open suspend fun deletePost(request: DeletePostRequest): ApiResult<PostResponse> =
-    //    retryOnError { api.deletePost(request) }
+    //val deletePost by cached() { request: DeletePostRequest ->
+    //    retryOnError { api.deletePost(authenticated(request)) } }
 
-    //open suspend fun deletePrivateMessage(request: DeletePrivateMessageRequest): ApiResult<PrivateMessageResponse> =
-    //    retryOnError { api.deletePrivateMessage(request) }
+    //val deletePrivateMessage by cached() { request: DeletePrivateMessageRequest ->
+    //    retryOnError { api.deletePrivateMessage(authenticated(request)) } }
 
-    //open suspend fun distinguishComment(request: DistinguishCommentRequest): ApiResult<CommentResponse> =
-    //    retryOnError { api.distinguishComment(request) }
+    //val distinguishComment by cached() { request: DistinguishCommentRequest ->
+    //    retryOnError { api.distinguishComment(authenticated(request)) } }
 
-    //open suspend fun editComment(request: EditCommentRequest): ApiResult<CommentResponse> =
-    //    retryOnError { api.editComment(request) }
+    //val editComment by cached() { request: EditCommentRequest ->
+    //    retryOnError { api.editComment(authenticated(request)) } }
 
-    //open suspend fun editCommunity(request: EditCommunityRequest): ApiResult<CommunityResponse> =
-    //    retryOnError { api.editCommunity(request) }
+    //val editCommunity by cached() { request: EditCommunityRequest ->
+    //    retryOnError { api.editCommunity(authenticated(request)) } }
 
-    //open suspend fun editCustomEmoji(request: EditCustomEmojiRequest): ApiResult<CustomEmojiResponse> =
-    //    retryOnError { api.editCustomEmoji(request) }
+    //val editCustomEmoji by cached() { request: EditCustomEmojiRequest ->
+    //    retryOnError { api.editCustomEmoji(authenticated(request)) } }
 
-    //open suspend fun editPost(request: EditPostRequest): ApiResult<PostResponse> =
-    //    retryOnError { api.editPost(request) }
+    //val editPost by cached() { request: EditPostRequest ->
+    //    retryOnError { api.editPost(authenticated(request)) } }
 
-    //open suspend fun editPrivateMessage(request: EditPrivateMessageRequest): ApiResult<PrivateMessageResponse> =
-    //    retryOnError { api.editPrivateMessage(request) }
+    //val editPrivateMessage by cached() { request: EditPrivateMessageRequest ->
+    //    retryOnError { api.editPrivateMessage(authenticated(request)) } }
 
-    //open suspend fun editSite(request: EditSiteRequest): ApiResult<SiteResponse> =
-    //    retryOnError { api.editSite(request) }
+    //val editSite by cached() { request: EditSiteRequest ->
+    //    retryOnError { api.editSite(authenticated(request)) } }
 
-    //open suspend fun featurePost(request: FeaturePostRequest): ApiResult<PostResponse> =
-    //    retryOnError { api.featurePost(request) }
+    //val featurePost by cached() { request: FeaturePostRequest ->
+    //    retryOnError { api.featurePost(authenticated(request)) } }
 
-    //open suspend fun followCommunity(request: FollowCommunityRequest): ApiResult<CommunityResponse> =
-    //    retryOnError { api.followCommunity(request) }
+    //val followCommunity by cached() { request: FollowCommunityRequest ->
+    //    retryOnError { api.followCommunity(authenticated(request)) } }
 
-    //open suspend fun getBannedPersons(request: GetBannedPersonsRequest): ApiResult<BannedPersonsResponse> =
-    //    retryOnError { api.getBannedPersons(request.toForm()) }
+    //val getBannedPersons by cached() { request: GetBannedPersonsRequest ->
+    //    retryOnError { api.getBannedPersons(authenticated(request).toForm()) } }
 
-    //open suspend fun getCaptcha(request: GetCaptchaRequest): ApiResult<GetCaptchaResponse> =
-    //    retryOnError { api.getCaptcha(request.toForm()) }
+    //val getCaptcha by cached() { request: GetCaptchaRequest ->
+    //    retryOnError { api.getCaptcha(authenticated(request).toForm()) } }
 
-    //open suspend fun getComment(request: GetCommentRequest): ApiResult<CommentResponse> =
-    //    retryOnError { api.getComment(request.toForm()) }
+    //val getComment by cached() { request: GetCommentRequest ->
+    //    retryOnError { api.getComment(authenticated(request).toForm()) } }
 
-    open suspend fun getComments(request: GetCommentsRequest): ApiResult<GetCommentsResponse> =
-        retryOnError { api.getComments(request.toForm()) }
+    val getComments by cached() { request: GetCommentsRequest ->
+        retryOnError { api.getComments(authenticated(request).toForm()) } }
 
-    open suspend fun getCommunity(request: GetCommunityRequest): ApiResult<GetCommunityResponse> =
-        retryOnError { api.getCommunity(request.toForm()) }
+    val getCommunity by cached() { request: GetCommunityRequest ->
+        retryOnError { api.getCommunity(authenticated(request).toForm()) } }
 
-    open suspend fun getFederatedInstances(request: GetFederatedInstancesRequest = GetFederatedInstancesRequest()): ApiResult<GetFederatedInstancesResponse> =
-        retryOnError { api.getFederatedInstances(request.toForm()) }
+    val getFederatedInstances by cached() { request: GetFederatedInstancesRequest ->
+        retryOnError { api.getFederatedInstances(authenticated(request).toForm()) } }
 
-    //open suspend fun getModlog(request: GetModlogRequest): ApiResult<GetModlogResponse> =
-    //    retryOnError { api.getModlog(request.toForm()) }
+    //val getModlog by cached() { request: GetModlogRequest ->
+    //    retryOnError { api.getModlog(authenticated(request).toForm()) } }
 
-    open suspend fun getPersonDetails(request: GetPersonDetailsRequest): ApiResult<GetPersonDetailsResponse> =
-        retryOnError { api.getPersonDetails(request.toForm()) }
+    val getPersonDetails by cached() { request: GetPersonDetailsRequest ->
+        retryOnError { api.getPersonDetails(authenticated(request).toForm()) } }
 
-    //open suspend fun getPersonMentions(request: GetPersonMentionsRequest): ApiResult<GetPersonMentionsResponse> =
-    //    retryOnError { api.getPersonMentions(request.toForm()) }
+    //val getPersonMentions by cached() { request: GetPersonMentionsRequest ->
+    //    retryOnError { api.getPersonMentions(authenticated(request).toForm()) } }
 
-    open suspend fun getPost(request: GetPostRequest): ApiResult<GetPostResponse> =
-        retryOnError { api.getPost(request.toForm()) }
+    val getPost by cached() { request: GetPostRequest ->
+        retryOnError { api.getPost(authenticated(request).toForm()) } }
 
-    open suspend fun getPosts(request: GetPostsRequest): ApiResult<GetPostsResponse> =
-        retryOnError { api.getPosts(request.toForm()) }
+    val getPosts by cached() { request: GetPostsRequest ->
+        retryOnError { api.getPosts(authenticated(request).toForm()) } }
 
-    //open suspend fun getPrivateMessages(request: GetPrivateMessagesRequest): ApiResult<PrivateMessagesResponse> =
-    //    retryOnError { api.getPrivateMessages(request.toForm()) }
+    //val getPrivateMessages by cached() { request: GetPrivateMessagesRequest ->
+    //    retryOnError { api.getPrivateMessages(authenticated(request).toForm()) } }
 
-    //open suspend fun getReplies(request: GetRepliesRequest): ApiResult<GetRepliesResponse> =
-    //    retryOnError { api.getReplies(request.toForm()) }
+    //val getReplies by cached() { request: GetRepliesRequest ->
+    //    retryOnError { api.getReplies(authenticated(request).toForm()) } }
 
-    //open suspend fun getReportCount(request: GetReportCountRequest): ApiResult<GetReportCountResponse> =
-    //    retryOnError { api.getReportCount(request.toForm()) }
+    //val getReportCount by cached() { request: GetReportCountRequest ->
+    //    retryOnError { api.getReportCount(authenticated(request).toForm()) } }
 
-    open suspend fun getSite(request: GetSiteRequest = GetSiteRequest()): ApiResult<GetSiteResponse> =
-        retryOnError { api.getSite(request.toForm()) }
+    val getSite by cachedWithDefault(GetSiteRequest()) { request ->
+        retryOnError { api.getSite(authenticated(request).toForm()) } }
 
-    //open suspend fun getSiteMetadata(request: GetSiteMetadataRequest): ApiResult<GetSiteMetadataResponse> =
-    //    retryOnError { api.getSiteMetadata(request.toForm()) }
+    //val getSiteMetadata by cached() { request: GetSiteMetadataRequest ->
+    //    retryOnError { api.getSiteMetadata(authenticated(request).toForm()) } }
 
-    open suspend fun getUnreadCount(request: GetUnreadCountRequest = GetUnreadCountRequest()): ApiResult<GetUnreadCountResponse> =
-        retryOnError { api.getUnreadCount(request.toForm()) }
+    val getUnreadCount by cachedWithDefault(GetUnreadCountRequest()) { request ->
+        retryOnError { api.getUnreadCount(authenticated(request).toForm()) } }
 
-    //open suspend fun getUnreadRegistrationApplicationCount(request: GetUnreadRegistrationApplicationCountRequest): ApiResult<GetUnreadRegistrationApplicationCountResponse> =
-    //    retryOnError { api.getUnreadRegistrationApplicationCount(request.toForm()) }
+    //val getUnreadRegistrationApplicationCount by cached() { request: GetUnreadRegistrationApplicationCountRequest ->
+    //    retryOnError { api.getUnreadRegistrationApplicationCount(authenticated(request).toForm()) } }
 
-    //open suspend fun leaveAdmin(request: LeaveAdminRequest): ApiResult<GetSiteResponse> =
-    //    retryOnError { api.leaveAdmin(request) }
+    //val leaveAdmin by cached() { request: LeaveAdminRequest ->
+    //    retryOnError { api.leaveAdmin(authenticated(request)) } }
 
-    open suspend fun likeComment(request: CreateCommentLikeRequest): ApiResult<CommentResponse> =
-        retryOnError { api.likeComment(request) }
+    val likeComment by cached() { request: CreateCommentLikeRequest ->
+        retryOnError { api.likeComment(authenticated(request)) } }
 
-    open suspend fun likePost(request: CreatePostLikeRequest): ApiResult<PostResponse> =
-        retryOnError { api.likePost(request) }
+    val likePost by cached() { request: CreatePostLikeRequest ->
+        retryOnError { api.likePost(authenticated(request)) } }
 
-    //open suspend fun listCommentReports(request: ListCommentReportsRequest): ApiResult<ListCommentReportsResponse> =
-    //    retryOnError { api.listCommentReports(request.toForm()) }
+    //val listCommentReports by cached() { request: ListCommentReportsRequest ->
+    //    retryOnError { api.listCommentReports(authenticated(request).toForm()) } }
 
-    open suspend fun listCommunities(request: ListCommunitiesRequest): ApiResult<ListCommunitiesResponse> =
-        retryOnError { api.listCommunities(request.toForm()) }
+    val listCommunities by cached() { request: ListCommunitiesRequest ->
+        retryOnError { api.listCommunities(authenticated(request).toForm()) } }
 
-    //open suspend fun listPostReports(request: ListPostReportsRequest): ApiResult<ListPostReportsResponse> =
-    //    retryOnError { api.listPostReports(request.toForm()) }
+    //val listPostReports by cached() { request: ListPostReportsRequest ->
+    //    retryOnError { api.listPostReports(authenticated(request).toForm()) } }
 
-    //open suspend fun listPrivateMessageReports(request: ListPrivateMessageReportsRequest): ApiResult<ListPrivateMessageReportsResponse> =
-    //    retryOnError { api.listPrivateMessageReports(request.toForm()) }
+    //val listPrivateMessageReports by cached() { request: ListPrivateMessageReportsRequest ->
+    //    retryOnError { api.listPrivateMessageReports(authenticated(request).toForm()) } }
 
-    //open suspend fun listRegistrationApplications(request: ListRegistrationApplicationsRequest): ApiResult<ListRegistrationApplicationsResponse> =
-    //    retryOnError { api.listRegistrationApplications(request.toForm()) }
+    //val listRegistrationApplications by cached() { request: ListRegistrationApplicationsRequest ->
+    //    retryOnError { api.listRegistrationApplications(authenticated(request).toForm()) } }
 
-    //open suspend fun lockPost(request: LockPostRequest): ApiResult<PostResponse> =
-    //    retryOnError { api.lockPost(request) }
+    //val lockPost by cached() { request: LockPostRequest ->
+    //    retryOnError { api.lockPost(authenticated(request)) } }
 
-    open suspend fun login(request: LoginRequest): ApiResult<LoginResponse> =
-        retryOnError { api.login(request) }
+    val login by cached(timeToLive = ZERO) { request: LoginRequest ->
+        retryOnError { api.login(request) } }
 
-    //open suspend fun markAllAsRead(request: MarkAllAsReadRequest): ApiResult<GetRepliesResponse> =
-    //    retryOnError { api.markAllAsRead(request) }
+    //val markAllAsRead by cached() { request: MarkAllAsReadRequest ->
+    //    retryOnError { api.markAllAsRead(authenticated(request)) } }
 
-    //open suspend fun markCommentReplyAsRead(request: MarkCommentReplyAsReadRequest): ApiResult<CommentReplyResponse> =
-    //    retryOnError { api.markCommentReplyAsRead(request) }
+    //val markCommentReplyAsRead by cached() { request: MarkCommentReplyAsReadRequest ->
+    //    retryOnError { api.markCommentReplyAsRead(authenticated(request)) } }
 
-    //open suspend fun markPersonMentionAsRead(request: MarkPersonMentionAsReadRequest): ApiResult<PersonMentionResponse> =
-    //    retryOnError { api.markPersonMentionAsRead(request) }
+    //val markPersonMentionAsRead by cached() { request: MarkPersonMentionAsReadRequest ->
+    //    retryOnError { api.markPersonMentionAsRead(authenticated(request)) } }
 
-    //open suspend fun markPostAsRead(request: MarkPostAsReadRequest): ApiResult<PostResponse> =
-    //    retryOnError { api.markPostAsRead(request) }
+    //val markPostAsRead by cached() { request: MarkPostAsReadRequest ->
+    //    retryOnError { api.markPostAsRead(authenticated(request)) } }
 
-    //open suspend fun markPrivateMessageAsRead(request: MarkPrivateMessageAsReadRequest): ApiResult<PrivateMessageResponse> =
-    //    retryOnError { api.markPrivateMessageAsRead(request) }
+    //val markPrivateMessageAsRead by cached() { request: MarkPrivateMessageAsReadRequest ->
+    //    retryOnError { api.markPrivateMessageAsRead(authenticated(request)) } }
 
-    //open suspend fun passwordChangeAfterReset(request: PasswordChangeAfterResetRequest): ApiResult<LoginResponse> =
-    //    retryOnError { api.passwordChangeAfterReset(request) }
+    //val passwordChangeAfterReset by cached() { request: PasswordChangeAfterResetRequest ->
+    //    retryOnError { api.passwordChangeAfterReset(authenticated(request)) } }
 
-    //open suspend fun passwordReset(request: PasswordResetRequest): ApiResult<Unit> =
-    //    retryOnError { api.passwordReset(request) }
+    //val passwordReset by cached() { request: PasswordResetRequest ->
+    //    retryOnError { api.passwordReset(authenticated(request)) } }
 
-    //open suspend fun purgeComment(request: PurgeCommentRequest): ApiResult<PurgeItemResponse> =
-    //    retryOnError { api.purgeComment(request) }
+    //val purgeComment by cached() { request: PurgeCommentRequest ->
+    //    retryOnError { api.purgeComment(authenticated(request)) } }
 
-    //open suspend fun purgeCommunity(request: PurgeCommunityRequest): ApiResult<PurgeItemResponse> =
-    //    retryOnError { api.purgeCommunity(request) }
+    //val purgeCommunity by cached() { request: PurgeCommunityRequest ->
+    //    retryOnError { api.purgeCommunity(authenticated(request)) } }
 
-    //open suspend fun purgePerson(request: PurgePersonRequest): ApiResult<PurgeItemResponse> =
-    //    retryOnError { api.purgePerson(request) }
+    //val purgePerson by cached() { request: PurgePersonRequest ->
+    //    retryOnError { api.purgePerson(authenticated(request)) } }
 
-    //open suspend fun purgePost(request: PurgePostRequest): ApiResult<PurgeItemResponse> =
-    //    retryOnError { api.purgePost(request) }
+    //val purgePost by cached() { request: PurgePostRequest ->
+    //    retryOnError { api.purgePost(authenticated(request)) } }
 
-    //open suspend fun register(request: RegisterRequest): ApiResult<LoginResponse> =
-    //    retryOnError { api.register(request) }
+    //val register by cached() { request: RegisterRequest ->
+    //    retryOnError { api.register(authenticated(request)) } }
 
-    //open suspend fun removeComment(request: RemoveCommentRequest): ApiResult<CommentResponse> =
-    //    retryOnError { api.removeComment(request) }
+    //val removeComment by cached() { request: RemoveCommentRequest ->
+    //    retryOnError { api.removeComment(authenticated(request)) } }
 
-    //open suspend fun removeCommunity(request: RemoveCommunityRequest): ApiResult<CommunityResponse> =
-    //    retryOnError { api.removeCommunity(request) }
+    //val removeCommunity by cached() { request: RemoveCommunityRequest ->
+    //    retryOnError { api.removeCommunity(authenticated(request)) } }
 
-    //open suspend fun removePost(request: RemovePostRequest): ApiResult<PostResponse> =
-    //    retryOnError { api.removePost(request) }
+    //val removePost by cached() { request: RemovePostRequest ->
+    //    retryOnError { api.removePost(authenticated(request)) } }
 
-    //open suspend fun resolveCommentReport(request: ResolveCommentReportRequest): ApiResult<CommentReportResponse> =
-    //    retryOnError { api.resolveCommentReport(request) }
+    //val resolveCommentReport by cached() { request: ResolveCommentReportRequest ->
+    //    retryOnError { api.resolveCommentReport(authenticated(request)) } }
 
-    //open suspend fun resolveObject(request: ResolveObjectRequest): ApiResult<ResolveObjectResponse> =
-    //    retryOnError { api.resolveObject(request.toForm()) }
+    //val resolveObject by cached() { request: ResolveObjectRequest ->
+    //    retryOnError { api.resolveObject(authenticated(request).toForm()) } }
 
-    //open suspend fun resolvePostReport(request: ResolvePostReportRequest): ApiResult<PostReportResponse> =
-    //    retryOnError { api.resolvePostReport(request) }
+    //val resolvePostReport by cached() { request: ResolvePostReportRequest ->
+    //    retryOnError { api.resolvePostReport(authenticated(request)) } }
 
-    //open suspend fun resolvePrivateMessageReport(request: ResolvePrivateMessageReportRequest): ApiResult<PrivateMessageReportResponse> =
-    //    retryOnError { api.resolvePrivateMessageReport(request) }
+    //val resolvePrivateMessageReport by cached() { request: ResolvePrivateMessageReportRequest ->
+    //    retryOnError { api.resolvePrivateMessageReport(authenticated(request)) } }
 
-    //open suspend fun saveComment(request: SaveCommentRequest): ApiResult<CommentResponse> =
-    //    retryOnError { api.saveComment(request) }
+    //val saveComment by cached() { request: SaveCommentRequest ->
+    //    retryOnError { api.saveComment(authenticated(request)) } }
 
-    //open suspend fun savePost(request: SavePostRequest): ApiResult<PostResponse> =
-    //    retryOnError { api.savePost(request) }
+    //val savePost by cached() { request: SavePostRequest ->
+    //    retryOnError { api.savePost(authenticated(request)) } }
 
-    //open suspend fun saveUserSettings(request: SaveUserSettingsRequest): ApiResult<LoginResponse> =
-    //    retryOnError { api.saveUserSettings(request) }
+    //val saveUserSettings by cached() { request: SaveUserSettingsRequest ->
+    //    retryOnError { api.saveUserSettings(authenticated(request)) } }
 
-    //open suspend fun search(request: SearchRequest): ApiResult<SearchResponse> =
-    //    retryOnError { api.search(request.toForm()) }
+    //val search by cached() { request: SearchRequest ->
+    //    retryOnError { api.search(authenticated(request).toForm()) } }
 
-    //open suspend fun transferCommunity(request: TransferCommunityRequest): ApiResult<GetCommunityResponse> =
-    //    retryOnError { api.transferCommunity(request) }
+    //val transferCommunity by cached() { request: TransferCommunityRequest ->
+    //    retryOnError { api.transferCommunity(authenticated(request)) } }
 
-    open suspend fun uploadImage(request: UploadImageRequest): ApiResult<UploadImageResponse> =
-        retryOnError { api.uploadImage(pictrs,
-            HttpCookie("jwt", request.auth!!).toString(),
-            request.image.let {
+    val uploadImage by cached() { request: UploadImageRequest ->
+        retryOnError {
+            api.uploadImage(pictrs,
+                HttpCookie("jwt", authenticated(request).auth!!).toString(),
                 MultipartBody.Part.createFormData(
                     "images[]", request.filename, request.image.toRequestBody()
                 )
-            }) }
+            )
+        }
+    }
 
     //open suspend fun verifyEmail(request: VerifyEmailRequest): Unit =
-    //    retryOnError { api.verifyEmail(request) }
+    //    retryOnError { api.verifyEmail(authenticated(request)) } }
 
 
-    protected open suspend fun <T : IResponse> retryOnError(block: suspend () -> Response<T>): ApiResult<T> {
+    private suspend fun <T : IResponse> retryOnError(block: suspend () -> Response<T>): ApiResult<T> {
         val withCallerScope: KFunction1<Throwable.() -> Unit, Unit> = let {
             val t = Throwable("ApiCall")
             t::run
@@ -377,6 +404,7 @@ open class InstanceApi (
         val call: suspend () -> T = {
             val response = block()
 
+            //noinspection KotlinCompilerError
             val path = response.raw().request.url.encodedPath
 
             when {
@@ -404,6 +432,10 @@ open class InstanceApi (
 
             when (exception) {
                 is ApiException -> {
+                    if (exception.reason == ApiException.Reason.Unauthenticated && jwt != null) {
+                        logger.debug { "Unauthenticated" }
+                        refresh()
+                    }
                     currentRetry -= 1
                 }
 
@@ -469,6 +501,21 @@ open class InstanceApi (
                 is JsonObject -> TODO()
             } }
             .filterNotNullValues()
+    }
+
+    private suspend fun refresh() {
+        logger.debug { "Refreshing Token" }
+        jwt = login(LoginRequest(username!!, password!!, totp))
+            .mapSuccess { data.success.jwt }
+            .success
+    }
+
+    protected suspend fun <T : Authenticated> authenticated(request: T): T {
+        if (jwt == null) refresh()
+        return request.apply { auth = jwt!!.token }
+            .also {
+                logger.trace { "Authenticated Request: ${request.auth}" }
+            }
     }
 }
 

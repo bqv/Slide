@@ -94,12 +94,12 @@ class LemmyDataSource(
 
     private suspend fun login(username: String, domain: String, password: String, totp: String?): Token {
         val api = getApi.getOrCreateAccount(username, password, totp, domain)
-        return api.token()
+        return api.token
     }
 
     private suspend fun login(username: String, domain: String, token: Token): Token {
         val api = getApi.getOrCreateAccount(username, token.token, domain)
-        return api.token()
+        return api.token
     }
 
     override suspend fun updateSite(domain: String) {
