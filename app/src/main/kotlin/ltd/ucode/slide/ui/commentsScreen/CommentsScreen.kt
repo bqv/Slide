@@ -291,7 +291,7 @@ class CommentsScreen : BaseActivityAnim(), SubmissionDisplay {
                 args.putBoolean("contest", currentPosts!![i]!!.isContest)
                 args.putBoolean("locked", currentPosts!![i]!!.isLocked)
                 args.putInt("page", i)
-                args.putString("subreddit", currentPosts!![i]!!.groupName)
+                args.putString("community", currentPosts!![i]!!.groupName)
                 args.putString(
                     "baseSubreddit",
                     if (multireddit == null) baseSubreddit else "multi$multireddit"
@@ -309,8 +309,8 @@ class CommentsScreen : BaseActivityAnim(), SubmissionDisplay {
     companion object {
         const val EXTRA_PROFILE = "profile"
         const val EXTRA_PAGE = "page"
-        const val EXTRA_SUBREDDIT = "subreddit"
-        const val EXTRA_MULTIREDDIT = "multireddit"
+        const val EXTRA_SUBREDDIT = "community"
+        const val EXTRA_MULTIREDDIT = "multicommunity"
         const val EXTRA_FULLNAME = "fullname"
         const val EXTRA_POSTID = "postid"
         const val EXTRA_POSTS = "posts"
