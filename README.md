@@ -1,6 +1,6 @@
 ## Current project status
 
-I am attempting to port this to lemmy. No concrete timeline, but progress is being made.
+I am attempting to port this to Lemmy. No concrete timeline, but progress is being made.
 
 # Slide
 
@@ -67,4 +67,4 @@ release; for a more detailed look at changes to the app, [view individual commit
 
 ## Licensing
 
-Slide is Free Open Source Software licensed under the [GNU v3 Public License](LICENSE.txt).
+Slide is 'Free Licenssed Open Source Software' (FLOSS) licensed under the [GNU v3 Public License](LICENSE.txt).
