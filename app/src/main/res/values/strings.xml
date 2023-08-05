@@ -29,7 +29,7 @@
     <string name="submission_link_copy">Copy URL</string>
     <string name="submission_link_share">Share URL</string>
     <string name="submission_share_title">Which link would you like to share?</string>
-    <string name="submission_share_reddit">Reddit URL</string>
+    <string name="submission_share_reddit">Lemmy URL</string>
     <string name="submission_share_content">Content URL</string>
     <string name="submission_hide">Hide post</string>
     <string name="submission_report">Report post</string>
@@ -39,7 +39,7 @@
     <string name="submission_load_full">Load full thread</string>
     <string name="submission_np_link">This is a no participation link. Please don\'t vote or comment.</string>
     <string name="submission_tap_gif">Tap to load GIF</string>
-    <string name="submission_not_found">Uh oh, post not found!</string>
+    <string name="submission_not_found">Yikes, post not found!</string>
     <string name="submission_not_found_msg">Sorry, this post could not be found</string>
     <string name="submission_copy_text">Copy text</string>
     <string name="submission_comment_saved">Comment saved</string>
@@ -122,8 +122,8 @@
 
 
     <!-- Sidebar items (That's the one on the right) -->
-    <string name="sidebar_wiki">Subreddit wiki</string>
-    <string name="sidebar_mods">Subreddit moderators</string>
+    <string name="sidebar_wiki">Community wiki</string>
+    <string name="sidebar_mods">Community moderators</string>
 
 
     <!-- User profile -->
@@ -135,7 +135,7 @@
     <string name="profile_read_later">Read Later</string>
     <string name="profile_upvoted">Upvoted</string>
     <string name="profile_err_title">User not found</string>
-    <string name="profile_err_msg">Reddit user could not be retrieved</string>
+    <string name="profile_err_msg">Fediverse user could not be retrieved</string>
     <string name="profile_overview">Overview</string>
     <string name="profile_comments">Comments</string>
     <string name="profile_submitted">Submitted</string>
@@ -149,7 +149,7 @@
     <string name="profile_remove">Delete account</string>
     <string name="profile_history">History</string>
     <string name="profile_share">%s\'s profile</string>
-    <string name="profile_age">Redditor for %s</string>
+    <string name="profile_age">Fedditer for %s</string>
     <string name="profile_tag">Tag</string>
     <string name="profile_tag_set">Set tag for %s</string>
     <string name="profile_tag_user">Tag user</string>
@@ -249,20 +249,20 @@
     <string name="err_invalid_url">Invalid URL</string>
     <string name="err_loading_content">Error loading content</string>
     <string name="err_general">Uh oh, an error occurred</string>
-    <string name="err_no_connection">Reddit could not be reached. Would you like to try again?</string>
+    <string name="err_no_connection">Lemmy could not be reached. Would you like to try again?</string>
     <string name="err_retry_later">Try again in a minute!</string>
     <string name="err_permission">Permission was denied</string>
     <string name="err_permission_msg">It looks like you denied Slide access to write to external storage. This will cause image cache, post cache, and saving images to fail :(. \nWould you like to allow Slide to access external storage?</string>
     <string name="err_authentication">Authentication failed</string>
-    <string name="err_submit_restricted">This subreddit is restricted</string>
-    <string name="err_submit_restricted_text">You are not allowed to post here. Please choose another subreddit</string>
+    <string name="err_submit_restricted">This community is restricted</string>
+    <string name="err_submit_restricted_text">You are not allowed to post here. Please choose another community</string>
     <string name="error_video_not_found">Video not found</string>
     <string name="error_video_message">An error occurred while loading this video</string>
     <string name="error_album_not_found">Album not found</string>
     <string name="error_album_not_found_text">Would you like to open the link in browser?</string>
     <string name="err_comment_post_nosave_message">\nPlease try again in a minute</string>
-    <string name="err_could_not_find_content_msg">Reddit could not find the requested content</string>
-    <string name="err_refused_request_msg">Reddit refused a request. Would you like to attempt to re-connect to Reddit?</string>
+    <string name="err_could_not_find_content_msg">Slide could not find the requested content</string>
+    <string name="err_refused_request_msg">Lemmy refused a request. Would you like to attempt to re-connect to Lemmy?</string>
     <string name="err_color_sync_login">Please log in to use Color Sync</string>
     <string name="err_something_wrong">Uh oh, something went wrong</string>
     <string name="err_couldnt_save_choose_new">Slide couldn\'t save to the selected directory. Would you like to choose a new save location?</string>
@@ -274,7 +274,7 @@
     <string name="err_comment_post">Uh oh, posting this comment failed!</string>
     <string name="err_comment_post_reason">Reason: %1$s</string>
     <string name="err_comment_post_message">\n\nYour message has been saved as a draft. Please try again later.</string>
-    <string name="err_connection_failed_msg">The connection to Reddit failed. Please check your internet connection and try again, or enter offline mode.</string>
+    <string name="err_connection_failed_msg">The connection to Lemmy failed. Please check your internet connection and try again, or enter offline mode.</string>
     <string name="err_block_user">Error blocking user</string>
 
     <!-- Gif -->
@@ -283,33 +283,33 @@
 
 
     <!-- Multireddits -->
-    <string name="multireddit_err_title">No multireddits (yet)!</string>
-    <string name="multireddit_err_msg">Would you like to create a new multireddit?</string>
+    <string name="multireddit_err_title">No multicommunites (yet)!</string>
+    <string name="multireddit_err_msg">Would you like to create a new multicommunity?</string>
     <string name="public_multireddit_err_title">No multireddits!</string>
-    <string name="public_multireddit_err_msg">This user has no public multireddits.</string>
+    <string name="public_multireddit_err_msg">This user has no public multicommunity.</string>
     <string name="multireddit_title_empty">Title can\'t be empty</string>
-    <string name="multireddit_title_empty_msg">Please enter a title for your multireddit</string>
+    <string name="multireddit_title_empty_msg">Please enter a title for your multicommunity</string>
     <string name="multireddit_no_subs">No subreddits are added</string>
-    <string name="multireddit_save_err">The title of this multireddit already exists or there is no space for more subreddits here</string>
-    <string name="multireddit_no_subs_msg">Please add some subreddits by clicking on the + button!</string>
-    <string name="multireddit_selector">Select subreddits to add</string>
-    <string name="multireddit_create_hint">Multireddit name</string>
-    <string name="multireddit_invalid_name">Invalid multireddit name</string>
-    <string name="multireddit_invalid_name_msg">Multireddit names may only contain letters, numbers and underscores</string>
+    <string name="multireddit_save_err">The title of this multicommunity already exists or there is no space for more subreddits here</string>
+    <string name="multireddit_no_subs_msg">Please add some communities by clicking on the + button!</string>
+    <string name="multireddit_selector">Select communites to add</string>
+    <string name="multireddit_create_hint">Multicommunity name</string>
+    <string name="multireddit_invalid_name">Invalid multicommunity name</string>
+    <string name="multireddit_invalid_name_msg">Multicommunity names may only contain letters, numbers and underscores</string>
     <string name="multi_add_to">Add /r/%s to</string>
-    <string name="multi_subreddit_added">Subreddit added to /m/%1$s</string>
+    <string name="multi_subreddit_added">Community added to /m/%1$s</string>
     <string name="multi_error">An error occurred, please try again later</string>
     <string name="btn_import_multi">Import multireddit</string>
     <string name="multi_submit_which_sub">Which sub would you like to submit to?</string>
     <string name="multi_saved_successfully">Saved successfully</string>
     <string name="delete_multireddit_title">Do you really want to delete /m/%1$s?</string>
-    <string name="multi_save_option">Would you like to save this multireddit?</string>
+    <string name="multi_save_option">Would you like to save this multicommunity?</string>
 
 
     <!-- Content types -->
     <string name="type_nsfw_img">NSFW image</string>
     <string name="type_nsfw_gif">NSFW GIF</string>
-    <string name="type_reddit">Reddit link</string>
+    <string name="type_reddit">Lemmy link</string>
     <string name="type_link">Link</string>
     <string name="type_nsfw_link">NSFW link</string>
     <string name="type_gif">GIF</string>
@@ -407,7 +407,7 @@
     <string name="btn_discard">Discard</string>
     <string name="btn_done">Done</string>
     <string name="btn_go_back">Go back</string>
-    <string name="btn_no_thanks">No thank you</string>
+    <string name="btn_no_thanks">No, thank you</string>
     <string name="btn_no">No</string>
     <string name="btn_ok">OK</string>
     <string name="btn_remove">Remove</string>
@@ -463,6 +463,7 @@
     <string name="backup_backing_up">Backing up your settings</string>
     <string name="backup_restore_settings">Restoring settings successful!</string>
     <string name="backup_restarting">App will now restart</string>
+    <!-- Isn't Google Drive a "third-party service or server." -->
     <string name="backup_info">Slide backs up all your data to a private Google Drive folder. You can sync this data across devices (or to the same device), and your data never goes through a third-party service or server.</string>
     <string name="backup_btn">Backup</string>
     <string name="backup_btn_restore">Restore</string>
@@ -560,15 +561,15 @@
 
     <!-- Subreddit Wiki -->
     <string name="wiki_err">No wiki found</string>
-    <string name="wiki_err_msg">This subreddit doesn\'t have a wiki!</string>
+    <string name="wiki_err_msg">This community doesn\'t have a wiki!</string>
 
 
     <!-- Subreddits -->
     <string name="subreddit_subscribers_string">%1$s subscribers</string>
     <string name="subreddit_active_users_string_new">%1$s here now</string>
-    <string name="subreddit_err_msg">The subreddit %1$s could not be found. Perhaps it\'s spelled wrong?</string>
-    <string name="subreddit_err_msg_new">The subreddit %1$s could not be found. Perhaps it\'s spelled wrong, or you do not have access to this subreddit.</string>
-    <string name="subreddit_err">Subreddit not found</string>
+    <string name="subreddit_err_msg">The community %1$s could not be found. Perhaps it\'s spelled wrong?</string>
+    <string name="subreddit_err_msg_new">The commmunity %1$s could not be found. Perhaps it\'s spelled wrong, or you do not have access to this subreddit.</string>
+    <string name="subreddit_err">Community not found</string>
 
 
     <!-- Search -->
@@ -586,7 +587,7 @@
 
 
     <!-- Settings -->
-    <string name="settings_reddit_prefs">Reddit preferences</string>
+    <string name="settings_reddit_prefs">Lemmy preferences</string>
     <string name="settings_accent_title">Edit accent color</string>
     <string name="settings_delete_sub_settings">Do you really want to delete settings for %1$s?</string>
     <string name="settings_layout_default">Post layout</string>
@@ -742,7 +743,7 @@
     <string name="settings_mod_removal_reasons">Removal reason type</string>
     <string name="settings_mod_removal_slide">Slide \"remove with reason\"</string>
     <string name="settings_mod_removal_toolbox">Toolbox removal reasons</string>
-    <string name="settings_mod_removal_reddit">Reddit removal reasons</string>
+    <string name="settings_mod_removal_reddit">Lemmy removal reasons</string>
     <string name="settings_mod_toolbox_refresh">Force refresh Toolbox data</string>
     <string name="settings_mod_toolbox_message">Method of sending removal reasons</string>
     <string name="settings_mod_toolbox_sticky">Sticky removal comments</string>
@@ -830,12 +831,12 @@
     <string name="navigation">Navigation</string>
     <string name="collapse_comments">Collapse actions</string>
     <string name="nsfw">NSFW content</string>
-    <string name="view_reddit_settings">Open Reddit settings in browser</string>
+    <string name="view_reddit_settings">Open Lemmy settings in browser</string>
     <string name="font_styles">Font styles</string>
 
 
     <!-- Titles displayed in action bar / head / recents overview-->
-    <string name="title_subreddit_settings">Subreddit themes &amp; layouts</string>
+    <string name="title_subreddit_settings">Community themes &amp; layouts</string>
     <string name="title_edit_theme">Edit theme</string>
     <string name="title_submit_post">Submit post</string>
     <string name="title_crosspost">Crosspost</string>
@@ -856,7 +857,7 @@
     <string name="donate_amount_ads2">ads from being displayed</string>
     <string name="donate_amount_hours1">Supports</string>
     <string name="donate_amount_hours2">hours of development</string>
-    <string name="donate_title">Support Slide for Reddit</string>
+    <string name="donate_title">Support Slide for Lemmy</string>
 
 
     <!-- Offline mode -->
@@ -926,7 +927,7 @@
     <string name="over18_title">/r/%1$s contains mature content</string>
     <string name="over18_desc">Are you over eighteen and willing to see adult content?</string>
     <string name="over18_desc_loggedout">Log in to disable this warning permanently</string>
-    <string name="over18_desc_loggedin">You can disable this permanently in Settings → Reddit preferences → Show NSFW content</string>
+    <string name="over18_desc_loggedin">You can disable this permanently in Settings → Lemmy preferences → Show NSFW content</string>
 
 
     <!-- Subreddit color synchronization - https://redd.it/41054l -->
@@ -1215,7 +1216,7 @@
     <string name="btn_crosspost">Crosspost</string>
     <string name="btn_reset_color">RESET COLOR</string>
     <string name="settings_shortlink_description">Links will be shared as \'https://redd.it/\'</string>
-    <string name="settings_shortlink">Share Reddit shortlink where possible</string>
+    <string name="settings_shortlink">Share Lemmy shortlink where possible</string>
     <string name="disable_replies_comment">Disable comment inbox replies</string>
     <string name="replies_disabled_comment">Comment replies disabled</string>
     <string name="replies_enabled_comment">Comment replies enabled</string>
